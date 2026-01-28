@@ -30,39 +30,40 @@ function showSetup(prefill) {
   tokenInput.value = prefill?.token || '';
 }
 
-// --- Pixel "lobster" placeholders (swap for real sprites later) ---
+import { palette, lobsterIdle, overlay } from './sprites.js';
+
+function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
+  for (let py = 0; py < sprite.length; py += 1) {
+    const row = sprite[py];
+    for (let px = 0; px < row.length; px += 1) {
+      const ch = row[px];
+      const color = palette[ch];
+      if (!color) continue;
+      ctx.fillStyle = color;
+      ctx.fillRect(x + px * scale, y + py * scale, scale, scale);
+    }
+  }
+}
+
 function drawLobster(mode, t) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // background glow
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  // subtle shadow (keeps it readable on transparent backgrounds)
+  ctx.fillStyle = palette.s;
   ctx.beginPath();
-  ctx.ellipse(48, 56, 30, 26, 0, 0, Math.PI * 2);
+  ctx.ellipse(48, 78, 26, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // body
-  const bob = Math.sin(t / 250) * 1.5;
-  ctx.fillStyle = mode === 'error' ? '#ff3b30' : (mode === 'tool' ? '#34c759' : (mode === 'thinking' ? '#0a84ff' : '#ff9f0a'));
-  ctx.fillRect(34, 28 + bob, 28, 30);
+  const frame = Math.floor(t / 260) % 2;
+  const bob = Math.sin(t / 260) * 2;
 
-  // eyes
-  ctx.fillStyle = 'white';
-  ctx.fillRect(40, 34 + bob, 4, 4);
-  ctx.fillRect(52, 34 + bob, 4, 4);
-  ctx.fillStyle = 'black';
-  ctx.fillRect(41, 35 + bob, 2, 2);
-  ctx.fillRect(53, 35 + bob, 2, 2);
+  // main sprite
+  drawSprite(lobsterIdle[frame], { x: 0, y: Math.round(bob), scale: 3 });
 
-  // claws
-  const claw = Math.sin(t / 120) * (mode === 'thinking' ? 2 : 1);
-  ctx.fillStyle = ctx.fillStyle;
-  ctx.fillRect(24 + claw, 38 + bob, 10, 8);
-  ctx.fillRect(62 - claw, 38 + bob, 10, 8);
-
-  // label
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = '10px ui-sans-serif, system-ui';
-  ctx.fillText(mode.toUpperCase(), 30, 80);
+  // overlays (simple icons)
+  if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: -2, scale: 3 });
+  if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: -2, scale: 3 });
+  if (mode === 'error') drawSprite(overlay.error, { x: 0, y: -2, scale: 3 });
 }
 
 // --- State machine ---
