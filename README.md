@@ -47,6 +47,9 @@ bun install
 GATEWAY_URL=ws://127.0.0.1:18789 bun run ws:dump
 # optional (if your Gateway requires a token):
 GATEWAY_TOKEN=... bun run ws:dump
+
+# deterministic one-shot (prints hello-ok then exits):
+GATEWAY_TOKEN=... bun run ws:dump --once
 ```
 
 If you see `NOT_PAIRED` / `device identity required`, your Gateway is configured to require client identity pairing/auth.
