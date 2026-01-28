@@ -205,8 +205,18 @@ saveBtn.addEventListener('click', () => {
 
 // boot
 const cfg = loadCfg();
+const envUrl = (window.mig15?.env?.gatewayUrl || '').trim();
+const envToken = (window.mig15?.env?.gatewayToken || '').trim();
+
+// If no saved cfg, allow env to pre-seed (so we can auto-run overnight without UI clicks).
 if (!cfg?.url) {
-  showSetup(cfg);
+  if (envUrl) {
+    const seeded = { url: envUrl, token: envToken };
+    saveCfg(seeded);
+    connect(seeded);
+  } else {
+    showSetup(cfg);
+  }
 } else {
   connect(cfg);
 }
