@@ -45,9 +45,12 @@ bun install
 
 ```bash
 GATEWAY_URL=ws://127.0.0.1:18789 bun run ws:dump
-# optional:
+# optional (if your Gateway requires a token):
 GATEWAY_TOKEN=... bun run ws:dump
 ```
+
+If you see `NOT_PAIRED` / `device identity required`, your Gateway is configured to require client identity pairing/auth.
+For this MVP, the recommended path is enabling **token auth** (`gateway.auth.mode=token`) and using `GATEWAY_TOKEN`.
 
 ## Run (desktop mascot)
 
