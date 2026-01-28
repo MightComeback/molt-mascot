@@ -4,10 +4,13 @@ const urlInput = document.getElementById('url');
 const tokenInput = document.getElementById('token');
 const saveBtn = document.getElementById('save');
 
+const captureDir = (window.moltMascot?.env?.captureDir || '').trim();
+const isCapture = Boolean(captureDir);
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-const STORAGE_KEY = 'mig15:gateway';
+const STORAGE_KEY = 'moltMascot:gateway';
 
 function loadCfg() {
   try {
@@ -83,6 +86,11 @@ function setMode(mode) {
   pill.textContent = mode;
 }
 
+// For deterministic screenshots / demos.
+window.__moltMascotSetMode = (mode) => {
+  if (Object.values(Mode).includes(mode)) setMode(mode);
+};
+
 function scheduleIdle(delayMs = 800) {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => setMode(Mode.idle), delayMs);
@@ -118,13 +126,15 @@ function connect(cfg) {
         minProtocol: 3,
         maxProtocol: 3,
         client: {
-          id: 'gateway-client',
-          displayName: 'MIG-15 Mascot',
+          id: 'cli',
+          displayName: 'molt-mascot',
           version: '0.0.1',
           platform: navigator.userAgent,
-          mode: 'ui',
-          instanceId: `mig15-${Math.random().toString(16).slice(2)}`,
+          mode: 'cli',
+          instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
         },
+        role: 'operator',
+        scopes: ['operator.read'],
         auth: cfg.token ? { token: cfg.token } : undefined,
       },
     };
@@ -148,7 +158,7 @@ function connect(cfg) {
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
       const id = nextId('s');
-      ws.send(JSON.stringify({ type: 'req', id, method: 'mig15.state', params: {} }));
+      ws.send(JSON.stringify({ type: 'req', id, method: 'moltMascot.state', params: {} }));
       return;
     }
 
@@ -204,21 +214,26 @@ saveBtn.addEventListener('click', () => {
 });
 
 // boot
-const cfg = loadCfg();
-const envUrl = (window.mig15?.env?.gatewayUrl || '').trim();
-const envToken = (window.mig15?.env?.gatewayToken || '').trim();
-
-// If no saved cfg, allow env to pre-seed (so we can auto-run overnight without UI clicks).
-if (!cfg?.url) {
-  if (envUrl) {
-    const seeded = { url: envUrl, token: envToken };
-    saveCfg(seeded);
-    connect(seeded);
-  } else {
-    showSetup(cfg);
-  }
+if (isCapture) {
+  setup.hidden = true;
+  pill.textContent = 'demo';
 } else {
-  connect(cfg);
+  const cfg = loadCfg();
+  const envUrl = (window.moltMascot?.env?.gatewayUrl || '').trim();
+  const envToken = (window.moltMascot?.env?.gatewayToken || '').trim();
+
+  // If no saved cfg, allow env to pre-seed (so we can auto-run overnight without UI clicks).
+  if (!cfg?.url) {
+    if (envUrl) {
+      const seeded = { url: envUrl, token: envToken };
+      saveCfg(seeded);
+      connect(seeded);
+    } else {
+      showSetup(cfg);
+    }
+  } else {
+    connect(cfg);
+  }
 }
 
 function frame(t) {

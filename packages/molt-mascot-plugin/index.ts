@@ -12,7 +12,7 @@ type State = {
 };
 
 export default function register(api: any) {
-  const cfg: PluginConfig = api?.pluginConfig ?? api?.config?.plugins?.entries?.["mig15-lobster"]?.config ?? {};
+  const cfg: PluginConfig = api?.pluginConfig ?? api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? {};
   const idleDelayMs = typeof cfg.idleDelayMs === "number" ? cfg.idleDelayMs : 800;
   const errorHoldMs = typeof cfg.errorHoldMs === "number" ? cfg.errorHoldMs : 5000;
 
@@ -23,7 +23,7 @@ export default function register(api: any) {
     state.mode = mode;
     state.since = Date.now();
     if (extra?.lastError) state.lastError = extra.lastError;
-    api?.logger?.info?.({ mode }, "mig15: state");
+    api?.logger?.info?.({ mode }, "moltMascot: state");
   };
 
   let idleTimer: any = null;
@@ -33,7 +33,7 @@ export default function register(api: any) {
   };
 
   // Expose current simplified state to WS clients.
-  api.registerGatewayMethod?.("mig15.state", ({ respond }: any) => {
+  api.registerGatewayMethod?.("moltMascot.state", ({ respond }: any) => {
     respond(true, { ok: true, state });
   });
 
@@ -61,8 +61,8 @@ export default function register(api: any) {
   });
 
   api.registerService?.({
-    id: "mig15-lobster",
-    start: () => api?.logger?.info?.("mig15-lobster plugin ready"),
+    id: "molt-mascot",
+    start: () => api?.logger?.info?.("molt-mascot plugin ready"),
     stop: () => {
       if (idleTimer) clearTimeout(idleTimer);
     },

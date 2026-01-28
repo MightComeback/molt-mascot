@@ -3,10 +3,10 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "mig-15",
+      "name": "molt-mascot",
     },
-    "apps/mig15-mascot": {
-      "name": "mig15-mascot",
+    "apps/molt-mascot": {
+      "name": "molt-mascot",
       "dependencies": {
         "electron": "^30.0.0",
       },
@@ -103,7 +103,7 @@
 
     "matcher": ["matcher@3.0.0", "", { "dependencies": { "escape-string-regexp": "^4.0.0" } }, "sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng=="],
 
-    "mig15-mascot": ["mig15-mascot@workspace:apps/mig15-mascot"],
+    "molt-mascot": ["molt-mascot@workspace:apps/molt-mascot"],
 
     "mimic-response": ["mimic-response@3.1.0", "", {}, "sha512-z0yWI+4FDrrweS8Zmt4Ej5HdJmky15+L2e6Wgn3+iK5fWzb6T3fhNFq2+MeTRb064c6Wr4N/wv0DzQTjNzHNGQ=="],
 
