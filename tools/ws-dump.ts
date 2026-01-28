@@ -3,6 +3,9 @@ type GatewayCfg = {
   token?: string;
 };
 
+const args = new Set(process.argv.slice(2));
+const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
+
 const cfg: GatewayCfg = {
   url: process.env.GATEWAY_URL || "ws://127.0.0.1:18789",
   token: process.env.GATEWAY_TOKEN,
@@ -37,6 +40,8 @@ ws.addEventListener("open", () => {
   );
 });
 
+let gotHello = false;
+
 ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
   try {
@@ -44,12 +49,27 @@ ws.addEventListener("message", (ev) => {
     console.log(JSON.stringify(msg, null, 2));
 
     if (msg.type === "res" && msg.payload?.type === "hello-ok") {
+      gotHello = true;
+      if (once) {
+        try { ws.close(); } catch {}
+        return;
+      }
       ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
     }
   } catch {
     console.log(raw);
   }
 });
+
+// Safety: in --once mode, don’t hang forever if the server never replies.
+if (once) {
+  setTimeout(() => {
+    if (!gotHello) {
+      console.error("Timed out waiting for hello-ok");
+      process.exit(2);
+    }
+  }, 5000).unref?.();
+}
 
 ws.addEventListener("close", () => {
   process.exit(0);
