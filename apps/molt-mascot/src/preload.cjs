@@ -1,9 +1,10 @@
 const { contextBridge } = require('electron');
 
-contextBridge.exposeInMainWorld('mig15', {
+contextBridge.exposeInMainWorld('moltMascot', {
   platform: process.platform,
   env: {
     gatewayUrl: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || '',
     gatewayToken: process.env.GATEWAY_TOKEN || '',
+    captureDir: process.env.MOLT_MASCOT_CAPTURE_DIR || '',
   },
 });

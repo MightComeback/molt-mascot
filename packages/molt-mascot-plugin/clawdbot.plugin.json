@@ -1,6 +1,6 @@
 {
-  "id": "mig15-lobster",
-  "name": "MIG-15 Lobster Mascot",
+  "id": "molt-mascot",
+  "name": "molt-mascot",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

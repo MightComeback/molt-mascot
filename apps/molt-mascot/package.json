@@ -1,0 +1,13 @@
+{
+  "name": "molt-mascot",
+  "private": true,
+  "main": "src/electron-main.cjs",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "capture": "mkdir -p ../../assets/screenshots && MOLT_MASCOT_CAPTURE_DIR=../../assets/screenshots electron ."
+  },
+  "dependencies": {
+    "electron": "^30.0.0"
+  }
+}
