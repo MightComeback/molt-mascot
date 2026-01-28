@@ -1,0 +1,16 @@
+{
+  "id": "mig15-lobster",
+  "name": "MIG-15 Lobster Mascot",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "idleDelayMs": { "type": "number", "minimum": 0, "default": 800 },
+      "errorHoldMs": { "type": "number", "minimum": 0, "default": 5000 }
+    }
+  },
+  "uiHints": {
+    "idleDelayMs": { "label": "Idle delay (ms)", "placeholder": "800" },
+    "errorHoldMs": { "label": "Error hold (ms)", "placeholder": "5000" }
+  }
+}
