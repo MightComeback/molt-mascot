@@ -7,8 +7,8 @@ const args = new Set(process.argv.slice(2));
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 
 const cfg: GatewayCfg = {
-  url: process.env.GATEWAY_URL || "ws://127.0.0.1:18789",
-  token: process.env.GATEWAY_TOKEN,
+  url: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789",
+  token: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN,
 };
 
 let reqId = 0;
