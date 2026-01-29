@@ -68,11 +68,11 @@ Config lives under:
 ## Install
 
 ```bash
-npm install
+bun install
 ```
 
 ## Develop
 
 ```bash
-npm run dev
+bun run dev
 ```
