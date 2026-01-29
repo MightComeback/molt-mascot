@@ -1,0 +1,8 @@
+{
+  "name": "@molt/molt-mascot",
+  "private": true,
+  "version": "0.0.0",
+  "clawdbot": {
+    "extensions": ["index.ts"]
+  }
+}
