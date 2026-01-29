@@ -25,6 +25,9 @@ bun run mascot
 
 - **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1`
   - Toggle at runtime with **Cmd/Ctrl+Shift+M**
+- **Timing knobs** (no plugin required):
+  - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
+  - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `CLAWDBOT_GATEWAY_URL` / `CLAWDBOT_GATEWAY_TOKEN`)
 
 ## Dev tools
