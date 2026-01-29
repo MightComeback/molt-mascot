@@ -21,6 +21,12 @@ export GATEWAY_TOKEN=...
 bun run mascot
 ```
 
+### UX toggles
+
+- **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1`
+  - Toggle at runtime with **Cmd/Ctrl+Shift+M**
+- **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `CLAWDBOT_GATEWAY_URL` / `CLAWDBOT_GATEWAY_TOKEN`)
+
 ## Dev tools
 
 Dump raw Gateway frames:
