@@ -159,8 +159,9 @@ export default function register(api: any) {
   }
 
   api.registerService?.({
-    id: "molt-mascot",
-    start: () => api?.logger?.info?.("molt-mascot plugin ready"),
+    // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
+    id: pluginId,
+    start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
     stop: () => {
       clearIdleTimer();
       clearErrorTimer();
