@@ -198,6 +198,8 @@ export default function register(api: any) {
     stop: () => {
       clearIdleTimer();
       clearErrorTimer();
+      // Reset published state on shutdown so clients don't show a stale mode.
+      setMode("idle");
     },
   });
 }
