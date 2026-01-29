@@ -37,8 +37,15 @@ bun run screenshots
 
 ## Plugin (optional)
 
-There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method:
+There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
 
-- `moltMascot.state` → `{ ok: true, state: { mode, since, lastError? } }`
+Recommended (follows `pluginId.action`):
+- `molt-mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError? } }`
+
+Back-compat alias:
+- `moltMascot.state` → same payload
+
+Config lives under:
+- `plugins.entries.molt-mascot-plugin.config` (and `...enabled: true`)
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
