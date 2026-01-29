@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "clawdbot": {
-    "extensions": ["index.ts"]
+    "extensions": ["./index.ts"]
   }
 }
