@@ -158,8 +158,10 @@ function connect(cfg) {
       pill.textContent = 'connected';
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
+      // Prefer the canonical pluginId.action name (plugin id: "molt-mascot").
+      // The plugin still exposes "moltMascot.state" as a back-compat alias.
       const id = nextId('s');
-      ws.send(JSON.stringify({ type: 'req', id, method: 'moltMascot.state', params: {} }));
+      ws.send(JSON.stringify({ type: 'req', id, method: 'molt-mascot.state', params: {} }));
       return;
     }
 
