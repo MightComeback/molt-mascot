@@ -228,7 +228,9 @@ function connect(cfg) {
         if (p?.phase === 'error') {
           lastErrorMessage = 'agent error';
           setMode(Mode.error);
-          setTimeout(() => scheduleIdle(idleDelayMs), errorHoldMs);
+          // Hold the error state for the configured duration, then return to idle.
+          // (Don't add the idle-delay on top of the error hold.)
+          setTimeout(() => scheduleIdle(0), errorHoldMs);
         }
       }
       if (stream === 'tool') {
