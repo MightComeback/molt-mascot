@@ -58,7 +58,10 @@ export default function register(api: any) {
   };
 
   const setMode = (mode: Mode, extra?: Partial<State>) => {
-    const nextLastError = extra?.lastError ?? state.lastError;
+    // Only keep lastError while we're actually in error mode (avoids a "sticky" error indicator).
+    const nextLastError =
+      mode === "error" ? (extra?.lastError ?? state.lastError) : (extra?.lastError ?? undefined);
+
     const modeUnchanged = state.mode === mode;
     const lastErrorUnchanged =
       (state.lastError?.message ?? "") === (nextLastError?.message ?? "") &&
@@ -74,6 +77,7 @@ export default function register(api: any) {
     state.mode = mode;
     state.since = Date.now();
     if (nextLastError) state.lastError = nextLastError;
+    else delete (state as any).lastError;
 
     api?.logger?.info?.({ mode }, `${pluginId}: state`);
   };
