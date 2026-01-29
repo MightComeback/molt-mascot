@@ -170,8 +170,16 @@ function connect(cfg) {
       return;
     }
 
-    // Plugin state response
-    if (msg.type === 'res' && msg.ok && msg.payload?.ok && msg.payload?.state?.mode) {
+    // Plugin state response (only honor the response to *our* request).
+    // This avoids accidentally treating unrelated "res" frames as mascot state.
+    if (
+      msg.type === 'res' &&
+      msg.id &&
+      msg.id === pluginStateReqId &&
+      msg.ok &&
+      msg.payload?.ok &&
+      msg.payload?.state?.mode
+    ) {
       setMode(msg.payload.state.mode);
       return;
     }
