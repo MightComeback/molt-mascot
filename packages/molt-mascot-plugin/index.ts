@@ -73,7 +73,7 @@ export default function register(api: any) {
     state.since = Date.now();
     if (nextLastError) state.lastError = nextLastError;
 
-    api?.logger?.info?.({ mode }, "moltMascot: state");
+    api?.logger?.info?.({ mode }, `${pluginId}: state`);
   };
 
   const scheduleIdle = (delayMs = idleDelayMs) => {
