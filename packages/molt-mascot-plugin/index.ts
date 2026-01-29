@@ -79,7 +79,7 @@ export default function register(api: any) {
     if (nextLastError) state.lastError = nextLastError;
     else delete (state as any).lastError;
 
-    api?.logger?.info?.({ mode }, `${pluginId}: state`);
+    api?.logger?.info?.(`${pluginId}: state mode=${mode}`);
   };
 
   const scheduleIdle = (delayMs = idleDelayMs) => {
