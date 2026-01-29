@@ -55,3 +55,8 @@ Config lives under:
 - `plugins.entries.molt-mascot.config` (and `...enabled: true`)
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
+
+## Troubleshooting
+
+- If messages don't send, confirm your required environment variables are set and the webhook (if used) is reachable.
+- If the plugin doesn't load, verify the plugin `id` in `manifest.json` matches the published package name.
