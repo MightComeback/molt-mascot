@@ -1,8 +1,13 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
+
+function isTruthyEnv(v) {
+  const s = String(v || '').trim().toLowerCase();
+  return s === '1' || s === 'true' || s === 'yes' || s === 'on';
+}
 
 function createWindow({ capture = false } = {}) {
   const display = screen.getPrimaryDisplay();
@@ -51,6 +56,12 @@ async function captureScreenshots() {
   try { win.close(); } catch {}
 }
 
+function applyClickThrough(win, enabled) {
+  try {
+    win.setIgnoreMouseEvents(Boolean(enabled), { forward: true });
+  } catch {}
+}
+
 app.whenReady().then(async () => {
   if (CAPTURE_DIR) {
     await captureScreenshots();
@@ -58,9 +69,33 @@ app.whenReady().then(async () => {
     return;
   }
 
-  createWindow();
+  let mainWin = createWindow();
+
+  // Optional UX: make the mascot click-through so it never blocks clicks.
+  // Toggle at runtime with Cmd/Ctrl+Shift+M.
+  let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH);
+  applyClickThrough(mainWin, clickThrough);
+
+  try {
+    globalShortcut.register('CommandOrControl+Shift+M', () => {
+      clickThrough = !clickThrough;
+      if (mainWin && !mainWin.isDestroyed()) {
+        applyClickThrough(mainWin, clickThrough);
+      }
+      // eslint-disable-next-line no-console
+      console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
+    });
+  } catch {}
+
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWin = createWindow();
+      applyClickThrough(mainWin, clickThrough);
+    }
+  });
+
+  app.on('will-quit', () => {
+    try { globalShortcut.unregisterAll(); } catch {}
   });
 });
 
