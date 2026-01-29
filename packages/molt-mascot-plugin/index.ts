@@ -1,3 +1,5 @@
+export const id = "molt-mascot";
+
 type Mode = "idle" | "thinking" | "tool" | "error";
 
 type PluginConfig = {
