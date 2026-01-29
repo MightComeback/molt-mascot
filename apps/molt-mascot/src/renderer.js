@@ -12,6 +12,17 @@ const ctx = canvas.getContext('2d');
 
 const STORAGE_KEY = 'moltMascot:gateway';
 
+const DEFAULT_IDLE_DELAY_MS = 800;
+const DEFAULT_ERROR_HOLD_MS = 5000;
+
+function coerceDelayMs(v, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+const idleDelayMs = coerceDelayMs(window.moltMascot?.env?.idleDelayMs, DEFAULT_IDLE_DELAY_MS);
+const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_ERROR_HOLD_MS);
+
 function loadCfg() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || null;
@@ -92,7 +103,7 @@ window.__moltMascotSetMode = (mode) => {
   if (Object.values(Mode).includes(mode)) setMode(mode);
 };
 
-function scheduleIdle(delayMs = 800) {
+function scheduleIdle(delayMs = idleDelayMs) {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => setMode(Mode.idle), delayMs);
 }
@@ -199,10 +210,10 @@ function connect(cfg) {
       const stream = p?.stream;
       if (stream === 'lifecycle') {
         if (p?.phase === 'start') setMode(Mode.thinking);
-        if (p?.phase === 'end') scheduleIdle(800);
+        if (p?.phase === 'end') scheduleIdle(idleDelayMs);
         if (p?.phase === 'error') {
           setMode(Mode.error);
-          setTimeout(() => scheduleIdle(800), 5000);
+          setTimeout(() => scheduleIdle(idleDelayMs), errorHoldMs);
         }
       }
       if (stream === 'tool') {
