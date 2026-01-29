@@ -119,26 +119,52 @@ export default function register(api: any) {
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
+    // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
+    let agentRunning = false;
+    let toolDepth = 0;
+
+    const clampToolDepth = () => {
+      if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
+    };
+
+    const syncModeFromCounters = () => {
+      clampToolDepth();
+      if (toolDepth > 0) {
+        setMode("tool");
+        return;
+      }
+      if (agentRunning) {
+        setMode("thinking");
+        return;
+      }
+      scheduleIdle();
+    };
+
     on("before_agent_start", async () => {
       clearIdleTimer();
       clearErrorTimer();
-      setMode("thinking");
+      agentRunning = true;
+      syncModeFromCounters();
     });
 
     on("before_tool_call", async () => {
       clearIdleTimer();
       clearErrorTimer();
-      setMode("tool");
+      toolDepth++;
+      syncModeFromCounters();
     });
 
     on("after_tool_call", async () => {
       clearIdleTimer();
       clearErrorTimer();
-      setMode("thinking");
+      toolDepth--;
+      syncModeFromCounters();
     });
 
     // Prompt-level errors/aborts surface here.
     on("agent_end", async (event: any) => {
+      agentRunning = false;
+
       const err = event?.error;
       if (typeof err === "string" && err.trim()) {
         enterError(err.trim());
@@ -148,7 +174,8 @@ export default function register(api: any) {
         enterError("agent ended unsuccessfully");
         return;
       }
-      scheduleIdle();
+
+      syncModeFromCounters();
     });
 
     // Tool errors are reliably present on toolResult messages (isError=true).
