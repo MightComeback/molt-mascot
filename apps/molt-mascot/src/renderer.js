@@ -101,6 +101,9 @@ function scheduleIdle(delayMs = 800) {
 let ws = null;
 let reqId = 0;
 
+let pluginStateReqId = null;
+let pluginStateTriedAlias = false;
+
 function nextId(prefix) {
   reqId += 1;
   return `${prefix}${reqId}`;
@@ -161,6 +164,8 @@ function connect(cfg) {
       // Prefer the canonical pluginId.action name (plugin id: "molt-mascot").
       // The plugin still exposes "moltMascot.state" as a back-compat alias.
       const id = nextId('s');
+      pluginStateReqId = id;
+      pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: 'molt-mascot.state', params: {} }));
       return;
     }
@@ -168,6 +173,15 @@ function connect(cfg) {
     // Plugin state response
     if (msg.type === 'res' && msg.ok && msg.payload?.ok && msg.payload?.state?.mode) {
       setMode(msg.payload.state.mode);
+      return;
+    }
+
+    // If the canonical plugin method isn't installed (older plugin), fall back once.
+    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
+      pluginStateTriedAlias = true;
+      const id = nextId('s');
+      pluginStateReqId = id;
+      ws.send(JSON.stringify({ type: 'req', id, method: 'moltMascot.state', params: {} }));
       return;
     }
 
