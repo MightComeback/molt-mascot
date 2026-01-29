@@ -1,7 +1,10 @@
 {
   "name": "molt-mascot",
   "private": true,
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "packageManager": "bun@1.3.7",
   "scripts": {
     "dev": "bun --filter '*' dev",
@@ -10,5 +13,13 @@
     "ws:dump": "bun tools/ws-dump.ts",
     "lint": "echo 'no lint yet'",
     "format": "echo 'no format yet'"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MightComeback/molt-mascot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MightComeback/molt-mascot/issues"
+  },
+  "homepage": "https://github.com/MightComeback/molt-mascot#readme"
 }
