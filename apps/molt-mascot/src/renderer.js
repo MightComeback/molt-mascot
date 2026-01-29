@@ -88,6 +88,12 @@ const Mode = {
 let currentMode = Mode.idle;
 let modeSince = Date.now();
 let idleTimer = null;
+let lastErrorMessage = '';
+
+function syncPill() {
+  pill.textContent = currentMode;
+  pill.title = currentMode === Mode.error && lastErrorMessage ? lastErrorMessage : '';
+}
 
 function setMode(mode) {
   if (currentMode === mode) return;
@@ -95,7 +101,8 @@ function setMode(mode) {
   modeSince = Date.now();
   if (idleTimer) clearTimeout(idleTimer);
 
-  pill.textContent = mode;
+  if (mode !== Mode.error) lastErrorMessage = '';
+  syncPill();
 }
 
 // For deterministic screenshots / demos.
@@ -191,7 +198,14 @@ function connect(cfg) {
       msg.payload?.ok &&
       msg.payload?.state?.mode
     ) {
-      setMode(msg.payload.state.mode);
+      const nextMode = msg.payload.state.mode;
+      const nextErr = msg.payload?.state?.lastError?.message;
+      if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
+        lastErrorMessage = nextErr.trim();
+      }
+      setMode(nextMode);
+      // If mode didn't change but we learned about an error detail, update tooltip.
+      if (currentMode === Mode.error) syncPill();
       return;
     }
 
@@ -212,6 +226,7 @@ function connect(cfg) {
         if (p?.phase === 'start') setMode(Mode.thinking);
         if (p?.phase === 'end') scheduleIdle(idleDelayMs);
         if (p?.phase === 'error') {
+          lastErrorMessage = 'agent error';
           setMode(Mode.error);
           setTimeout(() => scheduleIdle(idleDelayMs), errorHoldMs);
         }
@@ -238,7 +253,7 @@ function connect(cfg) {
   });
 
   ws.addEventListener('error', () => {
-    pill.textContent = 'ws error';
+    lastErrorMessage = 'WebSocket error';
     setMode(Mode.error);
   });
 }
