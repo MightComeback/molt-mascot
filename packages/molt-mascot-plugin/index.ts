@@ -195,6 +195,8 @@ export default function register(api: any) {
 
     on("after_agent_run", async (event: any) => {
       agentRunning = false;
+      // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_use"
+      toolDepth = 0;
 
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
