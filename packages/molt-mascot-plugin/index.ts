@@ -69,7 +69,7 @@ export default function register(api: any) {
   const setMode = (mode: Mode, extra?: Partial<State>) => {
     // Only keep lastError while we're actually in error mode (avoids a "sticky" error indicator).
     const nextLastError =
-      mode === "error" ? (extra?.lastError ?? state.lastError) : (extra?.lastError ?? undefined);
+      mode === "error" ? (extra?.lastError ?? state.lastError) : undefined;
 
     const modeUnchanged = state.mode === mode;
     const lastErrorUnchanged =
