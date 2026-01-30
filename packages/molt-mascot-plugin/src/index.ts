@@ -155,9 +155,12 @@ export default function register(api: any) {
   }
 
   // Back-compat alias for early adopters.
-  api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
-    respond(true, { ok: true, state });
-  });
+  if (pluginId !== "moltMascot") {
+    api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
+      respond(true, { ok: true, state });
+    });
+  }
+
   const resetInternalState = () => {
     state.mode = "idle";
     state.since = Date.now();
