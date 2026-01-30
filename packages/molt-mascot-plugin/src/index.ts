@@ -96,7 +96,7 @@ export default function register(api: any) {
     state.mode = mode;
     state.since = Date.now();
     if (nextLastError) state.lastError = nextLastError;
-    else delete (state as any).lastError;
+    else delete state.lastError;
 
     api?.logger?.info?.(`${pluginId}: state mode=${mode}`);
   };
@@ -161,7 +161,7 @@ export default function register(api: any) {
   const resetInternalState = () => {
     state.mode = "idle";
     state.since = Date.now();
-    delete (state as any).lastError;
+    delete state.lastError;
     toolDepth = 0;
     agentRunning = false;
     clearIdleTimer();
