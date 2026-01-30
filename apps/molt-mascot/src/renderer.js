@@ -181,7 +181,7 @@ function connect(cfg) {
 
     // Always print raw frames for MVP (dev ergonomics).
     // eslint-disable-next-line no-console
-    console.log('gateway:', msg);
+    // console.log('gateway:', msg);
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       pill.textContent = 'connected';
