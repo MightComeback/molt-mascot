@@ -29,6 +29,7 @@ function summarizeToolResultMessage(msg: any): string {
   }
   if (typeof msg?.errorMessage === "string" && msg.errorMessage.trim()) return msg.errorMessage.trim().slice(0, 400);
   if (typeof msg?.error === "string" && msg.error.trim()) return msg.error.trim().slice(0, 400);
+  if (typeof msg?.message === "string" && msg.message.trim()) return msg.message.trim().slice(0, 400);
   return "tool error";
 }
 
