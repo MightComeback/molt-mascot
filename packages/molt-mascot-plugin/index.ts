@@ -1,4 +1,4 @@
-export const id = "molt-mascot";
+export const id = "@molt/molt-mascot-plugin";
 
 type Mode = "idle" | "thinking" | "tool" | "error";
 
@@ -35,7 +35,7 @@ function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
-  const pluginId = typeof api?.id === "string" ? api.id : "molt-mascot";
+  const pluginId = typeof api?.id === "string" ? api.id : "@molt/molt-mascot-plugin";
   const cfg: PluginConfig =
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
 
@@ -90,6 +90,22 @@ export default function register(api: any) {
     idleTimer = setTimeout(() => setMode("idle"), Math.max(0, delayMs));
   };
 
+  const resolveNativeMode = (): Mode => {
+    clampToolDepth();
+    if (toolDepth > 0) return "tool";
+    return agentRunning ? "thinking" : "idle";
+  };
+
+  const syncModeFromCounters = () => {
+    const target = resolveNativeMode();
+    // If we are in error mode, do not auto-switch to thinking/idle to preserve the error message.
+    // However, if we enter a NEW tool, we override the error to show the tool working.
+    if (state.mode === "error" && target !== "tool") return;
+
+    if (target === "idle") scheduleIdle();
+    else setMode(target);
+  };
+
   const enterError = (message: string) => {
     clearIdleTimer();
     clearErrorTimer();
@@ -97,8 +113,12 @@ export default function register(api: any) {
     setMode("error", { lastError: { message, ts: Date.now() } });
 
     errorTimer = setTimeout(() => {
-      // Only clear the error if nothing else changed the mode in the meantime.
-      if (state.mode === "error") setMode("idle");
+      // Upon expiration, revert to the correct state based on current counters.
+      if (state.mode === "error") {
+        const target = resolveNativeMode();
+        if (target === "idle") setMode("idle");
+        else setMode(target);
+      }
     }, errorHoldMs);
   };
 
@@ -108,8 +128,7 @@ export default function register(api: any) {
     respond(true, { ok: true, state });
   });
 
-  // Ensure the canonical client-facing ID is always available, even if installed
-  // under a scoped name (e.g. "@molt/molt-mascot-plugin").
+  // Ensure legacy IDs are available if the user is using the new scoped ID.
   if (pluginId !== "molt-mascot") {
     api.registerGatewayMethod?.("molt-mascot.state", ({ respond }: any) => {
       respond(true, { ok: true, state });
@@ -123,32 +142,19 @@ export default function register(api: any) {
 
   // Typed hooks (Clawdbot hook runner).
   const on = api?.on;
+  // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
+  let agentRunning = false;
+  let toolDepth = 0;
+
+  const clampToolDepth = () => {
+    if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
+  };
+
   if (typeof on !== "function") {
     api?.logger?.warn?.(
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
-    // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
-    let agentRunning = false;
-    let toolDepth = 0;
-
-    const clampToolDepth = () => {
-      if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
-    };
-
-    const syncModeFromCounters = () => {
-      clampToolDepth();
-      if (toolDepth > 0) {
-        setMode("tool");
-        return;
-      }
-      if (agentRunning) {
-        setMode("thinking");
-        return;
-      }
-      scheduleIdle();
-    };
-
     on("before_agent_run", async () => {
       clearIdleTimer();
       clearErrorTimer();
@@ -158,14 +164,15 @@ export default function register(api: any) {
 
     on("before_tool_use", async () => {
       clearIdleTimer();
-      clearErrorTimer();
+      // If we are starting a tool, we probably want to clear any old error to show progress?
+      // But syncModeFromCounters handles the override logic.
       toolDepth++;
       syncModeFromCounters();
     });
 
     on("after_tool_use", async () => {
       clearIdleTimer();
-      clearErrorTimer();
+      // Do NOT clear error timer here, let syncMode determine if we stick with error.
       toolDepth--;
       syncModeFromCounters();
     });
