@@ -2,6 +2,17 @@
   "name": "@molt/molt-mascot-plugin",
   "version": "0.1.0",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
+  "author": "Might <might@example.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MightComeback/molt-mascot.git",
+    "directory": "packages/molt-mascot-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/MightComeback/molt-mascot/issues"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -12,23 +23,21 @@
       "require": "./dist/index.js"
     }
   },
-  "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts --watch",
-    "lint": "oxlint ."
-  },
   "clawdbot": {
     "extensions": [
       "./dist/index.js"
     ]
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --watch",
+    "lint": "oxlint ."
   },
   "keywords": [
     "clawdbot",
     "plugin",
     "mascot"
   ],
-  "author": "Might <might@example.com>",
-  "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
