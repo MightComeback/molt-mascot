@@ -149,6 +149,18 @@ export default function register(api: any) {
     respond(true, { ok: true, state });
   });
 
+  // Manual reset override (useful for debugging or ghost states).
+  api.registerGatewayMethod?.(`${pluginId}.reset`, (_params: any, { respond }: any) => {
+    state.mode = "idle";
+    state.since = Date.now();
+    delete (state as any).lastError;
+    toolDepth = 0;
+    agentRunning = false;
+    clearIdleTimer();
+    clearErrorTimer();
+    respond(true, { ok: true, state });
+  });
+
   const on = api?.on;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
