@@ -1,5 +1,5 @@
 {
-  "name": "molt-mascot",
+  "name": "@molt/desktop",
   "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.",
   "version": "0.1.0",
   "private": true,
