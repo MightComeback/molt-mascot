@@ -34,7 +34,7 @@ function summarizeToolResultMessage(msg: any): string {
     if (text.trim()) return truncate(text);
   }
 
-  const candidates = [msg?.errorMessage, msg?.error, msg?.message, msg?.result, msg?.output];
+  const candidates = [msg?.errorMessage, msg?.error, msg?.stderr, msg?.message, msg?.result, msg?.output];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return truncate(c);
   }

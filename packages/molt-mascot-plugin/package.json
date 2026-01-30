@@ -1,6 +1,6 @@
 {
   "name": "@molt/molt-mascot-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
   "author": "Might <might@example.com>",
   "license": "MIT",
@@ -37,6 +37,10 @@
     "clawdbot",
     "plugin",
     "mascot"
+  ],
+  "files": [
+    "dist",
+    "clawdbot.plugin.json"
   ],
   "devDependencies": {
     "tsup": "^8.0.0",
