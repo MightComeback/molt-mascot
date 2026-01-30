@@ -91,7 +91,7 @@ let idleTimer = null;
 let lastErrorMessage = '';
 
 function syncPill() {
-  const duration = Math.round((Date.now() - modeSince) / 1000);
+  const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   pill.textContent = currentMode;
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
