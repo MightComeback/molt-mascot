@@ -191,6 +191,7 @@ function connect(cfg) {
       // The plugin still exposes "moltMascot.state" as a back-compat alias.
       const id = nextId('s');
       pluginStateReqId = id;
+      pluginStateMethod = 'molt-mascot.state';
       pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
 
