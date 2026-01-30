@@ -4,9 +4,17 @@ A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local Cl
 
 ## Setup
 
-```bash
-bun install
-```
+1. **Get your Gateway Token:**
+   Run the following command to see your gateway connection details:
+   ```bash
+   clawdbot gateway status
+   ```
+   Look for the `token` in the output.
+
+2. **Install Dependencies:**
+   ```bash
+   bun install
+   ```
 
 ## Usage
 
