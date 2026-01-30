@@ -182,8 +182,9 @@ export default function register(api: any) {
       agentRunning = false;
 
       const err = event?.error;
-      if (typeof err === "string" && err.trim()) {
-        enterError(err.trim());
+      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+      if (msg.trim()) {
+        enterError(msg.trim());
         return;
       }
       if (event?.success === false) {
