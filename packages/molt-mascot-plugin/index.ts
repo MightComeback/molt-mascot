@@ -174,6 +174,7 @@ export default function register(api: any) {
       clearIdleTimer();
       // Do NOT clear error timer here, let syncMode determine if we stick with error.
       toolDepth--;
+      clampToolDepth();
       syncModeFromCounters();
     });
 

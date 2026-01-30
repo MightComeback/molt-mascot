@@ -13,7 +13,7 @@ Add to your `agent.config.json` plugins section:
 
 ```json
 "plugins": {
-  "molt-mascot": {
+  "@molt/molt-mascot-plugin": {
     "enabled": true,
     "path": "./packages/molt-mascot-plugin",
     "config": {
