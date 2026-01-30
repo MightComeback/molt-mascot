@@ -69,12 +69,13 @@ function drawLobster(mode, t) {
   const bob = Math.sin(t / 260) * 2;
 
   // main sprite
-  drawSprite(lobsterIdle[frame], { x: 0, y: Math.round(bob), scale: 3 });
+  const bobY = Math.round(bob);
+  drawSprite(lobsterIdle[frame], { x: 0, y: bobY, scale: 3 });
 
-  // overlays (simple icons)
-  if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: -2, scale: 3 });
-  if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: -2, scale: 3 });
-  if (mode === 'error') drawSprite(overlay.error, { x: 0, y: -2, scale: 3 });
+  // overlays (simple icons) - attached to bob
+  if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: bobY - 2, scale: 3 });
+  if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: bobY - 2, scale: 3 });
+  if (mode === 'error') drawSprite(overlay.error, { x: 0, y: bobY - 2, scale: 3 });
 }
 
 // --- State machine ---
