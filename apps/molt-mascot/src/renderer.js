@@ -253,8 +253,10 @@ function connect(cfg) {
     pill.textContent = 'disconnected';
     setMode(Mode.idle);
     setTimeout(() => {
+      // Re-read config to pickup changes or use current env
       const fresh = loadCfg();
-      if (fresh) connect(fresh);
+      // If we have a valid config, retry. Otherwise, show setup.
+      if (fresh && fresh.url) connect(fresh);
       else showSetup({ url: cfg.url, token: cfg.token });
     }, 1500);
   });
