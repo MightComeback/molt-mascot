@@ -40,3 +40,10 @@ type Response = {
   };
 };
 ```
+
+### Legacy Compatibility
+
+For backward compatibility with older clients, this plugin also registers the following RPC methods:
+
+- `molt-mascot.state`
+- `moltMascot.state`
