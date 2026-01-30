@@ -93,7 +93,7 @@ let lastErrorMessage = '';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  pill.textContent = currentMode;
+  pill.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
