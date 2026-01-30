@@ -195,13 +195,13 @@ export default function register(api: any) {
     });
 
     on("tool_result", (event: any) => {
-      const msg = event?.message;
+      const msg = event?.result;
+      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
       // Support both isError boolean and status string
       const isError = msg?.isError === true || msg?.status === "error";
       if (isError) {
-        const toolName = typeof event?.toolName === "string" ? event.toolName : "tool";
         const detail = summarizeToolResultMessage(msg);
-        enterError(`${toolName}: ${detail}`);
+        enterError(`${toolName} error: ${detail}`);
       }
     });
   }
