@@ -1,7 +1,9 @@
 const { contextBridge } = require('electron');
+const pkg = require('../package.json');
 
 contextBridge.exposeInMainWorld('moltMascot', {
   platform: process.platform,
+  version: pkg.version,
   env: {
     gatewayUrl: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || '',
     gatewayToken: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || '',
