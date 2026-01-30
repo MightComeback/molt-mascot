@@ -17,22 +17,28 @@ function coerceNumber(v: unknown, fallback: number): number {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
+function truncate(str: string, limit = 400): string {
+  const s = str.trim();
+  return s.length > limit ? s.slice(0, limit) + "..." : s;
+}
+
 function summarizeToolResultMessage(msg: any): string {
-  if (typeof msg === "string" && msg.trim()) return msg.trim().slice(0, 400);
+  if (typeof msg === "string" && msg.trim()) return truncate(msg);
 
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks
       .map((b) => (typeof b?.text === "string" ? b.text : ""))
       .filter(Boolean)
-      .join("\n")
-      .trim();
-    if (text) return text.slice(0, 400) + (text.length > 400 ? "..." : "");
+      .join("\n");
+    if (text.trim()) return truncate(text);
   }
-  if (typeof msg?.errorMessage === "string" && msg.errorMessage.trim()) return msg.errorMessage.trim().slice(0, 400) + (msg.errorMessage.trim().length > 400 ? "..." : "");
-  if (typeof msg?.error === "string" && msg.error.trim()) return msg.error.trim().slice(0, 400) + (msg.error.trim().length > 400 ? "..." : "");
-  if (typeof msg?.message === "string" && msg.message.trim()) return msg.message.trim().slice(0, 400) + (msg.message.trim().length > 400 ? "..." : "");
-  if (typeof msg?.result === "string" && msg.result.trim()) return msg.result.trim().slice(0, 400) + (msg.result.trim().length > 400 ? "..." : "");
+
+  const candidates = [msg?.errorMessage, msg?.error, msg?.message, msg?.result, msg?.output];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return truncate(c);
+  }
+
   return "tool error";
 }
 
