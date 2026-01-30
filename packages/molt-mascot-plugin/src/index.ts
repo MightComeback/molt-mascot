@@ -27,7 +27,7 @@ function summarizeToolResultMessage(msg: any): string {
       .filter(Boolean)
       .join("\n")
       .trim();
-    if (text) return text.slice(0, 400);
+    if (text) return text.slice(0, 400) + (text.length > 400 ? "..." : "");
   }
   if (typeof msg?.errorMessage === "string" && msg.errorMessage.trim()) return msg.errorMessage.trim().slice(0, 400) + (msg.errorMessage.trim().length > 400 ? "..." : "");
   if (typeof msg?.error === "string" && msg.error.trim()) return msg.error.trim().slice(0, 400) + (msg.error.trim().length > 400 ? "..." : "");
