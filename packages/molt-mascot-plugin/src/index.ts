@@ -158,8 +158,7 @@ export default function register(api: any) {
   api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
     respond(true, { ok: true, state });
   });
-  api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
-    // Reuse the reset logic
+  const resetInternalState = () => {
     state.mode = "idle";
     state.since = Date.now();
     delete (state as any).lastError;
@@ -167,18 +166,16 @@ export default function register(api: any) {
     agentRunning = false;
     clearIdleTimer();
     clearErrorTimer();
+  };
+
+  api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
+    resetInternalState();
     respond(true, { ok: true, state });
   });
 
   // Manual reset override (useful for debugging or ghost states).
   api.registerGatewayMethod?.(`${pluginId}.reset`, (_params: any, { respond }: any) => {
-    state.mode = "idle";
-    state.since = Date.now();
-    delete (state as any).lastError;
-    toolDepth = 0;
-    agentRunning = false;
-    clearIdleTimer();
-    clearErrorTimer();
+    resetInternalState();
     respond(true, { ok: true, state });
   });
 
