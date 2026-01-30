@@ -128,6 +128,7 @@ let reqId = 0;
 let pluginStateReqId = null;
 let pluginStateMethod = 'molt-mascot.state';
 let pluginStateTriedAlias = false;
+let hasPlugin = false;
 
 function nextId(prefix) {
   reqId += 1;
@@ -215,6 +216,7 @@ function connect(cfg) {
       msg.payload?.ok &&
       msg.payload?.state?.mode
     ) {
+      hasPlugin = true;
       const nextMode = msg.payload.state.mode;
       const nextErr = msg.payload?.state?.lastError?.message;
       if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
@@ -237,7 +239,7 @@ function connect(cfg) {
     }
 
     // Native agent stream mapping (no plugin required).
-    if (msg.type === 'event' && msg.event === 'agent') {
+    if (!hasPlugin && msg.type === 'event' && msg.event === 'agent') {
       const p = msg.payload;
       const stream = p?.stream;
       if (stream === 'lifecycle') {
@@ -263,6 +265,7 @@ function connect(cfg) {
   });
 
   ws.addEventListener('close', () => {
+    hasPlugin = false;
     pill.textContent = 'disconnected';
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
