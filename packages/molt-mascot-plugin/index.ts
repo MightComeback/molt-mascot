@@ -196,7 +196,9 @@ export default function register(api: any) {
 
     on("tool_result", (event: any) => {
       const msg = event?.message;
-      if (msg?.isError) {
+      // Support both isError boolean and status string
+      const isError = msg?.isError === true || msg?.status === "error";
+      if (isError) {
         const toolName = typeof event?.toolName === "string" ? event.toolName : "tool";
         const detail = summarizeToolResultMessage(msg);
         enterError(`${toolName}: ${detail}`);
