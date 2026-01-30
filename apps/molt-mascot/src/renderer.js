@@ -156,7 +156,7 @@ function connect(cfg) {
         client: {
           id: 'cli',
           displayName: 'molt-mascot',
-          version: '0.0.1',
+          version: '0.1.0',
           platform: navigator.userAgent,
           mode: 'cli',
           instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
