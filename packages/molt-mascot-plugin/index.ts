@@ -133,19 +133,19 @@ export default function register(api: any) {
 
   // Expose current simplified state to WS clients.
   // Primary (recommended) name follows the pluginId.action convention.
-  api.registerGatewayMethod?.(`${pluginId}.state`, ({ respond }: any) => {
+  api.registerGatewayMethod?.(`${pluginId}.state`, (_params: any, { respond }: any) => {
     respond(true, { ok: true, state });
   });
 
   // Ensure legacy IDs are available if the user is using the new scoped ID.
   if (pluginId !== "molt-mascot") {
-    api.registerGatewayMethod?.("molt-mascot.state", ({ respond }: any) => {
+    api.registerGatewayMethod?.("molt-mascot.state", (_params: any, { respond }: any) => {
       respond(true, { ok: true, state });
     });
   }
 
   // Back-compat alias for early adopters.
-  api.registerGatewayMethod?.("moltMascot.state", ({ respond }: any) => {
+  api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
     respond(true, { ok: true, state });
   });
 
