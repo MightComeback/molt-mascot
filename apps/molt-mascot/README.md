@@ -1,45 +1,24 @@
-# Molt Mascot (App)
+# Molt Mascot
 
-A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
+> A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
 
-## Setup
+## Features
 
-1. **Get your Gateway Token:**
-   Run the following command to see your gateway connection details:
-   ```bash
-   clawdbot gateway status
-   ```
-   Look for the `token` in the output.
+- **Always on top**: Floats over your windows.
+- **State aware**: Reflects 'idle', 'thinking', 'tool', 'error' states from the local gateway.
+- **Click-through**: Toggle click-through mode with `Cmd+Shift+M` or `Ctrl+Shift+M`.
+- **Cross-platform**: Runs on macOS (widget-like), Windows, and Linux.
 
-2. **Install Dependencies:**
-   ```bash
-   bun install
-   ```
-
-## Usage
-
-Start the app:
+## Development
 
 ```bash
-bun start
-# or
-bun dev
+# Repo root
+bun install
+
+# Run dev mode
+bun run mascot
 ```
 
-The mascot will appear in the bottom-right corner of your primary display.
+## Shortcuts
 
-## Controls
-
-- **Toggle Click-Through:** `Cmd+Shift+M` (or `Ctrl+Shift+M`)
-  - When enabled, clicks pass through the mascot to the window below.
-  - When disabled, you can drag the mascot to move it.
-
-## Capture
-
-Generate screenshots for assets:
-
-```bash
-bun run capture
-```
-
-Output location: `../../assets/screenshots/`
+- `Cmd+Shift+M` (macOS) / `Ctrl+Shift+M` (Win/Linux): Toggle "click-through" mode. When enabled, mouse clicks pass through the mascot to the window behind it.
