@@ -191,6 +191,16 @@ function connect(cfg) {
       pluginStateReqId = id;
       pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: 'molt-mascot.state', params: {} }));
+
+      // Start polling status to keep in sync with plugin-side logic (timers, error holding, etc)
+      if (window._pollInterval) clearInterval(window._pollInterval);
+      window._pollInterval = setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+             const pid = nextId('p');
+             pluginStateReqId = pid;
+             ws.send(JSON.stringify({ type: 'req', id: pid, method: 'molt-mascot.state', params: {} }));
+        }
+      }, 1000);
       return;
     }
 
@@ -252,6 +262,10 @@ function connect(cfg) {
 
   ws.addEventListener('close', () => {
     pill.textContent = 'disconnected';
+    if (window._pollInterval) {
+      clearInterval(window._pollInterval);
+      window._pollInterval = null;
+    }
     setMode(Mode.idle);
     setTimeout(() => {
       // Re-read config to pickup changes or use current env
