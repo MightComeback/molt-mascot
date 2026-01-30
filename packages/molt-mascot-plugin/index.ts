@@ -156,10 +156,13 @@ export default function register(api: any) {
     );
   } else {
     on("before_agent_run", async () => {
+      // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
       agentRunning = true;
-      syncModeFromCounters();
+      // Force update to reflect new state immediately
+      const mode = resolveNativeMode();
+      setMode(mode);
     });
 
     on("before_tool_use", async () => {
@@ -202,6 +205,7 @@ export default function register(api: any) {
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
         enterError(`${toolName} error: ${detail}`);
+        // Do not sync counters here; let the error stick until active work resumes or timeout
       }
     });
   }

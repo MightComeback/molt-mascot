@@ -1,49 +1,40 @@
-# molt-mascot-plugin
+# Molt Mascot Plugin
 
-A Clawdbot plugin that exposes `molt-mascot` state via RPC.
-
-## Features
-
-- Exposes `molt-mascot.state` -> `{ ok: true, state: { mode, since, lastError? } }`
-- Configurable idle delay and error hold time.
+This plugin exposes the internal state of the Clawdbot agent (idle, thinking, tool use, error) via a WebSocket RPC endpoint. It is designed to drive the Molt Mascot desktop app.
 
 ## Configuration
 
-Add to your `agent.config.json` plugins section:
+Add this to your `config.yaml`:
+
+```yaml
+plugins:
+  entries:
+    molt-mascot:
+      enabled: true
+      path: "/path/to/molt-mascot-plugin"
+      config:
+        idleDelayMs: 800   # Time before switching to idle animation
+        errorHoldMs: 5000  # How long to show error state
+```
+
+## RPC API
+
+The plugin registers a method `molt-mascot.state` which returns:
 
 ```json
-"plugins": {
-  "@molt/molt-mascot-plugin": {
-    "enabled": true,
-    "path": "./packages/molt-mascot-plugin",
-    "config": {
-      "idleDelayMs": 800,
-      "errorHoldMs": 5000
-    }
+{
+  "ok": true,
+  "state": {
+    "mode": "idle" | "thinking" | "tool" | "error",
+    "since": 1700000000000,
+    "lastError": { "message": "...", "ts": ... }
   }
 }
 ```
 
-## API
+## Development
 
-### `molt-mascot.state`
-
-Returns the current mascot state.
-
-```ts
-type Response = {
-  ok: boolean;
-  state: {
-    mode: "idle" | "thinking" | "tool" | "error";
-    since: number;
-    lastError?: { message: string; ts: number };
-  };
-};
+Build:
+```bash
+bun build index.ts --outfile dist/index.js
 ```
-
-### Legacy Compatibility
-
-For backward compatibility with older clients, this plugin also registers the following RPC methods:
-
-- `molt-mascot.state`
-- `moltMascot.state`
