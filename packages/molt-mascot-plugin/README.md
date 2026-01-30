@@ -1,40 +1,22 @@
-# Molt Mascot Plugin
+# @molt/molt-mascot-plugin
 
-This plugin exposes the internal state of the Clawdbot agent (idle, thinking, tool use, error) via a WebSocket RPC endpoint. It is designed to drive the Molt Mascot desktop app.
+Clawdbot plugin for the Molt Mascot desktop app. It tracks agent lifecycle events (thinking, tool usage, errors) and exposes a state API for the mascot to reflect.
 
-## Configuration
+## State API
 
-Add this to your `config.yaml`:
+Method: `molt-mascot.state`
 
-```yaml
-plugins:
-  entries:
-    molt-mascot:
-      enabled: true
-      path: "/path/to/molt-mascot-plugin"
-      config:
-        idleDelayMs: 800   # Time before switching to idle animation
-        errorHoldMs: 5000  # How long to show error state
-```
-
-## RPC API
-
-The plugin registers a method `molt-mascot.state` which returns:
-
+Returns:
 ```json
 {
   "ok": true,
   "state": {
     "mode": "idle" | "thinking" | "tool" | "error",
     "since": 1700000000000,
-    "lastError": { "message": "...", "ts": ... }
+    "lastError": {
+      "message": "...",
+      "ts": 1234567890
+    }
   }
 }
-```
-
-## Development
-
-Build:
-```bash
-bun build index.ts --outfile dist/index.js
 ```
