@@ -303,17 +303,17 @@ if (isCapture) {
   const envUrl = (window.moltMascot?.env?.gatewayUrl || '').trim();
   const envToken = (window.moltMascot?.env?.gatewayToken || '').trim();
 
-  // If no saved cfg, allow env to pre-seed (so we can auto-run overnight without UI clicks).
-  if (!cfg?.url) {
-    if (envUrl) {
-      const seeded = { url: envUrl, token: envToken };
-      saveCfg(seeded);
-      connect(seeded);
-    } else {
-      showSetup(cfg);
-    }
-  } else {
+  // If environment provides credentials at runtime, they take precedence.
+  // Update storage to match so we stay in sync.
+  if (envUrl) {
+    const seeded = { url: envUrl, token: envToken };
+    // Only save if different to avoid churn? No, safe to just save.
+    saveCfg(seeded);
+    connect(seeded);
+  } else if (cfg?.url) {
     connect(cfg);
+  } else {
+    showSetup(cfg);
   }
 }
 
