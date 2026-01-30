@@ -126,6 +126,7 @@ let ws = null;
 let reqId = 0;
 
 let pluginStateReqId = null;
+let pluginStateMethod = 'molt-mascot.state';
 let pluginStateTriedAlias = false;
 
 function nextId(prefix) {
@@ -190,7 +191,7 @@ function connect(cfg) {
       const id = nextId('s');
       pluginStateReqId = id;
       pluginStateTriedAlias = false;
-      ws.send(JSON.stringify({ type: 'req', id, method: 'molt-mascot.state', params: {} }));
+      ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
 
       // Start polling status to keep in sync with plugin-side logic (timers, error holding, etc)
       if (window._pollInterval) clearInterval(window._pollInterval);
@@ -198,7 +199,7 @@ function connect(cfg) {
         if (ws && ws.readyState === WebSocket.OPEN) {
              const pid = nextId('p');
              pluginStateReqId = pid;
-             ws.send(JSON.stringify({ type: 'req', id: pid, method: 'molt-mascot.state', params: {} }));
+             ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
         }
       }, 1000);
       return;
@@ -228,9 +229,10 @@ function connect(cfg) {
     // If the canonical plugin method isn't installed (older plugin), fall back once.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
       pluginStateTriedAlias = true;
+      pluginStateMethod = 'moltMascot.state';
       const id = nextId('s');
       pluginStateReqId = id;
-      ws.send(JSON.stringify({ type: 'req', id, method: 'moltMascot.state', params: {} }));
+      ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
       return;
     }
 
