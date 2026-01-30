@@ -299,6 +299,10 @@ if (isCapture) {
 
 function frame(t) {
   drawLobster(currentMode, t);
+  // Update tooltip duration every second
+  if (Math.floor(t / 1000) > Math.floor((t - 16) / 1000)) {
+    syncPill();
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
