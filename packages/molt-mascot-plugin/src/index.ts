@@ -219,7 +219,7 @@ export default function register(api: any) {
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
       if (msg.trim()) {
-        enterError(msg.trim());
+        enterError(truncate(msg.trim()));
         return;
       }
       if (event?.success === false) {
