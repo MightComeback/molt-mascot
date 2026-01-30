@@ -107,6 +107,15 @@ export default function register(api: any) {
   api.registerGatewayMethod?.(`${pluginId}.state`, ({ respond }: any) => {
     respond(true, { ok: true, state });
   });
+
+  // Ensure the canonical client-facing ID is always available, even if installed
+  // under a scoped name (e.g. "@molt/molt-mascot-plugin").
+  if (pluginId !== "molt-mascot") {
+    api.registerGatewayMethod?.("molt-mascot.state", ({ respond }: any) => {
+      respond(true, { ok: true, state });
+    });
+  }
+
   // Back-compat alias for early adopters.
   api.registerGatewayMethod?.("moltMascot.state", ({ respond }: any) => {
     respond(true, { ok: true, state });
