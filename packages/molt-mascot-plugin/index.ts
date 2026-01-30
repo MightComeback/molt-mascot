@@ -47,6 +47,14 @@ export default function register(api: any) {
   let idleTimer: any = null;
   let errorTimer: any = null;
 
+  // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
+  let agentRunning = false;
+  let toolDepth = 0;
+
+  const clampToolDepth = () => {
+    if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
+  };
+
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = null;
@@ -140,16 +148,7 @@ export default function register(api: any) {
     respond(true, { ok: true, state });
   });
 
-  // Typed hooks (Clawdbot hook runner).
   const on = api?.on;
-  // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
-  let agentRunning = false;
-  let toolDepth = 0;
-
-  const clampToolDepth = () => {
-    if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
-  };
-
   if (typeof on !== "function") {
     api?.logger?.warn?.(
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
