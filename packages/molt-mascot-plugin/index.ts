@@ -1,4 +1,4 @@
-export const id = "@molt/molt-mascot-plugin";
+export const id = "molt-mascot";
 
 type Mode = "idle" | "thinking" | "tool" | "error";
 
@@ -35,7 +35,7 @@ function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
-  const pluginId = typeof api?.id === "string" ? api.id : "@molt/molt-mascot-plugin";
+  const pluginId = typeof api?.id === "string" ? api.id : "molt-mascot";
   const cfg: PluginConfig =
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
 

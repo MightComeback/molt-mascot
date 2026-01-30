@@ -1,6 +1,6 @@
 {
-  "id": "@molt/molt-mascot-plugin",
-  "name": "@molt/molt-mascot-plugin",
+  "id": "molt-mascot",
+  "name": "molt-mascot",
   "version": "0.0.1",
   "description": "Exposes molt-mascot state via RPC",
   "configSchema": {
