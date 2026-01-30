@@ -1,22 +1,22 @@
 # @molt/molt-mascot-plugin
 
-Clawdbot plugin for the Molt Mascot desktop app. It tracks agent lifecycle events (thinking, tool usage, errors) and exposes a state API for the mascot to reflect.
+> Clawdbot plugin for [Molt Mascot](https://github.com/MightComeback/molt-mascot).
 
-## State API
+This plugin exposes the Clawdbot agent's state (`idle`, `thinking`, `tool`, `error`) via the Gateway, allowing the Molt Mascot desktop app to reflect what the agent is doing in real-time.
 
-Method: `molt-mascot.state`
+## Installation
 
-Returns:
-```json
-{
-  "ok": true,
-  "state": {
-    "mode": "idle" | "thinking" | "tool" | "error",
-    "since": 1700000000000,
-    "lastError": {
-      "message": "...",
-      "ts": 1234567890
-    }
-  }
-}
+```bash
+clawdhub install @molt/molt-mascot-plugin
 ```
+
+## Configuration
+
+In your `clawdbot.config.json` or `.env`:
+
+- `idleDelayMs` (default: 800): Time to wait before switching back to idle.
+- `errorHoldMs` (default: 5000): Duration to display error states.
+
+## Usage
+
+The plugin automatically registers `molt-mascot.state` on the Gateway. No manual setup required beyond installation.
