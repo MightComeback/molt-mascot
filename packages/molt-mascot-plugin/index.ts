@@ -140,29 +140,28 @@ export default function register(api: any) {
       scheduleIdle();
     };
 
-    on("before_agent_start", async () => {
+    on("before_agent_run", async () => {
       clearIdleTimer();
       clearErrorTimer();
       agentRunning = true;
       syncModeFromCounters();
     });
 
-    on("before_tool_call", async () => {
+    on("before_tool_use", async () => {
       clearIdleTimer();
       clearErrorTimer();
       toolDepth++;
       syncModeFromCounters();
     });
 
-    on("after_tool_call", async () => {
+    on("after_tool_use", async () => {
       clearIdleTimer();
       clearErrorTimer();
       toolDepth--;
       syncModeFromCounters();
     });
 
-    // Prompt-level errors/aborts surface here.
-    on("agent_end", async (event: any) => {
+    on("after_agent_run", async (event: any) => {
       agentRunning = false;
 
       const err = event?.error;
@@ -174,20 +173,16 @@ export default function register(api: any) {
         enterError("agent ended unsuccessfully");
         return;
       }
-
       syncModeFromCounters();
     });
 
-    // Tool errors are reliably present on toolResult messages (isError=true).
-    // This hook is synchronous in Clawdbot; keep it sync.
-    on("tool_result_persist", (event: any) => {
+    on("tool_result", (event: any) => {
       const msg = event?.message;
       if (msg?.isError) {
         const toolName = typeof event?.toolName === "string" ? event.toolName : "tool";
         const detail = summarizeToolResultMessage(msg);
         enterError(`${toolName}: ${detail}`);
       }
-      return undefined;
     });
   }
 
