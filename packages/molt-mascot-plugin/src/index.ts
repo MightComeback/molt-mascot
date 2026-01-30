@@ -17,7 +17,7 @@ function coerceNumber(v: unknown, fallback: number): number {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
-function truncate(str: string, limit = 400): string {
+function truncate(str: string, limit = 140): string {
   const s = str.trim();
   return s.length > limit ? s.slice(0, limit) + "..." : s;
 }
@@ -34,7 +34,7 @@ function summarizeToolResultMessage(msg: any): string {
     if (text.trim()) return truncate(text);
   }
 
-  const candidates = [msg?.errorMessage, msg?.error, msg?.stderr, msg?.message, msg?.result, msg?.output];
+  const candidates = [msg?.text, msg?.errorMessage, msg?.error, msg?.stderr, msg?.message, msg?.result, msg?.output];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return truncate(c);
   }
@@ -155,6 +155,17 @@ export default function register(api: any) {
 
   // Back-compat alias for early adopters.
   api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
+    respond(true, { ok: true, state });
+  });
+  api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
+    // Reuse the reset logic
+    state.mode = "idle";
+    state.since = Date.now();
+    delete (state as any).lastError;
+    toolDepth = 0;
+    agentRunning = false;
+    clearIdleTimer();
+    clearErrorTimer();
     respond(true, { ok: true, state });
   });
 
