@@ -1,13 +1,13 @@
 export const id = "molt-mascot";
 
-type Mode = "idle" | "thinking" | "tool" | "error";
+export type Mode = "idle" | "thinking" | "tool" | "error";
 
-type PluginConfig = {
+export type PluginConfig = {
   idleDelayMs?: number;
   errorHoldMs?: number;
 };
 
-type State = {
+export type State = {
   mode: Mode;
   since: number;
   lastError?: { message: string; ts: number };
@@ -18,6 +18,8 @@ function coerceNumber(v: unknown, fallback: number): number {
 }
 
 function summarizeToolResultMessage(msg: any): string {
+  if (typeof msg === "string" && msg.trim()) return msg.trim().slice(0, 400);
+
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks
