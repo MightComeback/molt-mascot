@@ -1,5 +1,5 @@
 {
-  "name": "molt-mascot",
+  "name": "@molt/monorepo",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -11,8 +11,8 @@
     "mascot": "bun --filter molt-mascot dev",
     "screenshots": "bun --filter molt-mascot capture",
     "ws:dump": "bun tools/ws-dump.ts",
-    "lint": "echo 'no lint yet'",
-    "format": "echo 'no format yet'"
+    "lint": "oxlint .",
+    "format": "bun x biome check --apply ."
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/MightComeback/molt-mascot/issues"
   },
-  "homepage": "https://github.com/MightComeback/molt-mascot#readme"
+  "homepage": "https://github.com/MightComeback/molt-mascot#readme",
+  "devDependencies": {
+    "oxlint": "^1.42.0"
+  }
 }
