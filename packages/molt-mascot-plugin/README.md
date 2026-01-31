@@ -19,13 +19,13 @@ In your `clawdbot.config.json` or `.env`:
 
 ## Usage
 
-The plugin automatically registers `molt-mascot-plugin.state` on the Gateway. No manual setup required beyond installation.
+The plugin automatically registers `@molt/mascot-plugin.state` (and aliases) on the Gateway. No manual setup required beyond installation.
 
 ## Gateway API
 
 This plugin registers the following Gateway method:
 
-### `molt-mascot-plugin.state`
+### `@molt/mascot-plugin.state`
 
 Returns the current agent state, which monitors the `before_agent_run`, `after_agent_run`, `before_tool_call`, and `tool_result` events.
 
@@ -51,4 +51,4 @@ Returns the current agent state, which monitors the `before_agent_run`, `after_a
 - `since`: Timestamp (ms) when the current mode started.
 - `lastError`: Optional object present when the agent encounters a failure or tool error.
 
-_Note: The legacy aliases `molt-mascot.state` and `moltMascot.state` are also supported for backward compatibility._
+_Note: The legacy aliases `molt-mascot-plugin.state`, `molt-mascot.state`, and `moltMascot.state` are also supported for backward compatibility._
