@@ -205,7 +205,7 @@ export default function register(api: any) {
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
-    on("before_agent_start", async () => {
+    const onAgentStart = async () => {
       // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
@@ -213,25 +213,31 @@ export default function register(api: any) {
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
       setMode(mode);
-    });
+    };
+    on("before_agent_run", onAgentStart);
+    on("before_agent_start", onAgentStart);
 
-    on("before_tool_call", async () => {
+    const onToolStart = async () => {
       clearIdleTimer();
       // If we are starting a tool, we probably want to clear any old error to show progress?
       // But syncModeFromCounters handles the override logic.
       toolDepth++;
       syncModeFromCounters();
-    });
+    };
+    on("before_tool_use", onToolStart);
+    on("before_tool_call", onToolStart);
 
-    on("after_tool_call", async () => {
+    const onToolEnd = async () => {
       clearIdleTimer();
       // Do NOT clear error timer here, let syncMode determine if we stick with error.
       toolDepth--;
       clampToolDepth();
       syncModeFromCounters();
-    });
+    };
+    on("after_tool_use", onToolEnd);
+    on("after_tool_call", onToolEnd);
 
-    on("agent_end", async (event: any) => {
+    const onAgentEnd = async (event: any) => {
       agentRunning = false;
       // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_use"
       toolDepth = 0;
@@ -247,7 +253,9 @@ export default function register(api: any) {
         return;
       }
       syncModeFromCounters();
-    });
+    };
+    on("after_agent_run", onAgentEnd);
+    on("agent_end", onAgentEnd);
 
     on("tool_result", (event: any) => {
       const msg = event?.result;
