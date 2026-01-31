@@ -72,7 +72,12 @@ function summarizeToolResultMessage(msg: any): string {
       let s = c.trim();
       // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
       // Also strip common "Tool failed:" prefix
-      s = s.replace(/^(Error|Tool failed):\s*/i, "");
+      // Loop to handle stacked prefixes like "Tool failed: Error: ..."
+      let prev = "";
+      while (s !== prev) {
+        prev = s;
+        s = s.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
+      }
 
       // If it's just the generic exit code message, skip it for now unless it's the only thing we have
       if (s.match(/^Command exited with code \d+$/)) continue;
