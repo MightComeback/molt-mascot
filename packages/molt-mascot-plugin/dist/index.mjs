@@ -161,7 +161,7 @@ function register(api) {
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0;
+      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg);
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);

@@ -264,7 +264,8 @@ export default function register(api: any) {
       const isExplicitError =
         msg?.isError === true ||
         msg?.status === "error" ||
-        (typeof msg?.error === "string" && msg.error.trim().length > 0);
+        (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
+        (typeof msg === "string" && /^\s*error:/i.test(msg));
 
       const isError = hasExitCode ? isExitError : isExplicitError;
 
