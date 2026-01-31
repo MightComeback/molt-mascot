@@ -14,12 +14,25 @@ function truncate(str, limit = 100) {
   if (limit <= 3) return s.slice(0, limit);
   return s.slice(0, limit - 3) + "...";
 }
+function cleanErrorString(s) {
+  let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
+  let prev = "";
+  while (str !== prev) {
+    prev = str;
+    str = str.replace(/^(Error|Tool failed|Exception|Warning)(\s*:\s*|\s+)/i, "").trim();
+  }
+  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
+    return lines[1];
+  }
+  return lines[0] || str;
+}
 function summarizeToolResultMessage(msg) {
-  if (typeof msg === "string" && msg.trim()) return truncate(msg);
+  if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks.map((b) => typeof b?.text === "string" ? b.text : "").filter(Boolean).join("\n");
-    if (text.trim()) return truncate(text);
+    if (text.trim()) return truncate(cleanErrorString(text));
   }
   const candidates = [
     msg?.errorMessage,
@@ -27,6 +40,7 @@ function summarizeToolResultMessage(msg) {
     msg?.details,
     // Handle string error or object error with message
     typeof msg?.error === "string" ? msg.error : msg?.error?.message,
+    typeof msg?.error === "object" ? msg?.error?.text : void 0,
     msg?.text,
     msg?.message,
     msg?.result,
@@ -35,29 +49,13 @@ function summarizeToolResultMessage(msg) {
   let genericFallback = null;
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) {
-      let s = c.trim();
-      let prev = "";
-      while (s !== prev) {
-        prev = s;
-        s = s.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
-      }
+      const s = cleanErrorString(c);
       if (s.match(/^Command exited with code \d+$/)) {
         if (!genericFallback) genericFallback = s;
         continue;
       }
       return truncate(s);
     }
-    if (c && typeof c === "object" && !Array.isArray(c)) {
-      const field = typeof c.message === "string" ? c.message : typeof c.text === "string" ? c.text : "";
-      if (field.trim()) {
-        const clean = field.trim().replace(/^(Error|Tool failed):\s*/i, "");
-        return truncate(clean);
-      }
-    }
-  }
-  const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
-  if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
   if (genericFallback) return truncate(genericFallback);
   return "tool error";
@@ -174,7 +172,7 @@ function register(api) {
       toolDepth++;
       syncModeFromCounters();
     };
-    on("tool.exec.start", onToolStart);
+    on("tool.call", onToolStart);
     const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
@@ -198,7 +196,7 @@ function register(api) {
         syncModeFromCounters();
       }
     };
-    on("tool.exec.end", onToolEnd);
+    on("tool.result", onToolEnd);
     const onAgentEnd = async (event) => {
       activeAgentCount--;
       if (activeAgentCount < 0) activeAgentCount = 0;
@@ -208,7 +206,7 @@ function register(api) {
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
       if (msg.trim()) {
-        const clean = msg.trim().replace(/^(Error|Tool failed):\s*/i, "");
+        const clean = cleanErrorString(msg);
         enterError(truncate(clean));
         return;
       }
