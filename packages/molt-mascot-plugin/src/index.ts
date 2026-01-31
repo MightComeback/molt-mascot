@@ -88,7 +88,7 @@ export default function register(api: any) {
   let errorTimer: any = null;
 
   // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
-  let agentRunning = false;
+  let activeAgentCount = 0;
   let toolDepth = 0;
 
   const clampToolDepth = () => {
@@ -141,7 +141,7 @@ export default function register(api: any) {
   const resolveNativeMode = (): Mode => {
     clampToolDepth();
     if (toolDepth > 0) return "tool";
-    return agentRunning ? "thinking" : "idle";
+    return activeAgentCount > 0 ? "thinking" : "idle";
   };
 
   const syncModeFromCounters = () => {
@@ -196,7 +196,7 @@ export default function register(api: any) {
     state.since = Date.now();
     delete state.lastError;
     toolDepth = 0;
-    agentRunning = false;
+    activeAgentCount = 0;
     clearIdleTimer();
     clearErrorTimer();
   };
@@ -232,8 +232,7 @@ export default function register(api: any) {
       // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
-      agentRunning = true;
-      toolDepth = 0;
+      activeAgentCount++;
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
       setMode(mode);
@@ -259,9 +258,13 @@ export default function register(api: any) {
     on("after_tool_call", onToolEnd);
 
     const onAgentEnd = async (event: any) => {
-      agentRunning = false;
-      // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_call"
-      toolDepth = 0;
+      activeAgentCount--;
+      if (activeAgentCount < 0) activeAgentCount = 0;
+
+      // Safety: ensure toolDepth is reset if NO agents are running (catch-all for crashed tools)
+      if (activeAgentCount === 0) {
+        toolDepth = 0;
+      }
 
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
