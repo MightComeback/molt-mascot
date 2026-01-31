@@ -1,7 +1,8 @@
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 const pkg = require('../package.json');
 
 contextBridge.exposeInMainWorld('moltMascot', {
+  setClickThrough: (enabled) => ipcRenderer.send('molt-mascot:set-click-through', enabled),
   platform: process.platform,
   version: pkg.version,
   env: {
