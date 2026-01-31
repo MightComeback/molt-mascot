@@ -262,11 +262,14 @@ export default function register(api: any) {
   });
 
   const on = api?.on;
+  const off = api?.off;
+
   if (typeof on !== "function") {
     api?.logger?.warn?.(
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
+    // Keep references to handlers for cleanup
     const onAgentStart = async () => {
       // Clear timers to prevent flapping
       clearIdleTimer();
@@ -280,7 +283,6 @@ export default function register(api: any) {
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    on("before_agent_start", onAgentStart);
 
     const onToolStart = async () => {
       clearIdleTimer();
@@ -289,7 +291,6 @@ export default function register(api: any) {
       toolDepth++;
       syncModeFromCounters();
     };
-    on("before_tool_call", onToolStart);
 
     const onToolEnd = async (event: any) => {
       clearIdleTimer();
@@ -327,7 +328,6 @@ export default function register(api: any) {
         syncModeFromCounters();
       }
     };
-    on("after_tool_call", onToolEnd);
 
     const onAgentEnd = async (event: any) => {
       activeAgentCount--;
@@ -352,17 +352,49 @@ export default function register(api: any) {
       }
       syncModeFromCounters();
     };
-    on("agent_end", onAgentEnd);
+
+    const registerListeners = () => {
+      on("before_agent_start", onAgentStart);
+      on("before_tool_call", onToolStart);
+      on("after_tool_call", onToolEnd);
+      on("agent_end", onAgentEnd);
+    };
+
+    const unregisterListeners = () => {
+      if (typeof off === "function") {
+        off("before_agent_start", onAgentStart);
+        off("before_tool_call", onToolStart);
+        off("after_tool_call", onToolEnd);
+        off("agent_end", onAgentEnd);
+      }
+    };
+
+    registerListeners();
+
+    // Attach cleanup to the stop method (closure captures unregisterListeners)
+    api.registerService?.({
+      // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
+      id: pluginId,
+      start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
+      stop: () => {
+        clearIdleTimer();
+        clearErrorTimer();
+        unregisterListeners();
+        // Reset published state on shutdown so clients don't show a stale mode.
+        setMode("idle");
+      },
+    });
+    return; // Stop execution here, registerService was called above
   }
 
+  // Fallback if no events (just register service without listeners)
   api.registerService?.({
     // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
     id: pluginId,
-    start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
+    start: () => api?.logger?.info?.(`${pluginId} plugin ready (no events)`),
     stop: () => {
       clearIdleTimer();
       clearErrorTimer();
-      // Reset published state on shutdown so clients don't show a stale mode.
       setMode("idle");
     },
   });
