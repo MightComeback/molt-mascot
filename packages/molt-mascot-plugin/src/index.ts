@@ -308,7 +308,9 @@ export default function register(api: any) {
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
       if (msg.trim()) {
-        enterError(truncate(msg.trim()));
+        // UX Polish: strip common error prefixes for the tiny pixel display
+        const clean = msg.trim().replace(/^(Error|Tool failed):\s*/i, "");
+        enterError(truncate(clean));
         return;
       }
       if (event?.success === false) {
