@@ -55,6 +55,7 @@ function createWindow({ capture = false } = {}) {
     movable: !capture,
     alwaysOnTop: capture ? false : true,
     skipTaskbar: true,
+    focusable: false,
     hasShadow: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
