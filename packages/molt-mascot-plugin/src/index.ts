@@ -58,7 +58,8 @@ function summarizeToolResultMessage(msg: any): string {
     msg?.errorMessage,
     msg?.stderr,
     msg?.details,
-    msg?.error,
+    // Handle string error or object error with message
+    typeof msg?.error === "string" ? msg.error : msg?.error?.message,
     msg?.text,
     msg?.message,
     msg?.result,
@@ -75,8 +76,9 @@ function summarizeToolResultMessage(msg: any): string {
   }
 
   // Fallback: if we skipped a generic error message, return it now
-  if (typeof msg?.error === "string" && msg.error.trim()) {
-    return truncate(msg.error.trim());
+  const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
+  if (typeof fallbackStr === "string" && fallbackStr.trim()) {
+    return truncate(fallbackStr.trim());
   }
 
   return "tool error";
