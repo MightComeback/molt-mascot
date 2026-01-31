@@ -89,6 +89,7 @@ const Mode = {
 let currentMode = Mode.idle;
 let modeSince = Date.now();
 let idleTimer = null;
+let errorHoldTimer = null;
 let lastErrorMessage = '';
 
 function syncPill() {
@@ -106,6 +107,10 @@ function setMode(mode) {
   currentMode = mode;
   modeSince = Date.now();
   if (idleTimer) clearTimeout(idleTimer);
+  if (errorHoldTimer) {
+    clearTimeout(errorHoldTimer);
+    errorHoldTimer = null;
+  }
 
   if (mode !== Mode.error) lastErrorMessage = '';
   syncPill();
@@ -251,7 +256,11 @@ function connect(cfg) {
           setMode(Mode.error);
           // Hold the error state for the configured duration, then return to idle.
           // (Don't add the idle-delay on top of the error hold.)
-          setTimeout(() => scheduleIdle(0), errorHoldMs);
+          if (errorHoldTimer) clearTimeout(errorHoldTimer);
+          errorHoldTimer = setTimeout(() => {
+            errorHoldTimer = null;
+            scheduleIdle(0);
+          }, errorHoldMs);
         }
       }
       if (stream === 'tool') {
