@@ -25,7 +25,7 @@ The plugin automatically registers `@molt/mascot-plugin.state` (and aliases) on 
 
 This plugin registers the following Gateway method:
 
-### `@molt/mascot-plugin.state`
+### `molt-mascot-plugin.state`
 
 Returns the current agent state, which monitors the `before_agent_run`, `after_agent_run`, `before_tool_call`, and `tool_result` events.
 
