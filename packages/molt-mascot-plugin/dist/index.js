@@ -33,7 +33,7 @@ function coerceNumber(v, fallback) {
   }
   return fallback;
 }
-function truncate(str, limit = 100) {
+function truncate(str, limit = 140) {
   const s = str.trim();
   if (s.length <= limit) return s;
   if (limit <= 3) return s.slice(0, limit);
@@ -247,10 +247,6 @@ function register(api) {
       syncModeFromCounters();
     };
     const registerListeners = () => {
-      on("before_agent_start", onAgentStart);
-      on("before_tool_call", onToolStart);
-      on("after_tool_call", onToolEnd);
-      on("agent_end", onAgentEnd);
       on("agent:start", onAgentStart);
       on("tool:call", onToolStart);
       on("tool:result", onToolEnd);

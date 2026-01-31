@@ -363,11 +363,11 @@ export default function register(api: any) {
     };
 
     const registerListeners = () => {
-      // Legacy hooks (v1)
-      on("before_agent_start", onAgentStart);
-      on("before_tool_call", onToolStart);
-      on("after_tool_call", onToolEnd);
-      on("agent_end", onAgentEnd);
+      // Legacy hooks (v1) - Disabled to prevent double-counting events on modern Clawdbot
+      // on("before_agent_start", onAgentStart);
+      // on("before_tool_call", onToolStart);
+      // on("after_tool_call", onToolEnd);
+      // on("agent_end", onAgentEnd);
 
       // Modern hooks (v2)
       on("agent:start", onAgentStart);
