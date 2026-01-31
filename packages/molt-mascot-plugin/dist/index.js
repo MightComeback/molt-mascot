@@ -58,6 +58,8 @@ function summarizeToolResultMessage(msg) {
   if (Array.isArray(blocks)) {
     const text = blocks.map((b) => typeof b?.text === "string" ? b.text : "").filter(Boolean).join("\n");
     if (text.trim()) return truncate(cleanErrorString(text));
+  } else if (typeof blocks === "string" && blocks.trim()) {
+    return truncate(cleanErrorString(blocks));
   }
   const candidates = [
     msg?.errorMessage,

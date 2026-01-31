@@ -72,6 +72,8 @@ function summarizeToolResultMessage(msg: any): string {
       .filter(Boolean)
       .join("\n");
     if (text.trim()) return truncate(cleanErrorString(text));
+  } else if (typeof blocks === "string" && blocks.trim()) {
+    return truncate(cleanErrorString(blocks));
   }
 
   // Prioritize explicit error messages over generic content when reporting errors
@@ -343,8 +345,6 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
     on("agent.run.end", onAgentEnd);
-
-    // tool_result logic merged into after_tool_call
   }
 
   api.registerService?.({
