@@ -67,6 +67,7 @@ function summarizeToolResultMessage(msg: any): string {
   ];
 
   for (const c of candidates) {
+    // String candidates
     if (typeof c === "string" && c.trim()) {
       let s = c.trim();
       // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
@@ -77,6 +78,16 @@ function summarizeToolResultMessage(msg: any): string {
       if (s.match(/^Command exited with code \d+$/)) continue;
 
       return truncate(s);
+    }
+
+    // Structured candidates (e.g. error objects with .message or .text)
+    if (c && typeof c === "object" && !Array.isArray(c)) {
+      const field =
+        typeof c.message === "string" ? c.message : typeof c.text === "string" ? c.text : "";
+      if (field.trim()) {
+        const clean = field.trim().replace(/^(Error|Tool failed):\s*/i, "");
+        return truncate(clean);
+      }
     }
   }
 
