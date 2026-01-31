@@ -35,7 +35,16 @@ function summarizeToolResultMessage(msg: any): string {
   }
 
   // Prioritize explicit error messages over generic content when reporting errors
-  const candidates = [msg?.errorMessage, msg?.error, msg?.stderr, msg?.text, msg?.message, msg?.result, msg?.output];
+  const candidates = [
+    msg?.errorMessage,
+    msg?.error,
+    msg?.stderr,
+    msg?.details,
+    msg?.text,
+    msg?.message,
+    msg?.result,
+    msg?.output,
+  ];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return truncate(c);
   }
@@ -251,7 +260,7 @@ export default function register(api: any) {
 
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
-        enterError(`${toolName} error: ${detail}`);
+        enterError(truncate(`${toolName} error: ${detail}`));
         // Do not sync counters here; let the error stick until active work resumes or timeout
       }
     });
