@@ -24,6 +24,13 @@ function coerceDelayMs(v, fallback) {
 const idleDelayMs = coerceDelayMs(window.moltMascot?.env?.idleDelayMs, DEFAULT_IDLE_DELAY_MS);
 const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_ERROR_HOLD_MS);
 
+// UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
+const hideText = (window.moltMascot?.env?.hideText || '').trim();
+if (hideText === '1' || hideText.toLowerCase() === 'true') {
+  const hud = document.getElementById('hud');
+  if (hud) hud.hidden = true;
+}
+
 function loadCfg() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || null;
@@ -206,7 +213,7 @@ function connect(cfg) {
       pill.textContent = 'connected';
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
-      // Prefer the canonical pluginId.action name (plugin id: "molt-mascot-plugin").
+      // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // The plugin still exposes "molt-mascot.state" as a back-compat alias.
       const id = nextId('s');
       pluginStateReqId = id;
