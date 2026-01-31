@@ -142,6 +142,11 @@ window.__moltMascotSetMode = (mode) => {
   if (Object.values(Mode).includes(mode)) setMode(mode);
 };
 
+let manualTime = null;
+window.__moltMascotSetTime = (t) => {
+  manualTime = t;
+};
+
 function scheduleIdle(delayMs = idleDelayMs) {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => setMode(Mode.idle), delayMs);
@@ -356,7 +361,7 @@ if (isCapture) {
 }
 
 function frame(t) {
-  drawLobster(currentMode, t);
+  drawLobster(currentMode, manualTime !== null ? manualTime : t);
   // Update tooltip duration every second
   if (Math.floor(t / 1000) > Math.floor((t - 16) / 1000)) {
     syncPill();
