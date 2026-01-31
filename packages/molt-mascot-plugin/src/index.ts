@@ -66,6 +66,8 @@ function summarizeToolResultMessage(msg: any): string {
     msg?.output,
   ];
 
+  let genericFallback: string | null = null;
+
   for (const c of candidates) {
     // String candidates
     if (typeof c === "string" && c.trim()) {
@@ -80,7 +82,10 @@ function summarizeToolResultMessage(msg: any): string {
       }
 
       // If it's just the generic exit code message, skip it for now unless it's the only thing we have
-      if (s.match(/^Command exited with code \d+$/)) continue;
+      if (s.match(/^Command exited with code \d+$/)) {
+        if (!genericFallback) genericFallback = s;
+        continue;
+      }
 
       return truncate(s);
     }
@@ -101,6 +106,8 @@ function summarizeToolResultMessage(msg: any): string {
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
     return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
+
+  if (genericFallback) return truncate(genericFallback);
 
   return "tool error";
 }
