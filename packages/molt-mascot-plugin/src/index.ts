@@ -14,7 +14,12 @@ export type State = {
 };
 
 function coerceNumber(v: unknown, fallback: number): number {
-  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim().length > 0) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return fallback;
 }
 
 function truncate(str: string, limit = 140): string {
