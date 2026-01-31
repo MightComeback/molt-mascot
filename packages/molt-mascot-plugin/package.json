@@ -23,11 +23,6 @@
       "require": "./dist/index.js"
     }
   },
-  "clawdbot": {
-    "extensions": [
-      "./dist/index.js"
-    ]
-  },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --watch",

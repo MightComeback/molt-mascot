@@ -318,8 +318,6 @@ export default function register(api: any) {
       }
     };
     on("tool.result", onToolEnd);
-    // Legacy/Back-compat support
-    on("tool_result", onToolEnd);
 
     const onAgentEnd = async (event: any) => {
       activeAgentCount--;
