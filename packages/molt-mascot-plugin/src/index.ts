@@ -81,6 +81,7 @@ function summarizeToolResultMessage(msg: any): string {
   const candidates = [
     msg?.errorMessage,
     msg?.stderr,
+    msg?.failure,
     msg?.details,
     // Handle string error or object error with message
     typeof msg?.error === "string" ? msg.error : msg?.error?.message,
@@ -315,6 +316,7 @@ export default function register(api: any) {
       const isExplicitError =
         msg?.isError === true ||
         msg?.status === "error" ||
+        msg?.status === "failed" ||
         (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
         (typeof msg === "string" && /^\s*error:/i.test(msg)) ||
         (typeof msg === "string" && /Command exited with code [1-9]/.test(msg));
