@@ -137,7 +137,12 @@ function register(api) {
   };
   const registerAlias = (method, handler) => {
     api.registerGatewayMethod?.(`${pluginId}.${method}`, handler);
-    const aliases = /* @__PURE__ */ new Set(["molt-mascot-plugin", "molt-mascot", "moltMascot"]);
+    const aliases = /* @__PURE__ */ new Set([
+      "molt-mascot-plugin",
+      "molt-mascot",
+      "moltMascot",
+      "@molt/mascot-plugin"
+    ]);
     aliases.delete(pluginId);
     for (const alias of aliases) {
       api.registerGatewayMethod?.(`${alias}.${method}`, handler);
@@ -183,8 +188,14 @@ function register(api) {
       clearIdleTimer();
       toolDepth--;
       clampToolDepth();
+      const infraError = event?.error;
       const msg = event?.result;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+      if (infraError) {
+        const detail = typeof infraError === "string" ? infraError : infraError.message || "unknown error";
+        enterError(truncate(`${toolName}: ${detail}`));
+        return;
+      }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
       const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg);
@@ -206,7 +217,8 @@ function register(api) {
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
       if (msg.trim()) {
-        enterError(truncate(msg.trim()));
+        const clean = msg.trim().replace(/^(Error|Tool failed):\s*/i, "");
+        enterError(truncate(clean));
         return;
       }
       if (event?.success === false) {
