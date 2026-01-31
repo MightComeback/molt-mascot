@@ -48,16 +48,23 @@ function summarizeToolResultMessage(msg) {
   }
   const candidates = [
     msg?.errorMessage,
-    msg?.error,
     msg?.stderr,
     msg?.details,
+    msg?.error,
     msg?.text,
     msg?.message,
     msg?.result,
     msg?.output
   ];
   for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return truncate(c);
+    if (typeof c === "string" && c.trim()) {
+      const s = c.trim();
+      if (s.match(/^Command exited with code \d+$/)) continue;
+      return truncate(s);
+    }
+  }
+  if (typeof msg?.error === "string" && msg.error.trim()) {
+    return truncate(msg.error.trim());
   }
   return "tool error";
 }
@@ -125,24 +132,17 @@ function register(api) {
       }
     }, errorHoldMs);
   };
-  api.registerGatewayMethod?.(`${pluginId}.state`, (_params, { respond }) => {
+  const registerAlias = (method, handler) => {
+    api.registerGatewayMethod?.(`${pluginId}.${method}`, handler);
+    const aliases = /* @__PURE__ */ new Set(["molt-mascot-plugin", "molt-mascot", "moltMascot"]);
+    aliases.delete(pluginId);
+    for (const alias of aliases) {
+      api.registerGatewayMethod?.(`${alias}.${method}`, handler);
+    }
+  };
+  registerAlias("state", (_params, { respond }) => {
     respond(true, { ok: true, state });
   });
-  if (pluginId !== "molt-mascot-plugin") {
-    api.registerGatewayMethod?.("molt-mascot-plugin.state", (_params, { respond }) => {
-      respond(true, { ok: true, state });
-    });
-  }
-  if (pluginId !== "molt-mascot") {
-    api.registerGatewayMethod?.("molt-mascot.state", (_params, { respond }) => {
-      respond(true, { ok: true, state });
-    });
-  }
-  if (pluginId !== "moltMascot") {
-    api.registerGatewayMethod?.("moltMascot.state", (_params, { respond }) => {
-      respond(true, { ok: true, state });
-    });
-  }
   const resetInternalState = () => {
     state.mode = "idle";
     state.since = Date.now();
@@ -152,28 +152,10 @@ function register(api) {
     clearIdleTimer();
     clearErrorTimer();
   };
-  api.registerGatewayMethod?.(`${pluginId}.reset`, (_params, { respond }) => {
+  registerAlias("reset", (_params, { respond }) => {
     resetInternalState();
     respond(true, { ok: true, state });
   });
-  if (pluginId !== "molt-mascot-plugin") {
-    api.registerGatewayMethod?.("molt-mascot-plugin.reset", (_params, { respond }) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
-  if (pluginId !== "molt-mascot") {
-    api.registerGatewayMethod?.("molt-mascot.reset", (_params, { respond }) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
-  if (pluginId !== "moltMascot") {
-    api.registerGatewayMethod?.("moltMascot.reset", (_params, { respond }) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
   const on = api?.on;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
