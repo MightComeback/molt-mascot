@@ -29,7 +29,7 @@ function coerceNumber(v: unknown, fallback: number): number {
   return fallback;
 }
 
-function truncate(str: string, limit = 100): string {
+function truncate(str: string, limit = 140): string {
   const s = str.trim();
   if (s.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
