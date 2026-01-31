@@ -272,6 +272,10 @@ export default function register(api: any) {
       clearIdleTimer();
       clearErrorTimer();
       activeAgentCount++;
+
+      // Auto-heal: a new run shouldn't have pending tools from the past
+      if (activeAgentCount === 1) toolDepth = 0;
+
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
       setMode(mode);
