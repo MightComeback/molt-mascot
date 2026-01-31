@@ -265,8 +265,17 @@ export default function register(api: any) {
       clampToolDepth();
 
       // Check for tool errors (capture exit codes or explicit error fields)
+      // "event.error" handles infrastructure failures (timeout, not found)
+      // "event.result" handles tool-level failures (runtime errors)
+      const infraError = event?.error;
       const msg = event?.result;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+
+      if (infraError) {
+        const detail = typeof infraError === "string" ? infraError : infraError.message || "unknown error";
+        enterError(truncate(`${toolName}: ${detail}`));
+        return;
+      }
 
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
