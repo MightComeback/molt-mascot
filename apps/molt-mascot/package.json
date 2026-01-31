@@ -1,7 +1,7 @@
 {
   "name": "@molt/mascot",
   "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "keywords": [
     "electron",
     "mascot",
