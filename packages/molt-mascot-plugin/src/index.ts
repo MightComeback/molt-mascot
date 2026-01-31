@@ -5,6 +5,13 @@ export type Mode = "idle" | "thinking" | "tool" | "error";
 export type PluginConfig = {
   idleDelayMs?: number;
   errorHoldMs?: number;
+  alignment?:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "top-center"
+    | "bottom-center";
 };
 
 export type State = {
