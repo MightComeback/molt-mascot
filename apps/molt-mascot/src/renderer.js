@@ -132,7 +132,7 @@ let ws = null;
 let reqId = 0;
 
 let pluginStateReqId = null;
-let pluginStateMethod = 'molt-mascot.state';
+let pluginStateMethod = 'molt-mascot-plugin.state';
 let pluginStateTriedAlias = false;
 let hasPlugin = false;
 
@@ -193,11 +193,11 @@ function connect(cfg) {
       pill.textContent = 'connected';
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
-      // Prefer the canonical pluginId.action name (plugin id: "molt-mascot").
-      // The plugin still exposes "moltMascot.state" as a back-compat alias.
+      // Prefer the canonical pluginId.action name (plugin id: "molt-mascot-plugin").
+      // The plugin still exposes "molt-mascot.state" as a back-compat alias.
       const id = nextId('s');
       pluginStateReqId = id;
-      pluginStateMethod = 'molt-mascot.state';
+      pluginStateMethod = 'molt-mascot-plugin.state';
       pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
 
