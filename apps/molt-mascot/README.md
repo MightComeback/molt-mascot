@@ -27,6 +27,8 @@ The mascot connects to a Clawdbot Gateway WebSocket.
 - **Default URL**: `ws://127.0.0.1:18789`
 - **Environment Variables**:
     - `MOLT_MASCOT_ALIGN`: Positioning (e.g. `bottom-right` (default), `bottom-left`, `top-right`, `top-left`).
+    - `MOLT_MASCOT_WIDTH`: Window width (default `240`).
+    - `MOLT_MASCOT_HEIGHT`: Window height (default `200`).
     - `MOLT_MASCOT_CLICKTHROUGH`: Set to `1` or `true` to enable click-through on launch.
     - `gatewayUrl`: Pre-seed the gateway URL.
     - `gatewayToken`: Pre-seed the gateway auth token.
