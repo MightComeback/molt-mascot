@@ -28,6 +28,7 @@ bun run mascot
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
   - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center` (ignores padding)
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
+- **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
