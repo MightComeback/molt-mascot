@@ -199,7 +199,12 @@ export default function register(api: any) {
     api.registerGatewayMethod?.(`${pluginId}.${method}`, handler);
 
     // Aliases (avoid duplicates if pluginId overlaps)
-    const aliases = new Set(["molt-mascot-plugin", "molt-mascot", "moltMascot"]);
+    const aliases = new Set([
+      "molt-mascot-plugin",
+      "molt-mascot",
+      "moltMascot",
+      "@molt/mascot-plugin",
+    ]);
     aliases.delete(pluginId); // Don't re-register self
 
     for (const alias of aliases) {
