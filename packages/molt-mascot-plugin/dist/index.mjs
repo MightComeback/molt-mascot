@@ -8,7 +8,7 @@ function coerceNumber(v, fallback) {
   }
   return fallback;
 }
-function truncate(str, limit = 140) {
+function truncate(str, limit = 100) {
   const s = str.trim();
   if (s.length <= limit) return s;
   if (limit <= 3) return s.slice(0, limit);
@@ -34,14 +34,15 @@ function summarizeToolResultMessage(msg) {
   ];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) {
-      const s = c.trim();
+      let s = c.trim();
+      s = s.replace(/^(Error|Tool failed):\s*/i, "");
       if (s.match(/^Command exited with code \d+$/)) continue;
-      return truncate(s.replace(/^Error:\s*/i, ""));
+      return truncate(s);
     }
   }
   const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim().replace(/^Error:\s*/i, ""));
+    return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
   return "tool error";
 }
