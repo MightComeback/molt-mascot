@@ -35,14 +35,14 @@ function summarizeToolResultMessage(msg) {
   return "tool error";
 }
 function register(api) {
-  const pluginId = typeof api?.id === "string" ? api.id : "molt-mascot";
+  const pluginId = typeof api?.id === "string" ? api.id : "molt-mascot-plugin";
   const cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
   const state = { mode: "idle", since: Date.now() };
   let idleTimer = null;
   let errorTimer = null;
-  let agentRunning = false;
+  let activeAgentCount = 0;
   let toolDepth = 0;
   const clampToolDepth = () => {
     if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
@@ -77,7 +77,7 @@ function register(api) {
   const resolveNativeMode = () => {
     clampToolDepth();
     if (toolDepth > 0) return "tool";
-    return agentRunning ? "thinking" : "idle";
+    return activeAgentCount > 0 ? "thinking" : "idle";
   };
   const syncModeFromCounters = () => {
     const target = resolveNativeMode();
@@ -116,7 +116,7 @@ function register(api) {
     state.since = Date.now();
     delete state.lastError;
     toolDepth = 0;
-    agentRunning = false;
+    activeAgentCount = 0;
     clearIdleTimer();
     clearErrorTimer();
   };
@@ -145,8 +145,7 @@ function register(api) {
     const onAgentStart = async () => {
       clearIdleTimer();
       clearErrorTimer();
-      agentRunning = true;
-      toolDepth = 0;
+      activeAgentCount++;
       const mode = resolveNativeMode();
       setMode(mode);
     };
@@ -165,8 +164,11 @@ function register(api) {
     };
     on("after_tool_call", onToolEnd);
     const onAgentEnd = async (event) => {
-      agentRunning = false;
-      toolDepth = 0;
+      activeAgentCount--;
+      if (activeAgentCount < 0) activeAgentCount = 0;
+      if (activeAgentCount === 0) {
+        toolDepth = 0;
+      }
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "";
       if (msg.trim()) {
