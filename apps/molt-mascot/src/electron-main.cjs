@@ -92,6 +92,11 @@ function applyClickThrough(win, enabled) {
 }
 
 app.whenReady().then(async () => {
+  // Hide dock icon on macOS for a true desktop widget experience
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
+
   if (CAPTURE_DIR) {
     await captureScreenshots();
     app.quit();
