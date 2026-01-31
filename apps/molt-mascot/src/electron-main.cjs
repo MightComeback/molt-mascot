@@ -2,6 +2,11 @@ const { app, BrowserWindow, screen, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Fix for Windows notifications/taskbar grouping (matches package.json appId)
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.mightcomeback.molt-mascot');
+}
+
 const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 
 function isTruthyEnv(v) {
