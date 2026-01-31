@@ -22,7 +22,7 @@ function coerceNumber(v: unknown, fallback: number): number {
   return fallback;
 }
 
-function truncate(str: string, limit = 140): string {
+function truncate(str: string, limit = 100): string {
   const s = str.trim();
   if (s.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
@@ -72,14 +72,15 @@ function summarizeToolResultMessage(msg: any): string {
       // If it's just the generic exit code message, skip it for now unless it's the only thing we have
       if (s.match(/^Command exited with code \d+$/)) continue;
       // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
-      return truncate(s.replace(/^Error:\s*/i, ""));
+      // Also strip common "Tool failed:" prefix
+      return truncate(s.replace(/^(Error|Tool failed):\s*/i, ""));
     }
   }
 
   // Fallback: if we skipped a generic error message, return it now
   const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim().replace(/^Error:\s*/i, ""));
+    return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
 
   return "tool error";
