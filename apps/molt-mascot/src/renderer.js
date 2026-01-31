@@ -109,7 +109,7 @@ function syncPill() {
 
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
-    const maxLen = 24;
+    const maxLen = 32;
     pill.textContent = lastErrorMessage.length > maxLen
       ? lastErrorMessage.slice(0, maxLen - 1) + '…'
       : lastErrorMessage;
