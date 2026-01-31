@@ -35,6 +35,7 @@ bun run mascot
 
 - **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1`
   - Toggle at runtime with **Cmd/Ctrl+Shift+M**
+- **Hide Text** (pixel-only mode): set `MOLT_MASCOT_HIDE_TEXT=1` to hide the status pill/HUD.
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
   - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center` (ignores padding)
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
@@ -69,13 +70,13 @@ bun run screenshots
 There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
 
 Recommended (follows `pluginId.action`):
-- `molt-mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError? } }`
+- `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError? } }`
 
 Back-compat alias:
-- `molt-mascot.state` / `moltMascot.state` → same payload
+- `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` → same payload
 
 Config lives under:
-- `plugins.entries.molt-mascot-plugin.config` (and `...enabled: true`)
+- `plugins.entries["@molt/mascot-plugin"].config` (and `...enabled: true`)
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
 
