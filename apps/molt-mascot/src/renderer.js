@@ -186,7 +186,7 @@ function connect(cfg) {
         client: {
           id: 'molt-mascot-desktop',
           displayName: 'Molt Mascot',
-          version: window.moltMascot?.version || '0.1.0',
+          version: window.moltMascot?.version || '0.1.15',
           platform: window.moltMascot?.platform || navigator.userAgent,
           mode: 'gui',
           instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
@@ -283,7 +283,7 @@ function connect(cfg) {
         if (p?.phase === 'start') setMode(Mode.thinking);
         if (p?.phase === 'end') scheduleIdle(idleDelayMs);
         if (p?.phase === 'error') {
-          lastErrorMessage = 'agent error';
+          lastErrorMessage = p?.error?.message || (typeof p?.error === 'string' ? p.error : 'agent error');
           setMode(Mode.error);
           // Hold the error state for the configured duration, then return to idle.
           // (Don't add the idle-delay on top of the error hold.)
