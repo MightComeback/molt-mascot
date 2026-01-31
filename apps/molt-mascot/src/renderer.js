@@ -106,7 +106,17 @@ let lastErrorMessage = '';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  pill.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+
+  if (currentMode === Mode.error && lastErrorMessage) {
+    // UX Polish: show actual error in the HUD (truncated)
+    const maxLen = 24;
+    pill.textContent = lastErrorMessage.length > maxLen
+      ? lastErrorMessage.slice(0, maxLen - 1) + '…'
+      : lastErrorMessage;
+  } else {
+    pill.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  }
+
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
