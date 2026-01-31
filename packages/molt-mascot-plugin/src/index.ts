@@ -27,6 +27,16 @@ function truncate(str: string, limit = 140): string {
   return s.length > limit ? s.slice(0, limit) + "..." : s;
 }
 
+/**
+ * Extract a short, human-readable summary from a tool result.
+ * Strategies:
+ * 1. Simple strings are used directly.
+ * 2. Block content (Anthropic style) is joined.
+ * 3. Error fields are prioritized (stderr, error object).
+ *
+ * @param msg - The raw result object or string from the tool.
+ * @returns A truncated string suitable for the pixel display (max 140 chars).
+ */
 function summarizeToolResultMessage(msg: any): string {
   if (typeof msg === "string" && msg.trim()) return truncate(msg);
 
@@ -57,6 +67,11 @@ function summarizeToolResultMessage(msg: any): string {
   return "tool error";
 }
 
+/**
+ * Initialize the molt-mascot plugin.
+ * Sets up the state machine, event listeners for tool/agent lifecycle,
+ * and exposes the .state and .reset methods to the Gateway.
+ */
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
