@@ -233,12 +233,12 @@ export default function register(api: any) {
       clearIdleTimer();
       clearErrorTimer();
       agentRunning = true;
+      toolDepth = 0;
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
       setMode(mode);
     };
     on("before_agent_run", onAgentStart);
-    // on("before_agent_start", onAgentStart); // Deprecated alias
 
     const onToolStart = async () => {
       clearIdleTimer();
@@ -248,7 +248,6 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
     on("before_tool_call", onToolStart);
-    // on("before_tool_use", onToolStart); // Deprecated alias
 
     const onToolEnd = async () => {
       clearIdleTimer();
@@ -258,11 +257,10 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
     on("after_tool_call", onToolEnd);
-    // on("after_tool_use", onToolEnd); // Deprecated alias
 
     const onAgentEnd = async (event: any) => {
       agentRunning = false;
-      // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_use"
+      // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_call"
       toolDepth = 0;
 
       const err = event?.error;
