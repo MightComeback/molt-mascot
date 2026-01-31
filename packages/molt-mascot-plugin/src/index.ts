@@ -43,7 +43,12 @@ function cleanErrorString(s: string): string {
     str = str.replace(/^(Error|Tool failed|Exception|Warning)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
-  return str.split(/[\r\n]+/)[0]?.trim() || str;
+  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+  // If first line is a generic exit code, and we have a second line, use the second.
+  if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
+    return lines[1];
+  }
+  return lines[0] || str;
 }
 
 /**
