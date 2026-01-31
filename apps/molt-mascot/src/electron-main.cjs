@@ -30,6 +30,10 @@ function getPosition(display, width, height) {
       return { x: x + padding, y: y + padding };
     case 'center':
       return { x: x + (dw - width) / 2, y: y + (dh - height) / 2 };
+    case 'top-center':
+      return { x: x + (dw - width) / 2, y: y + padding };
+    case 'bottom-center':
+      return { x: x + (dw - width) / 2, y: y + dh - height - padding };
     case 'bottom-right':
     default:
       return { x: x + dw - width - padding, y: y + dh - height - padding };
