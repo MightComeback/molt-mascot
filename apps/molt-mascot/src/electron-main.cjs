@@ -35,8 +35,8 @@ function getPosition(display, width, height, padding = 24) {
 
 function createWindow({ capture = false } = {}) {
   const display = screen.getPrimaryDisplay();
-  const width = 240;
-  const height = 200;
+  const width = Number(process.env.MOLT_MASCOT_WIDTH) || 240;
+  const height = Number(process.env.MOLT_MASCOT_HEIGHT) || 200;
   const pos = getPosition(display, width, height);
 
   const win = new BrowserWindow({
