@@ -71,14 +71,15 @@ function summarizeToolResultMessage(msg: any): string {
       const s = c.trim();
       // If it's just the generic exit code message, skip it for now unless it's the only thing we have
       if (s.match(/^Command exited with code \d+$/)) continue;
-      return truncate(s);
+      // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
+      return truncate(s.replace(/^Error:\s*/i, ""));
     }
   }
 
   // Fallback: if we skipped a generic error message, return it now
   const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim());
+    return truncate(fallbackStr.trim().replace(/^Error:\s*/i, ""));
   }
 
   return "tool error";
