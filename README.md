@@ -32,6 +32,12 @@ bun run mascot
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `CLAWDBOT_GATEWAY_URL` / `CLAWDBOT_GATEWAY_TOKEN`)
 
+## Project Structure
+
+- `apps/molt-mascot` (@molt/mascot): The Electron desktop app.
+- `packages/molt-mascot-plugin` (@molt/mascot-plugin): The optional Clawdbot server plugin.
+- `tools/`: Dev scripts (WS dump, etc).
+
 ## Dev tools
 
 Dump raw Gateway frames:
