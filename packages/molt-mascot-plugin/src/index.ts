@@ -53,18 +53,30 @@ function summarizeToolResultMessage(msg: any): string {
   }
 
   // Prioritize explicit error messages over generic content when reporting errors
+  // Skip generic "Command exited with code N" messages to prefer stderr/details
   const candidates = [
     msg?.errorMessage,
-    msg?.error,
     msg?.stderr,
     msg?.details,
+    msg?.error,
     msg?.text,
     msg?.message,
     msg?.result,
     msg?.output,
   ];
+
   for (const c of candidates) {
-    if (typeof c === "string" && c.trim()) return truncate(c);
+    if (typeof c === "string" && c.trim()) {
+      const s = c.trim();
+      // If it's just the generic exit code message, skip it for now unless it's the only thing we have
+      if (s.match(/^Command exited with code \d+$/)) continue;
+      return truncate(s);
+    }
+  }
+
+  // Fallback: if we skipped a generic error message, return it now
+  if (typeof msg?.error === "string" && msg.error.trim()) {
+    return truncate(msg.error.trim());
   }
 
   return "tool error";
@@ -174,31 +186,24 @@ export default function register(api: any) {
     }, errorHoldMs);
   };
 
+  // Helper to register methods and common aliases
+  const registerAlias = (method: string, handler: any) => {
+    // Primary registration
+    api.registerGatewayMethod?.(`${pluginId}.${method}`, handler);
+
+    // Aliases (avoid duplicates if pluginId overlaps)
+    const aliases = new Set(["molt-mascot-plugin", "molt-mascot", "moltMascot"]);
+    aliases.delete(pluginId); // Don't re-register self
+
+    for (const alias of aliases) {
+      api.registerGatewayMethod?.(`${alias}.${method}`, handler);
+    }
+  };
+
   // Expose current simplified state to WS clients.
-  // Primary (recommended) name follows the pluginId.action convention.
-  api.registerGatewayMethod?.(`${pluginId}.state`, (_params: any, { respond }: any) => {
+  registerAlias("state", (_params: any, { respond }: any) => {
     respond(true, { ok: true, state });
   });
-
-  // Ensure legacy IDs are available if the user is using the new scoped ID.
-  if (pluginId !== "molt-mascot-plugin") {
-    api.registerGatewayMethod?.("molt-mascot-plugin.state", (_params: any, { respond }: any) => {
-      respond(true, { ok: true, state });
-    });
-  }
-
-  if (pluginId !== "molt-mascot") {
-    api.registerGatewayMethod?.("molt-mascot.state", (_params: any, { respond }: any) => {
-      respond(true, { ok: true, state });
-    });
-  }
-
-  // Back-compat alias for early adopters.
-  if (pluginId !== "moltMascot") {
-    api.registerGatewayMethod?.("moltMascot.state", (_params: any, { respond }: any) => {
-      respond(true, { ok: true, state });
-    });
-  }
 
   const resetInternalState = () => {
     state.mode = "idle";
@@ -211,32 +216,10 @@ export default function register(api: any) {
   };
 
   // Manual reset override (useful for debugging or ghost states).
-  api.registerGatewayMethod?.(`${pluginId}.reset`, (_params: any, { respond }: any) => {
+  registerAlias("reset", (_params: any, { respond }: any) => {
     resetInternalState();
     respond(true, { ok: true, state });
   });
-
-  if (pluginId !== "molt-mascot-plugin") {
-    api.registerGatewayMethod?.("molt-mascot-plugin.reset", (_params: any, { respond }: any) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
-
-  if (pluginId !== "molt-mascot") {
-    api.registerGatewayMethod?.("molt-mascot.reset", (_params: any, { respond }: any) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
-
-  // Back-compat alias for early adopters.
-  if (pluginId !== "moltMascot") {
-    api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
-      resetInternalState();
-      respond(true, { ok: true, state });
-    });
-  }
 
   const on = api?.on;
   if (typeof on !== "function") {
@@ -295,7 +278,6 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
     on("after_agent_run", onAgentEnd);
-    // on("agent_end", onAgentEnd); // Deprecated alias
 
     on("tool_result", (event: any) => {
       const msg = event?.result;
