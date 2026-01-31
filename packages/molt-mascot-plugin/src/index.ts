@@ -1,4 +1,4 @@
-export const id = "@molt/mascot-plugin";
+export const id = "molt-mascot-plugin";
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 
