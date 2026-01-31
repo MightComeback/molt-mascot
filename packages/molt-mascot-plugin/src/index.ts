@@ -249,12 +249,30 @@ export default function register(api: any) {
     };
     on("before_tool_call", onToolStart);
 
-    const onToolEnd = async () => {
+    const onToolEnd = async (event: any) => {
       clearIdleTimer();
-      // Do NOT clear error timer here, let syncMode determine if we stick with error.
       toolDepth--;
       clampToolDepth();
-      syncModeFromCounters();
+
+      // Check for tool errors (capture exit codes or explicit error fields)
+      const msg = event?.result;
+      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+
+      const hasExitCode = typeof msg?.exitCode === "number";
+      const isExitError = hasExitCode && msg.exitCode !== 0;
+      const isExplicitError =
+        msg?.isError === true ||
+        msg?.status === "error" ||
+        (typeof msg?.error === "string" && msg.error.trim().length > 0);
+
+      const isError = hasExitCode ? isExitError : isExplicitError;
+
+      if (isError) {
+        const detail = summarizeToolResultMessage(msg);
+        enterError(truncate(`${toolName} error: ${detail}`));
+      } else {
+        syncModeFromCounters();
+      }
     };
     on("after_tool_call", onToolEnd);
 
@@ -281,28 +299,7 @@ export default function register(api: any) {
     };
     on("after_agent_run", onAgentEnd);
 
-    on("tool_result", (event: any) => {
-      const msg = event?.result;
-      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
-
-      // Improved error detection: Trust exitCode if present (0=success).
-      // Otherwise fallback to explicit error flags.
-      // Avoid treating generic stderr as error since many tools use it for logs.
-      const hasExitCode = typeof msg?.exitCode === "number";
-      const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError =
-        msg?.isError === true ||
-        msg?.status === "error" ||
-        (typeof msg?.error === "string" && msg.error.trim().length > 0);
-
-      const isError = hasExitCode ? isExitError : isExplicitError;
-
-      if (isError) {
-        const detail = summarizeToolResultMessage(msg);
-        enterError(truncate(`${toolName} error: ${detail}`));
-        // Do not sync counters here; let the error stick until active work resumes or timeout
-      }
-    });
+    // tool_result logic merged into after_tool_call
   }
 
   api.registerService?.({
