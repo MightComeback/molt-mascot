@@ -24,7 +24,7 @@ function coerceNumber(v: unknown, fallback: number): number {
 
 function truncate(str: string, limit = 140): string {
   const s = str.trim();
-  return s.length > limit ? s.slice(0, limit) + "..." : s;
+  return s.length > limit ? s.slice(0, limit - 3) + "..." : s;
 }
 
 /**
