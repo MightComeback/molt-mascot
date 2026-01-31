@@ -137,7 +137,7 @@ let ws = null;
 let reqId = 0;
 
 let pluginStateReqId = null;
-let pluginStateMethod = 'molt-mascot-plugin.state';
+let pluginStateMethod = '@molt/mascot-plugin.state';
 let pluginStateTriedAlias = false;
 let hasPlugin = false;
 
@@ -202,7 +202,7 @@ function connect(cfg) {
       // The plugin still exposes "molt-mascot.state" as a back-compat alias.
       const id = nextId('s');
       pluginStateReqId = id;
-      pluginStateMethod = 'molt-mascot-plugin.state';
+      pluginStateMethod = '@molt/mascot-plugin.state';
       pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
 
@@ -243,7 +243,7 @@ function connect(cfg) {
     // If the canonical plugin method isn't installed (older plugin), fall back once.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
       pluginStateTriedAlias = true;
-      pluginStateMethod = 'moltMascot.state';
+      pluginStateMethod = 'molt-mascot-plugin.state';
       const id = nextId('s');
       pluginStateReqId = id;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
