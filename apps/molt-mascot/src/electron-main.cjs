@@ -79,6 +79,10 @@ async function captureScreenshots() {
   await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
 
   const modes = ['idle', 'thinking', 'tool', 'error'];
+  
+  // Freeze time at 0 for deterministic bobbing (frame 0)
+  await win.webContents.executeJavaScript(`window.__moltMascotSetTime && window.__moltMascotSetTime(0)`);
+
   for (const mode of modes) {
     await win.webContents.executeJavaScript(`window.__moltMascotSetMode && window.__moltMascotSetMode(${JSON.stringify(mode)})`);
     await new Promise((r) => setTimeout(r, 120));
