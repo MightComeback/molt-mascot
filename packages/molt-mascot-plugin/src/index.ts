@@ -40,9 +40,10 @@ function cleanErrorString(s: string): string {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
+    str = str.replace(/^(Error|Tool failed|Exception|Warning)(\s*:\s*|\s+)/i, "").trim();
   }
-  return str;
+  // Take only the first line to avoid dumping stack traces into the pixel display
+  return str.split(/[\r\n]+/)[0]?.trim() || str;
 }
 
 /**
