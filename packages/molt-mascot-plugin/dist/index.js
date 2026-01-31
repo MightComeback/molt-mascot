@@ -57,6 +57,7 @@ function summarizeToolResultMessage(msg) {
     msg?.result,
     msg?.output
   ];
+  let genericFallback = null;
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) {
       let s = c.trim();
@@ -65,7 +66,10 @@ function summarizeToolResultMessage(msg) {
         prev = s;
         s = s.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
       }
-      if (s.match(/^Command exited with code \d+$/)) continue;
+      if (s.match(/^Command exited with code \d+$/)) {
+        if (!genericFallback) genericFallback = s;
+        continue;
+      }
       return truncate(s);
     }
     if (c && typeof c === "object" && !Array.isArray(c)) {
@@ -80,6 +84,7 @@ function summarizeToolResultMessage(msg) {
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
     return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
+  if (genericFallback) return truncate(genericFallback);
   return "tool error";
 }
 function register(api) {
@@ -188,13 +193,13 @@ function register(api) {
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    on("agent_run_start", onAgentStart);
+    on("agent.run.start", onAgentStart);
     const onToolStart = async () => {
       clearIdleTimer();
       toolDepth++;
       syncModeFromCounters();
     };
-    on("tool_call_start", onToolStart);
+    on("tool.exec.start", onToolStart);
     const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
@@ -209,7 +214,7 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg);
+      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]/.test(msg);
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
@@ -218,7 +223,7 @@ function register(api) {
         syncModeFromCounters();
       }
     };
-    on("tool_call_end", onToolEnd);
+    on("tool.exec.end", onToolEnd);
     const onAgentEnd = async (event) => {
       activeAgentCount--;
       if (activeAgentCount < 0) activeAgentCount = 0;
@@ -238,7 +243,7 @@ function register(api) {
       }
       syncModeFromCounters();
     };
-    on("agent_run_end", onAgentEnd);
+    on("agent.run.end", onAgentEnd);
   }
   api.registerService?.({
     // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
