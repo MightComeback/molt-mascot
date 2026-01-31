@@ -8,8 +8,8 @@
   "packageManager": "bun@1.3.7",
   "scripts": {
     "dev": "bun --filter '*' dev",
-    "mascot": "bun --filter molt-mascot dev",
-    "screenshots": "bun --filter molt-mascot capture",
+    "mascot": "bun --filter @molt/mascot dev",
+    "screenshots": "bun --filter @molt/mascot capture",
     "ws:dump": "bun tools/ws-dump.ts",
     "lint": "oxlint .",
     "format": "bun x biome check --apply ."
