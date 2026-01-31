@@ -11,6 +11,16 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **C
 
 ## Quickstart
 
+### 1. Install Plugin
+The mascot requires the companion plugin to receive state updates from Clawdbot.
+
+```bash
+# From the monorepo root
+clawdbot install ./packages/molt-mascot-plugin
+```
+
+### 2. Run App
+
 ```bash
 bun install
 
