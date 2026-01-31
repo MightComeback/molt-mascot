@@ -9,16 +9,36 @@ function isTruthyEnv(v) {
   return s === '1' || s === 'true' || s === 'yes' || s === 'on';
 }
 
+function getPosition(display, width, height, padding = 24) {
+  const align = (process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
+  const { x, y, width: dw, height: dh } = display.workArea;
+
+  switch (align) {
+    case 'bottom-left':
+      return { x: x + padding, y: y + dh - height - padding };
+    case 'top-right':
+      return { x: x + dw - width - padding, y: y + padding };
+    case 'top-left':
+      return { x: x + padding, y: y + padding };
+    case 'center':
+      return { x: x + (dw - width) / 2, y: y + (dh - height) / 2 };
+    case 'bottom-right':
+    default:
+      return { x: x + dw - width - padding, y: y + dh - height - padding };
+  }
+}
+
 function createWindow({ capture = false } = {}) {
   const display = screen.getPrimaryDisplay();
   const width = 240;
   const height = 200;
+  const pos = getPosition(display, width, height);
 
   const win = new BrowserWindow({
     width,
     height,
-    x: display.workArea.x + display.workArea.width - width - 24,
-    y: display.workArea.y + display.workArea.height - height - 24,
+    x: Math.round(pos.x),
+    y: Math.round(pos.y),
     transparent: capture ? false : true,
     backgroundColor: capture ? '#111827' : '#00000000',
     show: capture ? false : true,
