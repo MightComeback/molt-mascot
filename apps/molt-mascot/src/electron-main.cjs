@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, globalShortcut } = require('electron');
+const { app, BrowserWindow, screen, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -111,6 +111,13 @@ app.whenReady().then(async () => {
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
     });
   } catch {}
+
+  ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
+    clickThrough = Boolean(enabled);
+    if (mainWin && !mainWin.isDestroyed()) {
+      applyClickThrough(mainWin, clickThrough);
+    }
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

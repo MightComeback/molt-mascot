@@ -38,6 +38,10 @@ function saveCfg(cfg) {
 
 function showSetup(prefill) {
   setup.hidden = false;
+  // Ensure we can click the form!
+  if (window.moltMascot?.setClickThrough) {
+    window.moltMascot.setClickThrough(false);
+  }
   urlInput.value = prefill?.url || 'ws://127.0.0.1:18789';
   tokenInput.value = prefill?.token || '';
 }
