@@ -19,9 +19,14 @@
   "scripts": {
     "dev": "electron .",
     "start": "electron .",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir",
     "capture": "mkdir -p ../../assets/screenshots && MOLT_MASCOT_CAPTURE_DIR=../../assets/screenshots electron ."
   },
   "dependencies": {
     "electron": "^30.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^26.4.0"
   }
 }
