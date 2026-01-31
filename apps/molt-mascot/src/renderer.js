@@ -194,6 +194,14 @@ function connect(cfg) {
     // eslint-disable-next-line no-console
     // console.log('gateway:', msg);
 
+    // If we have a plugin, any event is a hint to poll state immediately
+    // so the UI feels snappy (instead of waiting for the 1s poller).
+    if (hasPlugin && msg.type === 'event') {
+      const pid = nextId('p');
+      pluginStateReqId = pid;
+      ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
+    }
+
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       pill.textContent = 'connected';
       setMode(Mode.idle);
