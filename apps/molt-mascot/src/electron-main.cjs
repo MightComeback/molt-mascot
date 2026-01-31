@@ -14,7 +14,10 @@ function isTruthyEnv(v) {
   return s === '1' || s === 'true' || s === 'yes' || s === 'on';
 }
 
-function getPosition(display, width, height, padding = 24) {
+function getPosition(display, width, height) {
+  const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
+  const padding = Number.isFinite(envPadding) ? envPadding : 24;
+
   const align = (process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
 

@@ -26,7 +26,8 @@ bun run mascot
 - **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1`
   - Toggle at runtime with **Cmd/Ctrl+Shift+M**
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
-  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center`
+  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `center` (ignores padding)
+  - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
