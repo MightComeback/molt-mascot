@@ -24,7 +24,10 @@ function coerceNumber(v: unknown, fallback: number): number {
 
 function truncate(str: string, limit = 140): string {
   const s = str.trim();
-  return s.length > limit ? s.slice(0, limit - 3) + "..." : s;
+  if (s.length <= limit) return s;
+  // If limit is too small to fit ellipsis, just truncate hard
+  if (limit <= 3) return s.slice(0, limit);
+  return s.slice(0, limit - 3) + "...";
 }
 
 /**
