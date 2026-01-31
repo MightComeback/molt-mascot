@@ -61,12 +61,12 @@ function summarizeToolResultMessage(msg) {
     if (typeof c === "string" && c.trim()) {
       const s = c.trim();
       if (s.match(/^Command exited with code \d+$/)) continue;
-      return truncate(s);
+      return truncate(s.replace(/^Error:\s*/i, ""));
     }
   }
   const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
   if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim());
+    return truncate(fallbackStr.trim().replace(/^Error:\s*/i, ""));
   }
   return "tool error";
 }
