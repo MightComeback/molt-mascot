@@ -268,7 +268,7 @@ export default function register(api: any) {
       // "event.error" handles infrastructure failures (timeout, not found)
       // "event.result" handles tool-level failures (runtime errors)
       const infraError = event?.error;
-      const msg = event?.result;
+      const msg = event?.result ?? event?.output ?? event?.data;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
 
       if (infraError) {
