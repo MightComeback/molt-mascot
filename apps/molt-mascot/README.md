@@ -1,37 +1,42 @@
 # Molt Mascot
 
-> A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
+A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
 
 ## Features
 
-- **Always on top**: Floats over your windows.
-- **State aware**: Reflects 'idle', 'thinking', 'tool', 'error' states from the local gateway.
-- **Click-through**: Toggle click-through mode with `Cmd+Shift+M` or `Ctrl+Shift+M`.
-- **Cross-platform**: Runs on macOS (widget-like), Windows, and Linux.
+- **State Reflection**: Changes appearance based on Gateway state (Idle, Thinking, Tool Use, Error).
+- **Always-on-top**: Floats over other windows by default.
+- **Click-through**: Toggle interactivity with `Cmd+Shift+M` (or `Ctrl+Shift+M`) to let clicks pass through to windows behind.
 
-## Development
+## Setup & Running
+
+From the monorepo root:
 
 ```bash
-# Repo root
+# Install dependencies
 bun install
 
-# Run dev mode
+# Run the mascot
 bun run mascot
 ```
 
-## Shortcuts
+## Configuration
 
-- `Cmd+Shift+M` (macOS) / `Ctrl+Shift+M` (Win/Linux): Toggle "click-through" mode. When enabled, mouse clicks pass through the mascot to the window behind it.
+The mascot connects to a Clawdbot Gateway WebSocket.
 
-## Environment Variables
+- **Default URL**: `ws://127.0.0.1:18789`
+- **Environment Variables**:
+    - `MOLT_MASCOT_ALIGN`: Positioning (e.g. `bottom-right` (default), `bottom-left`, `top-right`, `top-left`).
+    - `MOLT_MASCOT_CLICKTHROUGH`: Set to `1` or `true` to enable click-through on launch.
+    - `gatewayUrl`: Pre-seed the gateway URL.
+    - `gatewayToken`: Pre-seed the gateway auth token.
 
-You can pre-configure the mascot using these environment variables:
+## Screenshots
 
-| Variable | Description |
-|----------|-------------|
-| `GATEWAY_URL` | Pre-fill the Gateway WebSocket URL (e.g. `ws://127.0.0.1:18789`). |
-| `GATEWAY_TOKEN` | Pre-fill the authentication token if required. |
-| `MOLT_MASCOT_CLICKTHROUGH`| Set to `1` or `true` to start in click-through mode. |
-| `MOLT_MASCOT_IDLE_DELAY_MS` | Milliseconds to wait before returning to idle animation (default: 800). |
-| `MOLT_MASCOT_ERROR_HOLD_MS` | Milliseconds to hold the error state before clearing (default: 5000). |
+To generate asset screenshots (for READMEs or docs):
 
+```bash
+bun run screenshots
+```
+
+Screenshots are saved to `assets/screenshots`.
