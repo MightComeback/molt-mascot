@@ -31,6 +31,20 @@ function truncate(str: string, limit = 100): string {
 }
 
 /**
+ * Remove common error prefixes to save space on the pixel display.
+ * e.g. "Error: Tool failed: File not found" -> "File not found"
+ */
+function cleanErrorString(s: string): string {
+  let str = s.trim();
+  let prev = "";
+  while (str !== prev) {
+    prev = str;
+    str = str.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
+  }
+  return str;
+}
+
+/**
  * Extract a short, human-readable summary from a tool result.
  * Strategies:
  * 1. Simple strings are used directly.
@@ -41,7 +55,7 @@ function truncate(str: string, limit = 100): string {
  * @returns A truncated string suitable for the pixel display (max 140 chars).
  */
 function summarizeToolResultMessage(msg: any): string {
-  if (typeof msg === "string" && msg.trim()) return truncate(msg);
+  if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
 
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
@@ -49,7 +63,7 @@ function summarizeToolResultMessage(msg: any): string {
       .map((b) => (typeof b?.text === "string" ? b.text : ""))
       .filter(Boolean)
       .join("\n");
-    if (text.trim()) return truncate(text);
+    if (text.trim()) return truncate(cleanErrorString(text));
   }
 
   // Prioritize explicit error messages over generic content when reporting errors
@@ -60,6 +74,7 @@ function summarizeToolResultMessage(msg: any): string {
     msg?.details,
     // Handle string error or object error with message
     typeof msg?.error === "string" ? msg.error : msg?.error?.message,
+    typeof msg?.error === "object" ? msg?.error?.text : undefined,
     msg?.text,
     msg?.message,
     msg?.result,
@@ -71,15 +86,7 @@ function summarizeToolResultMessage(msg: any): string {
   for (const c of candidates) {
     // String candidates
     if (typeof c === "string" && c.trim()) {
-      let s = c.trim();
-      // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
-      // Also strip common "Tool failed:" prefix
-      // Loop to handle stacked prefixes like "Tool failed: Error: ..."
-      let prev = "";
-      while (s !== prev) {
-        prev = s;
-        s = s.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
-      }
+      const s = cleanErrorString(c);
 
       // If it's just the generic exit code message, skip it for now unless it's the only thing we have
       if (s.match(/^Command exited with code \d+$/)) {
@@ -89,22 +96,6 @@ function summarizeToolResultMessage(msg: any): string {
 
       return truncate(s);
     }
-
-    // Structured candidates (e.g. error objects with .message or .text)
-    if (c && typeof c === "object" && !Array.isArray(c)) {
-      const field =
-        typeof c.message === "string" ? c.message : typeof c.text === "string" ? c.text : "";
-      if (field.trim()) {
-        const clean = field.trim().replace(/^(Error|Tool failed):\s*/i, "");
-        return truncate(clean);
-      }
-    }
-  }
-
-  // Fallback: if we skipped a generic error message, return it now
-  const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
-  if (typeof fallbackStr === "string" && fallbackStr.trim()) {
-    return truncate(fallbackStr.trim().replace(/^(Error|Tool failed):\s*/i, ""));
   }
 
   if (genericFallback) return truncate(genericFallback);
