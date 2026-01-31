@@ -1,7 +1,22 @@
 {
-  "id": "@molt/mascot-plugin",
-  "name": "@molt/mascot-plugin",
-  "version": "0.1.7",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
-  "main": "dist/index.js"
+  "id": "@molt/mascot-plugin",
+  "main": "dist/index.js",
+  "config": {
+    "type": "object",
+    "properties": {
+      "idleDelayMs": {
+        "type": "number",
+        "default": 800,
+        "description": "Milliseconds to wait before reverting to idle state"
+      },
+      "errorHoldMs": {
+        "type": "number",
+        "default": 5000,
+        "description": "Milliseconds to hold the error state before clearing"
+      }
+    }
+  },
+  "name": "@molt/mascot-plugin",
+  "version": "0.1.7"
 }
