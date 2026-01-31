@@ -306,7 +306,8 @@ export default function register(api: any) {
         msg?.isError === true ||
         msg?.status === "error" ||
         (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
-        (typeof msg === "string" && /^\s*error:/i.test(msg));
+        (typeof msg === "string" && /^\s*error:/i.test(msg)) ||
+        (typeof msg === "string" && /Command exited with code [1-9]/.test(msg));
 
       const isError = hasExitCode ? isExitError : isExplicitError;
 
