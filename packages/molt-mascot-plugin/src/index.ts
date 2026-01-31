@@ -36,6 +36,7 @@ function truncate(str: string, limit = 100): string {
  */
 function cleanErrorString(s: string): string {
   // Strip ANSI escape codes (colors, cursor moves, etc)
+  // eslint-disable-next-line no-control-regex
   let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
   let prev = "";
   while (str !== prev) {
