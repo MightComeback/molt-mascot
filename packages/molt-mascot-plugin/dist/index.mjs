@@ -35,9 +35,20 @@ function summarizeToolResultMessage(msg) {
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) {
       let s = c.trim();
-      s = s.replace(/^(Error|Tool failed):\s*/i, "");
+      let prev = "";
+      while (s !== prev) {
+        prev = s;
+        s = s.replace(/^(Error|Tool failed|Exception)(\s*:\s*|\s+)/i, "");
+      }
       if (s.match(/^Command exited with code \d+$/)) continue;
       return truncate(s);
+    }
+    if (c && typeof c === "object" && !Array.isArray(c)) {
+      const field = typeof c.message === "string" ? c.message : typeof c.text === "string" ? c.text : "";
+      if (field.trim()) {
+        const clean = field.trim().replace(/^(Error|Tool failed):\s*/i, "");
+        return truncate(clean);
+      }
     }
   }
   const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
@@ -152,19 +163,19 @@ function register(api) {
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    on("before_agent_run", onAgentStart);
+    on("agent_run_start", onAgentStart);
     const onToolStart = async () => {
       clearIdleTimer();
       toolDepth++;
       syncModeFromCounters();
     };
-    on("before_tool_call", onToolStart);
+    on("tool_call_start", onToolStart);
     const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
       clampToolDepth();
       const infraError = event?.error;
-      const msg = event?.result;
+      const msg = event?.result ?? event?.output ?? event?.data;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || "unknown error";
@@ -182,7 +193,7 @@ function register(api) {
         syncModeFromCounters();
       }
     };
-    on("after_tool_call", onToolEnd);
+    on("tool_call_end", onToolEnd);
     const onAgentEnd = async (event) => {
       activeAgentCount--;
       if (activeAgentCount < 0) activeAgentCount = 0;
@@ -202,7 +213,7 @@ function register(api) {
       }
       syncModeFromCounters();
     };
-    on("after_agent_run", onAgentEnd);
+    on("agent_run_end", onAgentEnd);
   }
   api.registerService?.({
     // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
