@@ -110,6 +110,10 @@ function summarizeToolResultMessage(msg: any): string {
 
   if (genericFallback) return truncate(genericFallback);
 
+  if (typeof msg === "object" && typeof msg?.exitCode === "number") {
+    return `exit code ${msg.exitCode}`;
+  }
+
   return "tool error";
 }
 
