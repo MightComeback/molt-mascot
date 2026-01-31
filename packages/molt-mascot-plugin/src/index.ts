@@ -192,6 +192,13 @@ export default function register(api: any) {
     respond(true, { ok: true, state });
   });
 
+  if (pluginId !== "molt-mascot") {
+    api.registerGatewayMethod?.("molt-mascot.reset", (_params: any, { respond }: any) => {
+      resetInternalState();
+      respond(true, { ok: true, state });
+    });
+  }
+
   const on = api?.on;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
