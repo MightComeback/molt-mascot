@@ -92,7 +92,7 @@ function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
-  const pluginId = typeof api?.id === "string" ? api.id : "@molt/mascot-plugin";
+  const pluginId = typeof api?.id === "string" ? api.id : id;
   const cfg: PluginConfig =
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
 

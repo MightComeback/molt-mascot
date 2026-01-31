@@ -24,7 +24,7 @@ __export(index_exports, {
   id: () => id
 });
 module.exports = __toCommonJS(index_exports);
-var id = "@molt/mascot-plugin";
+var id = "molt-mascot-plugin";
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
@@ -50,7 +50,8 @@ function summarizeToolResultMessage(msg) {
     msg?.errorMessage,
     msg?.stderr,
     msg?.details,
-    msg?.error,
+    // Handle string error or object error with message
+    typeof msg?.error === "string" ? msg.error : msg?.error?.message,
     msg?.text,
     msg?.message,
     msg?.result,
@@ -63,13 +64,14 @@ function summarizeToolResultMessage(msg) {
       return truncate(s);
     }
   }
-  if (typeof msg?.error === "string" && msg.error.trim()) {
-    return truncate(msg.error.trim());
+  const fallbackStr = typeof msg?.error === "string" ? msg.error : msg?.error?.message;
+  if (typeof fallbackStr === "string" && fallbackStr.trim()) {
+    return truncate(fallbackStr.trim());
   }
   return "tool error";
 }
 function register(api) {
-  const pluginId = typeof api?.id === "string" ? api.id : "@molt/mascot-plugin";
+  const pluginId = typeof api?.id === "string" ? api.id : id;
   const cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
