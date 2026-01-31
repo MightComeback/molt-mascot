@@ -126,6 +126,7 @@ export default function register(api: any) {
   };
 
   const enterError = (message: string) => {
+    api?.logger?.warn?.(`${pluginId}: entering error mode: ${message}`);
     clearIdleTimer();
     clearErrorTimer();
 
