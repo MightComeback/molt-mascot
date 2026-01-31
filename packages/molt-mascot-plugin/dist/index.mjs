@@ -159,6 +159,7 @@ function register(api) {
     respond(true, { ok: true, state });
   });
   const on = api?.on;
+  const off = api?.off;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
@@ -168,16 +169,15 @@ function register(api) {
       clearIdleTimer();
       clearErrorTimer();
       activeAgentCount++;
+      if (activeAgentCount === 1) toolDepth = 0;
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    on("agent.run.start", onAgentStart);
     const onToolStart = async () => {
       clearIdleTimer();
       toolDepth++;
       syncModeFromCounters();
     };
-    on("tool.call", onToolStart);
     const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
@@ -186,7 +186,7 @@ function register(api) {
       const msg = event?.result ?? event?.output ?? event?.data;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
       if (infraError) {
-        const detail = typeof infraError === "string" ? infraError : infraError.message || "unknown error";
+        const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
         return;
       }
@@ -201,7 +201,6 @@ function register(api) {
         syncModeFromCounters();
       }
     };
-    on("tool.result", onToolEnd);
     const onAgentEnd = async (event) => {
       activeAgentCount--;
       if (activeAgentCount < 0) activeAgentCount = 0;
@@ -221,12 +220,38 @@ function register(api) {
       }
       syncModeFromCounters();
     };
-    on("agent.run.end", onAgentEnd);
+    const registerListeners = () => {
+      on("before_agent_start", onAgentStart);
+      on("before_tool_call", onToolStart);
+      on("after_tool_call", onToolEnd);
+      on("agent_end", onAgentEnd);
+    };
+    const unregisterListeners = () => {
+      if (typeof off === "function") {
+        off("before_agent_start", onAgentStart);
+        off("before_tool_call", onToolStart);
+        off("after_tool_call", onToolEnd);
+        off("agent_end", onAgentEnd);
+      }
+    };
+    registerListeners();
+    api.registerService?.({
+      // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
+      id: pluginId,
+      start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
+      stop: () => {
+        clearIdleTimer();
+        clearErrorTimer();
+        unregisterListeners();
+        setMode("idle");
+      }
+    });
+    return;
   }
   api.registerService?.({
     // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
     id: pluginId,
-    start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
+    start: () => api?.logger?.info?.(`${pluginId} plugin ready (no events)`),
     stop: () => {
       clearIdleTimer();
       clearErrorTimer();

@@ -305,7 +305,7 @@ export default function register(api: any) {
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
 
       if (infraError) {
-        const detail = typeof infraError === "string" ? infraError : infraError.message || "unknown error";
+        const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
         return;
       }
