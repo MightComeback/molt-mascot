@@ -24,7 +24,7 @@ __export(index_exports, {
   id: () => id
 });
 module.exports = __toCommonJS(index_exports);
-var id = "molt-mascot-plugin";
+var id = "@molt/mascot-plugin";
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
