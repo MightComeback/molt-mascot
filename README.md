@@ -51,13 +51,13 @@ bun run screenshots
 There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
 
 Recommended (follows `pluginId.action`):
-- `molt-mascot.state` → `{ ok: true, state: { mode, since, lastError? } }`
+- `molt-mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError? } }`
 
 Back-compat alias:
-- `moltMascot.state` → same payload
+- `molt-mascot.state` / `moltMascot.state` → same payload
 
 Config lives under:
-- `plugins.entries.molt-mascot.config` (and `...enabled: true`)
+- `plugins.entries.molt-mascot-plugin.config` (and `...enabled: true`)
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
 
@@ -65,7 +65,7 @@ Config lives under:
 
 - If the mascot stays in **offline**/**disconnected**, confirm `GATEWAY_URL` points at your local Gateway (and that the Gateway is running).
 - If the mascot connects but never leaves **idle**, confirm you’re on a recent Clawdbot build and that your Gateway is emitting agent/tool lifecycle events.
-- If you enabled the plugin but `molt-mascot.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (`export const id = "molt-mascot"`).
+- If you enabled the plugin but `molt-mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (`export const id = "molt-mascot-plugin"`).
 
 ## Install
 
