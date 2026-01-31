@@ -68,12 +68,15 @@ function summarizeToolResultMessage(msg: any): string {
 
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) {
-      const s = c.trim();
-      // If it's just the generic exit code message, skip it for now unless it's the only thing we have
-      if (s.match(/^Command exited with code \d+$/)) continue;
+      let s = c.trim();
       // UX Polish: strip "Error:" prefix since the caller often adds "error:" context
       // Also strip common "Tool failed:" prefix
-      return truncate(s.replace(/^(Error|Tool failed):\s*/i, ""));
+      s = s.replace(/^(Error|Tool failed):\s*/i, "");
+
+      // If it's just the generic exit code message, skip it for now unless it's the only thing we have
+      if (s.match(/^Command exited with code \d+$/)) continue;
+
+      return truncate(s);
     }
   }
 
