@@ -119,6 +119,12 @@ app.whenReady().then(async () => {
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
     });
+
+    globalShortcut.register('CommandOrControl+Shift+Q', () => {
+      // eslint-disable-next-line no-console
+      console.log('molt-mascot: quit triggered');
+      app.quit();
+    });
   } catch {}
 
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
