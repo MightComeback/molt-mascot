@@ -235,8 +235,19 @@ export default function register(api: any) {
     on("tool_result", (event: any) => {
       const msg = event?.result;
       const toolName = typeof event?.tool === "string" ? event.tool : "tool";
-      // Support both isError boolean and status string, plus stderr presence
-      const isError = msg?.isError === true || msg?.status === "error" || (typeof msg?.error === "string" && msg.error.trim().length > 0) || (typeof msg?.stderr === "string" && msg.stderr.trim().length > 0);
+
+      // Improved error detection: Trust exitCode if present (0=success).
+      // Otherwise fallback to explicit error flags.
+      // Avoid treating generic stderr as error since many tools use it for logs.
+      const hasExitCode = typeof msg?.exitCode === "number";
+      const isExitError = hasExitCode && msg.exitCode !== 0;
+      const isExplicitError =
+        msg?.isError === true ||
+        msg?.status === "error" ||
+        (typeof msg?.error === "string" && msg.error.trim().length > 0);
+
+      const isError = hasExitCode ? isExitError : isExplicitError;
+
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
         enterError(`${toolName} error: ${detail}`);
