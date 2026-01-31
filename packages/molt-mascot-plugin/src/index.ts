@@ -181,11 +181,6 @@ export default function register(api: any) {
     clearErrorTimer();
   };
 
-  api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
-    resetInternalState();
-    respond(true, { ok: true, state });
-  });
-
   // Manual reset override (useful for debugging or ghost states).
   api.registerGatewayMethod?.(`${pluginId}.reset`, (_params: any, { respond }: any) => {
     resetInternalState();
@@ -194,6 +189,14 @@ export default function register(api: any) {
 
   if (pluginId !== "molt-mascot") {
     api.registerGatewayMethod?.("molt-mascot.reset", (_params: any, { respond }: any) => {
+      resetInternalState();
+      respond(true, { ok: true, state });
+    });
+  }
+
+  // Back-compat alias for early adopters.
+  if (pluginId !== "moltMascot") {
+    api.registerGatewayMethod?.("moltMascot.reset", (_params: any, { respond }: any) => {
       resetInternalState();
       respond(true, { ok: true, state });
     });
