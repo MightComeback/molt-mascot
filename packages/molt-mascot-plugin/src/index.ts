@@ -1,4 +1,4 @@
-export const id = "molt-mascot-plugin";
+export const id = "@molt/mascot-plugin";
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 
@@ -75,7 +75,7 @@ function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
-  const pluginId = typeof api?.id === "string" ? api.id : "molt-mascot-plugin";
+  const pluginId = typeof api?.id === "string" ? api.id : "@molt/mascot-plugin";
   const cfg: PluginConfig =
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
 
@@ -178,6 +178,12 @@ export default function register(api: any) {
   });
 
   // Ensure legacy IDs are available if the user is using the new scoped ID.
+  if (pluginId !== "molt-mascot-plugin") {
+    api.registerGatewayMethod?.("molt-mascot-plugin.state", (_params: any, { respond }: any) => {
+      respond(true, { ok: true, state });
+    });
+  }
+
   if (pluginId !== "molt-mascot") {
     api.registerGatewayMethod?.("molt-mascot.state", (_params: any, { respond }: any) => {
       respond(true, { ok: true, state });
@@ -206,6 +212,13 @@ export default function register(api: any) {
     resetInternalState();
     respond(true, { ok: true, state });
   });
+
+  if (pluginId !== "molt-mascot-plugin") {
+    api.registerGatewayMethod?.("molt-mascot-plugin.reset", (_params: any, { respond }: any) => {
+      resetInternalState();
+      respond(true, { ok: true, state });
+    });
+  }
 
   if (pluginId !== "molt-mascot") {
     api.registerGatewayMethod?.("molt-mascot.reset", (_params: any, { respond }: any) => {

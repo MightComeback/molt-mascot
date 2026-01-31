@@ -10,7 +10,7 @@ function coerceNumber(v, fallback) {
 }
 function truncate(str, limit = 140) {
   const s = str.trim();
-  return s.length > limit ? s.slice(0, limit) + "..." : s;
+  return s.length > limit ? s.slice(0, limit - 3) + "..." : s;
 }
 function summarizeToolResultMessage(msg) {
   if (typeof msg === "string" && msg.trim()) return truncate(msg);
