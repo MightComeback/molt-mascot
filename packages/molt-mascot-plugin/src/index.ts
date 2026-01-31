@@ -356,10 +356,17 @@ export default function register(api: any) {
     };
 
     const registerListeners = () => {
+      // Legacy hooks (v1)
       on("before_agent_start", onAgentStart);
       on("before_tool_call", onToolStart);
       on("after_tool_call", onToolEnd);
       on("agent_end", onAgentEnd);
+
+      // Modern hooks (v2)
+      on("agent:start", onAgentStart);
+      on("tool:call", onToolStart);
+      on("tool:result", onToolEnd);
+      on("agent:end", onAgentEnd);
     };
 
     const unregisterListeners = () => {
@@ -368,6 +375,11 @@ export default function register(api: any) {
         off("before_tool_call", onToolStart);
         off("after_tool_call", onToolEnd);
         off("agent_end", onAgentEnd);
+
+        off("agent:start", onAgentStart);
+        off("tool:call", onToolStart);
+        off("tool:result", onToolEnd);
+        off("agent:end", onAgentEnd);
       }
     };
 
