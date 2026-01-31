@@ -35,7 +35,8 @@ function truncate(str: string, limit = 100): string {
  * e.g. "Error: Tool failed: File not found" -> "File not found"
  */
 function cleanErrorString(s: string): string {
-  let str = s.trim();
+  // Strip ANSI escape codes (colors, cursor moves, etc)
+  let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
