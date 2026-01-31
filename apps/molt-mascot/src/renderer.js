@@ -104,7 +104,8 @@ function syncPill() {
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
   }
-  pill.title = tip;
+  const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
+  pill.title = tip + ver;
 }
 
 function setMode(mode) {
