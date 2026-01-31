@@ -280,7 +280,7 @@ export default function register(api: any) {
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    on("agent.run.start", onAgentStart);
+    on("before_agent_start", onAgentStart);
 
     const onToolStart = async () => {
       clearIdleTimer();
@@ -289,7 +289,7 @@ export default function register(api: any) {
       toolDepth++;
       syncModeFromCounters();
     };
-    on("tool.call", onToolStart);
+    on("before_tool_call", onToolStart);
 
     const onToolEnd = async (event: any) => {
       clearIdleTimer();
@@ -327,7 +327,7 @@ export default function register(api: any) {
         syncModeFromCounters();
       }
     };
-    on("tool.result", onToolEnd);
+    on("after_tool_call", onToolEnd);
 
     const onAgentEnd = async (event: any) => {
       activeAgentCount--;
@@ -352,7 +352,7 @@ export default function register(api: any) {
       }
       syncModeFromCounters();
     };
-    on("agent.run.end", onAgentEnd);
+    on("agent_end", onAgentEnd);
   }
 
   api.registerService?.({
