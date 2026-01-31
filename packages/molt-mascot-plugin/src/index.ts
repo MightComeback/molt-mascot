@@ -189,7 +189,7 @@ export default function register(api: any) {
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
-    on("before_agent_run", async () => {
+    on("before_agent_start", async () => {
       // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
@@ -199,7 +199,7 @@ export default function register(api: any) {
       setMode(mode);
     });
 
-    on("before_tool_use", async () => {
+    on("before_tool_call", async () => {
       clearIdleTimer();
       // If we are starting a tool, we probably want to clear any old error to show progress?
       // But syncModeFromCounters handles the override logic.
@@ -207,7 +207,7 @@ export default function register(api: any) {
       syncModeFromCounters();
     });
 
-    on("after_tool_use", async () => {
+    on("after_tool_call", async () => {
       clearIdleTimer();
       // Do NOT clear error timer here, let syncMode determine if we stick with error.
       toolDepth--;
@@ -215,7 +215,7 @@ export default function register(api: any) {
       syncModeFromCounters();
     });
 
-    on("after_agent_run", async (event: any) => {
+    on("agent_end", async (event: any) => {
       agentRunning = false;
       // Safety: ensure toolDepth is reset even if a tool crashed or didn't fire "after_tool_use"
       toolDepth = 0;
