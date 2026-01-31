@@ -271,7 +271,7 @@ export default function register(api: any) {
       toolDepth++;
       syncModeFromCounters();
     };
-    on("tool.exec.start", onToolStart);
+    on("tool.call", onToolStart);
 
     const onToolEnd = async (event: any) => {
       clearIdleTimer();
@@ -309,7 +309,7 @@ export default function register(api: any) {
         syncModeFromCounters();
       }
     };
-    on("tool.exec.end", onToolEnd);
+    on("tool.result", onToolEnd);
 
     const onAgentEnd = async (event: any) => {
       activeAgentCount--;
