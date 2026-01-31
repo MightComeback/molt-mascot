@@ -109,10 +109,8 @@ function syncPill() {
 
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
-    const maxLen = 32;
-    pill.textContent = lastErrorMessage.length > maxLen
-      ? lastErrorMessage.slice(0, maxLen - 1) + '…'
-      : lastErrorMessage;
+    // UX Polish: CSS handles truncation
+    pill.textContent = lastErrorMessage;
   } else {
     pill.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   }
