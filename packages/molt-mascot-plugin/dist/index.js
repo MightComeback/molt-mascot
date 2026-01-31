@@ -178,11 +178,22 @@ function register(api) {
       syncModeFromCounters();
     };
     on("before_tool_call", onToolStart);
-    const onToolEnd = async () => {
+    const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
       clampToolDepth();
-      syncModeFromCounters();
+      const msg = event?.result;
+      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+      const hasExitCode = typeof msg?.exitCode === "number";
+      const isExitError = hasExitCode && msg.exitCode !== 0;
+      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0;
+      const isError = hasExitCode ? isExitError : isExplicitError;
+      if (isError) {
+        const detail = summarizeToolResultMessage(msg);
+        enterError(truncate(`${toolName} error: ${detail}`));
+      } else {
+        syncModeFromCounters();
+      }
     };
     on("after_tool_call", onToolEnd);
     const onAgentEnd = async (event) => {
@@ -204,18 +215,6 @@ function register(api) {
       syncModeFromCounters();
     };
     on("after_agent_run", onAgentEnd);
-    on("tool_result", (event) => {
-      const msg = event?.result;
-      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
-      const hasExitCode = typeof msg?.exitCode === "number";
-      const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || typeof msg?.error === "string" && msg.error.trim().length > 0;
-      const isError = hasExitCode ? isExitError : isExplicitError;
-      if (isError) {
-        const detail = summarizeToolResultMessage(msg);
-        enterError(truncate(`${toolName} error: ${detail}`));
-      }
-    });
   }
   api.registerService?.({
     // Keep service id aligned with the runtime plugin id (avoid config/entry mismatches).
