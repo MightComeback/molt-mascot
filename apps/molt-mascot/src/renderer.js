@@ -16,6 +16,7 @@ const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
 
 function coerceDelayMs(v, fallback) {
+  if (v === '' || v === null || v === undefined) return fallback;
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
