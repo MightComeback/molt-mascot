@@ -300,6 +300,15 @@ function connect(cfg) {
     ) {
       hasPlugin = true;
       const nextMode = msg.payload.state.mode;
+
+      // Sync clickThrough from plugin config/state
+      if (typeof msg.payload.state.clickThrough === 'boolean') {
+        const nextClickThrough = msg.payload.state.clickThrough;
+        if (nextClickThrough !== isClickThrough && window.moltMascot?.setClickThrough) {
+           window.moltMascot.setClickThrough(nextClickThrough);
+        }
+      }
+
       const nextErr = msg.payload?.state?.lastError?.message;
       if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
         lastErrorMessage = nextErr.trim();

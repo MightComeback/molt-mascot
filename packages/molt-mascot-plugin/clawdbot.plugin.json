@@ -32,6 +32,11 @@
         ],
         "default": "bottom-right",
         "description": "Screen alignment for the mascot window"
+      },
+      "clickThrough": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable click-through mode (ghost mode) so the mascot doesn't intercept mouse clicks"
       }
     }
   }

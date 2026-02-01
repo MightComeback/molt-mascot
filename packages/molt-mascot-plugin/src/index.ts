@@ -15,6 +15,7 @@ export type PluginConfig = {
     | "center-left"
     | "center-right"
     | "center";
+  clickThrough?: boolean;
 };
 
 export type State = {
@@ -22,6 +23,7 @@ export type State = {
   since: number;
   lastError?: { message: string; ts: number };
   alignment?: string;
+  clickThrough?: boolean;
 };
 
 export function coerceNumber(v: unknown, fallback: number): number {
@@ -165,8 +167,9 @@ export default function register(api: any) {
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
   const alignment = cfg.alignment || "bottom-right";
+  const clickThrough = Boolean(cfg.clickThrough);
 
-  const state: State = { mode: "idle", since: Date.now(), alignment };
+  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough };
 
   let idleTimer: any = null;
   let errorTimer: any = null;
