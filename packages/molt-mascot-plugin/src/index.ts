@@ -302,6 +302,7 @@ export default function register(api: any) {
 
   // Manual reset override (useful for debugging or ghost states).
   registerAlias("reset", (_params: any, { respond }: any) => {
+    api?.logger?.info?.(`${pluginId}: manual reset triggered`);
     resetInternalState();
     respond(true, { ok: true, state });
   });

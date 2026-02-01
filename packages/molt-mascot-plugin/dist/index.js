@@ -115,8 +115,8 @@ function register(api) {
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
-  const alignment = cfg.alignment || "bottom-right";
-  const clickThrough = Boolean(cfg.clickThrough);
+  const alignment = cfg.alignment;
+  const clickThrough = cfg.clickThrough;
   const state = { mode: "idle", since: Date.now(), alignment, clickThrough };
   let idleTimer = null;
   let errorTimer = null;
@@ -203,6 +203,7 @@ function register(api) {
     clearErrorTimer();
   };
   registerAlias("reset", (_params, { respond }) => {
+    api?.logger?.info?.(`${pluginId}: manual reset triggered`);
     resetInternalState();
     respond(true, { ok: true, state });
   });
@@ -286,8 +287,8 @@ function register(api) {
       else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
     };
     const handleToolEvent = (e) => {
-      if (e?.stream === "call") onToolStart(e);
-      else if (e?.stream === "result") onToolEnd(e);
+      if (e?.phase === "start" || e?.phase === "call" || e?.stream === "call") onToolStart(e);
+      else if (e?.phase === "end" || e?.phase === "result" || e?.stream === "result") onToolEnd(e);
     };
     const registerListeners = () => {
       if (typeof on === "function") {
