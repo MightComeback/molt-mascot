@@ -84,7 +84,7 @@ function register(api) {
     cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? api?.config?.plugins?.entries?.["moltMascot"]?.config;
   }
   if (!cfg) cfg = {};
-  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 1e3));
+  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
   const alignment = cfg.alignment || "bottom-right";
   const clickThrough = Boolean(cfg.clickThrough);
@@ -248,22 +248,24 @@ function register(api) {
       }
       syncModeFromCounters();
     };
+    const handleAgentEvent = (e) => {
+      if (e?.phase === "start") onAgentStart(e);
+      else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
+    };
+    const handleToolEvent = (e) => {
+      if (e?.stream === "call") onToolStart(e);
+      else if (e?.stream === "result") onToolEnd(e);
+    };
     const registerListeners = () => {
       if (typeof on === "function") {
-        on("agent:start", onAgentStart);
-        on("tool:call", onToolStart);
-        on("tool:result", onToolEnd);
-        on("agent:result", onAgentEnd);
-        on("agent:end", onAgentEnd);
+        on("agent", handleAgentEvent);
+        on("tool", handleToolEvent);
       }
     };
     const unregisterListeners = () => {
       if (typeof off === "function") {
-        off("agent:start", onAgentStart);
-        off("tool:call", onToolStart);
-        off("tool:result", onToolEnd);
-        off("agent:result", onAgentEnd);
-        off("agent:end", onAgentEnd);
+        off("agent", handleAgentEvent);
+        off("tool", handleToolEvent);
       }
     };
     registerListeners();

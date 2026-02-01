@@ -417,29 +417,29 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
 
+    // Wrappers for v2 events ensures we can reference them for cleanup
+    const handleAgentEvent = (e: any) => {
+      if (e?.phase === "start") onAgentStart(e);
+      else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
+    };
+
+    const handleToolEvent = (e: any) => {
+      if (e?.stream === "call") onToolStart(e);
+      else if (e?.stream === "result") onToolEnd(e);
+    };
+
     const registerListeners = () => {
       // Modern hooks (v2)
       if (typeof on === "function") {
-        // Robust handling of V2 stream events (agent/tool) which cover lifecycle and calls
-        on("agent", (e: any) => {
-          if (e?.phase === "start") onAgentStart(e);
-          else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
-        });
-
-        on("tool", (e: any) => {
-          if (e?.stream === "call") onToolStart(e);
-          else if (e?.stream === "result") onToolEnd(e);
-        });
+        on("agent", handleAgentEvent);
+        on("tool", handleToolEvent);
       }
     };
 
     const unregisterListeners = () => {
       if (typeof off === "function") {
-        off("agent:start", onAgentStart);
-        off("tool:call", onToolStart);
-        off("tool:result", onToolEnd);
-        off("agent:result", onAgentEnd);
-        off("agent:end", onAgentEnd);
+        off("agent", handleAgentEvent);
+        off("tool", handleToolEvent);
       }
     };
 
