@@ -24,7 +24,7 @@ export type State = {
   alignment?: string;
 };
 
-function coerceNumber(v: unknown, fallback: number): number {
+export function coerceNumber(v: unknown, fallback: number): number {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
     const n = Number(v);
@@ -33,7 +33,7 @@ function coerceNumber(v: unknown, fallback: number): number {
   return fallback;
 }
 
-function truncate(str: string, limit = 140): string {
+export function truncate(str: string, limit = 140): string {
   const s = str.trim();
   if (s.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
@@ -54,14 +54,14 @@ function truncate(str: string, limit = 140): string {
  * Remove common error prefixes to save space on the pixel display.
  * e.g. "Error: Tool failed: File not found" -> "File not found"
  */
-function cleanErrorString(s: string): string {
+export function cleanErrorString(s: string): string {
   // Strip ANSI escape codes (colors, cursor moves, etc)
   // eslint-disable-next-line no-control-regex
   let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
@@ -82,7 +82,7 @@ function cleanErrorString(s: string): string {
  * @param msg - The raw result object or string from the tool.
  * @returns A truncated string suitable for the pixel display (max 140 chars).
  */
-function summarizeToolResultMessage(msg: any): string {
+export function summarizeToolResultMessage(msg: any): string {
   if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
 
   const blocks = msg?.content;
