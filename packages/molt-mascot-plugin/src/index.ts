@@ -100,6 +100,8 @@ function summarizeToolResultMessage(msg: any): string {
     msg?.message,
     msg?.result,
     msg?.output,
+    msg?.data?.text,
+    typeof msg?.data === "string" ? msg.data : undefined,
   ];
 
   let genericFallback: string | null = null;
