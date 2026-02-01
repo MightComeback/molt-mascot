@@ -57,8 +57,14 @@ function cleanErrorString(s) {
     str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
-  if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
-    return cleanErrorString(lines[1]);
+  if (lines.length > 1) {
+    if (/^Command exited with code \d+$/.test(lines[0])) {
+      return cleanErrorString(lines[1]);
+    }
+    const errorLine = lines.find((l) => /^(error|fatal|panic|exception|traceback|failed)/i.test(l));
+    if (errorLine && errorLine !== lines[0]) {
+      return cleanErrorString(errorLine);
+    }
   }
   return lines[0] || str;
 }
@@ -122,10 +128,13 @@ function register(api) {
   let idleTimer = null;
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
-  let toolDepth = 0;
-  const clampToolDepth = () => {
-    if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
+  const agentToolDepths = /* @__PURE__ */ new Map();
+  const getToolDepth = () => {
+    let inputs = 0;
+    for (const d of agentToolDepths.values()) inputs += d;
+    return inputs;
   };
+  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = null;
@@ -154,8 +163,7 @@ function register(api) {
     idleTimer = setTimeout(() => setMode("idle"), Math.max(0, delayMs));
   };
   const resolveNativeMode = () => {
-    clampToolDepth();
-    if (toolDepth > 0) return "tool";
+    if (getToolDepth() > 0) return "tool";
     return activeAgents.size > 0 ? "thinking" : "idle";
   };
   const syncModeFromCounters = () => {
@@ -198,7 +206,7 @@ function register(api) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
-    toolDepth = 0;
+    agentToolDepths.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -218,19 +226,20 @@ function register(api) {
     const onAgentStart = async (event) => {
       clearIdleTimer();
       clearErrorTimer();
-      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      const sessionKey = getSessionKey(event);
       if (activeAgents.size > 10) {
         activeAgents.clear();
-        toolDepth = 0;
+        agentToolDepths.clear();
       }
       activeAgents.add(sessionKey);
-      if (activeAgents.size === 1) toolDepth = 0;
+      agentToolDepths.set(sessionKey, 0);
       const mode = resolveNativeMode();
       setMode(mode);
     };
     const onToolStart = async (event) => {
       clearIdleTimer();
-      toolDepth++;
+      const key = getSessionKey(event);
+      agentToolDepths.set(key, (agentToolDepths.get(key) || 0) + 1);
       const rawName = typeof event?.tool === "string" ? event.tool : "";
       if (rawName) {
         state.currentTool = rawName.replace(/^default_api:/, "");
@@ -239,9 +248,10 @@ function register(api) {
     };
     const onToolEnd = async (event) => {
       clearIdleTimer();
-      toolDepth--;
-      clampToolDepth();
-      if (toolDepth === 0) delete state.currentTool;
+      const key = getSessionKey(event);
+      const d = agentToolDepths.get(key) || 0;
+      if (d > 0) agentToolDepths.set(key, d - 1);
+      if (getToolDepth() === 0) delete state.currentTool;
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
       let rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
@@ -267,19 +277,17 @@ function register(api) {
       }
     };
     const onAgentEnd = async (event) => {
-      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
-      if (activeAgents.size === 0) {
-        toolDepth = 0;
-      }
+      agentToolDepths.delete(sessionKey);
       const err = event?.error;
-      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.code || "" : "";
+      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
       if (String(msg).trim()) {
         const clean = cleanErrorString(msg);
         enterError(truncate(clean));
         return;
       }
-      if (event?.success === false) {
+      if (event?.phase === "error" || event?.success === false) {
         enterError("Task failed");
         return;
       }
