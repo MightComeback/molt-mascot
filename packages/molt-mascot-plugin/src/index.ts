@@ -177,7 +177,7 @@ export default function register(api: any) {
   let errorTimer: any = null;
 
   // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
-  let activeAgentCount = 0;
+  const activeAgents = new Set<string>();
   let toolDepth = 0;
 
   const clampToolDepth = () => {
@@ -230,7 +230,7 @@ export default function register(api: any) {
   const resolveNativeMode = (): Mode => {
     clampToolDepth();
     if (toolDepth > 0) return "tool";
-    return activeAgentCount > 0 ? "thinking" : "idle";
+    return activeAgents.size > 0 ? "thinking" : "idle";
   };
 
   const syncModeFromCounters = () => {
@@ -289,7 +289,7 @@ export default function register(api: any) {
     state.since = Date.now();
     delete state.lastError;
     toolDepth = 0;
-    activeAgentCount = 0;
+    activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
   };
@@ -309,14 +309,16 @@ export default function register(api: any) {
     );
   } else {
     // Keep references to handlers for cleanup
-    const onAgentStart = async () => {
+    const onAgentStart = async (event: any) => {
       // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
-      activeAgentCount++;
+      
+      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      activeAgents.add(sessionKey);
 
       // Auto-heal: a new run shouldn't have pending tools from the past
-      if (activeAgentCount === 1) toolDepth = 0;
+      if (activeAgents.size === 1) toolDepth = 0;
 
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
@@ -382,11 +384,11 @@ export default function register(api: any) {
     };
 
     const onAgentEnd = async (event: any) => {
-      activeAgentCount--;
-      if (activeAgentCount < 0) activeAgentCount = 0;
+      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      activeAgents.delete(sessionKey);
 
       // Safety: ensure toolDepth is reset if NO agents are running (catch-all for crashed tools)
-      if (activeAgentCount === 0) {
+      if (activeAgents.size === 0) {
         toolDepth = 0;
       }
 
