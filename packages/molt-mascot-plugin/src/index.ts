@@ -439,8 +439,9 @@ export default function register(api: any) {
     };
 
     const handleToolEvent = (e: any) => {
-      if (e?.stream === "call") onToolStart(e);
-      else if (e?.stream === "result") onToolEnd(e);
+      // Support both v1 (stream) and v2 (phase) event formats
+      if (e?.phase === "start" || e?.phase === "call" || e?.stream === "call") onToolStart(e);
+      else if (e?.phase === "end" || e?.phase === "result" || e?.stream === "result") onToolEnd(e);
     };
 
     const registerListeners = () => {
