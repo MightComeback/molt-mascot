@@ -1,7 +1,9 @@
 {
-  "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
   "id": "@molt/mascot-plugin",
-  "main": "dist/index.js",
+  "name": "@molt/mascot-plugin",
+  "version": "0.1.19",
+  "main": "dist/index.mjs",
+  "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
   "config": {
     "type": "object",
     "properties": {
@@ -16,7 +18,5 @@
         "description": "Milliseconds to hold the error state before clearing"
       }
     }
-  },
-  "name": "@molt/mascot-plugin",
-  "version": "0.1.19"
+  }
 }
