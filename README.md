@@ -79,8 +79,13 @@ Recommended (follows `pluginId.action`):
 Back-compat alias:
 - `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` → same payload
 
-Config lives under:
-- `plugins.entries["@molt/mascot-plugin"].config` (and `...enabled: true`)
+Config lives under `plugins.entries["@molt/mascot-plugin"].config`.
+
+Supported keys:
+- `alignment` (string): same values as `MOLT_MASCOT_ALIGN`
+- `clickThrough` (boolean): enable click-through mode
+- `idleDelayMs` (number): idle timeout (default 800)
+- `errorHoldMs` (number): error display duration (default 5000)
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
 
