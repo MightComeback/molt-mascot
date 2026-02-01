@@ -328,7 +328,12 @@ export default function register(api: any) {
       // "event.result" handles tool-level failures (runtime errors)
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
-      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+      const rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
+      // Truncate tool name if it's absurdly long to save space on the pixel display
+      const toolName =
+        rawToolName.length > 20
+          ? rawToolName.slice(0, 17) + "..."
+          : rawToolName;
 
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
