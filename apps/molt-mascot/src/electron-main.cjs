@@ -127,6 +127,7 @@ app.whenReady().then(async () => {
       clickThrough = !clickThrough;
       if (mainWin && !mainWin.isDestroyed()) {
         applyClickThrough(mainWin, clickThrough);
+        mainWin.webContents.send('molt-mascot:click-through', clickThrough);
       }
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
@@ -151,6 +152,7 @@ app.whenReady().then(async () => {
     clickThrough = Boolean(enabled);
     if (mainWin && !mainWin.isDestroyed()) {
       applyClickThrough(mainWin, clickThrough);
+      mainWin.webContents.send('molt-mascot:click-through', clickThrough);
     }
   });
 

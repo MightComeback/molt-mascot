@@ -126,21 +126,29 @@ let modeSince = Date.now();
 let idleTimer = null;
 let errorHoldTimer = null;
 let lastErrorMessage = '';
+let isClickThrough = false;
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
+  let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
-    // UX Polish: CSS handles truncation
-    pill.textContent = lastErrorMessage;
-  } else {
-    pill.textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+    label = lastErrorMessage;
   }
+  
+  if (isClickThrough) {
+    label += ' 🔒';
+  }
+
+  pill.textContent = label;
 
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
+  }
+  if (isClickThrough) {
+    tip += ' (click-through active)';
   }
   const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
   pill.title = tip + ver;
@@ -371,6 +379,13 @@ if (window.moltMascot?.onReset) {
       // Try canonical method
       ws.send(JSON.stringify({ type: 'req', id, method: '@molt/mascot-plugin.reset', params: {} }));
     }
+  });
+}
+
+if (window.moltMascot?.onClickThrough) {
+  window.moltMascot.onClickThrough((enabled) => {
+    isClickThrough = Boolean(enabled);
+    syncPill();
   });
 }
 
