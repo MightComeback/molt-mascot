@@ -40,14 +40,14 @@ export function truncate(str: string, limit = 140): string {
   if (limit <= 3) return s.slice(0, limit);
 
   // Basic truncate
-  let cut = s.slice(0, limit - 3);
+  let cut = s.slice(0, limit - 1);
   // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
   const lastSpace = cut.lastIndexOf(" ");
   if (lastSpace > -1 && cut.length - lastSpace < 20) {
     cut = cut.slice(0, lastSpace);
   }
 
-  return cut + "...";
+  return cut + "…";
 }
 
 /**
@@ -61,7 +61,7 @@ export function cleanErrorString(s: string): string {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError|ValidationError|LinearError|GitHubError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError|ValidationError|LinearError|GitHubError)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);

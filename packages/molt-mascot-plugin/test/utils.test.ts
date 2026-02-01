@@ -11,10 +11,10 @@ describe("utils", () => {
 
   it("truncate", () => {
     expect(truncate("hello", 10)).toBe("hello");
-    expect(truncate("hello world", 5)).toBe("he..."); // 5-3=2 -> he...
+    expect(truncate("hello world", 5)).toBe("hell…"); // 5-1=4 -> hell…
     // Space aware truncation
-    expect(truncate("hello world", 9)).toBe("hello..."); 
-    // "hello world" (11). limit 9. cut=6. "hello "
+    expect(truncate("hello world", 9)).toBe("hello…"); 
+    // "hello world" (11). limit 9. cut=8. "hello wo" -> lastSpace=5 -> "hello" -> "hello…"
   });
 
   it("cleanErrorString", () => {
@@ -22,6 +22,7 @@ describe("utils", () => {
     expect(cleanErrorString("Tool failed: Error: foo")).toBe("foo");
     expect(cleanErrorString("Command failed: foo")).toBe("foo");
     expect(cleanErrorString("GitError: fatal: branch not found")).toBe("branch not found");
+    expect(cleanErrorString("sh: foo: command not found")).toBe("foo: command not found");
     // Strip ANSI
     expect(cleanErrorString("\u001b[31mError:\u001b[0m foo")).toBe("foo");
     // Exit code handling

@@ -53,7 +53,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError|ValidationError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError|ValidationError|LinearError|GitHubError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
