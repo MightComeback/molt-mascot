@@ -135,7 +135,13 @@ app.whenReady().then(async () => {
   });
 
   try {
-    globalShortcut.register('CommandOrControl+Shift+M', () => {
+    const register = (acc, cb) => {
+      if (!globalShortcut.register(acc, cb)) {
+        console.warn(`molt-mascot: failed to register shortcut ${acc}`);
+      }
+    };
+
+    register('CommandOrControl+Shift+M', () => {
       clickThrough = !clickThrough;
       if (mainWin && !mainWin.isDestroyed()) {
         applyClickThrough(mainWin, clickThrough);
@@ -145,7 +151,7 @@ app.whenReady().then(async () => {
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
     });
 
-    globalShortcut.register('CommandOrControl+Shift+H', () => {
+    register('CommandOrControl+Shift+H', () => {
       hideText = !hideText;
       if (mainWin && !mainWin.isDestroyed()) {
         mainWin.webContents.send('molt-mascot:hide-text', hideText);
@@ -154,7 +160,7 @@ app.whenReady().then(async () => {
       console.log(`molt-mascot: hide-text ${hideText ? 'ON' : 'OFF'}`);
     });
 
-    globalShortcut.register('CommandOrControl+Shift+R', () => {
+    register('CommandOrControl+Shift+R', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: reset triggered');
       if (mainWin && !mainWin.isDestroyed()) {
@@ -162,7 +168,7 @@ app.whenReady().then(async () => {
       }
     });
 
-    globalShortcut.register('CommandOrControl+Option+Q', () => {
+    register('CommandOrControl+Option+Q', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: quit triggered');
       app.quit();
