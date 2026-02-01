@@ -420,11 +420,16 @@ export default function register(api: any) {
     const registerListeners = () => {
       // Modern hooks (v2)
       if (typeof on === "function") {
-        on("agent:start", onAgentStart);
-        on("tool:call", onToolStart);
-        on("tool:result", onToolEnd);
-        on("agent:result", onAgentEnd);
-        on("agent:end", onAgentEnd); // Robustness: match both result/end events
+        // Robust handling of V2 stream events (agent/tool) which cover lifecycle and calls
+        on("agent", (e: any) => {
+          if (e?.phase === "start") onAgentStart(e);
+          else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
+        });
+
+        on("tool", (e: any) => {
+          if (e?.stream === "call") onToolStart(e);
+          else if (e?.stream === "result") onToolEnd(e);
+        });
       }
     };
 
