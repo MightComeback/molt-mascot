@@ -1,5 +1,5 @@
 {
-  "id": "molt-mascot",
+  "id": "@molt/mascot-plugin",
   "name": "@molt/mascot-plugin",
   "version": "0.1.26",
   "main": "dist/index.mjs",
