@@ -158,12 +158,14 @@ app.whenReady().then(async () => {
       }
     });
 
-    globalShortcut.register('CommandOrControl+Shift+Q', () => {
+    globalShortcut.register('CommandOrControl+Option+Q', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: quit triggered');
       app.quit();
     });
-  } catch {}
+  } catch (err) {
+    console.error('molt-mascot: failed to register shortcuts', err);
+  }
 
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
     clickThrough = Boolean(enabled);
