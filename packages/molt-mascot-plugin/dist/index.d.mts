@@ -15,6 +15,7 @@ type State = {
     };
     alignment?: string;
     clickThrough?: boolean;
+    currentTool?: string;
 };
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function truncate(str: string, limit?: number): string;

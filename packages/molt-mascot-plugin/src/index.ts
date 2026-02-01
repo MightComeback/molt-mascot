@@ -161,8 +161,10 @@ export default function register(api: any) {
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
 
   if (!cfg && pluginId === id) {
-    // Try short alias that users likely typed
-    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config;
+    // Try short aliases that users likely typed
+    cfg =
+      api?.config?.plugins?.entries?.["molt-mascot"]?.config ??
+      api?.config?.plugins?.entries?.["moltMascot"]?.config;
   }
   
   if (!cfg) cfg = {};

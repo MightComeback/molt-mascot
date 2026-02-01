@@ -53,7 +53,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|clawd:|clawdbot:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|LinearError|GitHubError|TelegramError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|uncaughtException|Uncaught)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -109,7 +109,7 @@ function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
   let cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
   if (!cfg && pluginId === id) {
-    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config;
+    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? api?.config?.plugins?.entries?.["moltMascot"]?.config;
   }
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 1e3));
@@ -119,7 +119,7 @@ function register(api) {
   const state = { mode: "idle", since: Date.now(), alignment, clickThrough };
   let idleTimer = null;
   let errorTimer = null;
-  let activeAgentCount = 0;
+  const activeAgents = /* @__PURE__ */ new Set();
   let toolDepth = 0;
   const clampToolDepth = () => {
     if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
@@ -154,7 +154,7 @@ function register(api) {
   const resolveNativeMode = () => {
     clampToolDepth();
     if (toolDepth > 0) return "tool";
-    return activeAgentCount > 0 ? "thinking" : "idle";
+    return activeAgents.size > 0 ? "thinking" : "idle";
   };
   const syncModeFromCounters = () => {
     const target = resolveNativeMode();
@@ -195,8 +195,9 @@ function register(api) {
     state.mode = "idle";
     state.since = Date.now();
     delete state.lastError;
+    delete state.currentTool;
     toolDepth = 0;
-    activeAgentCount = 0;
+    activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
   };
@@ -211,23 +212,29 @@ function register(api) {
       "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
     );
   } else {
-    const onAgentStart = async () => {
+    const onAgentStart = async (event) => {
       clearIdleTimer();
       clearErrorTimer();
-      activeAgentCount++;
-      if (activeAgentCount === 1) toolDepth = 0;
+      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      activeAgents.add(sessionKey);
+      if (activeAgents.size === 1) toolDepth = 0;
       const mode = resolveNativeMode();
       setMode(mode);
     };
-    const onToolStart = async () => {
+    const onToolStart = async (event) => {
       clearIdleTimer();
       toolDepth++;
+      const rawName = typeof event?.tool === "string" ? event.tool : "";
+      if (rawName) {
+        state.currentTool = rawName.replace(/^default_api:/, "");
+      }
       syncModeFromCounters();
     };
     const onToolEnd = async (event) => {
       clearIdleTimer();
       toolDepth--;
       clampToolDepth();
+      if (toolDepth === 0) delete state.currentTool;
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
       let rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
@@ -251,9 +258,9 @@ function register(api) {
       }
     };
     const onAgentEnd = async (event) => {
-      activeAgentCount--;
-      if (activeAgentCount < 0) activeAgentCount = 0;
-      if (activeAgentCount === 0) {
+      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      activeAgents.delete(sessionKey);
+      if (activeAgents.size === 0) {
         toolDepth = 0;
       }
       const err = event?.error;
@@ -284,6 +291,7 @@ function register(api) {
         off("tool:call", onToolStart);
         off("tool:result", onToolEnd);
         off("agent:result", onAgentEnd);
+        off("agent:end", onAgentEnd);
       }
     };
     registerListeners();
