@@ -126,7 +126,8 @@ let modeSince = Date.now();
 let idleTimer = null;
 let errorHoldTimer = null;
 let lastErrorMessage = '';
-let isClickThrough = false;
+const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
+let isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));

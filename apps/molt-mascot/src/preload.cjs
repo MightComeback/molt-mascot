@@ -15,5 +15,6 @@ contextBridge.exposeInMainWorld('moltMascot', {
     idleDelayMs: process.env.MOLT_MASCOT_IDLE_DELAY_MS || '',
     errorHoldMs: process.env.MOLT_MASCOT_ERROR_HOLD_MS || '',
     hideText: process.env.MOLT_MASCOT_HIDE_TEXT || '',
+    clickThrough: process.env.MOLT_MASCOT_CLICKTHROUGH || '',
   },
 });
