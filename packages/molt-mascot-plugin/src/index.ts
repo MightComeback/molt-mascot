@@ -11,7 +11,10 @@ export type PluginConfig = {
     | "bottom-left"
     | "bottom-right"
     | "top-center"
-    | "bottom-center";
+    | "bottom-center"
+    | "center-left"
+    | "center-right"
+    | "center";
 };
 
 export type State = {
