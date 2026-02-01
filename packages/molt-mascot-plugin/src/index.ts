@@ -64,7 +64,7 @@ export function cleanErrorString(s: string): string {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|LinearError|GitHubError|TelegramError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
@@ -320,9 +320,16 @@ export default function register(api: any) {
       clearErrorTimer();
       
       const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      
+      // Auto-heal: prevent stale agents from accumulating indefinitely
+      if (activeAgents.size > 10) {
+        activeAgents.clear();
+        toolDepth = 0;
+      }
+      
       activeAgents.add(sessionKey);
 
-      // Auto-heal: a new run shouldn't have pending tools from the past
+      // Auto-heal: if we are the only agent, ensure tool depth is reset
       if (activeAgents.size === 1) toolDepth = 0;
 
       // Force update to reflect new state immediately
