@@ -37,7 +37,7 @@ function coerceNumber(v, fallback) {
   }
   return fallback;
 }
-function truncate(str, limit = 500) {
+function truncate(str, limit = 140) {
   const s = str.trim();
   if (s.length <= limit) return s;
   if (limit <= 3) return s.slice(0, limit);
