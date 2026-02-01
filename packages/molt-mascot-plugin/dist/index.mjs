@@ -19,7 +19,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -38,6 +38,8 @@ function summarizeToolResultMessage(msg) {
   }
   const candidates = [
     msg?.errorMessage,
+    msg?.error_message,
+    msg?.err,
     msg?.stderr,
     msg?.failure,
     msg?.details,
@@ -195,11 +197,12 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]/.test(msg);
+      const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg);
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
-        enterError(truncate(`${toolName} error: ${detail}`));
+        const text = detail === "tool error" ? `${toolName} failed` : `${toolName}: ${detail}`;
+        enterError(truncate(text));
       } else {
         syncModeFromCounters();
       }
