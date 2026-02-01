@@ -444,7 +444,7 @@ export default function register(api: any) {
         enterError(truncate(clean));
         return;
       }
-      if (event?.success === false) {
+      if (event?.phase === "error" || event?.success === false) {
         enterError("Task failed");
         return;
       }
