@@ -186,11 +186,17 @@ export default function register(api: any) {
 
   // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
   const activeAgents = new Set<string>();
-  let toolDepth = 0;
+  // Map sessionKey -> depth to handle cleanup if an agent crashes/ends while tool is open
+  const agentToolDepths = new Map<string, number>();
 
-  const clampToolDepth = () => {
-    if (!Number.isFinite(toolDepth) || toolDepth < 0) toolDepth = 0;
+  const getToolDepth = () => {
+    let inputs = 0;
+    for (const d of agentToolDepths.values()) inputs += d;
+    return inputs;
   };
+
+  const getSessionKey = (event: any) =>
+    event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
 
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -236,8 +242,7 @@ export default function register(api: any) {
   };
 
   const resolveNativeMode = (): Mode => {
-    clampToolDepth();
-    if (toolDepth > 0) return "tool";
+    if (getToolDepth() > 0) return "tool";
     return activeAgents.size > 0 ? "thinking" : "idle";
   };
 
@@ -297,7 +302,7 @@ export default function register(api: any) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
-    toolDepth = 0;
+    agentToolDepths.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -324,18 +329,18 @@ export default function register(api: any) {
       clearIdleTimer();
       clearErrorTimer();
       
-      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      const sessionKey = getSessionKey(event);
       
       // Auto-heal: prevent stale agents from accumulating indefinitely
       if (activeAgents.size > 10) {
         activeAgents.clear();
-        toolDepth = 0;
+        agentToolDepths.clear();
       }
       
       activeAgents.add(sessionKey);
 
-      // Auto-heal: if we are the only agent, ensure tool depth is reset
-      if (activeAgents.size === 1) toolDepth = 0;
+      // Auto-heal: ensure this agent starts fresh
+      agentToolDepths.set(sessionKey, 0);
 
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
@@ -346,7 +351,9 @@ export default function register(api: any) {
       clearIdleTimer();
       // If we are starting a tool, we probably want to clear any old error to show progress?
       // But syncModeFromCounters handles the override logic.
-      toolDepth++;
+      const key = getSessionKey(event);
+      agentToolDepths.set(key, (agentToolDepths.get(key) || 0) + 1);
+
       const rawName = typeof event?.tool === "string" ? event.tool : "";
       if (rawName) {
         state.currentTool = rawName.replace(/^default_api:/, "");
@@ -356,9 +363,11 @@ export default function register(api: any) {
 
     const onToolEnd = async (event: any) => {
       clearIdleTimer();
-      toolDepth--;
-      clampToolDepth();
-      if (toolDepth === 0) delete state.currentTool;
+      const key = getSessionKey(event);
+      const d = agentToolDepths.get(key) || 0;
+      if (d > 0) agentToolDepths.set(key, d - 1);
+
+      if (getToolDepth() === 0) delete state.currentTool;
 
       // Check for tool errors (capture exit codes or explicit error fields)
       // "event.error" handles infrastructure failures (timeout, not found)
@@ -415,13 +424,9 @@ export default function register(api: any) {
     };
 
     const onAgentEnd = async (event: any) => {
-      const sessionKey = event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+      const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
-
-      // Safety: ensure toolDepth is reset if NO agents are running (catch-all for crashed tools)
-      if (activeAgents.size === 0) {
-        toolDepth = 0;
-      }
+      agentToolDepths.delete(sessionKey);
 
       const err = event?.error;
       const msg =
