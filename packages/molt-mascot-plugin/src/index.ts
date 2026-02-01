@@ -150,9 +150,17 @@ export function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
+  // Robustness fix: also check "molt-mascot" short alias if the canonical ID yields no config.
   const pluginId = typeof api?.id === "string" ? api.id : id;
-  const cfg: PluginConfig =
-    api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
+  let cfg: PluginConfig =
+    api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
+
+  if (!cfg && pluginId === id) {
+    // Try short alias that users likely typed
+    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config;
+  }
+  
+  if (!cfg) cfg = {};
 
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
