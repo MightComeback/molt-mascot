@@ -361,7 +361,7 @@ export default function register(api: any) {
         return;
       }
       if (event?.success === false) {
-        enterError("agent ended unsuccessfully");
+        enterError("Task failed");
         return;
       }
       syncModeFromCounters();
