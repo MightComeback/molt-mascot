@@ -170,7 +170,7 @@ export default function register(api: any) {
   
   if (!cfg) cfg = {};
 
-  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 1000));
+  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
   const alignment = cfg.alignment || "bottom-right";
   const clickThrough = Boolean(cfg.clickThrough);
