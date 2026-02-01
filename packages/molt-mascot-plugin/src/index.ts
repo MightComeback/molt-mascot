@@ -391,10 +391,12 @@ export default function register(api: any) {
 
     const registerListeners = () => {
       // Modern hooks (v2)
-      on("agent:start", onAgentStart);
-      on("tool:call", onToolStart);
-      on("tool:result", onToolEnd);
-      on("agent:end", onAgentEnd);
+      if (typeof on === "function") {
+        on("agent:start", onAgentStart);
+        on("tool:call", onToolStart);
+        on("tool:result", onToolEnd);
+        on("agent:end", onAgentEnd);
+      }
     };
 
     const unregisterListeners = () => {
