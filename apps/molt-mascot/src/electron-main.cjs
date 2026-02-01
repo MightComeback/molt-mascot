@@ -14,11 +14,11 @@ function isTruthyEnv(v) {
   return s === '1' || s === 'true' || s === 'yes' || s === 'on';
 }
 
-function getPosition(display, width, height) {
+function getPosition(display, width, height, alignOverride) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
   const padding = Number.isFinite(envPadding) ? envPadding : 24;
 
-  const align = (process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
+  const align = (alignOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
 
   switch (align) {
@@ -172,6 +172,15 @@ app.whenReady().then(async () => {
     if (mainWin && !mainWin.isDestroyed()) {
       applyClickThrough(mainWin, clickThrough);
       mainWin.webContents.send('molt-mascot:click-through', clickThrough);
+    }
+  });
+
+  ipcMain.on('molt-mascot:set-alignment', (event, align) => {
+    if (mainWin && !mainWin.isDestroyed()) {
+      const display = screen.getPrimaryDisplay();
+      const [width, height] = mainWin.getSize();
+      const pos = getPosition(display, width, height, align);
+      mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     }
   });
 

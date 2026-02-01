@@ -138,6 +138,7 @@ let errorHoldTimer = null;
 let lastErrorMessage = '';
 const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
 let isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
+let currentAlignment = '';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -306,6 +307,15 @@ function connect(cfg) {
         const nextClickThrough = msg.payload.state.clickThrough;
         if (nextClickThrough !== isClickThrough && window.moltMascot?.setClickThrough) {
            window.moltMascot.setClickThrough(nextClickThrough);
+        }
+      }
+
+      // Sync alignment
+      if (typeof msg.payload.state.alignment === 'string' && msg.payload.state.alignment) {
+        const nextAlign = msg.payload.state.alignment;
+        if (nextAlign !== currentAlignment && window.moltMascot?.setAlignment) {
+          currentAlignment = nextAlign;
+          window.moltMascot.setAlignment(nextAlign);
         }
       }
 
