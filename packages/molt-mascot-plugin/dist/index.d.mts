@@ -14,6 +14,24 @@ type State = {
     };
     alignment?: string;
 };
+declare function coerceNumber(v: unknown, fallback: number): number;
+declare function truncate(str: string, limit?: number): string;
+/**
+ * Remove common error prefixes to save space on the pixel display.
+ * e.g. "Error: Tool failed: File not found" -> "File not found"
+ */
+declare function cleanErrorString(s: string): string;
+/**
+ * Extract a short, human-readable summary from a tool result.
+ * Strategies:
+ * 1. Simple strings are used directly.
+ * 2. Block content (Anthropic style) is joined.
+ * 3. Error fields are prioritized (stderr, error object).
+ *
+ * @param msg - The raw result object or string from the tool.
+ * @returns A truncated string suitable for the pixel display (max 140 chars).
+ */
+declare function summarizeToolResultMessage(msg: any): string;
 /**
  * Initialize the molt-mascot plugin.
  * Sets up the state machine, event listeners for tool/agent lifecycle,
@@ -21,4 +39,4 @@ type State = {
  */
 declare function register(api: any): void;
 
-export { type Mode, type PluginConfig, type State, register as default, id };
+export { type Mode, type PluginConfig, type State, cleanErrorString, coerceNumber, register as default, id, summarizeToolResultMessage, truncate };

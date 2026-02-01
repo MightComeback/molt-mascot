@@ -8,7 +8,7 @@ function coerceNumber(v, fallback) {
   }
   return fallback;
 }
-function truncate(str, limit = 140) {
+function truncate(str, limit = 500) {
   const s = str.trim();
   if (s.length <= limit) return s;
   if (limit <= 3) return s.slice(0, limit);
@@ -24,7 +24,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -234,17 +234,19 @@ function register(api) {
       syncModeFromCounters();
     };
     const registerListeners = () => {
-      on("agent:start", onAgentStart);
-      on("tool:call", onToolStart);
-      on("tool:result", onToolEnd);
-      on("agent:end", onAgentEnd);
+      if (typeof on === "function") {
+        on("agent:start", onAgentStart);
+        on("tool:call", onToolStart);
+        on("tool:result", onToolEnd);
+        on("agent:result", onAgentEnd);
+      }
     };
     const unregisterListeners = () => {
       if (typeof off === "function") {
         off("agent:start", onAgentStart);
         off("tool:call", onToolStart);
         off("tool:result", onToolEnd);
-        off("agent:end", onAgentEnd);
+        off("agent:result", onAgentEnd);
       }
     };
     registerListeners();
@@ -273,6 +275,10 @@ function register(api) {
   });
 }
 export {
+  cleanErrorString,
+  coerceNumber,
   register as default,
-  id
+  id,
+  summarizeToolResultMessage,
+  truncate
 };
