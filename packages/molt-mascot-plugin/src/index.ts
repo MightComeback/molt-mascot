@@ -63,7 +63,7 @@ export function cleanErrorString(s: string): string {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|clawd:|clawdbot:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|RateLimitError|ValidationError|LinearError|GitHubError|TelegramError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|clawd:|clawdbot:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|LinearError|GitHubError|TelegramError)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
@@ -165,7 +165,7 @@ export default function register(api: any) {
   
   if (!cfg) cfg = {};
 
-  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
+  const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 1000));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
   const alignment = cfg.alignment || "bottom-right";
   const clickThrough = Boolean(cfg.clickThrough);
