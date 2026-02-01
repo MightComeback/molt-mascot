@@ -38,12 +38,14 @@ export function coerceNumber(v: unknown, fallback: number): number {
 
 export function truncate(str: string, limit = 140): string {
   const s = str.trim();
-  if (s.length <= limit) return s;
+  // Use iterator to handle surrogate pairs (unicode-safe)
+  const chars = [...s];
+  if (chars.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
-  if (limit <= 1) return s.slice(0, limit);
+  if (limit <= 1) return chars.slice(0, limit).join("");
 
   // Basic truncate
-  let cut = s.slice(0, limit - 1);
+  let cut = chars.slice(0, limit - 1).join("");
   // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
   const lastSpace = cut.lastIndexOf(" ");
   if (lastSpace > -1 && cut.length - lastSpace < 20) {
