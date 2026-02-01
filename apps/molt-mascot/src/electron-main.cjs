@@ -132,6 +132,14 @@ app.whenReady().then(async () => {
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
     });
 
+    globalShortcut.register('CommandOrControl+Shift+R', () => {
+      // eslint-disable-next-line no-console
+      console.log('molt-mascot: reset triggered');
+      if (mainWin && !mainWin.isDestroyed()) {
+        mainWin.webContents.send('molt-mascot:reset');
+      }
+    });
+
     globalShortcut.register('CommandOrControl+Shift+Q', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: quit triggered');

@@ -337,6 +337,19 @@ saveBtn.addEventListener('click', () => {
   connect(cfg);
 });
 
+if (window.moltMascot?.onReset) {
+  window.moltMascot.onReset(() => {
+    // eslint-disable-next-line no-console
+    console.log('Resetting state...');
+    setMode(Mode.idle);
+    if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
+      const id = nextId('reset');
+      // Try canonical method
+      ws.send(JSON.stringify({ type: 'req', id, method: '@molt/mascot-plugin.reset', params: {} }));
+    }
+  });
+}
+
 // boot
 if (isCapture) {
   setup.hidden = true;
