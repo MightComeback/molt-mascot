@@ -19,7 +19,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|node:|uncaughtException)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -229,10 +229,6 @@ function register(api) {
     };
     const unregisterListeners = () => {
       if (typeof off === "function") {
-        off("before_agent_start", onAgentStart);
-        off("before_tool_call", onToolStart);
-        off("after_tool_call", onToolEnd);
-        off("agent_end", onAgentEnd);
         off("agent:start", onAgentStart);
         off("tool:call", onToolStart);
         off("tool:result", onToolEnd);
