@@ -124,6 +124,12 @@ app.whenReady().then(async () => {
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
+  // Apply initial state once loaded
+  mainWin.webContents.once('did-finish-load', () => {
+    if (hideText) mainWin.webContents.send('molt-mascot:hide-text', hideText);
+    if (clickThrough) mainWin.webContents.send('molt-mascot:click-through', clickThrough);
+  });
+
   try {
     globalShortcut.register('CommandOrControl+Shift+M', () => {
       clickThrough = !clickThrough;
