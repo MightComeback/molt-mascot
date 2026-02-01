@@ -331,7 +331,7 @@ export default function register(api: any) {
         msg?.status === "failed" ||
         (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
         (typeof msg === "string" && /^\s*error:/i.test(msg)) ||
-        (typeof msg === "string" && /Command exited with code [1-9]/.test(msg));
+        (typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
 
       const isError = hasExitCode ? isExitError : isExplicitError;
 
