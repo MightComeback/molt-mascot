@@ -337,7 +337,11 @@ export default function register(api: any) {
 
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
-        enterError(truncate(`${toolName} error: ${detail}`));
+        const text =
+          detail === "tool error"
+            ? `${toolName} failed`
+            : `${toolName}: ${detail}`;
+        enterError(truncate(text));
       } else {
         syncModeFromCounters();
       }
