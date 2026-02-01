@@ -27,8 +27,18 @@ const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_E
 function truncate(str, limit = 140) {
   const s = String(str).trim();
   if (s.length <= limit) return s;
-  if (limit <= 3) return s.slice(0, limit);
-  return s.slice(0, limit - 3) + "...";
+  // If limit is too small to fit ellipsis, just truncate hard
+  if (limit <= 1) return s.slice(0, limit);
+
+  // Basic truncate (leave room for 1 char ellipsis)
+  let cut = s.slice(0, limit - 1);
+  // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > -1 && cut.length - lastSpace < 20) {
+    cut = cut.slice(0, lastSpace);
+  }
+
+  return cut + "…";
 }
 
 function cleanErrorString(s) {
