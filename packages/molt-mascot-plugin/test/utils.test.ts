@@ -29,6 +29,9 @@ describe("utils", () => {
     expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
     // Custom error types
     expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
+    // New channels
+    expect(cleanErrorString("DiscordError: API unavailable")).toBe("API unavailable");
+    expect(cleanErrorString("SlackError: channel_not_found")).toBe("channel_not_found");
   });
 
   it("summarizeToolResultMessage", () => {
