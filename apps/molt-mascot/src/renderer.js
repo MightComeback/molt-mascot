@@ -306,7 +306,9 @@ function connect(cfg) {
       if (typeof msg.payload.state.clickThrough === 'boolean') {
         const nextClickThrough = msg.payload.state.clickThrough;
         if (nextClickThrough !== isClickThrough && window.moltMascot?.setClickThrough) {
+           isClickThrough = nextClickThrough;
            window.moltMascot.setClickThrough(nextClickThrough);
+           syncPill();
         }
       }
 
