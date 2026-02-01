@@ -57,6 +57,10 @@ function createWindow({ capture = false } = {}) {
     y: Math.round(pos.y),
     transparent: capture ? false : true,
     backgroundColor: capture ? '#111827' : '#00000000',
+    opacity: capture ? 1.0 : (function() {
+      const v = Number(process.env.MOLT_MASCOT_OPACITY);
+      return (Number.isFinite(v) && v >= 0 && v <= 1) ? v : 1.0;
+    })(),
     show: capture ? false : true,
     frame: false,
     resizable: false,
