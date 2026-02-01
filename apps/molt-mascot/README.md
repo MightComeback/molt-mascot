@@ -46,3 +46,12 @@ bun --filter @molt/mascot dist
 ## Plugin Requirement
 
 To feed data to this mascot, you must install the **@molt/mascot-plugin** in your Clawdbot Gateway.
+
+## Controls
+
+The mascot listens for global shortcuts when active:
+
+- **Cmd/Ctrl + Shift + M**: Toggle **click-through** mode (ignore mouse events).
+- **Cmd/Ctrl + Shift + H**: Toggle **hide text** (show only the pixel avatar).
+- **Cmd/Ctrl + Shift + R**: Force **reset** mascot state (if stuck).
+- **Cmd/Ctrl + Option + Q**: **Quit** the mascot.
