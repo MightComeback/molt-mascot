@@ -322,7 +322,7 @@ function connect(cfg) {
     // If the canonical plugin method isn't installed (older plugin), fall back once.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
       pluginStateTriedAlias = true;
-      pluginStateMethod = 'molt-mascot-plugin.state';
+      pluginStateMethod = 'molt-mascot.state';
       const id = nextId('s');
       pluginStateReqId = id;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
