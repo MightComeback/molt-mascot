@@ -1,56 +1,44 @@
 # @molt/mascot-plugin
 
-> Clawdbot plugin for [Molt Mascot](https://github.com/MightComeback/molt-mascot).
+The companion Clawdbot plugin for [molt-mascot](https://github.com/MightComeback/molt-mascot).
 
-This plugin exposes the Clawdbot agent's state (`idle`, `thinking`, `tool`, `error`) via the Gateway, allowing the Molt Mascot desktop app to reflect what the agent is doing in real-time.
+Exposes the internal agent state (`idle` / `thinking` / `tool` / `error`) to the desktop mascot via the Gateway.
 
 ## Installation
 
 ```bash
-clawdhub install @molt/mascot-plugin
+# via npm/clawdhub (future)
+clawdbot install @molt/mascot-plugin
+
+# or from local source in the monorepo
+clawdbot install ./packages/molt-mascot-plugin
 ```
 
 ## Configuration
 
-In your `clawdbot.config.json` or `.env`:
-
-- `idleDelayMs` (default: 800): Time to wait before switching back to idle.
-- `errorHoldMs` (default: 5000): Duration to display error states.
-
-## Usage
-
-The plugin automatically registers `molt-mascot-plugin.state` (and aliases) on the Gateway. No manual setup required beyond installation.
-
-## Gateway API
-
-This plugin registers the following Gateway method:
-
-### `@molt/mascot-plugin.state`
-
-Returns the current agent state, which monitors the `agent:start`, `agent:end`, `tool:call`, and `tool:result` events.
-
-**Request:** `{} (empty)`
-
-**Response:**
+Add to your `clawdbot.config.ts` (or `.json`):
 
 ```json
 {
-  "ok": true,
-  "state": {
-    "mode": "idle",
-    "since": 1706655600000,
-    "alignment": "bottom-right",
-    "lastError": {
-      "message": "Tool error description",
-      "ts": 1706655600000
+  "plugins": {
+    "entries": {
+      "@molt/mascot-plugin": {
+        "enabled": true,
+        "config": {
+          "idleDelayMs": 800,
+          "errorHoldMs": 5000,
+          "alignment": "bottom-right"
+        }
+      }
     }
   }
 }
 ```
 
-- `mode`: One of `"idle"`, `"thinking"`, `"tool"`, or `"error"`.
-- `since`: Timestamp (ms) when the current mode started.
-- `alignment`: Configured alignment (e.g., `"bottom-right"`).
-- `lastError`: Optional object present when the agent encounters a failure or tool error.
+### Options
 
-_Note: The legacy aliases `molt-mascot-plugin.state`, `molt-mascot.state`, and `moltMascot.state` are also supported for backward compatibility._
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `idleDelayMs` | number | `800` | Delay before reverting to idle state |
+| `errorHoldMs` | number | `5000` | Duration to show error state |
+| `alignment` | string | `bottom-right` | Screen position hint |
