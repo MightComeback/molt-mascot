@@ -172,8 +172,9 @@ export default function register(api: any) {
 
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
-  const alignment = cfg.alignment || "bottom-right";
-  const clickThrough = Boolean(cfg.clickThrough);
+  // Allow client to handle defaults if not explicitly configured on the server
+  const alignment = cfg.alignment;
+  const clickThrough = cfg.clickThrough;
 
   const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough };
 
