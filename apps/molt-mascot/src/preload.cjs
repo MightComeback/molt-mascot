@@ -7,8 +7,8 @@ contextBridge.exposeInMainWorld('moltMascot', {
   platform: process.platform,
   version: pkg.version,
   env: {
-    gatewayUrl: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || '',
-    gatewayToken: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || '',
+    gatewayUrl: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',
+    gatewayToken: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || process.env.gatewayToken || '',
     captureDir: process.env.MOLT_MASCOT_CAPTURE_DIR || '',
     idleDelayMs: process.env.MOLT_MASCOT_IDLE_DELAY_MS || '',
     errorHoldMs: process.env.MOLT_MASCOT_ERROR_HOLD_MS || '',
