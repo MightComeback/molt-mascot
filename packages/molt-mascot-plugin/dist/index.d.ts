@@ -3,7 +3,7 @@ type Mode = "idle" | "thinking" | "tool" | "error";
 type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;
-    alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center";
+    alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
 };
 type State = {
     mode: Mode;
