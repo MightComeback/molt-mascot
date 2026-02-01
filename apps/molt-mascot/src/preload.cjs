@@ -3,6 +3,7 @@ const pkg = require('../package.json');
 
 contextBridge.exposeInMainWorld('moltMascot', {
   setClickThrough: (enabled) => ipcRenderer.send('molt-mascot:set-click-through', enabled),
+  onReset: (callback) => ipcRenderer.on('molt-mascot:reset', () => callback()),
   platform: process.platform,
   version: pkg.version,
   env: {
