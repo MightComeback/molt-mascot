@@ -1,54 +1,48 @@
-# Molt Mascot
+# Molt Mascot 🦞
 
-A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
+A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
 
-## Features
+## Overview
 
-- **State Reflection**: Changes appearance based on Gateway state (Idle, Thinking, Tool Use, Error).
-- **Always-on-top**: Floats over other windows by default.
-- **Click-through**: Toggle interactivity with `Cmd+Shift+M` (or `Ctrl+Shift+M`) to let clicks pass through to windows behind.
+Molt Mascot sits on your screen (usually bottom-right) and visually communicates what your Clawdbot agent is doing. It uses a pixel-art style and connects via a local plugin.
 
-## Setup & Running
+## States
 
-From the monorepo root:
+- **Idle**: The lobster chills (or dances slightly).
+- **Thinking**: Shows an animation when the agent is reasoning/planning.
+- **Tool Use**: Turns into a tool icon (hammer/wrench) when executing commands.
+- **Error**: Flashes red/alert icon when a task or tool fails.
+
+## Development
+
+This app is built with [Electron](https://www.electronjs.org/).
+
+### Prerequisites
+
+- [Bun](https://bun.sh)
+- A running Clawdbot instance (for state updates)
+
+### Setup
 
 ```bash
-# Install dependencies
+# In the monorepo root
 bun install
-
-# Run the mascot
-bun run mascot
 ```
 
-## Configuration
-
-The mascot connects to a Clawdbot Gateway WebSocket.
-
-- **Default URL**: `ws://127.0.0.1:18789`
-- **Environment Variables**:
-    - `MOLT_MASCOT_ALIGN`: Positioning (e.g. `bottom-right` (default), `bottom-left`, `top-right`, `top-left`).
-    - `MOLT_MASCOT_WIDTH`: Window width (default `240`).
-    - `MOLT_MASCOT_HEIGHT`: Window height (default `200`).
-    - `MOLT_MASCOT_CLICKTHROUGH`: Set to `1` or `true` to enable click-through on launch.
-    - `MOLT_MASCOT_HIDE_TEXT`: Set to `1` or `true` to hide the status text on launch.
-    - `gatewayUrl`: Pre-seed the gateway URL.
-    - `gatewayToken`: Pre-seed the gateway auth token.
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Cmd+Shift+M` / `Ctrl+Shift+M` | Toggle **Click-through** (interactivity) |
-| `Cmd+Shift+H` / `Ctrl+Shift+H` | Toggle **Text Visibility** (show/hide status text) |
-| `Cmd+Shift+R` / `Ctrl+Shift+R` | **Reset** internal state (clears errors/timers) |
-| `Cmd+Shift+Q` / `Ctrl+Shift+Q` | **Quit** the mascot |
-
-## Screenshots
-
-To generate asset screenshots (for READMEs or docs):
+### Run Locally
 
 ```bash
-bun run screenshots
+# Run the electron app in dev mode
+bun --filter @molt/mascot dev
 ```
 
-Screenshots are saved to `assets/screenshots`.
+### Build
+
+```bash
+# Build for production (macOS/Linux/Windows)
+bun --filter @molt/mascot dist
+```
+
+## Plugin Requirement
+
+To feed data to this mascot, you must install the **@molt/mascot-plugin** in your Clawdbot Gateway.
