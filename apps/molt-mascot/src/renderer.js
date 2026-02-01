@@ -24,6 +24,29 @@ function coerceDelayMs(v, fallback) {
 const idleDelayMs = coerceDelayMs(window.moltMascot?.env?.idleDelayMs, DEFAULT_IDLE_DELAY_MS);
 const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_ERROR_HOLD_MS);
 
+function truncate(str, limit = 140) {
+  const s = String(str).trim();
+  if (s.length <= limit) return s;
+  if (limit <= 3) return s.slice(0, limit);
+  return s.slice(0, limit - 3) + "...";
+}
+
+function cleanErrorString(s) {
+  // Strip ANSI escape codes
+  // eslint-disable-next-line no-control-regex
+  let str = String(s).replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
+  let prev = "";
+  while (str !== prev) {
+    prev = str;
+    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError)(\s*:\s*|\s+)/i, "").trim();
+  }
+  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
+    return lines[1];
+  }
+  return lines[0] || str;
+}
+
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
 const hideText = (window.moltMascot?.env?.hideText || '').trim();
 if (hideText === '1' || hideText.toLowerCase() === 'true') {
@@ -286,7 +309,8 @@ function connect(cfg) {
         if (p?.phase === 'start') setMode(Mode.thinking);
         if (p?.phase === 'end') scheduleIdle(idleDelayMs);
         if (p?.phase === 'error') {
-          lastErrorMessage = p?.error?.message || (typeof p?.error === 'string' ? p.error : 'agent error');
+          const raw = p?.error?.message || (typeof p?.error === 'string' ? p.error : 'agent error');
+          lastErrorMessage = truncate(cleanErrorString(raw));
           setMode(Mode.error);
           // Hold the error state for the configured duration, then return to idle.
           // (Don't add the idle-delay on top of the error hold.)
