@@ -37,7 +37,16 @@ function truncate(str: string, limit = 140): string {
   if (s.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
   if (limit <= 3) return s.slice(0, limit);
-  return s.slice(0, limit - 3) + "...";
+
+  // Basic truncate
+  let cut = s.slice(0, limit - 3);
+  // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > -1 && cut.length - lastSpace < 20) {
+    cut = cut.slice(0, lastSpace);
+  }
+
+  return cut + "...";
 }
 
 /**
@@ -51,7 +60,7 @@ function cleanErrorString(s: string): string {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError)(\s*:\s*|\s+)/i, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
