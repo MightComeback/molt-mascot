@@ -84,6 +84,7 @@ function summarizeToolResultMessage(msg) {
     msg?.text,
     msg?.result,
     msg?.output,
+    msg?.stdout,
     msg?.data?.text,
     typeof msg?.data === "string" ? msg.data : void 0,
     typeof msg?.data === "object" ? msg?.data?.message ?? msg?.data?.error : void 0

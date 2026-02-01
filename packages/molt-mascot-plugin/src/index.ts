@@ -116,6 +116,7 @@ export function summarizeToolResultMessage(msg: any): string {
     msg?.text,
     msg?.result,
     msg?.output,
+    msg?.stdout,
     msg?.data?.text,
     typeof msg?.data === "string" ? msg.data : undefined,
     typeof msg?.data === "object" ? (msg?.data?.message ?? msg?.data?.error) : undefined,
