@@ -38,7 +38,7 @@ bun run mascot
 - **Quit application**: **Cmd/Ctrl+Shift+Q** (the dock icon is hidden on macOS)
 - **Hide Text** (pixel-only mode): set `MOLT_MASCOT_HIDE_TEXT=1` to hide the status pill/HUD.
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
-  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center` (ignores padding)
+  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center-left`, `center-right`, `center` (ignores padding)
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Timing knobs** (no plugin required):
