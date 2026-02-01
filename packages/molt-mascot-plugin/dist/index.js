@@ -38,10 +38,11 @@ function coerceNumber(v, fallback) {
   return fallback;
 }
 function truncate(str, limit = 140) {
-  const s = str.trim();
-  if (s.length <= limit) return s;
-  if (limit <= 1) return s.slice(0, limit);
-  let cut = s.slice(0, limit - 1);
+  const s = str.trim().replace(/\s+/g, " ");
+  const chars = [...s];
+  if (chars.length <= limit) return s;
+  if (limit <= 1) return chars.slice(0, limit).join("");
+  let cut = chars.slice(0, limit - 1).join("");
   const lastSpace = cut.lastIndexOf(" ");
   if (lastSpace > -1 && cut.length - lastSpace < 20) {
     cut = cut.slice(0, lastSpace);
@@ -53,7 +54,7 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -253,7 +254,9 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg);
+      const isContentTool = ["read", "web_fetch", "memory_get", "memory_search", "browser", "canvas"].includes(rawToolName);
+      const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
+      const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
@@ -283,12 +286,14 @@ function register(api) {
       syncModeFromCounters();
     };
     const handleAgentEvent = (e) => {
-      if (e?.phase === "start") onAgentStart(e);
-      else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
+      const p = e?.payload || e;
+      if (p?.phase === "start") onAgentStart(p);
+      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
     };
     const handleToolEvent = (e) => {
-      if (e?.phase === "start" || e?.phase === "call" || e?.stream === "call") onToolStart(e);
-      else if (e?.phase === "end" || e?.phase === "result" || e?.stream === "result") onToolEnd(e);
+      const p = e?.payload || e;
+      if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
+      else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
     };
     const registerListeners = () => {
       if (typeof on === "function") {
