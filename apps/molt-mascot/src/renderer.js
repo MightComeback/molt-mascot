@@ -134,6 +134,7 @@ const Mode = {
 };
 
 let currentMode = Mode.idle;
+let currentTool = '';
 let modeSince = Date.now();
 let idleTimer = null;
 let errorHoldTimer = null;
@@ -146,6 +147,9 @@ function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
   let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  if (currentMode === Mode.tool && currentTool) {
+    label = truncate(currentTool, 24);
+  }
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
     label = truncate(lastErrorMessage, 48);
@@ -303,6 +307,12 @@ function connect(cfg) {
     ) {
       hasPlugin = true;
       const nextMode = msg.payload.state.mode;
+      const nextTool = msg.payload.state.currentTool || '';
+      if (nextTool !== currentTool) {
+        currentTool = nextTool;
+        // If we are already in tool mode, update immediately
+        if (currentMode === Mode.tool) syncPill();
+      }
 
       // Sync clickThrough from plugin config/state
       if (typeof msg.payload.state.clickThrough === 'boolean') {
