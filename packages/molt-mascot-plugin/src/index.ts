@@ -40,14 +40,14 @@ export function truncate(str: string, limit = 140): string {
   if (limit <= 3) return s.slice(0, limit);
 
   // Basic truncate
-  let cut = s.slice(0, limit - 1);
+  let cut = s.slice(0, limit - 3);
   // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
   const lastSpace = cut.lastIndexOf(" ");
   if (lastSpace > -1 && cut.length - lastSpace < 20) {
     cut = cut.slice(0, lastSpace);
   }
 
-  return cut + "…";
+  return cut + "...";
 }
 
 /**
