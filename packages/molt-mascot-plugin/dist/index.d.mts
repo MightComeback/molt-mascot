@@ -1,4 +1,4 @@
-declare const id = "molt-mascot";
+declare const id = "@molt/mascot-plugin";
 type Mode = "idle" | "thinking" | "tool" | "error";
 type PluginConfig = {
     idleDelayMs?: number;
