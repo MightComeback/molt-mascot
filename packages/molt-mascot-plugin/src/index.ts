@@ -69,7 +69,8 @@ export function cleanErrorString(s: string): string {
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   // If first line is a generic exit code, and we have a second line, use the second.
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
-    return lines[1];
+    // Recurse to clean the second line (e.g. remove "Error:" prefix from it)
+    return cleanErrorString(lines[1]);
   }
   return lines[0] || str;
 }

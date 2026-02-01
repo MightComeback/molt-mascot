@@ -4,6 +4,7 @@ type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;
     alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
+    clickThrough?: boolean;
 };
 type State = {
     mode: Mode;
@@ -13,6 +14,7 @@ type State = {
         ts: number;
     };
     alignment?: string;
+    clickThrough?: boolean;
 };
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function truncate(str: string, limit?: number): string;
