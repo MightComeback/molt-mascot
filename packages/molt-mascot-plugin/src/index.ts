@@ -21,6 +21,7 @@ export type State = {
   mode: Mode;
   since: number;
   lastError?: { message: string; ts: number };
+  alignment?: string;
 };
 
 function coerceNumber(v: unknown, fallback: number): number {
@@ -155,8 +156,9 @@ export default function register(api: any) {
 
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
+  const alignment = cfg.alignment || "bottom-right";
 
-  const state: State = { mode: "idle", since: Date.now() };
+  const state: State = { mode: "idle", since: Date.now(), alignment };
 
   let idleTimer: any = null;
   let errorTimer: any = null;
