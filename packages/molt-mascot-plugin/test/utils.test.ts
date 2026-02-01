@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { cleanErrorString, truncate, coerceNumber } from "../src/index.ts";
+import { cleanErrorString, truncate, coerceNumber, summarizeToolResultMessage } from "../src/index.ts";
 
 describe("utils", () => {
   it("coerceNumber", () => {
@@ -27,5 +27,25 @@ describe("utils", () => {
     expect(cleanErrorString("\u001b[31mError:\u001b[0m foo")).toBe("foo");
     // Exit code handling
     expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
+    // Custom error types
+    expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
+  });
+
+  it("summarizeToolResultMessage", () => {
+    expect(summarizeToolResultMessage("hello")).toBe("hello");
+    expect(summarizeToolResultMessage({ result: "done" })).toBe("done");
+    
+    // Priorities
+    expect(summarizeToolResultMessage({ error: "fail", result: "ok" })).toBe("fail");
+    expect(summarizeToolResultMessage({ stderr: "bad", stdout: "good" })).toBe("bad");
+    
+    // Complex objects
+    expect(summarizeToolResultMessage({ error: { message: "nested" } })).toBe("nested");
+    
+    // Exit codes
+    expect(summarizeToolResultMessage({ exitCode: 127 })).toBe("exit code 127");
+    
+    // Cleaning
+    expect(summarizeToolResultMessage({ error: "Error: something" })).toBe("something");
   });
 });
