@@ -389,6 +389,13 @@ if (window.moltMascot?.onClickThrough) {
   });
 }
 
+if (window.moltMascot?.onHideText) {
+  window.moltMascot.onHideText((hidden) => {
+    const hud = document.getElementById('hud');
+    if (hud) hud.hidden = hidden;
+  });
+}
+
 // boot
 if (isCapture) {
   setup.hidden = true;

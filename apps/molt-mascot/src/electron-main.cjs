@@ -122,6 +122,8 @@ app.whenReady().then(async () => {
   let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH);
   applyClickThrough(mainWin, clickThrough);
 
+  let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
+
   try {
     globalShortcut.register('CommandOrControl+Shift+M', () => {
       clickThrough = !clickThrough;
@@ -131,6 +133,15 @@ app.whenReady().then(async () => {
       }
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
+    });
+
+    globalShortcut.register('CommandOrControl+Shift+H', () => {
+      hideText = !hideText;
+      if (mainWin && !mainWin.isDestroyed()) {
+        mainWin.webContents.send('molt-mascot:hide-text', hideText);
+      }
+      // eslint-disable-next-line no-console
+      console.log(`molt-mascot: hide-text ${hideText ? 'ON' : 'OFF'}`);
     });
 
     globalShortcut.register('CommandOrControl+Shift+R', () => {
