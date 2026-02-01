@@ -1,20 +1,15 @@
 {
   "name": "@molt/mascot",
-  "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.",
   "version": "0.1.20",
-  "keywords": [
-    "electron",
-    "mascot",
-    "clawdbot",
-    "pixel-art"
-  ],
+  "private": true,
+  "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.",
   "author": "Might <might@example.com>",
   "license": "MIT",
-  "build": {
-    "appId": "com.mightcomeback.molt-mascot",
-    "productName": "Molt Mascot"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MightComeback/molt-mascot.git",
+    "directory": "apps/molt-mascot"
   },
-  "private": true,
   "main": "src/electron-main.cjs",
   "scripts": {
     "dev": "electron .",
@@ -29,9 +24,15 @@
   "devDependencies": {
     "electron-builder": "^26.4.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MightComeback/molt-mascot.git",
-    "directory": "apps/molt-mascot"
-  }
+  "build": {
+    "appId": "com.mightcomeback.molt-mascot",
+    "productName": "Molt Mascot",
+    "artifactName": "molt-mascot-${version}.${ext}"
+  },
+  "keywords": [
+    "electron",
+    "mascot",
+    "clawdbot",
+    "pixel-art"
+  ]
 }
