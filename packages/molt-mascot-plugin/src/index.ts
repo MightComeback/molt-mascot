@@ -71,11 +71,23 @@ export function cleanErrorString(s: string): string {
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
-  // If first line is a generic exit code, and we have a second line, use the second.
-  if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
-    // Recurse to clean the second line (e.g. remove "Error:" prefix from it)
-    return cleanErrorString(lines[1]);
+
+  // UX Improvement: If we have multiple lines, scan for the most relevant error line.
+  // This extracts "Error: Failed" from logs that might start with "info: starting..."
+  if (lines.length > 1) {
+    // If first line is a generic exit code, always look deeper
+    if (/^Command exited with code \d+$/.test(lines[0])) {
+      return cleanErrorString(lines[1]);
+    }
+    
+    // Check if any line (other than the first) looks like a strong error signal.
+    // We look for common error prefixes (case-insensitive).
+    const errorLine = lines.find(l => /^(error|fatal|panic|exception|traceback|failed)/i.test(l));
+    if (errorLine && errorLine !== lines[0]) {
+      return cleanErrorString(errorLine);
+    }
   }
+
   return lines[0] || str;
 }
 
