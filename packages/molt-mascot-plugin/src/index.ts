@@ -424,6 +424,7 @@ export default function register(api: any) {
         off("tool:call", onToolStart);
         off("tool:result", onToolEnd);
         off("agent:result", onAgentEnd);
+        off("agent:end", onAgentEnd);
       }
     };
 
