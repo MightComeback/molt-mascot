@@ -1,5 +1,5 @@
 // src/index.ts
-var id = "@molt/mascot-plugin";
+var id = "molt-mascot";
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
