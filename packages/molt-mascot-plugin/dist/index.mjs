@@ -218,7 +218,7 @@ function register(api) {
         return;
       }
       if (event?.success === false) {
-        enterError("agent ended unsuccessfully");
+        enterError("Task failed");
         return;
       }
       syncModeFromCounters();
