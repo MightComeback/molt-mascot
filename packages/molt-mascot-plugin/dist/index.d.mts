@@ -12,6 +12,7 @@ type State = {
         message: string;
         ts: number;
     };
+    alignment?: string;
 };
 /**
  * Initialize the molt-mascot plugin.

@@ -12,14 +12,19 @@ function truncate(str, limit = 140) {
   const s = str.trim();
   if (s.length <= limit) return s;
   if (limit <= 3) return s.slice(0, limit);
-  return s.slice(0, limit - 3) + "...";
+  let cut = s.slice(0, limit - 3);
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > -1 && cut.length - lastSpace < 20) {
+    cut = cut.slice(0, lastSpace);
+  }
+  return cut + "...";
 }
 function cleanErrorString(s) {
   let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^(Error|Tool failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|bun:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|AnthropicError|OpenAIError|GoogleGenerativeAIError|ProviderError|PerplexityError|SonarError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1 && /^Command exited with code \d+$/.test(lines[0])) {
@@ -75,7 +80,8 @@ function register(api) {
   const cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config ?? {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
-  const state = { mode: "idle", since: Date.now() };
+  const alignment = cfg.alignment || "bottom-right";
+  const state = { mode: "idle", since: Date.now(), alignment };
   let idleTimer = null;
   let errorTimer = null;
   let activeAgentCount = 0;
@@ -189,7 +195,8 @@ function register(api) {
       clampToolDepth();
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
-      const toolName = typeof event?.tool === "string" ? event.tool : "tool";
+      const rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
+      const toolName = rawToolName.length > 20 ? rawToolName.slice(0, 17) + "..." : rawToolName;
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
