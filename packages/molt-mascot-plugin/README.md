@@ -39,6 +39,7 @@ Returns the current agent state, which monitors the `agent:start`, `agent:end`, 
   "state": {
     "mode": "idle",
     "since": 1706655600000,
+    "alignment": "bottom-right",
     "lastError": {
       "message": "Tool error description",
       "ts": 1706655600000
@@ -49,6 +50,7 @@ Returns the current agent state, which monitors the `agent:start`, `agent:end`, 
 
 - `mode`: One of `"idle"`, `"thinking"`, `"tool"`, or `"error"`.
 - `since`: Timestamp (ms) when the current mode started.
+- `alignment`: Configured alignment (e.g., `"bottom-right"`).
 - `lastError`: Optional object present when the agent encounters a failure or tool error.
 
 _Note: The legacy aliases `molt-mascot-plugin.state`, `molt-mascot.state`, and `moltMascot.state` are also supported for backward compatibility._
