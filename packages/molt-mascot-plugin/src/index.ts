@@ -37,7 +37,8 @@ export function coerceNumber(v: unknown, fallback: number): number {
 }
 
 export function truncate(str: string, limit = 140): string {
-  const s = str.trim();
+  // Collapse whitespace/newlines to single spaces for cleaner display
+  const s = str.trim().replace(/\s+/g, " ");
   // Use iterator to handle surrogate pairs (unicode-safe)
   const chars = [...s];
   if (chars.length <= limit) return s;
