@@ -387,7 +387,7 @@ export default function register(api: any) {
       // Tools that return raw content (like 'read') can contain "error:" in the text
       // without actually failing. For these, we disable text-sniffing for errors
       // unless an explicit error field is present.
-      const isContentTool = ["read", "web_fetch", "memory_get", "memory_search"].includes(rawToolName);
+      const isContentTool = ["read", "web_fetch", "memory_get", "memory_search", "browser", "canvas"].includes(rawToolName);
       
       const textSniffing = !isContentTool && 
         ((typeof msg === "string" && /^\s*error:/i.test(msg)) ||
