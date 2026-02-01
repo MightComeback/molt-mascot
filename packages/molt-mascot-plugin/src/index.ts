@@ -434,16 +434,18 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
 
-    // Wrappers for v2 events ensures we can reference them for cleanup
+    // Wrappers for v2 events to ensure we handle both envelope (v2) and payload (internal) styles
     const handleAgentEvent = (e: any) => {
-      if (e?.phase === "start") onAgentStart(e);
-      else if (e?.phase === "end" || e?.phase === "result" || e?.phase === "error") onAgentEnd(e);
+      const p = e?.payload || e;
+      if (p?.phase === "start") onAgentStart(p);
+      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
     };
 
     const handleToolEvent = (e: any) => {
+      const p = e?.payload || e;
       // Support both v1 (stream) and v2 (phase) event formats
-      if (e?.phase === "start" || e?.phase === "call" || e?.stream === "call") onToolStart(e);
-      else if (e?.phase === "end" || e?.phase === "result" || e?.stream === "result") onToolEnd(e);
+      if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
+      else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
     };
 
     const registerListeners = () => {
