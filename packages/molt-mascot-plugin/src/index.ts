@@ -24,6 +24,7 @@ export type State = {
   lastError?: { message: string; ts: number };
   alignment?: string;
   clickThrough?: boolean;
+  currentTool?: string;
 };
 
 export function coerceNumber(v: unknown, fallback: number): number {
@@ -288,6 +289,7 @@ export default function register(api: any) {
     state.mode = "idle";
     state.since = Date.now();
     delete state.lastError;
+    delete state.currentTool;
     toolDepth = 0;
     activeAgents.clear();
     clearIdleTimer();
@@ -325,11 +327,15 @@ export default function register(api: any) {
       setMode(mode);
     };
 
-    const onToolStart = async () => {
+    const onToolStart = async (event: any) => {
       clearIdleTimer();
       // If we are starting a tool, we probably want to clear any old error to show progress?
       // But syncModeFromCounters handles the override logic.
       toolDepth++;
+      const rawName = typeof event?.tool === "string" ? event.tool : "";
+      if (rawName) {
+        state.currentTool = rawName.replace(/^default_api:/, "");
+      }
       syncModeFromCounters();
     };
 
@@ -337,6 +343,7 @@ export default function register(api: any) {
       clearIdleTimer();
       toolDepth--;
       clampToolDepth();
+      if (toolDepth === 0) delete state.currentTool;
 
       // Check for tool errors (capture exit codes or explicit error fields)
       // "event.error" handles infrastructure failures (timeout, not found)
