@@ -135,7 +135,7 @@ function syncPill() {
   let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
-    label = lastErrorMessage;
+    label = truncate(lastErrorMessage, 48);
   }
   
   if (isClickThrough) {
