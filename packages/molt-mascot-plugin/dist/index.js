@@ -85,7 +85,8 @@ function summarizeToolResultMessage(msg) {
     msg?.result,
     msg?.output,
     msg?.data?.text,
-    typeof msg?.data === "string" ? msg.data : void 0
+    typeof msg?.data === "string" ? msg.data : void 0,
+    typeof msg?.data === "object" ? msg?.data?.message ?? msg?.data?.error : void 0
   ];
   let genericFallback = null;
   for (const c of candidates) {
@@ -274,6 +275,7 @@ function register(api) {
         on("tool:call", onToolStart);
         on("tool:result", onToolEnd);
         on("agent:result", onAgentEnd);
+        on("agent:end", onAgentEnd);
       }
     };
     const unregisterListeners = () => {

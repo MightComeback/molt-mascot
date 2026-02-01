@@ -411,7 +411,8 @@ export default function register(api: any) {
         on("agent:start", onAgentStart);
         on("tool:call", onToolStart);
         on("tool:result", onToolEnd);
-        on("agent:result", onAgentEnd); // Handle agent result/end event correctly
+        on("agent:result", onAgentEnd);
+        on("agent:end", onAgentEnd); // Robustness: match both result/end events
       }
     };
 
