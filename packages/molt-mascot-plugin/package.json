@@ -1,6 +1,6 @@
 {
   "name": "@molt/mascot-plugin",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
   "publishConfig": {
     "access": "public"
