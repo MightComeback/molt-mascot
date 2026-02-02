@@ -38,7 +38,9 @@
   "keywords": [
     "clawdbot",
     "plugin",
-    "mascot"
+    "mascot",
+    "ai",
+    "agent"
   ],
   "files": [
     "dist",
