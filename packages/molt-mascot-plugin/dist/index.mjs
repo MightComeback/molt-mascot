@@ -238,7 +238,7 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isContentTool = ["read", "web_fetch", "web_search", "memory_get", "memory_search", "browser", "canvas", "sessions_history", "sessions_list", "agents_list", "tts", "cron", "nodes", "process", "gateway"].includes(rawToolName);
+      const isContentTool = ["read", "exec", "web_fetch", "web_search", "memory_get", "memory_search", "browser", "canvas", "sessions_history", "sessions_list", "agents_list", "tts", "cron", "nodes", "process", "gateway"].includes(rawToolName);
       const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
       const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
