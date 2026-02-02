@@ -84,8 +84,11 @@ Config lives under `plugins.entries["@molt/mascot-plugin"].config`.
 Supported keys:
 - `alignment` (string): same values as `MOLT_MASCOT_ALIGN`
 - `clickThrough` (boolean): enable click-through mode
+- `hideText` (boolean): hide status text (pixel-only mode)
 - `idleDelayMs` (number): idle timeout (default 800)
 - `errorHoldMs` (number): error display duration (default 5000)
+- `opacity` (number): window opacity (0.0 - 1.0)
+- `padding` (number): screen edge padding
 
 (Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
 
