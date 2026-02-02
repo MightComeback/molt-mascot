@@ -67,6 +67,9 @@ export function truncate(str: string, limit = 140): string {
  * e.g. "Error: Tool failed: File not found" -> "File not found"
  */
 export function cleanErrorString(s: string): string {
+  // Performance guard: truncate huge outputs before regex processing
+  if (s.length > 4096) s = s.slice(0, 4096);
+
   // Strip ANSI escape codes (colors, cursor moves, etc)
   // eslint-disable-next-line no-control-regex
   let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
