@@ -54,14 +54,14 @@ function cleanErrorString(s) {
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|fs:|process:|internal:|commonjs:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|hakky:|hakky-tools:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|OllamaError|DeepSeekError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError|McpError|WebSocketError|SocketError|ValueError|KeyError|IndexError|AttributeError|NameError|ImportError|ModuleNotFoundError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|fs:|process:|internal:|commonjs:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|hakky:|hakky-tools:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|AuthError|ForbiddenError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|OllamaError|DeepSeekError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError|McpError|WebSocketError|SocketError|ValueError|KeyError|IndexError|AttributeError|NameError|ImportError|ModuleNotFoundError)(\s*:\s*|\s+)/i, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
     if (/^Command (exited|failed) with (exit )?code \d+$/.test(lines[0])) {
       return cleanErrorString(lines[1]);
     }
-    const errorLine = lines.find((l) => /^(error|fatal|panic|exception|traceback|failed)/i.test(l));
+    const errorLine = lines.find((l) => /^(error|fatal|panic|exception|traceback|failed|denied|rejected)/i.test(l));
     if (errorLine && errorLine !== lines[0]) {
       return cleanErrorString(errorLine);
     }
@@ -125,7 +125,9 @@ function register(api) {
   const alignment = cfg.alignment;
   const clickThrough = cfg.clickThrough;
   const hideText = cfg.hideText;
-  const state = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText };
+  const padding = coerceNumber(cfg.padding, -1) >= 0 ? coerceNumber(cfg.padding, 0) : void 0;
+  const opacity = typeof cfg.opacity === "number" && cfg.opacity >= 0 && cfg.opacity <= 1 ? cfg.opacity : void 0;
+  const state = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText, padding, opacity };
   let idleTimer = null;
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
@@ -265,7 +267,7 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isContentTool = ["read", "web_fetch", "memory_get", "memory_search", "browser", "canvas"].includes(rawToolName);
+      const isContentTool = ["read", "web_fetch", "web_search", "memory_get", "memory_search", "browser", "canvas", "sessions_history", "sessions_list", "agents_list", "tts", "cron", "nodes", "process", "gateway"].includes(rawToolName);
       const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
       const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;

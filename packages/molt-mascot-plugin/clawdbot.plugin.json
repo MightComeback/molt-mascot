@@ -1,12 +1,22 @@
 {
   "id": "@molt/mascot-plugin",
   "name": "@molt/mascot-plugin",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
   "main": "dist/index.js",
   "config": {
     "type": "object",
     "properties": {
+      "idleDelayMs": {
+        "type": "number",
+        "default": 800,
+        "description": "Milliseconds to wait before reverting to idle state"
+      },
+      "errorHoldMs": {
+        "type": "number",
+        "default": 5000,
+        "description": "Milliseconds to hold the error state before clearing"
+      },
       "alignment": {
         "type": "string",
         "default": "bottom-right",
@@ -33,15 +43,13 @@
         "default": false,
         "description": "Hide the text status pill (pixel-only mode)"
       },
-      "idleDelayMs": {
+      "padding": {
         "type": "number",
-        "default": 800,
-        "description": "Milliseconds to wait before reverting to idle state"
+        "description": "Padding from screen edges (pixels)"
       },
-      "errorHoldMs": {
+      "opacity": {
         "type": "number",
-        "default": 5000,
-        "description": "Milliseconds to hold the error state before clearing"
+        "description": "Window opacity (0.0 - 1.0)"
       }
     }
   }

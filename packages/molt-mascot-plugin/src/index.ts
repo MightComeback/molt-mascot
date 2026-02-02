@@ -17,6 +17,8 @@ export type PluginConfig = {
     | "center";
   clickThrough?: boolean;
   hideText?: boolean;
+  padding?: number;
+  opacity?: number;
 };
 
 export type State = {
@@ -26,6 +28,8 @@ export type State = {
   alignment?: string;
   clickThrough?: boolean;
   hideText?: boolean;
+  padding?: number;
+  opacity?: number;
   currentTool?: string;
 };
 
@@ -193,8 +197,11 @@ export default function register(api: any) {
   const alignment = cfg.alignment;
   const clickThrough = cfg.clickThrough;
   const hideText = cfg.hideText;
+  const padding = coerceNumber(cfg.padding, -1) >= 0 ? coerceNumber(cfg.padding, 0) : undefined;
+  // Opacity must be 0-1
+  const opacity = typeof cfg.opacity === "number" && cfg.opacity >= 0 && cfg.opacity <= 1 ? cfg.opacity : undefined;
 
-  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText };
+  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText, padding, opacity };
 
   let idleTimer: any = null;
   let errorTimer: any = null;
