@@ -249,7 +249,7 @@ function connect(cfg) {
         client: {
           id: 'molt-mascot-desktop',
           displayName: 'Molt Mascot',
-          version: window.moltMascot?.version || '0.1.25',
+          version: window.moltMascot?.version || '0.1.30',
           platform: window.moltMascot?.platform || navigator.userAgent,
           mode: 'gui',
           instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
