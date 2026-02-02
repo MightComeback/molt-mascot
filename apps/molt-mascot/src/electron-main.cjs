@@ -207,6 +207,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  // Keep mascot running like a widget on macOS; quit on other platforms.
-  if (process.platform !== 'darwin') app.quit();
+  // With app.dock.hide(), we cannot re-activate the app if the window closes.
+  // Ensure the process quits on all platforms to prevent zombies.
+  app.quit();
 });
