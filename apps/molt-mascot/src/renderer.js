@@ -357,6 +357,15 @@ function connect(cfg) {
         }
       }
 
+      // Sync hideText
+      if (typeof msg.payload.state.hideText === 'boolean') {
+        const nextHideText = msg.payload.state.hideText;
+        if (nextHideText !== isTextHidden && window.moltMascot?.onHideText) {
+          isTextHidden = nextHideText;
+          updateHudVisibility();
+        }
+      }
+
       const nextErr = msg.payload?.state?.lastError?.message;
       if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
         lastErrorMessage = nextErr.trim();

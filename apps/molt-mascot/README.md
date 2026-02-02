@@ -61,6 +61,15 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_CLICKTHROUGH` | Start in click-through (ghost) mode | `false` |
 | `MOLT_MASCOT_HIDE_TEXT` | Start with text hidden (pixel-only) | `false` |
 
+### Connection Configuration
+
+To pre-configure the connection to the Gateway (skipping the setup screen):
+
+| Variable | Description |
+|---|---|
+| `GATEWAY_URL` | WebSocket URL (e.g., `ws://127.0.0.1:18789`) |
+| `GATEWAY_TOKEN` | Gateway authentication token |
+
 ## Controls
 
 The mascot listens for global shortcuts when active:
