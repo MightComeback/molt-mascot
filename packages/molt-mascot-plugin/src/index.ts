@@ -221,7 +221,7 @@ export default function register(api: any) {
   };
 
   const getSessionKey = (event: any) =>
-    event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+    event?.sessionKey ?? event?.sessionId ?? "unknown";
 
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
