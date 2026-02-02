@@ -138,7 +138,7 @@ function register(api) {
     for (const d of agentToolDepths.values()) inputs += d;
     return inputs;
   };
-  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? event?.id ?? "unknown";
+  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? "unknown";
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = null;
