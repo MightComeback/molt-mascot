@@ -33,6 +33,8 @@
     "electron",
     "mascot",
     "clawdbot",
-    "pixel-art"
+    "pixel-art",
+    "ai",
+    "agent"
   ]
 }
