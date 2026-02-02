@@ -166,6 +166,10 @@ const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
 let isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
 let currentAlignment = '';
 
+let lastPluginClickThrough = null;
+let lastPluginAlignment = null;
+let lastPluginHideText = null;
+
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
@@ -341,7 +345,9 @@ function connect(cfg) {
       // Sync clickThrough from plugin config/state
       if (typeof msg.payload.state.clickThrough === 'boolean') {
         const nextClickThrough = msg.payload.state.clickThrough;
-        if (nextClickThrough !== isClickThrough && window.moltMascot?.setClickThrough) {
+        // Only apply if the server value actually changed (local overrides static config)
+        if (nextClickThrough !== lastPluginClickThrough && window.moltMascot?.setClickThrough) {
+           lastPluginClickThrough = nextClickThrough;
            isClickThrough = nextClickThrough;
            window.moltMascot.setClickThrough(nextClickThrough);
            syncPill();
@@ -351,7 +357,8 @@ function connect(cfg) {
       // Sync alignment
       if (typeof msg.payload.state.alignment === 'string' && msg.payload.state.alignment) {
         const nextAlign = msg.payload.state.alignment;
-        if (nextAlign !== currentAlignment && window.moltMascot?.setAlignment) {
+        if (nextAlign !== lastPluginAlignment && window.moltMascot?.setAlignment) {
+          lastPluginAlignment = nextAlign;
           currentAlignment = nextAlign;
           window.moltMascot.setAlignment(nextAlign);
         }
@@ -360,7 +367,8 @@ function connect(cfg) {
       // Sync hideText
       if (typeof msg.payload.state.hideText === 'boolean') {
         const nextHideText = msg.payload.state.hideText;
-        if (nextHideText !== isTextHidden && window.moltMascot?.onHideText) {
+        if (nextHideText !== lastPluginHideText && window.moltMascot?.onHideText) {
+          lastPluginHideText = nextHideText;
           isTextHidden = nextHideText;
           updateHudVisibility();
         }
