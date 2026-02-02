@@ -60,11 +60,21 @@ function cleanErrorString(s) {
 }
 
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
-const hideText = (window.moltMascot?.env?.hideText || '').trim();
-if (hideText === '1' || hideText.toLowerCase() === 'true') {
+const hideTextEnv = (window.moltMascot?.env?.hideText || '').trim();
+let isTextHidden = hideTextEnv === '1' || hideTextEnv.toLowerCase() === 'true';
+
+// Helper to manage HUD visibility:
+// If the user requested hidden text, we respect it—UNLESS we are in error mode.
+// We force the HUD visible during errors so the user can see what went wrong.
+function updateHudVisibility() {
   const hud = document.getElementById('hud');
-  if (hud) hud.hidden = true;
+  if (!hud) return;
+  // If in error mode, force visibility. Otherwise, respect the preference.
+  hud.hidden = isTextHidden && currentMode !== Mode.error;
 }
+
+// Apply initial state
+updateHudVisibility();
 
 function loadCfg() {
   try {
@@ -170,6 +180,7 @@ function syncPill() {
   }
   const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
   pill.title = tip + ver;
+  updateHudVisibility();
 }
 
 function setMode(mode) {
@@ -435,8 +446,8 @@ if (window.moltMascot?.onClickThrough) {
 
 if (window.moltMascot?.onHideText) {
   window.moltMascot.onHideText((hidden) => {
-    const hud = document.getElementById('hud');
-    if (hud) hud.hidden = hidden;
+    isTextHidden = hidden;
+    updateHudVisibility();
   });
 }
 
