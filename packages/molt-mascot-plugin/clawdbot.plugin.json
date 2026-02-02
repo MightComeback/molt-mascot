@@ -2,23 +2,15 @@
   "id": "@molt/mascot-plugin",
   "name": "@molt/mascot-plugin",
   "version": "0.1.30",
-  "main": "dist/index.js",
   "description": "Clawdbot plugin for Molt Mascot (pixel lobster)",
+  "main": "dist/index.js",
   "config": {
     "type": "object",
     "properties": {
-      "idleDelayMs": {
-        "type": "number",
-        "default": 800,
-        "description": "Milliseconds to wait before reverting to idle state"
-      },
-      "errorHoldMs": {
-        "type": "number",
-        "default": 5000,
-        "description": "Milliseconds to hold the error state before clearing"
-      },
       "alignment": {
         "type": "string",
+        "default": "bottom-right",
+        "description": "Screen alignment for the mascot window",
         "enum": [
           "top-left",
           "top-right",
@@ -29,14 +21,27 @@
           "center-left",
           "center-right",
           "center"
-        ],
-        "default": "bottom-right",
-        "description": "Screen alignment for the mascot window"
+        ]
       },
       "clickThrough": {
         "type": "boolean",
         "default": false,
         "description": "Enable click-through mode (ghost mode) so the mascot doesn't intercept mouse clicks"
+      },
+      "hideText": {
+        "type": "boolean",
+        "default": false,
+        "description": "Hide the text status pill (pixel-only mode)"
+      },
+      "idleDelayMs": {
+        "type": "number",
+        "default": 800,
+        "description": "Milliseconds to wait before reverting to idle state"
+      },
+      "errorHoldMs": {
+        "type": "number",
+        "default": 5000,
+        "description": "Milliseconds to hold the error state before clearing"
       }
     }
   }

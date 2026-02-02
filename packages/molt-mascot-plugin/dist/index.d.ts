@@ -5,6 +5,7 @@ type PluginConfig = {
     errorHoldMs?: number;
     alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
     clickThrough?: boolean;
+    hideText?: boolean;
 };
 type State = {
     mode: Mode;
@@ -15,6 +16,7 @@ type State = {
     };
     alignment?: string;
     clickThrough?: boolean;
+    hideText?: boolean;
     currentTool?: string;
 };
 declare function coerceNumber(v: unknown, fallback: number): number;

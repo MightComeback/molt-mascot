@@ -16,6 +16,7 @@ export type PluginConfig = {
     | "center-right"
     | "center";
   clickThrough?: boolean;
+  hideText?: boolean;
 };
 
 export type State = {
@@ -24,6 +25,7 @@ export type State = {
   lastError?: { message: string; ts: number };
   alignment?: string;
   clickThrough?: boolean;
+  hideText?: boolean;
   currentTool?: string;
 };
 
@@ -190,8 +192,9 @@ export default function register(api: any) {
   // Allow client to handle defaults if not explicitly configured on the server
   const alignment = cfg.alignment;
   const clickThrough = cfg.clickThrough;
+  const hideText = cfg.hideText;
 
-  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough };
+  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText };
 
   let idleTimer: any = null;
   let errorTimer: any = null;

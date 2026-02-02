@@ -124,7 +124,8 @@ function register(api) {
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
   const alignment = cfg.alignment;
   const clickThrough = cfg.clickThrough;
-  const state = { mode: "idle", since: Date.now(), alignment, clickThrough };
+  const hideText = cfg.hideText;
+  const state = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText };
   let idleTimer = null;
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
