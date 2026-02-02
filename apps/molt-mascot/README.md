@@ -47,6 +47,20 @@ bun --filter @molt/mascot dist
 
 To feed data to this mascot, you must install the **@molt/mascot-plugin** in your Clawdbot Gateway.
 
+## Environment Variables
+
+When running the Electron app standalone, you can configure it via environment variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `MOLT_MASCOT_ALIGN` | Screen position (`bottom-right`, `top-left`, etc.) | `bottom-right` |
+| `MOLT_MASCOT_WIDTH` | Window width in pixels | `240` |
+| `MOLT_MASCOT_HEIGHT` | Window height in pixels | `200` |
+| `MOLT_MASCOT_PADDING` | Padding from screen edge in pixels | `24` |
+| `MOLT_MASCOT_OPACITY` | Opacity (0.0 to 1.0) | `1.0` |
+| `MOLT_MASCOT_CLICKTHROUGH` | Start in click-through (ghost) mode | `false` |
+| `MOLT_MASCOT_HIDE_TEXT` | Start with text hidden (pixel-only) | `false` |
+
 ## Controls
 
 The mascot listens for global shortcuts when active:
