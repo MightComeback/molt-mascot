@@ -466,15 +466,28 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
 
+    // Helper to ensure we capture sessionKey from the envelope if missing in payload
+    const mergeEnvelope = (envelope: any, payload: any) => {
+      if (!payload) return envelope;
+      // If payload is just a string/primitive, we can't attach properties easily without wrapping
+      if (typeof payload !== "object") return payload;
+      
+      // If payload already has the key, use it. Otherwise, borrow from envelope.
+      if (!payload.sessionKey && envelope.sessionKey) {
+        return { ...payload, sessionKey: envelope.sessionKey };
+      }
+      return payload;
+    };
+
     // Wrappers for v2 events to ensure we handle both envelope (v2) and payload (internal) styles
     const handleAgentEvent = (e: any) => {
-      const p = e?.payload || e;
+      const p = mergeEnvelope(e, e?.payload || e);
       if (p?.phase === "start") onAgentStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
     };
 
     const handleToolEvent = (e: any) => {
-      const p = e?.payload || e;
+      const p = mergeEnvelope(e, e?.payload || e);
       // Support both v1 (stream) and v2 (phase) event formats
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);

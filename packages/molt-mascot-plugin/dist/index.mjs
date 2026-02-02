@@ -265,13 +265,21 @@ function register(api) {
       }
       syncModeFromCounters();
     };
+    const mergeEnvelope = (envelope, payload) => {
+      if (!payload) return envelope;
+      if (typeof payload !== "object") return payload;
+      if (!payload.sessionKey && envelope.sessionKey) {
+        return { ...payload, sessionKey: envelope.sessionKey };
+      }
+      return payload;
+    };
     const handleAgentEvent = (e) => {
-      const p = e?.payload || e;
+      const p = mergeEnvelope(e, e?.payload || e);
       if (p?.phase === "start") onAgentStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
     };
     const handleToolEvent = (e) => {
-      const p = e?.payload || e;
+      const p = mergeEnvelope(e, e?.payload || e);
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
     };
