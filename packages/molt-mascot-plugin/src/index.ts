@@ -253,7 +253,9 @@ export default function register(api: any) {
     }
     
     if (found) {
-      state.currentTool = found.replace(/^default_api:/, "");
+      state.currentTool = found
+        .replace(/^default_api:/, "")
+        .replace(/^functions\./, "");
     } else {
       delete state.currentTool;
     }
@@ -422,7 +424,9 @@ export default function register(api: any) {
       agentToolStacks.set(key, stack);
 
       if (rawName) {
-        state.currentTool = rawName.replace(/^default_api:/, "");
+        state.currentTool = rawName
+          .replace(/^default_api:/, "")
+          .replace(/^functions\./, "");
       }
       syncModeFromCounters();
     };
@@ -444,7 +448,9 @@ export default function register(api: any) {
       const msg = event?.result ?? event?.output ?? event?.data;
       let rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
       // UX: Remove verbose default_api: prefix for compact display
-      rawToolName = rawToolName.replace(/^default_api:/, "");
+      rawToolName = rawToolName
+        .replace(/^default_api:/, "")
+        .replace(/^functions\./, "");
 
       // Truncate tool name if it's absurdly long to save space on the pixel display
       const toolName =
