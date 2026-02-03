@@ -60,7 +60,7 @@ var package_default = {
     }
   },
   scripts: {
-    build: "tsup src/index.ts --format cjs,esm --dts",
+    build: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
     dev: "tsup src/index.ts --watch",
     test: "bun test",
     lint: "oxlint .",
