@@ -111,3 +111,9 @@ bun run dev
 ## Linear workflow
 
 This repo is tracked in Linear as **MIG-15**. Keep commits small and link them in the issue.
+
+## Development
+
+- Install deps: `npm install`
+- Run the build: `npm run build` (or `npm run dev` if available)
+- Run checks: `npm test` / `npm run lint` when present
