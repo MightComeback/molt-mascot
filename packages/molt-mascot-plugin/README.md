@@ -34,7 +34,7 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 | `clickThrough` | boolean | `false` | Enable click-through mode (ghost mode) so the mascot doesn't intercept mouse clicks |
 | `hideText` | boolean | `false` | Hide the text status pill (pixel-only mode) |
 | `padding` | number | `24` | Padding from screen edges (pixels) |
-| `opacity` | number | `1.0` | Window opacity (0.0 - 1.0) |
+| `opacity` | number | `1` | Window opacity (0.0 - 1.0) |
 
 Notes:
 - **Plugin id:** `@molt/mascot-plugin`
