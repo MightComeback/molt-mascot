@@ -138,14 +138,23 @@ This repo uses **Bun** for running scripts (see `package.json` `packageManager` 
 - You *can* install dependencies with `npm install`, but you’ll still need **Bun** to run the repo scripts unless you rewrite them.
 - Recommended: `bun install`
 
-## Usage
+## Build & install (monorepo)
 
-- Install dependencies
-- Build the plugin
-- Load the packaged output into the host app
+```bash
+bun install
 
-## Installation
+# Build the Clawdbot plugin (output is in the package dist/)
+bun run --cwd packages/molt-mascot-plugin build
 
-- Install deps: 
-- Build: 
+# Install the plugin into your local Clawdbot
+clawdbot plugins install ./packages/molt-mascot-plugin
+```
+
+Then run the app:
+
+```bash
+bun run mascot
+```
+
+(Or see **Quickstart** above for installing from npm.) 
 
