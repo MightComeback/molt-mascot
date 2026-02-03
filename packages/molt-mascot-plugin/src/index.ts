@@ -499,7 +499,9 @@ export default function register(api: any) {
       // "event.error" handles infrastructure failures (timeout, not found)
       // "event.result" handles tool-level failures (runtime errors)
       const infraError = event?.error;
-      const msg = event?.result ?? event?.output ?? event?.data;
+      // Some Gateway event envelopes carry primitive results under `payload`.
+      // After mergeEnvelope(), that primitive ends up at `event.payload`.
+      const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
       let rawToolName =
         typeof event?.tool === "string"
           ? event.tool
