@@ -133,3 +133,10 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
 
 - Install deps: `bun install` (or `npm install`)
+
+
+## Usage
+
+- Install the plugin package in your host app.
+- Configure any required environment variables.
+- Restart the host app to load the plugin.
