@@ -9,14 +9,18 @@ if (process.platform === 'win32') {
 
 const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 
+// Runtime overrides (can be pushed from the plugin via IPC)
+let paddingOverride = null;
+
 function isTruthyEnv(v) {
   const s = String(v || '').trim().toLowerCase();
   return s === '1' || s === 'true' || s === 'yes' || s === 'on';
 }
 
-function getPosition(display, width, height, alignOverride) {
+function getPosition(display, width, height, alignOverride, paddingOverride) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
-  const padding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
+  const basePadding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
+  const padding = (Number.isFinite(paddingOverride) && paddingOverride >= 0) ? paddingOverride : basePadding;
 
   const align = (alignOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
@@ -50,7 +54,7 @@ function createWindow({ capture = false } = {}) {
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
   const width = Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240;
   const height = Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200;
-  const pos = getPosition(display, width, height);
+  const pos = getPosition(display, width, height, undefined, paddingOverride);
 
   const win = new BrowserWindow({
     width,
@@ -191,7 +195,7 @@ app.whenReady().then(async () => {
     if (mainWin && !mainWin.isDestroyed()) {
       const display = screen.getPrimaryDisplay();
       const [width, height] = mainWin.getSize();
-      const pos = getPosition(display, width, height, align);
+      const pos = getPosition(display, width, height, align, paddingOverride);
       mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     }
   });
@@ -202,6 +206,18 @@ app.whenReady().then(async () => {
       if (Number.isFinite(v) && v >= 0 && v <= 1) {
         mainWin.setOpacity(v);
       }
+    }
+  });
+
+  ipcMain.on('molt-mascot:set-padding', (event, padding) => {
+    const v = Number(padding);
+    if (!Number.isFinite(v) || v < 0) return;
+    paddingOverride = v;
+    if (mainWin && !mainWin.isDestroyed()) {
+      const display = screen.getPrimaryDisplay();
+      const [width, height] = mainWin.getSize();
+      const pos = getPosition(display, width, height, undefined, paddingOverride);
+      mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     }
   });
 

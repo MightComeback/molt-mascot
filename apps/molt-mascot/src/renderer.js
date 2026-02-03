@@ -170,6 +170,7 @@ let lastPluginClickThrough = null;
 let lastPluginAlignment = null;
 let lastPluginHideText = null;
 let lastPluginOpacity = null;
+let lastPluginPadding = null;
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -378,6 +379,15 @@ function connect(cfg) {
         if (nextOpacity !== lastPluginOpacity && window.moltMascot?.setOpacity) {
           lastPluginOpacity = nextOpacity;
           window.moltMascot.setOpacity(nextOpacity);
+        }
+      }
+
+      // Sync padding (affects window position)
+      if (typeof msg.payload.state.padding === 'number') {
+        const nextPadding = msg.payload.state.padding;
+        if (nextPadding !== lastPluginPadding && window.moltMascot?.setPadding) {
+          lastPluginPadding = nextPadding;
+          window.moltMascot.setPadding(nextPadding);
         }
       }
 
