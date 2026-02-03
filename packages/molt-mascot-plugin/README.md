@@ -91,6 +91,16 @@ Notes:
 - `lastError` is only present while `mode === "error"`.
 - `currentTool` is derived from the most-recent active tool call across running sessions.
 
+## Development
+
+From the monorepo root:
+
+```bash
+bun install
+bun run --cwd packages/molt-mascot-plugin test
+bun run --cwd packages/molt-mascot-plugin build
+```
+
 ## Shortcuts (Electron App)
 
 If you are running the `molt-mascot` Electron app:
