@@ -334,7 +334,7 @@ function register(api) {
   const off = api?.off;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
-      "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
+      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`
     );
   } else {
     const onAgentStart = async (event) => {

@@ -430,7 +430,7 @@ export default function register(api: any) {
 
   if (typeof on !== "function") {
     api?.logger?.warn?.(
-      "molt-mascot plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle"
+      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`
     );
   } else {
     // Keep references to handlers for cleanup
