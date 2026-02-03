@@ -7,9 +7,9 @@
   ],
   "packageManager": "bun@1.3.7",
   "scripts": {
-    "dev": "bun --cwd packages/molt-mascot-plugin run dev & bun --cwd apps/molt-mascot run dev",
-    "mascot": "bun --cwd apps/molt-mascot run dev",
-    "screenshots": "bun --cwd apps/molt-mascot run capture",
+    "dev": "bun run --cwd packages/molt-mascot-plugin dev & bun run --cwd apps/molt-mascot dev",
+    "mascot": "bun run --cwd apps/molt-mascot dev",
+    "screenshots": "bun run --cwd apps/molt-mascot capture", 
     "ws:dump": "bun tools/ws-dump.ts",
     "lint": "oxlint .",
     "format": "bun x biome check --apply ."

@@ -127,3 +127,9 @@ bun run format
 ## Linear workflow
 
 This repo is tracked in Linear as **MIG-15**. Keep commits small and link them in the issue.
+
+## Installation
+
+- Install dependencies: `npm install`
+- Build the project: `npm run build`
+
