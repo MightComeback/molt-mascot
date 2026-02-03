@@ -1,4 +1,4 @@
-declare const id = "@molt/mascot-plugin";
+declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
 type PluginConfig = {

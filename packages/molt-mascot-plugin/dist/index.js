@@ -83,7 +83,7 @@ var package_default = {
 };
 
 // src/index.ts
-var id = "@molt/mascot-plugin";
+var id = package_default.name;
 var version = package_default.version;
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -166,6 +166,19 @@ function summarizeToolResultMessage(msg) {
     }
   }
   if (genericFallback) return truncate(genericFallback);
+  if (msg && typeof msg === "object") {
+    const toTry = [msg.error, msg.data, msg.result];
+    for (const v of toTry) {
+      if (!v || typeof v !== "object") continue;
+      try {
+        const json = JSON.stringify(v);
+        if (typeof json === "string" && json !== "{}") {
+          return truncate(cleanErrorString(json));
+        }
+      } catch {
+      }
+    }
+  }
   if (typeof msg === "object" && typeof msg?.exitCode === "number") {
     return `exit code ${msg.exitCode}`;
   }

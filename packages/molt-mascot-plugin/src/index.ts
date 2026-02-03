@@ -177,6 +177,23 @@ export function summarizeToolResultMessage(msg: any): string {
 
   if (genericFallback) return truncate(genericFallback);
 
+  // Last-resort: attempt to stringify structured error payloads.
+  // Some tools return `{ error: { ... } }` or `{ data: { ... } }` without a stable `.message`.
+  if (msg && typeof msg === "object") {
+    const toTry = [msg.error, msg.data, msg.result];
+    for (const v of toTry) {
+      if (!v || typeof v !== "object") continue;
+      try {
+        const json = JSON.stringify(v);
+        if (typeof json === "string" && json !== "{}") {
+          return truncate(cleanErrorString(json));
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   if (typeof msg === "object" && typeof msg?.exitCode === "number") {
     return `exit code ${msg.exitCode}`;
   }
