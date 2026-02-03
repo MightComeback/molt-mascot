@@ -80,7 +80,7 @@ There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that 
 
 Recommended (follows `pluginId.action`):
 - `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError?, currentTool?, alignment, clickThrough, hideText, padding, opacity } }`
-- `@molt/mascot-plugin.reset` → `{ ok: true }` (clears error + forces `idle`)
+- `@molt/mascot-plugin.reset` → `{ ok: true, state }` (clears error + forces `idle`)
 
 Back-compat aliases:
 - `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` / `moltMascotPlugin.state` → same payload
