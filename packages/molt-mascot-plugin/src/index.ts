@@ -79,7 +79,9 @@ export function cleanErrorString(s: string): string {
   /* eslint-disable no-control-regex */
   const str0 = s
     // CSI sequences: ESC [ ... <final>
-    .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "")
+    // Full match per ANSI: ESC [ parameters intermediates final-byte
+    // (final byte is in the range @-~; not just letters)
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
     // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \
     .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
     .trim();
