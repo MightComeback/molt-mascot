@@ -311,7 +311,7 @@ function register(api) {
       stack.push(rawName || "tool");
       agentToolStacks.set(key, stack);
       if (rawName) {
-        state.currentTool = rawName.replace(/^default_api:/, "").replace(/^functions\./, "");
+        state.currentTool = rawName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
       }
       syncModeFromCounters();
     };
@@ -325,7 +325,7 @@ function register(api) {
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
       let rawToolName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "tool";
-      rawToolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "");
+      rawToolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
       const toolName = rawToolName.length > 20 ? rawToolName.slice(0, 17) + "..." : rawToolName;
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";

@@ -452,7 +452,8 @@ export default function register(api: any) {
       if (rawName) {
         state.currentTool = rawName
           .replace(/^default_api:/, "")
-          .replace(/^functions\./, "");
+          .replace(/^functions\./, "")
+          .replace(/^multi_tool_use\./, "");
       }
       syncModeFromCounters();
     };
@@ -483,7 +484,8 @@ export default function register(api: any) {
       // UX: Remove verbose default_api: prefix for compact display
       rawToolName = rawToolName
         .replace(/^default_api:/, "")
-        .replace(/^functions\./, "");
+        .replace(/^functions\./, "")
+        .replace(/^multi_tool_use\./, "");
 
       // Truncate tool name if it's absurdly long to save space on the pixel display
       const toolName =
