@@ -45,7 +45,8 @@ bun run mascot
   - Toggle at runtime with **Cmd/Ctrl+Shift+H**
 - **Reset State**: **Cmd/Ctrl+Shift+R** (force idle/clear error)
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
-  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center-left`, `center-right`, `center` (ignores padding)
+  - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center-left`, `center-right`, `center`
+  - Note: `center` ignores padding; all other alignments use `MOLT_MASCOT_PADDING`.
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
 - **Opacity**: `MOLT_MASCOT_OPACITY` (default: `1.0`, range: `0.0`-`1.0`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
