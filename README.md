@@ -1,3 +1,4 @@
+# molt-mascot
 # MightComeback/molt-mascot
 
 A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **Clawdbot** Gateway state: `idle` / `thinking` / `tool` / `error`.
