@@ -4,12 +4,24 @@ Clawdbot plugin for Molt Mascot (pixel lobster).
 
 ## Requirements
 
-This plugin requires the **Molt Mascot** desktop application (Electron) to be running to display the pixel art visualization. The plugin acts as a state provider within Clawdbot, which the desktop mascot consumes.
+This plugin is optional.
+
+- If you run the **Molt Mascot** desktop app (Electron), it can call this plugin’s Gateway methods to read a simplified “agent state” payload.
+- If you *don’t* run the desktop app, installing the plugin is harmless but not very useful.
 
 ## Installation
 
+From a published package:
+
 ```bash
 clawdbot install @molt/mascot-plugin
+```
+
+From this monorepo (local dev):
+
+```bash
+# from the monorepo root
+clawdbot install ./packages/molt-mascot-plugin
 ```
 
 ## Configuration
