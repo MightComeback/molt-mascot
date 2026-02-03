@@ -40,6 +40,7 @@ Notes:
 - **Plugin id:** `@molt/mascot-plugin` (runtime id is derived from `package.json` `name`)
 - **Methods:** `@molt/mascot-plugin.state`, `@molt/mascot-plugin.reset`
 - **Gateway method aliases:** the plugin also responds to `molt-mascot`, `molt-mascot-plugin`, `moltMascot`, and `moltMascotPlugin` for `.state` / `.reset` (useful if you have older configs/docs).
+- **Config key aliases:** the plugin will also read configuration under those same alias keys (helpful if you previously configured it under a short name).
 
 ## Shortcuts (Electron App)
 
