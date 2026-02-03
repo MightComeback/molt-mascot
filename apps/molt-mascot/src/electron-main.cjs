@@ -194,6 +194,15 @@ app.whenReady().then(async () => {
     }
   });
 
+  ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
+    if (mainWin && !mainWin.isDestroyed()) {
+      const v = Number(opacity);
+      if (Number.isFinite(v) && v >= 0 && v <= 1) {
+        mainWin.setOpacity(v);
+      }
+    }
+  });
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWin = createWindow();

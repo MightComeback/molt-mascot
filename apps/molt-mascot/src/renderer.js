@@ -169,6 +169,7 @@ let currentAlignment = '';
 let lastPluginClickThrough = null;
 let lastPluginAlignment = null;
 let lastPluginHideText = null;
+let lastPluginOpacity = null;
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -361,6 +362,15 @@ function connect(cfg) {
           lastPluginAlignment = nextAlign;
           currentAlignment = nextAlign;
           window.moltMascot.setAlignment(nextAlign);
+        }
+      }
+
+      // Sync opacity
+      if (typeof msg.payload.state.opacity === 'number') {
+        const nextOpacity = msg.payload.state.opacity;
+        if (nextOpacity !== lastPluginOpacity && window.moltMascot?.setOpacity) {
+          lastPluginOpacity = nextOpacity;
+          window.moltMascot.setOpacity(nextOpacity);
         }
       }
 
