@@ -11,6 +11,7 @@
     "mascot": "bun run --cwd apps/molt-mascot dev",
     "screenshots": "bun run --cwd apps/molt-mascot capture",
     "ws:dump": "bun tools/ws-dump.ts",
+    "test": "bun run --cwd packages/molt-mascot-plugin test",
     "lint": "oxlint .",
     "format": "bun x biome check --apply ."
   },
