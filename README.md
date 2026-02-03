@@ -128,8 +128,10 @@ bun run format
 
 This repo is tracked in Linear as **MIG-15**. Keep commits small and link them in the issue.
 
-## Installation
+## Package manager notes
 
-- Install dependencies: `npm install`
-- Build the project: `npm run build`
+This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
+
+- Install deps: `bun install` (or `npm install`)
+- Build (if needed): `bun run build` (or `npm run build`)
 
