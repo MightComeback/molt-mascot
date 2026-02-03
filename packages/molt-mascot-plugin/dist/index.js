@@ -172,9 +172,25 @@ function summarizeToolResultMessage(msg) {
 }
 function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
-  let cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
-  if (!cfg && pluginId === id) {
-    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? api?.config?.plugins?.entries?.["moltMascot"]?.config ?? api?.config?.plugins?.entries?.["molt-mascot-plugin"]?.config ?? api?.config?.plugins?.entries?.["moltMascotPlugin"]?.config ?? api?.config?.plugins?.entries?.["@molt/mascot-plugin"]?.config;
+  let cfg = api?.pluginConfig;
+  if (!cfg) {
+    const entries = api?.config?.plugins?.entries;
+    const keysToTry = [
+      pluginId,
+      id,
+      "@molt/mascot-plugin",
+      "molt-mascot",
+      "moltMascot",
+      "molt-mascot-plugin",
+      "moltMascotPlugin"
+    ];
+    for (const key of keysToTry) {
+      const c = entries?.[key]?.config;
+      if (c) {
+        cfg = c;
+        break;
+      }
+    }
   }
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
@@ -386,6 +402,8 @@ function register(api) {
       }
       const merged = { ...envelope, ...payload };
       if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
+      if (!merged.sessionId && envelope?.sessionId) merged.sessionId = envelope.sessionId;
+      if (!merged.sessionKey && merged.sessionId) merged.sessionKey = merged.sessionId;
       return merged;
     };
     const handleAgentEvent = (e) => {

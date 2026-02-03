@@ -553,7 +553,15 @@ export default function register(api: any) {
 
       // Merge envelope + payload, preferring payload fields, but backfilling sessionKey.
       const merged = { ...envelope, ...payload };
+
+      // Backfill session identifiers from the envelope when missing in the payload.
+      // Some Gateway versions use sessionId instead of sessionKey.
       if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
+      if (!merged.sessionId && envelope?.sessionId) merged.sessionId = envelope.sessionId;
+
+      // Normalize: if we only have sessionId, treat it as sessionKey for our bookkeeping.
+      if (!merged.sessionKey && merged.sessionId) merged.sessionKey = merged.sessionId;
+
       return merged;
     };
 
