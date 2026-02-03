@@ -36,6 +36,28 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 | `padding` | number | `24` | Padding from screen edges (pixels) |
 | `opacity` | number | `1` | Window opacity (0.0 - 1.0) |
 
+Example (`clawdbot.config.json`):
+
+```jsonc
+{
+  "plugins": {
+    "entries": {
+      "@molt/mascot-plugin": {
+        "config": {
+          "alignment": "bottom-right",
+          "padding": 24,
+          "opacity": 1,
+          "clickThrough": false,
+          "hideText": false,
+          "idleDelayMs": 800,
+          "errorHoldMs": 5000
+        }
+      }
+    }
+  }
+}
+```
+
 Notes:
 - **Plugin id:** `@molt/mascot-plugin` (runtime id is derived from `package.json` `name`)
 - **Methods:** `@molt/mascot-plugin.state`, `@molt/mascot-plugin.reset`
