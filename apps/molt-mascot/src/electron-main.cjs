@@ -11,6 +11,7 @@ const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 
 // Runtime overrides (can be pushed from the plugin via IPC)
 let paddingOverride = null;
+let alignmentOverride = null;
 
 function isTruthyEnv(v) {
   const s = String(v || '').trim().toLowerCase();
@@ -54,7 +55,7 @@ function createWindow({ capture = false } = {}) {
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
   const width = Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240;
   const height = Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200;
-  const pos = getPosition(display, width, height, undefined, paddingOverride);
+  const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
 
   const win = new BrowserWindow({
     width,
@@ -193,10 +194,14 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on('molt-mascot:set-alignment', (event, align) => {
+    // Persist runtime alignment so other IPC updates (like padding) don't snap back
+    // to the env/default alignment.
+    alignmentOverride = align;
+
     if (mainWin && !mainWin.isDestroyed()) {
       const display = screen.getPrimaryDisplay();
       const [width, height] = mainWin.getSize();
-      const pos = getPosition(display, width, height, align, paddingOverride);
+      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
       mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     }
   });
@@ -217,7 +222,7 @@ app.whenReady().then(async () => {
     if (mainWin && !mainWin.isDestroyed()) {
       const display = screen.getPrimaryDisplay();
       const [width, height] = mainWin.getSize();
-      const pos = getPosition(display, width, height, undefined, paddingOverride);
+      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
       mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     }
   });
