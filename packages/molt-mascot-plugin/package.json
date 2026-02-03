@@ -30,7 +30,8 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --watch",
     "test": "bun test",
-    "lint": "oxlint ."
+    "lint": "oxlint .",
+    "prepack": "bun run build"
   },
   "keywords": [
     "clawdbot",
