@@ -460,6 +460,7 @@ export default function register(api: any) {
       if (activeAgents.size > 10) {
         activeAgents.clear();
         agentToolStacks.clear();
+        delete state.currentTool;
       }
       
       activeAgents.add(sessionKey);
