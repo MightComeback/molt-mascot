@@ -137,3 +137,9 @@ This repo uses **Bun** for running scripts (see `package.json` `packageManager` 
 
 - You *can* install dependencies with `npm install`, but you’ll still need **Bun** to run the repo scripts unless you rewrite them.
 - Recommended: `bun install`
+
+## Usage
+
+- Install dependencies
+- Build the plugin
+- Load the packaged output into the host app
