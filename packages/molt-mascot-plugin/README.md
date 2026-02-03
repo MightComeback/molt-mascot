@@ -37,7 +37,7 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 | `opacity` | number | `1` | Window opacity (0.0 - 1.0) |
 
 Notes:
-- **Plugin id:** `@molt/mascot-plugin`
+- **Plugin id:** `@molt/mascot-plugin` (runtime id is derived from `package.json` `name`)
 - **Methods:** `@molt/mascot-plugin.state`, `@molt/mascot-plugin.reset`
 - **Gateway method aliases:** the plugin also responds to `molt-mascot`, `molt-mascot-plugin`, `moltMascot`, and `moltMascotPlugin` for `.state` / `.reset` (useful if you have older configs/docs).
 
