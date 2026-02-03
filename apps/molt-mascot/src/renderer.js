@@ -241,6 +241,24 @@ let pluginStateMethod = '@molt/mascot-plugin.state';
 let pluginStateTriedAlias = false;
 let hasPlugin = false;
 let pluginPollerStarted = false;
+let pluginStatePending = false;
+let pluginStateLastSentAt = 0;
+
+function sendPluginStateReq(prefix = 'p') {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  // If we fire a new request on every event, we can easily stomp our own request id
+  // and end up ignoring responses (because only the latest id is honored).
+  // Keep at most one in flight at a time, and also rate-limit a little.
+  const now = Date.now();
+  if (pluginStatePending) return;
+  if (now - pluginStateLastSentAt < 150) return;
+
+  const id = nextId(prefix);
+  pluginStateReqId = id;
+  pluginStatePending = true;
+  pluginStateLastSentAt = now;
+  ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+}
 
 function startPluginPoller() {
   if (pluginPollerStarted) return;
@@ -248,11 +266,7 @@ function startPluginPoller() {
   // Poll status to keep in sync with plugin-side logic (timers, error holding, etc)
   if (window._pollInterval) clearInterval(window._pollInterval);
   window._pollInterval = setInterval(() => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const pid = nextId('p');
-      pluginStateReqId = pid;
-      ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
-    }
+    sendPluginStateReq('p');
   }, 1000);
 }
 
@@ -313,9 +327,7 @@ function connect(cfg) {
     // If we have a plugin, any event is a hint to poll state immediately
     // so the UI feels snappy (instead of waiting for the 1s poller).
     if (hasPlugin && msg.type === 'event') {
-      const pid = nextId('p');
-      pluginStateReqId = pid;
-      ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
+      sendPluginStateReq('p');
     }
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
@@ -324,11 +336,11 @@ function connect(cfg) {
       // Optional: fetch plugin simplified state once.
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // The plugin still exposes "molt-mascot.state" as a back-compat alias.
-      const id = nextId('s');
-      pluginStateReqId = id;
       pluginStateMethod = '@molt/mascot-plugin.state';
       pluginStateTriedAlias = false;
-      ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+      pluginStatePending = false;
+      pluginStateLastSentAt = 0;
+      sendPluginStateReq('s');
 
       return;
     }
@@ -343,6 +355,7 @@ function connect(cfg) {
       msg.payload?.ok &&
       msg.payload?.state?.mode
     ) {
+      pluginStatePending = false;
       hasPlugin = true;
       startPluginPoller();
       const nextMode = msg.payload.state.mode;
@@ -414,12 +427,18 @@ function connect(cfg) {
 
     // If the canonical plugin method isn't installed (older plugin), fall back once.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
+      pluginStatePending = false;
       pluginStateTriedAlias = true;
       pluginStateMethod = 'molt-mascot.state';
-      const id = nextId('s');
-      pluginStateReqId = id;
-      ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+      pluginStateLastSentAt = 0;
+      sendPluginStateReq('s');
       return;
+    }
+
+    // If we got *any* response to our plugin-state request but it didn't match the
+    // success path above (e.g., method missing, auth failure), don't deadlock the poller.
+    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId) {
+      pluginStatePending = false;
     }
 
     // Native agent stream mapping (no plugin required).
