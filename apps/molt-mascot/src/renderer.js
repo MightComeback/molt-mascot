@@ -239,6 +239,21 @@ let pluginStateReqId = null;
 let pluginStateMethod = '@molt/mascot-plugin.state';
 let pluginStateTriedAlias = false;
 let hasPlugin = false;
+let pluginPollerStarted = false;
+
+function startPluginPoller() {
+  if (pluginPollerStarted) return;
+  pluginPollerStarted = true;
+  // Poll status to keep in sync with plugin-side logic (timers, error holding, etc)
+  if (window._pollInterval) clearInterval(window._pollInterval);
+  window._pollInterval = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      const pid = nextId('p');
+      pluginStateReqId = pid;
+      ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
+    }
+  }, 1000);
+}
 
 function nextId(prefix) {
   reqId += 1;
@@ -314,15 +329,6 @@ function connect(cfg) {
       pluginStateTriedAlias = false;
       ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
 
-      // Start polling status to keep in sync with plugin-side logic (timers, error holding, etc)
-      if (window._pollInterval) clearInterval(window._pollInterval);
-      window._pollInterval = setInterval(() => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-             const pid = nextId('p');
-             pluginStateReqId = pid;
-             ws.send(JSON.stringify({ type: 'req', id: pid, method: pluginStateMethod, params: {} }));
-        }
-      }, 1000);
       return;
     }
 
@@ -337,6 +343,7 @@ function connect(cfg) {
       msg.payload?.state?.mode
     ) {
       hasPlugin = true;
+      startPluginPoller();
       const nextMode = msg.payload.state.mode;
       const nextTool = msg.payload.state.currentTool || '';
       if (nextTool !== currentTool) {
@@ -439,6 +446,7 @@ function connect(cfg) {
 
   ws.onclose = () => {
     hasPlugin = false;
+    pluginPollerStarted = false;
     pill.textContent = 'disconnected';
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
