@@ -174,7 +174,7 @@ app.whenReady().then(async () => {
       }
     });
 
-    register('CommandOrControl+Option+Q', () => {
+    register('CommandOrControl+Alt+Q', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: quit triggered');
       app.quit();
