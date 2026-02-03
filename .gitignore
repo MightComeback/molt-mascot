@@ -5,3 +5,5 @@ apps/*/node_modules/
 
 # Cron lock (created by Clawdbot build loop)
 .hakky-lock-mig15
+
+*.tgz
