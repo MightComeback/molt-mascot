@@ -104,3 +104,15 @@ Supported keys:
 ```bash
 bun run dev
 ```
+
+## Development
+
+- Install deps: 
+- Build: 
+- Lint: 
+> molt-mascot@0.0.1 lint
+> oxlint .
+
+Found 0 warnings and 0 errors.
+Finished in 10ms on 8 files with 90 rules using 12 threads.
+
