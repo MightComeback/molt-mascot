@@ -211,7 +211,7 @@ function register(api) {
       if (stack.length > 0) found = stack[stack.length - 1];
     }
     if (found) {
-      state.currentTool = found.replace(/^default_api:/, "").replace(/^functions\./, "");
+      state.currentTool = found.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
     } else {
       delete state.currentTool;
     }

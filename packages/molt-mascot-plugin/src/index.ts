@@ -300,7 +300,8 @@ export default function register(api: any) {
     if (found) {
       state.currentTool = found
         .replace(/^default_api:/, "")
-        .replace(/^functions\./, "");
+        .replace(/^functions\./, "")
+        .replace(/^multi_tool_use\./, "");
     } else {
       delete state.currentTool;
     }
