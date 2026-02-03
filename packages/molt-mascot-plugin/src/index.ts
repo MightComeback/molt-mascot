@@ -1,6 +1,8 @@
 import pkg from "../package.json";
 
-export const id = "@molt/mascot-plugin";
+// Single source of truth: keep runtime id aligned with package.json name.
+// (Avoids subtle mismatches if the package is renamed.)
+export const id = pkg.name as string;
 export const version = pkg.version;
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
