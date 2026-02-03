@@ -107,3 +107,7 @@ Supported keys:
 bun run dev
 ```
 
+
+## Linear workflow
+
+This repo is tracked in Linear as **MIG-15**. Keep commits small and link them in the issue.
