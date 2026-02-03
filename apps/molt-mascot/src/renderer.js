@@ -102,6 +102,7 @@ function saveCfg(cfg) {
 }
 
 function showSetup(prefill) {
+  if (isCapture) return;
   setup.hidden = false;
   // Ensure we can click the form!
   if (window.moltMascot?.setClickThrough) {
@@ -249,6 +250,7 @@ function connect(cfg) {
   pill.textContent = 'connecting…';
 
   if (ws) {
+    ws.onclose = null;
     try { ws.close(); } catch {}
     ws = null;
   }
@@ -435,7 +437,7 @@ function connect(cfg) {
     }
   });
 
-  ws.addEventListener('close', () => {
+  ws.onclose = () => {
     hasPlugin = false;
     pill.textContent = 'disconnected';
     if (window._pollInterval) {
@@ -450,7 +452,7 @@ function connect(cfg) {
       if (fresh && fresh.url) connect(fresh);
       else showSetup({ url: cfg.url, token: cfg.token });
     }, 1500);
-  });
+  };
 
   ws.addEventListener('error', () => {
     lastErrorMessage = 'WebSocket error';
