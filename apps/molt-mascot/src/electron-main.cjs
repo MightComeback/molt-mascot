@@ -16,7 +16,7 @@ function isTruthyEnv(v) {
 
 function getPosition(display, width, height, alignOverride) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
-  const padding = Number.isFinite(envPadding) ? envPadding : 24;
+  const padding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
 
   const align = (alignOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
@@ -46,8 +46,10 @@ function getPosition(display, width, height, alignOverride) {
 
 function createWindow({ capture = false } = {}) {
   const display = screen.getPrimaryDisplay();
-  const width = Number(process.env.MOLT_MASCOT_WIDTH) || 240;
-  const height = Number(process.env.MOLT_MASCOT_HEIGHT) || 200;
+  const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
+  const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
+  const width = Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240;
+  const height = Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200;
   const pos = getPosition(display, width, height);
 
   const win = new BrowserWindow({
