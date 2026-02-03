@@ -107,7 +107,7 @@ function truncate(str, limit = 140) {
 }
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
-  const str0 = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "").trim();
+  const str0 = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
   let str = str0;
   let prev = "";
   while (str !== prev) {
