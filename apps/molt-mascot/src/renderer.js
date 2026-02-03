@@ -52,8 +52,9 @@ function cleanErrorString(s) {
   // Strip ANSI escape codes (colors, cursor moves, etc)
   /* eslint-disable no-control-regex */
   let str = String(s)
-    // CSI sequences: ESC [ ... <final>
-    .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "")
+    // CSI sequences: ESC [ parameters intermediates final-byte
+    // (final byte is in the range @-~; not just letters)
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
     // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
     .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "")
     .trim();
