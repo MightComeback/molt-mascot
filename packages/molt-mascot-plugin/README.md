@@ -36,6 +36,10 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 | `padding` | number | `24` | Padding from screen edges (pixels) |
 | `opacity` | number | `1.0` | Window opacity (0.0 - 1.0) |
 
+Notes:
+- **Plugin id:** `@molt/mascot-plugin`
+- **Gateway method aliases:** the plugin also responds to `molt-mascot` and `molt-mascot-plugin` for `.state` / `.reset` (useful if you have older configs/docs).
+
 ## Shortcuts (Electron App)
 
 If you are running the `molt-mascot` Electron app:
