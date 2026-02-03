@@ -435,16 +435,30 @@ function register(api) {
       else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error" || p?.stream === "result" || p?.stream === "error")
         onToolEnd(p);
     };
+    let unsubAgent;
+    let unsubTool;
     const registerListeners = () => {
       if (typeof on === "function") {
-        on("agent", handleAgentEvent);
-        on("tool", handleToolEvent);
+        const maybeUnsubAgent = on("agent", handleAgentEvent);
+        const maybeUnsubTool = on("tool", handleToolEvent);
+        if (typeof maybeUnsubAgent === "function") unsubAgent = maybeUnsubAgent;
+        if (typeof maybeUnsubTool === "function") unsubTool = maybeUnsubTool;
       }
     };
     const unregisterListeners = () => {
       if (typeof off === "function") {
         off("agent", handleAgentEvent);
         off("tool", handleToolEvent);
+      }
+      try {
+        unsubAgent?.();
+      } finally {
+        unsubAgent = void 0;
+      }
+      try {
+        unsubTool?.();
+      } finally {
+        unsubTool = void 0;
       }
     };
     registerListeners();

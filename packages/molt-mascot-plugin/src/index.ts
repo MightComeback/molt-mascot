@@ -638,11 +638,19 @@ export default function register(api: any) {
         onToolEnd(p);
     };
 
+    // Some event emitters return an unsubscribe function from `on()`.
+    // Prefer that when `off()` is unavailable so we can still clean up on plugin stop.
+    let unsubAgent: undefined | (() => void);
+    let unsubTool: undefined | (() => void);
+
     const registerListeners = () => {
       // Modern hooks (v2)
       if (typeof on === "function") {
-        on("agent", handleAgentEvent);
-        on("tool", handleToolEvent);
+        const maybeUnsubAgent = on("agent", handleAgentEvent);
+        const maybeUnsubTool = on("tool", handleToolEvent);
+
+        if (typeof maybeUnsubAgent === "function") unsubAgent = maybeUnsubAgent;
+        if (typeof maybeUnsubTool === "function") unsubTool = maybeUnsubTool;
       }
     };
 
@@ -650,6 +658,18 @@ export default function register(api: any) {
       if (typeof off === "function") {
         off("agent", handleAgentEvent);
         off("tool", handleToolEvent);
+      }
+
+      // Fallback: if we got unsubscribe fns from `on()`, call them too (idempotent).
+      try {
+        unsubAgent?.();
+      } finally {
+        unsubAgent = undefined;
+      }
+      try {
+        unsubTool?.();
+      } finally {
+        unsubTool = undefined;
       }
     };
 
