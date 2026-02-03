@@ -306,7 +306,7 @@ function register(api) {
       clearIdleTimer();
       const key = getSessionKey(event);
       const stack = agentToolStacks.get(key) || [];
-      const rawName = typeof event?.tool === "string" ? event.tool : "";
+      const rawName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "";
       stack.push(rawName || "tool");
       agentToolStacks.set(key, stack);
       if (rawName) {
@@ -323,7 +323,7 @@ function register(api) {
       recalcCurrentTool();
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
-      let rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
+      let rawToolName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "tool";
       rawToolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "");
       const toolName = rawToolName.length > 20 ? rawToolName.slice(0, 17) + "..." : rawToolName;
       if (infraError) {
