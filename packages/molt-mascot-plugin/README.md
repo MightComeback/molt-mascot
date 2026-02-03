@@ -64,6 +64,33 @@ Notes:
 - **Gateway method aliases:** the plugin also responds to `molt-mascot`, `molt-mascot-plugin`, `moltMascot`, and `moltMascotPlugin` for `.state` / `.reset` (useful if you have older configs/docs).
 - **Config key aliases:** the plugin will also read configuration under those same alias keys (helpful if you previously configured it under a short name).
 
+## State payload
+
+`<id>.state` returns a minimal, UI-friendly snapshot for the Electron app to render.
+
+Example response:
+
+```jsonc
+{
+  "ok": true,
+  "state": {
+    "mode": "tool", // idle | thinking | tool | error
+    "since": 1700000000000,
+    "currentTool": "exec",
+    "alignment": "bottom-right",
+    "clickThrough": false,
+    "hideText": false,
+    "padding": 24,
+    "opacity": 1,
+    "lastError": { "message": "File not found", "ts": 1700000000123 }
+  }
+}
+```
+
+Notes:
+- `lastError` is only present while `mode === "error"`.
+- `currentTool` is derived from the most-recent active tool call across running sessions.
+
 ## Shortcuts (Electron App)
 
 If you are running the `molt-mascot` Electron app:
