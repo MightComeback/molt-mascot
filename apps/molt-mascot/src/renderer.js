@@ -85,6 +85,27 @@ function cleanErrorString(s) {
   return lines[0] || str;
 }
 
+function isMissingMethodResponse(msg) {
+  // Gateway implementations may encode errors either at the top-level (msg.ok=false)
+  // or inside the payload (payload.ok=false). We only want to fall back to legacy
+  // method names when this *specifically* looks like a missing-method error.
+  const ok = msg?.ok;
+  const payloadOk = msg?.payload?.ok;
+  const err = msg?.payload?.error || msg?.error || null;
+  const code = (err?.code || err?.name || '').toString().toLowerCase();
+  const message = (err?.message || err || '').toString().toLowerCase();
+
+  if (ok === true && payloadOk === true) return false;
+
+  // Common variants: "method not found", "unknown method", "unknown rpc method".
+  if (code.includes('method') && code.includes('not') && code.includes('found')) return true;
+  if (message.includes('method not found')) return true;
+  if (message.includes('unknown method')) return true;
+  if (message.includes('unknown rpc method')) return true;
+
+  return false;
+}
+
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
 const hideTextEnv = (window.moltMascot?.env?.hideText || '').trim();
 let isTextHidden = hideTextEnv === '1' || hideTextEnv.toLowerCase() === 'true';
@@ -453,7 +474,7 @@ function connect(cfg) {
     }
 
     // If the canonical plugin method isn't installed (older plugin), fall back once.
-    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && msg.ok === false && !pluginStateTriedAlias) {
+    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && isMissingMethodResponse(msg) && !pluginStateTriedAlias) {
       pluginStatePending = false;
       pluginStateTriedAlias = true;
       pluginStateMethod = 'molt-mascot.state';
@@ -463,7 +484,7 @@ function connect(cfg) {
     }
 
     // If the canonical plugin reset method isn't installed (older plugin), fall back once.
-    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && msg.ok === false && !pluginResetTriedAlias) {
+    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && isMissingMethodResponse(msg) && !pluginResetTriedAlias) {
       pluginResetTriedAlias = true;
       pluginResetMethod = 'molt-mascot.reset';
       const id = nextId('reset');
