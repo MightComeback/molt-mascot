@@ -86,8 +86,7 @@ function updateHudVisibility() {
   hud.hidden = isTextHidden && currentMode !== Mode.error;
 }
 
-// Apply initial state
-updateHudVisibility();
+// Apply initial state (moved below after state machine init)
 
 function loadCfg() {
   try {
@@ -158,6 +157,8 @@ const Mode = {
 };
 
 let currentMode = Mode.idle;
+// Apply initial state now that Mode/currentMode exist
+updateHudVisibility();
 let currentTool = '';
 let modeSince = Date.now();
 let idleTimer = null;
