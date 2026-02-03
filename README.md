@@ -104,28 +104,21 @@ Supported keys:
 ## Develop
 
 ```bash
-bun run dev
-```
+bun install
 
+# Run the mascot app
+bun run mascot
+
+# Or run everything in watch mode (monorepo)
+bun run dev
+
+# Checks
+bun run lint
+
+# Auto-format
+bun run format
+```
 
 ## Linear workflow
 
 This repo is tracked in Linear as **MIG-15**. Keep commits small and link them in the issue.
-
-## Development
-
-- Install deps: `bun install`
-- Run the app: `bun run mascot`
-- Run checks: `bun run lint` (and `bun run format` when you want auto-fixes)
-
-## Installation
-
-```bash
-npm install
-```
-
-## Development
-
-```bash
-npm run build
-```
