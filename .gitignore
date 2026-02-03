@@ -2,3 +2,6 @@ node_modules/
 apps/*/node_modules/
 .DS_Store
 .env
+
+# Cron lock (created by Clawdbot build loop)
+.hakky-lock-mig15
