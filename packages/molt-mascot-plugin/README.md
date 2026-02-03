@@ -38,6 +38,7 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 
 Notes:
 - **Plugin id:** `@molt/mascot-plugin`
+- **Methods:** `@molt/mascot-plugin.state`, `@molt/mascot-plugin.reset`
 - **Gateway method aliases:** the plugin also responds to `molt-mascot`, `molt-mascot-plugin`, `moltMascot`, and `moltMascotPlugin` for `.state` / `.reset` (useful if you have older configs/docs).
 
 ## Shortcuts (Electron App)
