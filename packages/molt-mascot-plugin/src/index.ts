@@ -658,11 +658,10 @@ export default function register(api: any) {
       id: pluginId,
       start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
       stop: () => {
-        clearIdleTimer();
-        clearErrorTimer();
+        // Reset published state on shutdown so clients don't show stale tool/error data.
+        // (e.g. currentTool persisting after plugin reload)
+        resetInternalState();
         unregisterListeners();
-        // Reset published state on shutdown so clients don't show a stale mode.
-        setMode("idle");
       },
     });
     return; // Stop execution here, registerService was called above
@@ -674,9 +673,8 @@ export default function register(api: any) {
     id: pluginId,
     start: () => api?.logger?.info?.(`${pluginId} plugin ready (no events)`),
     stop: () => {
-      clearIdleTimer();
-      clearErrorTimer();
-      setMode("idle");
+      // Reset published state on shutdown so clients don't show stale tool/error data.
+      resetInternalState();
     },
   });
 }

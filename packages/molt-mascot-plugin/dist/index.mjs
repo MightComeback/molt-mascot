@@ -421,10 +421,8 @@ function register(api) {
       id: pluginId,
       start: () => api?.logger?.info?.(`${pluginId} plugin ready`),
       stop: () => {
-        clearIdleTimer();
-        clearErrorTimer();
+        resetInternalState();
         unregisterListeners();
-        setMode("idle");
       }
     });
     return;
@@ -434,9 +432,7 @@ function register(api) {
     id: pluginId,
     start: () => api?.logger?.info?.(`${pluginId} plugin ready (no events)`),
     stop: () => {
-      clearIdleTimer();
-      clearErrorTimer();
-      setMode("idle");
+      resetInternalState();
     }
   });
 }
