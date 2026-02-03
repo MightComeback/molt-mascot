@@ -395,7 +395,7 @@ function connect(cfg) {
       // Sync hideText
       if (typeof msg.payload.state.hideText === 'boolean') {
         const nextHideText = msg.payload.state.hideText;
-        if (nextHideText !== lastPluginHideText && window.moltMascot?.onHideText) {
+        if (nextHideText !== lastPluginHideText) {
           lastPluginHideText = nextHideText;
           isTextHidden = nextHideText;
           updateHudVisibility();
