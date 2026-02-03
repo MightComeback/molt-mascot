@@ -196,17 +196,20 @@ app.whenReady().then(async () => {
     }
   });
 
+  function repositionMainWindow() {
+    if (!mainWin || mainWin.isDestroyed()) return;
+    const display = screen.getPrimaryDisplay();
+    const [width, height] = mainWin.getSize();
+    const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
+    mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
+  }
+
   ipcMain.on('molt-mascot:set-alignment', (event, align) => {
     // Persist runtime alignment so other IPC updates (like padding) don't snap back
     // to the env/default alignment.
     alignmentOverride = align;
 
-    if (mainWin && !mainWin.isDestroyed()) {
-      const display = screen.getPrimaryDisplay();
-      const [width, height] = mainWin.getSize();
-      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
-      mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
-    }
+    repositionMainWindow();
   });
 
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
@@ -222,13 +225,16 @@ app.whenReady().then(async () => {
     const v = Number(padding);
     if (!Number.isFinite(v) || v < 0) return;
     paddingOverride = v;
-    if (mainWin && !mainWin.isDestroyed()) {
-      const display = screen.getPrimaryDisplay();
-      const [width, height] = mainWin.getSize();
-      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
-      mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
-    }
+    repositionMainWindow();
   });
+
+  // Keep the mascot pinned when display workArea changes (monitor attach/detach,
+  // resolution/dock changes, etc.).
+  try {
+    screen.on('display-metrics-changed', repositionMainWindow);
+    screen.on('display-added', repositionMainWindow);
+    screen.on('display-removed', repositionMainWindow);
+  } catch {}
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
