@@ -1,6 +1,6 @@
 # @molt/mascot-plugin
 
-Clawdbot plugin for Molt Mascot (pixel lobster).
+Clawdbot plugin for Molt Mascot (pixel mascot).
 
 ## Requirements
 
