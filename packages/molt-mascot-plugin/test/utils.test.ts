@@ -44,6 +44,9 @@ describe("utils", () => {
 
   it("summarizeToolResultMessage", () => {
     expect(summarizeToolResultMessage("hello")).toBe("hello");
+    expect(summarizeToolResultMessage(0)).toBe("0");
+    expect(summarizeToolResultMessage(true)).toBe("true");
+    expect(summarizeToolResultMessage(null)).toBe("null");
     expect(summarizeToolResultMessage({ result: "done" })).toBe("done");
 
     // Priorities

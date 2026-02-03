@@ -127,6 +127,21 @@ export function cleanErrorString(s: string): string {
 export function summarizeToolResultMessage(msg: any): string {
   if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
 
+  // Some tools legitimately return primitives (numbers/booleans/null) — treat them as displayable.
+  // (Without this, we fall through to the generic "tool error".)
+  if (typeof msg === "number" && Number.isFinite(msg)) {
+    return truncate(String(msg));
+  }
+  if (typeof msg === "boolean") {
+    return truncate(String(msg));
+  }
+  if (msg === null) {
+    return "null";
+  }
+  if (msg === undefined) {
+    return "undefined";
+  }
+
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks

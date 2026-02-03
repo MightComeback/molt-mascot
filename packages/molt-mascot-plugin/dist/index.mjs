@@ -97,6 +97,18 @@ function cleanErrorString(s) {
 }
 function summarizeToolResultMessage(msg) {
   if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
+  if (typeof msg === "number" && Number.isFinite(msg)) {
+    return truncate(String(msg));
+  }
+  if (typeof msg === "boolean") {
+    return truncate(String(msg));
+  }
+  if (msg === null) {
+    return "null";
+  }
+  if (msg === void 0) {
+    return "undefined";
+  }
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks.map((b) => typeof b?.text === "string" ? b.text : "").filter(Boolean).join("\n");
