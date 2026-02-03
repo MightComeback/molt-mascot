@@ -64,7 +64,7 @@ var package_default = {
     dev: "tsup src/index.ts --watch",
     test: "bun test",
     lint: "oxlint .",
-    prepack: "bun run build"
+    prepack: "chmod 644 clawdbot.plugin.json && bun run build"
   },
   keywords: [
     "clawdbot",
