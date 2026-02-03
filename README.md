@@ -89,6 +89,8 @@ Back-compat aliases:
 
 Config lives under `plugins.entries["@molt/mascot-plugin"].config`.
 
+Back-compat: the plugin will also read config under alias keys like `plugins.entries["molt-mascot"].config` (same set as the method aliases), which helps when migrating older setups.
+
 Supported keys:
 - `alignment` (string): same values as `MOLT_MASCOT_ALIGN`
 - `clickThrough` (boolean): enable click-through mode
