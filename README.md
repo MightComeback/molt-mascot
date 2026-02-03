@@ -117,3 +117,15 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 - Install deps: `bun install`
 - Run the app: `bun run mascot`
 - Run checks: `bun run lint` (and `bun run format` when you want auto-fixes)
+
+## Installation
+
+```bash
+npm install
+```
+
+## Development
+
+```bash
+npm run build
+```
