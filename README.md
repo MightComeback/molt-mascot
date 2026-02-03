@@ -17,7 +17,10 @@ The mascot can run **without** the plugin by mapping native Gateway `agent` even
 Installing the companion plugin improves correctness (nested tools, error details, server-side timers) and lets you sync UX knobs like `clickThrough`/`alignment` from Gateway config.
 
 ```bash
-# From the monorepo root
+# From npm (recommended for most users)
+clawdbot plugins install @molt/mascot-plugin
+
+# Or from the monorepo root (local dev)
 clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
