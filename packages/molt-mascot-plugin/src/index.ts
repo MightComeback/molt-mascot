@@ -78,8 +78,8 @@ export function cleanErrorString(s: string): string {
   const str0 = s
     // CSI sequences: ESC [ ... <final>
     .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "")
-    // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "")
+    // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \
+    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
     .trim();
   /* eslint-enable no-control-regex */
   let str = str0;
