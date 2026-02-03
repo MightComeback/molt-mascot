@@ -289,6 +289,8 @@ export default function register(api: any) {
   const activeAgents = new Set<string>();
   // Map sessionKey -> stack of tool names to handle cleanup and nested tools (e.g. sessions_spawn -> read)
   const agentToolStacks = new Map<string, string[]>();
+  // Track recency so we can show the most recently-active tool when multiple sessions are running tools.
+  const agentLastToolTs = new Map<string, number>();
 
   const getToolDepth = () => {
     let inputs = 0;
@@ -305,13 +307,20 @@ export default function register(api: any) {
     "unknown";
 
   const recalcCurrentTool = () => {
-    // Find the active tool from any running session. 
-    // If multiple agents are running tools, this simple heuristic picks the last one visited.
+    // Pick the most recently-active tool across all sessions.
+    // Map iteration is insertion-ordered, so without this we can show a stale tool when two agents overlap.
     let found: string | undefined;
-    for (const stack of agentToolStacks.values()) {
-      if (stack.length > 0) found = stack[stack.length - 1];
+    let bestTs = -1;
+
+    for (const [sessionKey, stack] of agentToolStacks.entries()) {
+      if (!stack || stack.length === 0) continue;
+      const ts = agentLastToolTs.get(sessionKey) ?? 0;
+      if (ts >= bestTs) {
+        bestTs = ts;
+        found = stack[stack.length - 1];
+      }
     }
-    
+
     if (found) {
       state.currentTool = found
         .replace(/^default_api:/, "")
@@ -428,6 +437,7 @@ export default function register(api: any) {
     delete state.lastError;
     delete state.currentTool;
     agentToolStacks.clear();
+    agentLastToolTs.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -460,6 +470,7 @@ export default function register(api: any) {
       if (activeAgents.size > 10) {
         activeAgents.clear();
         agentToolStacks.clear();
+        agentLastToolTs.clear();
         delete state.currentTool;
       }
       
@@ -467,6 +478,7 @@ export default function register(api: any) {
 
       // Auto-heal: ensure this agent starts fresh
       agentToolStacks.set(sessionKey, []);
+      agentLastToolTs.set(sessionKey, 0);
 
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
@@ -491,6 +503,7 @@ export default function register(api: any) {
 
       stack.push(rawName || "tool");
       agentToolStacks.set(key, stack);
+      agentLastToolTs.set(key, Date.now());
 
       if (rawName) {
         state.currentTool = rawName
@@ -508,6 +521,7 @@ export default function register(api: any) {
       if (stack.length > 0) stack.pop();
       // Update the map (optional if reference is same, but good for clarity)
       agentToolStacks.set(key, stack);
+      agentLastToolTs.set(key, Date.now());
 
       recalcCurrentTool();
 
@@ -581,7 +595,8 @@ export default function register(api: any) {
       const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
       agentToolStacks.delete(sessionKey);
-      
+      agentLastToolTs.delete(sessionKey);
+
       // If the ending agent was the source of the current tool, we need to update
       recalcCurrentTool();
 

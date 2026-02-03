@@ -6,7 +6,7 @@ var package_default = {
   publishConfig: {
     access: "public"
   },
-  author: "Might <might@example.com>",
+  author: "Might",
   license: "MIT",
   homepage: "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
   repository: {
@@ -212,6 +212,7 @@ function register(api) {
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
   const agentToolStacks = /* @__PURE__ */ new Map();
+  const agentLastToolTs = /* @__PURE__ */ new Map();
   const getToolDepth = () => {
     let inputs = 0;
     for (const stack of agentToolStacks.values()) inputs += stack.length;
@@ -221,8 +222,14 @@ function register(api) {
   event?.id ?? event?.requestId ?? "unknown";
   const recalcCurrentTool = () => {
     let found;
-    for (const stack of agentToolStacks.values()) {
-      if (stack.length > 0) found = stack[stack.length - 1];
+    let bestTs = -1;
+    for (const [sessionKey, stack] of agentToolStacks.entries()) {
+      if (!stack || stack.length === 0) continue;
+      const ts = agentLastToolTs.get(sessionKey) ?? 0;
+      if (ts >= bestTs) {
+        bestTs = ts;
+        found = stack[stack.length - 1];
+      }
     }
     if (found) {
       state.currentTool = found.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
@@ -303,6 +310,7 @@ function register(api) {
     delete state.lastError;
     delete state.currentTool;
     agentToolStacks.clear();
+    agentLastToolTs.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -326,10 +334,12 @@ function register(api) {
       if (activeAgents.size > 10) {
         activeAgents.clear();
         agentToolStacks.clear();
+        agentLastToolTs.clear();
         delete state.currentTool;
       }
       activeAgents.add(sessionKey);
       agentToolStacks.set(sessionKey, []);
+      agentLastToolTs.set(sessionKey, 0);
       const mode = resolveNativeMode();
       setMode(mode);
     };
@@ -340,6 +350,7 @@ function register(api) {
       const rawName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "";
       stack.push(rawName || "tool");
       agentToolStacks.set(key, stack);
+      agentLastToolTs.set(key, Date.now());
       if (rawName) {
         state.currentTool = rawName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
       }
@@ -351,6 +362,7 @@ function register(api) {
       const stack = agentToolStacks.get(key) || [];
       if (stack.length > 0) stack.pop();
       agentToolStacks.set(key, stack);
+      agentLastToolTs.set(key, Date.now());
       recalcCurrentTool();
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
@@ -380,6 +392,7 @@ function register(api) {
       const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
       agentToolStacks.delete(sessionKey);
+      agentLastToolTs.delete(sessionKey);
       recalcCurrentTool();
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
