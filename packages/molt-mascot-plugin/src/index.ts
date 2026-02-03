@@ -504,17 +504,21 @@ export default function register(api: any) {
       syncModeFromCounters();
     };
 
-    // Helper to ensure we capture sessionKey from the envelope if missing in payload
+    // Helper to ensure we capture sessionKey from the envelope if missing in payload.
+    // Important: preserve envelope fields (phase/tool/etc) even when payload is primitive.
     const mergeEnvelope = (envelope: any, payload: any) => {
-      if (!payload) return envelope;
-      // If payload is just a string/primitive, we can't attach properties easily without wrapping
-      if (typeof payload !== "object") return payload;
-      
-      // If payload already has the key, use it. Otherwise, borrow from envelope.
-      if (!payload.sessionKey && envelope.sessionKey) {
-        return { ...payload, sessionKey: envelope.sessionKey };
+      if (payload == null) return envelope;
+
+      // If payload is just a string/primitive, we can't attach properties to it.
+      // Preserve the envelope (phase/tool/sessionKey) and keep the raw payload under `payload`.
+      if (typeof payload !== "object") {
+        return { ...envelope, payload };
       }
-      return payload;
+
+      // Merge envelope + payload, preferring payload fields, but backfilling sessionKey.
+      const merged = { ...envelope, ...payload };
+      if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
+      return merged;
     };
 
     // Wrappers for v2 events to ensure we handle both envelope (v2) and payload (internal) styles

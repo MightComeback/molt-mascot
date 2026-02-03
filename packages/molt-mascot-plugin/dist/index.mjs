@@ -98,19 +98,32 @@ function register(api) {
   const alignment = cfg.alignment;
   const clickThrough = cfg.clickThrough;
   const hideText = cfg.hideText;
-  const padding = coerceNumber(cfg.padding, -1) >= 0 ? coerceNumber(cfg.padding, 0) : void 0;
-  const opacity = typeof cfg.opacity === "number" && cfg.opacity >= 0 && cfg.opacity <= 1 ? cfg.opacity : void 0;
+  const paddingNum = coerceNumber(cfg.padding, -1);
+  const padding = paddingNum >= 0 ? paddingNum : void 0;
+  const opacityNum = coerceNumber(cfg.opacity, -1);
+  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : void 0;
   const state = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText, padding, opacity };
   let idleTimer = null;
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
-  const agentToolDepths = /* @__PURE__ */ new Map();
+  const agentToolStacks = /* @__PURE__ */ new Map();
   const getToolDepth = () => {
     let inputs = 0;
-    for (const d of agentToolDepths.values()) inputs += d;
+    for (const stack of agentToolStacks.values()) inputs += stack.length;
     return inputs;
   };
   const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? "unknown";
+  const recalcCurrentTool = () => {
+    let found;
+    for (const stack of agentToolStacks.values()) {
+      if (stack.length > 0) found = stack[stack.length - 1];
+    }
+    if (found) {
+      state.currentTool = found.replace(/^default_api:/, "");
+    } else {
+      delete state.currentTool;
+    }
+  };
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = null;
@@ -182,7 +195,7 @@ function register(api) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
-    agentToolDepths.clear();
+    agentToolStacks.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -205,18 +218,20 @@ function register(api) {
       const sessionKey = getSessionKey(event);
       if (activeAgents.size > 10) {
         activeAgents.clear();
-        agentToolDepths.clear();
+        agentToolStacks.clear();
       }
       activeAgents.add(sessionKey);
-      agentToolDepths.set(sessionKey, 0);
+      agentToolStacks.set(sessionKey, []);
       const mode = resolveNativeMode();
       setMode(mode);
     };
     const onToolStart = async (event) => {
       clearIdleTimer();
       const key = getSessionKey(event);
-      agentToolDepths.set(key, (agentToolDepths.get(key) || 0) + 1);
+      const stack = agentToolStacks.get(key) || [];
       const rawName = typeof event?.tool === "string" ? event.tool : "";
+      stack.push(rawName || "tool");
+      agentToolStacks.set(key, stack);
       if (rawName) {
         state.currentTool = rawName.replace(/^default_api:/, "");
       }
@@ -225,9 +240,10 @@ function register(api) {
     const onToolEnd = async (event) => {
       clearIdleTimer();
       const key = getSessionKey(event);
-      const d = agentToolDepths.get(key) || 0;
-      if (d > 0) agentToolDepths.set(key, d - 1);
-      if (getToolDepth() === 0) delete state.currentTool;
+      const stack = agentToolStacks.get(key) || [];
+      if (stack.length > 0) stack.pop();
+      agentToolStacks.set(key, stack);
+      recalcCurrentTool();
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data;
       let rawToolName = typeof event?.tool === "string" ? event.tool : "tool";
@@ -255,7 +271,8 @@ function register(api) {
     const onAgentEnd = async (event) => {
       const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
-      agentToolDepths.delete(sessionKey);
+      agentToolStacks.delete(sessionKey);
+      recalcCurrentTool();
       const err = event?.error;
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
       if (String(msg).trim()) {
@@ -270,12 +287,13 @@ function register(api) {
       syncModeFromCounters();
     };
     const mergeEnvelope = (envelope, payload) => {
-      if (!payload) return envelope;
-      if (typeof payload !== "object") return payload;
-      if (!payload.sessionKey && envelope.sessionKey) {
-        return { ...payload, sessionKey: envelope.sessionKey };
+      if (payload == null) return envelope;
+      if (typeof payload !== "object") {
+        return { ...envelope, payload };
       }
-      return payload;
+      const merged = { ...envelope, ...payload };
+      if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
+      return merged;
     };
     const handleAgentEvent = (e) => {
       const p = mergeEnvelope(e, e?.payload || e);
