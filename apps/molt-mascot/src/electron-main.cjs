@@ -184,7 +184,8 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
-    clickThrough = Boolean(enabled);
+    // `Boolean("false") === true`, so we need a more careful coercion here.
+    clickThrough = (typeof enabled === 'boolean') ? enabled : isTruthyEnv(enabled);
     if (mainWin && !mainWin.isDestroyed()) {
       applyClickThrough(mainWin, clickThrough);
       mainWin.webContents.send('molt-mascot:click-through', clickThrough);
