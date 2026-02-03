@@ -200,18 +200,30 @@ export default function register(api: any) {
 
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5000));
-  // Allow client to handle defaults if not explicitly configured on the server
-  const alignment = cfg.alignment;
-  const clickThrough = cfg.clickThrough;
-  const hideText = cfg.hideText;
-  const paddingNum = coerceNumber(cfg.padding, -1);
-  const padding = paddingNum >= 0 ? paddingNum : undefined;
+
+  // Provide stable defaults server-side so the Electron app can render consistently
+  // even when the user hasn't explicitly configured the plugin.
+  const alignment = cfg.alignment ?? "bottom-right";
+  const clickThrough = cfg.clickThrough ?? false;
+  const hideText = cfg.hideText ?? false;
+
+  // Padding must be >= 0
+  const paddingNum = coerceNumber(cfg.padding, 24);
+  const padding = paddingNum >= 0 ? paddingNum : 24;
 
   // Opacity must be 0-1 (allow strings too, via coerceNumber)
-  const opacityNum = coerceNumber(cfg.opacity, -1);
-  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : undefined;
+  const opacityNum = coerceNumber(cfg.opacity, 1);
+  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
 
-  const state: State = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText, padding, opacity };
+  const state: State = {
+    mode: "idle",
+    since: Date.now(),
+    alignment,
+    clickThrough,
+    hideText,
+    padding,
+    opacity,
+  };
 
   let idleTimer: any = null;
   let errorTimer: any = null;

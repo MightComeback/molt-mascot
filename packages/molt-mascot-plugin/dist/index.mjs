@@ -95,14 +95,22 @@ function register(api) {
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
-  const alignment = cfg.alignment;
-  const clickThrough = cfg.clickThrough;
-  const hideText = cfg.hideText;
-  const paddingNum = coerceNumber(cfg.padding, -1);
-  const padding = paddingNum >= 0 ? paddingNum : void 0;
-  const opacityNum = coerceNumber(cfg.opacity, -1);
-  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : void 0;
-  const state = { mode: "idle", since: Date.now(), alignment, clickThrough, hideText, padding, opacity };
+  const alignment = cfg.alignment ?? "bottom-right";
+  const clickThrough = cfg.clickThrough ?? false;
+  const hideText = cfg.hideText ?? false;
+  const paddingNum = coerceNumber(cfg.padding, 24);
+  const padding = paddingNum >= 0 ? paddingNum : 24;
+  const opacityNum = coerceNumber(cfg.opacity, 1);
+  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
+  const state = {
+    mode: "idle",
+    since: Date.now(),
+    alignment,
+    clickThrough,
+    hideText,
+    padding,
+    opacity
+  };
   let idleTimer = null;
   let errorTimer = null;
   const activeAgents = /* @__PURE__ */ new Set();
