@@ -1,5 +1,6 @@
 // src/index.ts
 var id = "@molt/mascot-plugin";
+var version = "0.1.35";
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
@@ -329,5 +330,6 @@ export {
   register as default,
   id,
   summarizeToolResultMessage,
-  truncate
+  truncate,
+  version
 };

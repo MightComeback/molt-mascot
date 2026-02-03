@@ -25,10 +25,12 @@ __export(index_exports, {
   default: () => register,
   id: () => id,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
-  truncate: () => truncate
+  truncate: () => truncate,
+  version: () => version
 });
 module.exports = __toCommonJS(index_exports);
 var id = "@molt/mascot-plugin";
+var version = "0.1.35";
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
@@ -358,5 +360,6 @@ function register(api) {
   coerceNumber,
   id,
   summarizeToolResultMessage,
-  truncate
+  truncate,
+  version
 });

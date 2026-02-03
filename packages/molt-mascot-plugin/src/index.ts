@@ -1,4 +1,5 @@
 export const id = "@molt/mascot-plugin";
+export const version = "0.1.35";
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 

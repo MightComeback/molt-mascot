@@ -1,4 +1,5 @@
 declare const id = "@molt/mascot-plugin";
+declare const version = "0.1.35";
 type Mode = "idle" | "thinking" | "tool" | "error";
 type PluginConfig = {
     idleDelayMs?: number;
@@ -48,4 +49,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: any): void;
 
-export { type Mode, type PluginConfig, type State, cleanErrorString, coerceNumber, register as default, id, summarizeToolResultMessage, truncate };
+export { type Mode, type PluginConfig, type State, cleanErrorString, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
