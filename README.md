@@ -82,9 +82,9 @@ Recommended (follows `pluginId.action`):
 - `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError?, currentTool?, alignment, clickThrough, hideText, padding, opacity } }`
 - `@molt/mascot-plugin.reset` → `{ ok: true }` (clears error + forces `idle`)
 
-Back-compat alias:
-- `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` → same payload
-- `molt-mascot-plugin.reset` / `molt-mascot.reset` / `moltMascot.reset` → same payload
+Back-compat aliases:
+- `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` / `moltMascotPlugin.state` → same payload
+- `molt-mascot-plugin.reset` / `molt-mascot.reset` / `moltMascot.reset` / `moltMascotPlugin.reset` → same payload
 
 Config lives under `plugins.entries["@molt/mascot-plugin"].config`.
 
