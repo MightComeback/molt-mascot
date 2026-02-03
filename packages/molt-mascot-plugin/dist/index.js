@@ -34,7 +34,7 @@ module.exports = __toCommonJS(index_exports);
 var package_default = {
   name: "@molt/mascot-plugin",
   version: "0.1.35",
-  description: "Clawdbot plugin for Molt Mascot (pixel lobster)",
+  description: "Clawdbot plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
   },
@@ -107,7 +107,8 @@ function truncate(str, limit = 140) {
 }
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
-  let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
+  const str0 = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "").trim();
+  let str = str0;
   let prev = "";
   while (str !== prev) {
     prev = str;
