@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "bun run --cwd packages/molt-mascot-plugin dev & bun run --cwd apps/molt-mascot dev",
     "mascot": "bun run --cwd apps/molt-mascot dev",
-    "screenshots": "bun run --cwd apps/molt-mascot capture", 
+    "screenshots": "bun run --cwd apps/molt-mascot capture",
     "ws:dump": "bun tools/ws-dump.ts",
     "lint": "oxlint .",
     "format": "bun x biome check --apply ."
@@ -25,5 +25,6 @@
   "devDependencies": {
     "oxlint": "^1.42.0"
   },
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "license": "MIT"
 }
