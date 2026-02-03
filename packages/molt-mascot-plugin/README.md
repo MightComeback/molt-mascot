@@ -14,14 +14,14 @@ This plugin is optional.
 From a published package:
 
 ```bash
-clawdbot install @molt/mascot-plugin
+clawdbot plugins install @molt/mascot-plugin
 ```
 
 From this monorepo (local dev):
 
 ```bash
 # from the monorepo root
-clawdbot install ./packages/molt-mascot-plugin
+clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
 ## Configuration

@@ -16,7 +16,7 @@ The mascot requires the companion plugin to receive state updates from Clawdbot.
 
 ```bash
 # From the monorepo root
-clawdbot install ./packages/molt-mascot-plugin
+clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
 ### 2. Run App
