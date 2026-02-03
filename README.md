@@ -1,4 +1,4 @@
-# molt-mascot
+# MightComeback/molt-mascot
 
 A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **Clawdbot** Gateway state: `idle` / `thinking` / `tool` / `error`.
 
@@ -21,7 +21,7 @@ Installing the companion plugin improves correctness (nested tools, error detail
 clawdbot plugins install @molt/mascot-plugin
 
 # Or from the monorepo root (local dev)
-clawdbot plugins install ./packages/molt-mascot-plugin
+clawdbot plugins install ./packages/MightComeback/molt-mascot-plugin
 ```
 
 ### 2. Run App
@@ -56,8 +56,8 @@ bun run mascot
 
 ## Project Structure
 
-- `apps/molt-mascot` (@molt/mascot): The Electron desktop app.
-- `packages/molt-mascot-plugin` (@molt/mascot-plugin): The optional Clawdbot server plugin.
+- `apps/MightComeback/molt-mascot` (@molt/mascot): The Electron desktop app.
+- `packages/MightComeback/molt-mascot-plugin` (@molt/mascot-plugin): The optional Clawdbot server plugin.
 - `tools/`: Dev scripts (WS dump, etc).
 
 ## Dev tools
@@ -76,15 +76,15 @@ bun run screenshots
 
 ## Plugin (optional)
 
-There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
+There’s a small Clawdbot plugin included (`packages/MightComeback/molt-mascot-plugin`) that exposes a simplified RPC method.
 
 Recommended (follows `pluginId.action`):
 - `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError?, currentTool?, alignment, clickThrough, hideText, padding, opacity } }`
 - `@molt/mascot-plugin.reset` → `{ ok: true }` (clears error + forces `idle`)
 
 Back-compat alias:
-- `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` → same payload
-- `molt-mascot-plugin.reset` / `molt-mascot.reset` / `moltMascot.reset` → same payload
+- `MightComeback/molt-mascot-plugin.state` / `MightComeback/molt-mascot.state` / `moltMascot.state` → same payload
+- `MightComeback/molt-mascot-plugin.reset` / `MightComeback/molt-mascot.reset` / `moltMascot.reset` → same payload
 
 Config lives under `plugins.entries["@molt/mascot-plugin"].config`.
 
@@ -103,7 +103,7 @@ Supported keys:
 
 - If the mascot stays in **offline**/**disconnected**, confirm `GATEWAY_URL` points at your local Gateway (and that the Gateway is running).
 - If the mascot connects but never leaves **idle**, confirm you’re on a recent Clawdbot build and that your Gateway is emitting agent/tool lifecycle events.
-- If you enabled the plugin but `molt-mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (`export const id = "@molt/mascot-plugin"`).
+- If you enabled the plugin but `MightComeback/molt-mascot-plugin.state` fails, verify the plugin id is consistent across `packages/MightComeback/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (`export const id = "@molt/mascot-plugin"`).
 
 
 ## Develop

@@ -1,5 +1,5 @@
 {
-  "name": "molt-mascot",
+  "name": "@mightcomeback/molt-mascot",
   "private": true,
   "workspaces": [
     "packages/*",
