@@ -133,19 +133,3 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
 
 - Install deps: `bun install` (or `npm install`)
-- Build (if needed): `bun run build` (or `npm run build`)
-
-
-## Development
-
-```bash
-bun install
-bun run dev
-
-# Lint
-bun run lint
-
-# Build
-bun run build
-```
-
