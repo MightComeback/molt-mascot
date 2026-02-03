@@ -74,8 +74,15 @@ export function cleanErrorString(s: string): string {
   if (s.length > 4096) s = s.slice(0, 4096);
 
   // Strip ANSI escape codes (colors, cursor moves, etc)
-  // eslint-disable-next-line no-control-regex
-  let str = s.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
+  /* eslint-disable no-control-regex */
+  const str0 = s
+    // CSI sequences: ESC [ ... <final>
+    .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "")
+    // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
+    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "")
+    .trim();
+  /* eslint-enable no-control-regex */
+  let str = str0;
   let prev = "";
   while (str !== prev) {
     prev = str;

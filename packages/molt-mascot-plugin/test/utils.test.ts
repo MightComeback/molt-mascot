@@ -25,6 +25,8 @@ describe("utils", () => {
     expect(cleanErrorString("sh: foo: command not found")).toBe("foo: command not found");
     // Strip ANSI
     expect(cleanErrorString("\u001b[31mError:\u001b[0m foo")).toBe("foo");
+    // Strip OSC (common in terminal hyperlinks / title sequences)
+    expect(cleanErrorString("\u001b]8;;https://example.com\u0007Error: boom\u001b]8;;\u0007")).toBe("boom");
     // Exit code handling
     expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
     // Custom error types
