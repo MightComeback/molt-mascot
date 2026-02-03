@@ -344,6 +344,7 @@ export default function register(api: any) {
       "molt-mascot-plugin",
       "molt-mascot",
       "moltMascot",
+      "moltMascotPlugin",
       "@molt/mascot-plugin",
     ]);
     aliases.delete(pluginId); // Don't re-register self

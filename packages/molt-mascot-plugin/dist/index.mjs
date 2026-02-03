@@ -243,6 +243,7 @@ function register(api) {
       "molt-mascot-plugin",
       "molt-mascot",
       "moltMascot",
+      "moltMascotPlugin",
       "@molt/mascot-plugin"
     ]);
     aliases.delete(pluginId);
