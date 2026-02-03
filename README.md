@@ -141,3 +141,9 @@ This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` wor
 - Install the plugin package in your host app.
 - Configure any required environment variables.
 - Restart the host app to load the plugin.
+
+## Development
+
+- Install deps: `npm install`
+- Build: `npm run build`
+- Test: `npm test` (if available)
