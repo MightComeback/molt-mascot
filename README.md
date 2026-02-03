@@ -143,3 +143,9 @@ This repo uses **Bun** for running scripts (see `package.json` `packageManager` 
 - Install dependencies
 - Build the plugin
 - Load the packaged output into the host app
+
+## Installation
+
+- Install deps: 
+- Build: 
+
