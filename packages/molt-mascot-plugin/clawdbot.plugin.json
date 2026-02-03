@@ -46,11 +46,14 @@
       "padding": {
         "type": "number",
         "default": 24,
+        "minimum": 0,
         "description": "Padding from screen edges (pixels)"
       },
       "opacity": {
         "type": "number",
         "default": 1,
+        "minimum": 0,
+        "maximum": 1,
         "description": "Window opacity (0.0 - 1.0)"
       }
     }
