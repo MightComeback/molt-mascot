@@ -12,6 +12,7 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **C
 ## Quickstart
 
 ### 1. Install Plugin (optional, recommended)
+
 The mascot can run **without** the plugin by mapping native Gateway `agent` events to `idle/thinking/tool/error`.
 
 Installing the companion plugin improves correctness (nested tools, error details, server-side timers) and lets you sync UX knobs like `clickThrough`/`alignment` from Gateway config.
@@ -108,7 +109,6 @@ Supported keys:
 - If the mascot connects but never leaves **idle**, confirm you’re on a recent Clawdbot build and that your Gateway is emitting agent/tool lifecycle events.
 - If you enabled the plugin but `@molt/mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (derived from `package.json` `name`, i.e. `export const id = pkg.name`). (The plugin also supports method aliases like `molt-mascot.state` / `moltMascot.state` if you have older configs.)
 
-
 ## Develop
 
 ```bash
@@ -136,11 +136,3 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
 
 - Install deps: `bun install` (or `npm install`)
-
-## Installation
-
-- Run \n- Run \n
-## Development
-
-- Install deps: `npm install`
-- Run checks: `npm test` (if available)
