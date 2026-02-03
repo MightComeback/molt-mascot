@@ -10,11 +10,13 @@
       "idleDelayMs": {
         "type": "number",
         "default": 800,
+        "minimum": 0,
         "description": "Milliseconds to wait before reverting to idle state"
       },
       "errorHoldMs": {
         "type": "number",
         "default": 5000,
+        "minimum": 0,
         "description": "Milliseconds to hold the error state before clearing"
       },
       "alignment": {
