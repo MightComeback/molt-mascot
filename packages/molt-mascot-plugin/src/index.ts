@@ -28,7 +28,7 @@ export type State = {
   mode: Mode;
   since: number;
   lastError?: { message: string; ts: number };
-  alignment?: string;
+  alignment?: PluginConfig["alignment"];
   clickThrough?: boolean;
   hideText?: boolean;
   padding?: number;

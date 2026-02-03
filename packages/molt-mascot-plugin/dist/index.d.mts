@@ -17,7 +17,7 @@ type State = {
         message: string;
         ts: number;
     };
-    alignment?: string;
+    alignment?: PluginConfig["alignment"];
     clickThrough?: boolean;
     hideText?: boolean;
     padding?: number;
