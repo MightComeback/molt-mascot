@@ -76,7 +76,7 @@ bun run screenshots
 There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
 
 Recommended (follows `pluginId.action`):
-- `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError? } }`
+- `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError?, currentTool?, alignment, clickThrough, hideText, padding, opacity } }`
 
 Back-compat alias:
 - `molt-mascot-plugin.state` / `molt-mascot.state` / `moltMascot.state` → same payload
