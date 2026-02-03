@@ -140,3 +140,7 @@ This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` wor
 ## Installation
 
 - Run \n- Run \n
+## Development
+
+- Install deps: `npm install`
+- Run checks: `npm test` (if available)
