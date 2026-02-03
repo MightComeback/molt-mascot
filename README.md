@@ -158,3 +158,10 @@ bun run mascot
 
 (Or see **Quickstart** above for installing from npm.) 
 
+
+## Development
+
+- Install deps: `npm i` (or your preferred package manager)
+- Build: `npm run build`
+- Lint/tests (if present): `npm run lint` / `npm test`
+
