@@ -43,6 +43,9 @@ function truncate(str, limit = 140) {
 }
 
 function cleanErrorString(s) {
+  // Performance guard: truncate huge outputs before regex processing
+  if (String(s).length > 4096) s = String(s).slice(0, 4096);
+
   // Strip ANSI escape codes
   // eslint-disable-next-line no-control-regex
   let str = String(s).replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").trim();
@@ -63,7 +66,7 @@ function cleanErrorString(s) {
     
     // Check if any line (other than the first) looks like a strong error signal.
     // We look for common error prefixes (case-insensitive).
-    const errorLine = lines.find(l => /^(error|fatal|panic|exception|traceback|failed)/i.test(l));
+    const errorLine = lines.find(l => /^(error|fatal|panic|exception|traceback|failed|denied|rejected)/i.test(l));
     if (errorLine && errorLine !== lines[0]) {
       return cleanErrorString(errorLine);
     }
