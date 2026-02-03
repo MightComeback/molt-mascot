@@ -29,6 +29,10 @@ describe("utils", () => {
     expect(cleanErrorString("\u001b]8;;https://example.com\u0007Error: boom\u001b]8;;\u0007")).toBe("boom");
     // Exit code handling
     expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
+
+    // Multi-line logs: prefer the first strong error line over noisy info
+    expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
+      .toBe("Failed to connect");
     // Custom error types
     expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
     // New channels
