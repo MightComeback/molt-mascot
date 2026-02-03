@@ -43,7 +43,9 @@ var package_default = {
   ],
   files: [
     "dist",
-    "clawdbot.plugin.json"
+    "clawdbot.plugin.json",
+    "README.md",
+    "LICENSE"
   ],
   devDependencies: {
     tsup: "^8.0.0",
@@ -324,6 +326,7 @@ function register(api) {
       if (activeAgents.size > 10) {
         activeAgents.clear();
         agentToolStacks.clear();
+        delete state.currentTool;
       }
       activeAgents.add(sessionKey);
       agentToolStacks.set(sessionKey, []);
