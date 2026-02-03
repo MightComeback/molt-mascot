@@ -187,12 +187,15 @@ export default function register(api: any) {
     api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
 
   if (!cfg && pluginId === id) {
-    // Try short aliases that users likely typed
+    // Try common aliases that users likely typed (or older docs referenced)
     cfg =
       api?.config?.plugins?.entries?.["molt-mascot"]?.config ??
-      api?.config?.plugins?.entries?.["moltMascot"]?.config;
+      api?.config?.plugins?.entries?.["moltMascot"]?.config ??
+      api?.config?.plugins?.entries?.["molt-mascot-plugin"]?.config ??
+      api?.config?.plugins?.entries?.["moltMascotPlugin"]?.config ??
+      api?.config?.plugins?.entries?.["@molt/mascot-plugin"]?.config;
   }
-  
+
   if (!cfg) cfg = {};
 
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));

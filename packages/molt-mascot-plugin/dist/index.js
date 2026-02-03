@@ -120,7 +120,7 @@ function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
   let cfg = api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
   if (!cfg && pluginId === id) {
-    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? api?.config?.plugins?.entries?.["moltMascot"]?.config;
+    cfg = api?.config?.plugins?.entries?.["molt-mascot"]?.config ?? api?.config?.plugins?.entries?.["moltMascot"]?.config ?? api?.config?.plugins?.entries?.["molt-mascot-plugin"]?.config ?? api?.config?.plugins?.entries?.["moltMascotPlugin"]?.config ?? api?.config?.plugins?.entries?.["@molt/mascot-plugin"]?.config;
   }
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
