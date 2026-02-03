@@ -242,6 +242,11 @@ let reqId = 0;
 let pluginStateReqId = null;
 let pluginStateMethod = '@molt/mascot-plugin.state';
 let pluginStateTriedAlias = false;
+
+let pluginResetReqId = null;
+let pluginResetMethod = '@molt/mascot-plugin.reset';
+let pluginResetTriedAlias = false;
+
 let hasPlugin = false;
 let pluginPollerStarted = false;
 let pluginStatePending = false;
@@ -343,6 +348,11 @@ function connect(cfg) {
       pluginStateTriedAlias = false;
       pluginStatePending = false;
       pluginStateLastSentAt = 0;
+
+      pluginResetMethod = '@molt/mascot-plugin.reset';
+      pluginResetTriedAlias = false;
+      pluginResetReqId = null;
+
       sendPluginStateReq('s');
 
       return;
@@ -438,6 +448,16 @@ function connect(cfg) {
       return;
     }
 
+    // If the canonical plugin reset method isn't installed (older plugin), fall back once.
+    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && msg.ok === false && !pluginResetTriedAlias) {
+      pluginResetTriedAlias = true;
+      pluginResetMethod = 'molt-mascot.reset';
+      const id = nextId('reset');
+      pluginResetReqId = id;
+      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+      return;
+    }
+
     // If we got *any* response to our plugin-state request but it didn't match the
     // success path above (e.g., method missing, auth failure), don't deadlock the poller.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId) {
@@ -521,9 +541,12 @@ if (window.moltMascot?.onReset) {
     console.log('Resetting state...');
     setMode(Mode.idle);
     if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
+      pluginResetTriedAlias = false;
+      pluginResetMethod = '@molt/mascot-plugin.reset';
       const id = nextId('reset');
-      // Try canonical method
-      ws.send(JSON.stringify({ type: 'req', id, method: '@molt/mascot-plugin.reset', params: {} }));
+      pluginResetReqId = id;
+      // Try canonical method first; on older plugins we fall back to "molt-mascot.reset".
+      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
     }
   });
 }
