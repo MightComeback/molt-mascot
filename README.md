@@ -11,8 +11,10 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **C
 
 ## Quickstart
 
-### 1. Install Plugin
-The mascot requires the companion plugin to receive state updates from Clawdbot.
+### 1. Install Plugin (optional, recommended)
+The mascot can run **without** the plugin by mapping native Gateway `agent` events to `idle/thinking/tool/error`.
+
+Installing the companion plugin improves correctness (nested tools, error details, server-side timers) and lets you sync UX knobs like `clickThrough`/`alignment` from Gateway config.
 
 ```bash
 # From the monorepo root
