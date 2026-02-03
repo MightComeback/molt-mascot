@@ -96,4 +96,30 @@ describe("utils", () => {
     expect(payload?.state?.alignment).toBe("top-left");
     expect(payload?.state?.padding).toBe(12);
   });
+
+  it("clamps padding >= 0 and opacity to [0,1]", async () => {
+    const handlers = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: {
+        padding: -10,
+        opacity: 2,
+      },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+    });
+
+    const fn = handlers.get("@molt/mascot-plugin.state");
+    expect(typeof fn).toBe("function");
+
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.padding).toBe(24);
+    expect(payload?.state?.opacity).toBe(1);
+  });
 });
