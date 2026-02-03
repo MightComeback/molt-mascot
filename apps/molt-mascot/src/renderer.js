@@ -15,6 +15,9 @@ const STORAGE_KEY = 'moltMascot:gateway';
 const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
 
+// click-through (ghost mode). Declared early so setup UI can reliably disable it.
+let isClickThrough = false;
+
 function coerceDelayMs(v, fallback) {
   if (v === '' || v === null || v === undefined) return fallback;
   const n = Number(v);
@@ -116,6 +119,10 @@ function showSetup(prefill) {
   if (window.moltMascot?.setClickThrough) {
     window.moltMascot.setClickThrough(false);
   }
+  // Keep local state consistent with the native window flag so the HUD doesn't
+  // claim ghost mode is active while the setup form is visible.
+  isClickThrough = false;
+  syncPill();
   urlInput.value = prefill?.url || 'ws://127.0.0.1:18789';
   tokenInput.value = prefill?.token || '';
 }
@@ -174,7 +181,7 @@ let idleTimer = null;
 let errorHoldTimer = null;
 let lastErrorMessage = '';
 const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
-let isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
+isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
 
 let lastPluginClickThrough = null;
 let lastPluginAlignment = null;
