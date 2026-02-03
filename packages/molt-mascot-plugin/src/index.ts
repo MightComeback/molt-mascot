@@ -540,13 +540,15 @@ export default function register(api: any) {
 
     // Wrappers for v2 events to ensure we handle both envelope (v2) and payload (internal) styles
     const handleAgentEvent = (e: any) => {
-      const p = mergeEnvelope(e, e?.payload || e);
+      const payload = e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
+      const p = mergeEnvelope(e, payload);
       if (p?.phase === "start") onAgentStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
     };
 
     const handleToolEvent = (e: any) => {
-      const p = mergeEnvelope(e, e?.payload || e);
+      const payload = e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
+      const p = mergeEnvelope(e, payload);
       // Support both v1 (stream) and v2 (phase) event formats
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
       else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
