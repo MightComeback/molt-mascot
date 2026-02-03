@@ -135,3 +135,14 @@ This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` wor
 - Install deps: `bun install` (or `npm install`)
 - Build (if needed): `bun run build` (or `npm run build`)
 
+
+## Development
+
+- Install dependencies: 
+- Run tests/lint (if present):  / 
+> molt-mascot@0.0.1 lint
+> oxlint .
+
+Found 0 warnings and 0 errors.
+Finished in 20ms on 8 files with 90 rules using 12 threads.
+
