@@ -1,6 +1,61 @@
+// package.json
+var package_default = {
+  name: "@molt/mascot-plugin",
+  version: "0.1.35",
+  description: "Clawdbot plugin for Molt Mascot (pixel lobster)",
+  publishConfig: {
+    access: "public"
+  },
+  author: "Might <might@example.com>",
+  license: "MIT",
+  homepage: "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
+  repository: {
+    type: "git",
+    url: "https://github.com/MightComeback/molt-mascot.git",
+    directory: "packages/molt-mascot-plugin"
+  },
+  bugs: {
+    url: "https://github.com/MightComeback/molt-mascot/issues"
+  },
+  main: "dist/index.js",
+  module: "dist/index.mjs",
+  types: "dist/index.d.ts",
+  exports: {
+    ".": {
+      types: "./dist/index.d.ts",
+      import: {
+        types: "./dist/index.d.mts",
+        default: "./dist/index.mjs"
+      },
+      require: "./dist/index.js"
+    }
+  },
+  scripts: {
+    build: "tsup src/index.ts --format cjs,esm --dts",
+    dev: "tsup src/index.ts --watch",
+    test: "bun test",
+    lint: "oxlint ."
+  },
+  keywords: [
+    "clawdbot",
+    "plugin",
+    "mascot",
+    "ai",
+    "agent"
+  ],
+  files: [
+    "dist",
+    "clawdbot.plugin.json"
+  ],
+  devDependencies: {
+    tsup: "^8.0.0",
+    typescript: "^5.0.0"
+  }
+};
+
 // src/index.ts
 var id = "@molt/mascot-plugin";
-var version = "0.1.35";
+var version = package_default.version;
 function coerceNumber(v, fallback) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {

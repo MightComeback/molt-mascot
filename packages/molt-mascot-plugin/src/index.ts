@@ -1,5 +1,7 @@
+import pkg from "../package.json";
+
 export const id = "@molt/mascot-plugin";
-export const version = "0.1.35";
+export const version = pkg.version;
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 

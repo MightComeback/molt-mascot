@@ -1,5 +1,5 @@
 declare const id = "@molt/mascot-plugin";
-declare const version = "0.1.35";
+declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
 type PluginConfig = {
     idleDelayMs?: number;
