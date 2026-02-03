@@ -384,10 +384,10 @@ function connect(cfg) {
         const nextClickThrough = msg.payload.state.clickThrough;
         // Only apply if the server value actually changed (local overrides static config)
         if (nextClickThrough !== lastPluginClickThrough && window.moltMascot?.setClickThrough) {
-           lastPluginClickThrough = nextClickThrough;
-           isClickThrough = nextClickThrough;
-           window.moltMascot.setClickThrough(nextClickThrough);
-           syncPill();
+          lastPluginClickThrough = nextClickThrough;
+          isClickThrough = nextClickThrough;
+          window.moltMascot.setClickThrough(nextClickThrough);
+          syncPill();
         }
       }
 
