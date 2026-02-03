@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "config": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "idleDelayMs": {
         "type": "number",
