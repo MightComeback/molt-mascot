@@ -11,3 +11,4 @@ apps/*/node_modules/
 
 # Local scratch
 .tmp/
+.hakky-lock-mig15
