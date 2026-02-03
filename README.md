@@ -136,3 +136,9 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
 
 - Install deps: `bun install` (or `npm install`)
+
+## Local development
+
+- Install dependencies: `npm install`
+- Build: `npm run build`
+- Run checks: `npm test` (if present)
