@@ -43,9 +43,11 @@ bun --filter @molt/mascot dev
 bun --filter @molt/mascot dist
 ```
 
-## Plugin Requirement
+## Plugin (optional, recommended)
 
-To feed data to this mascot, you must install the **@molt/mascot-plugin** in your Clawdbot Gateway.
+The mascot can run **without** the plugin by mapping native Gateway `agent` events to `idle/thinking/tool/error`.
+
+Installing the companion plugin (**@molt/mascot-plugin**) improves correctness (nested tools, error details, server-side timers) and lets you sync UX knobs like `clickThrough`/`alignment` from Gateway config.
 
 ## Environment Variables
 
