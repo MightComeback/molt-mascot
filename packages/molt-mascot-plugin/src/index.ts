@@ -183,19 +183,31 @@ export function summarizeToolResultMessage(msg: any): string {
 export default function register(api: any) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
-  // Robustness fix: also check "molt-mascot" short alias if the canonical ID yields no config.
+  // Robustness fix: also check common aliases because users often configure plugins
+  // under a short name (e.g. "molt-mascot") even when the runtime id is canonical.
   const pluginId = typeof api?.id === "string" ? api.id : id;
-  let cfg: PluginConfig =
-    api?.pluginConfig ?? api?.config?.plugins?.entries?.[pluginId]?.config;
 
-  if (!cfg && pluginId === id) {
-    // Try common aliases that users likely typed (or older docs referenced)
-    cfg =
-      api?.config?.plugins?.entries?.["molt-mascot"]?.config ??
-      api?.config?.plugins?.entries?.["moltMascot"]?.config ??
-      api?.config?.plugins?.entries?.["molt-mascot-plugin"]?.config ??
-      api?.config?.plugins?.entries?.["moltMascotPlugin"]?.config ??
-      api?.config?.plugins?.entries?.["@molt/mascot-plugin"]?.config;
+  let cfg: PluginConfig = api?.pluginConfig;
+
+  if (!cfg) {
+    const entries = api?.config?.plugins?.entries;
+    const keysToTry = [
+      pluginId,
+      id,
+      "@molt/mascot-plugin",
+      "molt-mascot",
+      "moltMascot",
+      "molt-mascot-plugin",
+      "moltMascotPlugin",
+    ];
+
+    for (const key of keysToTry) {
+      const c = entries?.[key]?.config;
+      if (c) {
+        cfg = c;
+        break;
+      }
+    }
   }
 
   if (!cfg) cfg = {};

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { cleanErrorString, truncate, coerceNumber, summarizeToolResultMessage } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, summarizeToolResultMessage } from "../src/index.ts";
 
 describe("utils", () => {
   it("coerceNumber", () => {
@@ -37,18 +37,52 @@ describe("utils", () => {
   it("summarizeToolResultMessage", () => {
     expect(summarizeToolResultMessage("hello")).toBe("hello");
     expect(summarizeToolResultMessage({ result: "done" })).toBe("done");
-    
+
     // Priorities
     expect(summarizeToolResultMessage({ error: "fail", result: "ok" })).toBe("fail");
     expect(summarizeToolResultMessage({ stderr: "bad", stdout: "good" })).toBe("bad");
-    
+
     // Complex objects
     expect(summarizeToolResultMessage({ error: { message: "nested" } })).toBe("nested");
-    
+
     // Exit codes
     expect(summarizeToolResultMessage({ exitCode: 127 })).toBe("exit code 127");
-    
+
     // Cleaning
     expect(summarizeToolResultMessage({ error: "Error: something" })).toBe("something");
+  });
+
+  it("resolves config from canonical id even when runtime id is an alias", async () => {
+    const handlers = new Map<string, any>();
+
+    register({
+      id: "molt-mascot",
+      config: {
+        plugins: {
+          entries: {
+            "@molt/mascot-plugin": {
+              config: {
+                alignment: "top-left",
+                padding: 12,
+              },
+            },
+          },
+        },
+      },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+    });
+
+    const fn = handlers.get("molt-mascot.state");
+    expect(typeof fn).toBe("function");
+
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.alignment).toBe("top-left");
+    expect(payload?.state?.padding).toBe(12);
   });
 });
