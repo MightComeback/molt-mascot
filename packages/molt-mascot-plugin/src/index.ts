@@ -552,7 +552,14 @@ export default function register(api: any) {
       const p = mergeEnvelope(e, payload);
       // Support both v1 (stream) and v2 (phase) event formats
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
-      else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
+      else if (
+        p?.phase === "end" ||
+        p?.phase === "result" ||
+        p?.phase === "error" ||
+        p?.stream === "result" ||
+        p?.stream === "error"
+      )
+        onToolEnd(p);
     };
 
     const registerListeners = () => {

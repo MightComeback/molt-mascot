@@ -23,10 +23,7 @@ var package_default = {
   exports: {
     ".": {
       types: "./dist/index.d.ts",
-      import: {
-        types: "./dist/index.d.mts",
-        default: "./dist/index.mjs"
-      },
+      import: "./dist/index.mjs",
       require: "./dist/index.js"
     }
   },
@@ -369,7 +366,8 @@ function register(api) {
       const payload = e && typeof e === "object" && "payload" in e ? e.payload : e;
       const p = mergeEnvelope(e, payload);
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
-      else if (p?.phase === "end" || p?.phase === "result" || p?.stream === "result") onToolEnd(p);
+      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error" || p?.stream === "result" || p?.stream === "error")
+        onToolEnd(p);
     };
     const registerListeners = () => {
       if (typeof on === "function") {
