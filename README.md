@@ -133,12 +133,7 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 
 ## Package manager notes
 
-This repo uses **Bun** in examples (`bun install`, `bun run ...`), but `npm` works too if you prefer:
+This repo uses **Bun** for running scripts (see `package.json` `packageManager` + `scripts`).
 
-- Install deps: `bun install` (or `npm install`)
-
-## Local development
-
-- Install dependencies: `npm install`
-- Build: `npm run build`
-- Run checks: `npm test` (if present)
+- You *can* install dependencies with `npm install`, but you’ll still need **Bun** to run the repo scripts unless you rewrite them.
+- Recommended: `bun install`
