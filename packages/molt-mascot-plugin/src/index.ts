@@ -516,7 +516,7 @@ export default function register(api: any) {
       // Truncate tool name if it's absurdly long to save space on the pixel display
       const toolName =
         rawToolName.length > 20
-          ? rawToolName.slice(0, 17) + "..."
+          ? rawToolName.slice(0, 17) + "…"
           : rawToolName;
 
       if (infraError) {
