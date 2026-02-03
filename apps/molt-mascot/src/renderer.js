@@ -474,8 +474,18 @@ function connect(cfg) {
   ws.addEventListener('error', () => {
     lastErrorMessage = 'WebSocket error';
     setMode(Mode.error);
+
+    // Mirror the native error hold behavior: don't let a transient WS error
+    // freeze the mascot in error mode forever.
+    if (errorHoldTimer) clearTimeout(errorHoldTimer);
+    errorHoldTimer = setTimeout(() => {
+      errorHoldTimer = null;
+      // If we're still in error mode, revert to idle immediately.
+      if (currentMode === Mode.error) scheduleIdle(0);
+    }, errorHoldMs);
   });
 }
+
 
 saveBtn.addEventListener('click', () => {
   const cfg = { url: urlInput.value.trim(), token: tokenInput.value.trim() };
