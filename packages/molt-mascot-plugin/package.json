@@ -42,7 +42,9 @@
   ],
   "files": [
     "dist",
-    "clawdbot.plugin.json"
+    "clawdbot.plugin.json",
+    "README.md",
+    "LICENSE"
   ],
   "devDependencies": {
     "tsup": "^8.0.0",
