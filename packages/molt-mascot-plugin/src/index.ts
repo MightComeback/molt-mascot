@@ -212,17 +212,32 @@ export default function register(api: any) {
 
   // Defensive bookkeeping: tool calls can be nested; don't flicker tool→thinking→tool.
   const activeAgents = new Set<string>();
-  // Map sessionKey -> depth to handle cleanup if an agent crashes/ends while tool is open
-  const agentToolDepths = new Map<string, number>();
+  // Map sessionKey -> stack of tool names to handle cleanup and nested tools (e.g. sessions_spawn -> read)
+  const agentToolStacks = new Map<string, string[]>();
 
   const getToolDepth = () => {
     let inputs = 0;
-    for (const d of agentToolDepths.values()) inputs += d;
+    for (const stack of agentToolStacks.values()) inputs += stack.length;
     return inputs;
   };
 
   const getSessionKey = (event: any) =>
     event?.sessionKey ?? event?.sessionId ?? "unknown";
+
+  const recalcCurrentTool = () => {
+    // Find the active tool from any running session. 
+    // If multiple agents are running tools, this simple heuristic picks the last one visited.
+    let found: string | undefined;
+    for (const stack of agentToolStacks.values()) {
+      if (stack.length > 0) found = stack[stack.length - 1];
+    }
+    
+    if (found) {
+      state.currentTool = found.replace(/^default_api:/, "");
+    } else {
+      delete state.currentTool;
+    }
+  };
 
   const clearIdleTimer = () => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -328,7 +343,7 @@ export default function register(api: any) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
-    agentToolDepths.clear();
+    agentToolStacks.clear();
     activeAgents.clear();
     clearIdleTimer();
     clearErrorTimer();
@@ -360,13 +375,13 @@ export default function register(api: any) {
       // Auto-heal: prevent stale agents from accumulating indefinitely
       if (activeAgents.size > 10) {
         activeAgents.clear();
-        agentToolDepths.clear();
+        agentToolStacks.clear();
       }
       
       activeAgents.add(sessionKey);
 
       // Auto-heal: ensure this agent starts fresh
-      agentToolDepths.set(sessionKey, 0);
+      agentToolStacks.set(sessionKey, []);
 
       // Force update to reflect new state immediately
       const mode = resolveNativeMode();
@@ -378,9 +393,13 @@ export default function register(api: any) {
       // If we are starting a tool, we probably want to clear any old error to show progress?
       // But syncModeFromCounters handles the override logic.
       const key = getSessionKey(event);
-      agentToolDepths.set(key, (agentToolDepths.get(key) || 0) + 1);
+      const stack = agentToolStacks.get(key) || [];
 
       const rawName = typeof event?.tool === "string" ? event.tool : "";
+      
+      stack.push(rawName || "tool");
+      agentToolStacks.set(key, stack);
+
       if (rawName) {
         state.currentTool = rawName.replace(/^default_api:/, "");
       }
@@ -390,10 +409,12 @@ export default function register(api: any) {
     const onToolEnd = async (event: any) => {
       clearIdleTimer();
       const key = getSessionKey(event);
-      const d = agentToolDepths.get(key) || 0;
-      if (d > 0) agentToolDepths.set(key, d - 1);
+      const stack = agentToolStacks.get(key) || [];
+      if (stack.length > 0) stack.pop();
+      // Update the map (optional if reference is same, but good for clarity)
+      agentToolStacks.set(key, stack);
 
-      if (getToolDepth() === 0) delete state.currentTool;
+      recalcCurrentTool();
 
       // Check for tool errors (capture exit codes or explicit error fields)
       // "event.error" handles infrastructure failures (timeout, not found)
@@ -452,7 +473,10 @@ export default function register(api: any) {
     const onAgentEnd = async (event: any) => {
       const sessionKey = getSessionKey(event);
       activeAgents.delete(sessionKey);
-      agentToolDepths.delete(sessionKey);
+      agentToolStacks.delete(sessionKey);
+      
+      // If the ending agent was the source of the current tool, we need to update
+      recalcCurrentTool();
 
       const err = event?.error;
       const msg =
