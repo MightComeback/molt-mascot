@@ -235,7 +235,8 @@ function register(api) {
     for (const stack of agentToolStacks.values()) inputs += stack.length;
     return inputs;
   };
-  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? "unknown";
+  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? // Some event envelopes use generic ids; better than collapsing everything into "unknown".
+  event?.id ?? event?.requestId ?? "unknown";
   const recalcCurrentTool = () => {
     let found;
     for (const stack of agentToolStacks.values()) {

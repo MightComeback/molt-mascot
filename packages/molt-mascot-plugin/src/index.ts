@@ -280,7 +280,12 @@ export default function register(api: any) {
   };
 
   const getSessionKey = (event: any) =>
-    event?.sessionKey ?? event?.sessionId ?? "unknown";
+    event?.sessionKey ??
+    event?.sessionId ??
+    // Some event envelopes use generic ids; better than collapsing everything into "unknown".
+    event?.id ??
+    event?.requestId ??
+    "unknown";
 
   const recalcCurrentTool = () => {
     // Find the active tool from any running session. 
