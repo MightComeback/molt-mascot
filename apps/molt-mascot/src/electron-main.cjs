@@ -23,7 +23,10 @@ function getPosition(display, width, height, alignOverride, paddingOverride) {
   const basePadding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
   const padding = (Number.isFinite(paddingOverride) && paddingOverride >= 0) ? paddingOverride : basePadding;
 
-  const align = (alignOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
+  const rawAlign = (typeof alignOverride === 'string' && alignOverride.trim())
+    ? alignOverride
+    : (process.env.MOLT_MASCOT_ALIGN || 'bottom-right');
+  const align = rawAlign.toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
 
   switch (align) {
