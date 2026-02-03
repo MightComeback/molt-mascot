@@ -39,7 +39,7 @@ bun run mascot
 
 ### UX toggles
 
-- **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1`
+- **Click-through** (mascot never blocks clicks): set `MOLT_MASCOT_CLICKTHROUGH=1` (or `MOLT_MASCOT_CLICK_THROUGH=1`)
   - Toggle at runtime with **Cmd/Ctrl+Shift+M**
 - **Quit application**: **Cmd/Ctrl+Option+Q** (the dock icon is hidden on macOS)
 - **Hide Text** (pixel-only mode): set `MOLT_MASCOT_HIDE_TEXT=1` to hide the status pill/HUD.

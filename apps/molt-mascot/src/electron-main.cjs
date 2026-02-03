@@ -133,7 +133,8 @@ app.whenReady().then(async () => {
 
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
-  let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH);
+  // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
+  let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH);
   applyClickThrough(mainWin, clickThrough);
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);

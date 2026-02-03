@@ -60,7 +60,7 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_HEIGHT` | Window height in pixels | `200` |
 | `MOLT_MASCOT_PADDING` | Padding from screen edge in pixels | `24` |
 | `MOLT_MASCOT_OPACITY` | Opacity (0.0 to 1.0) | `1.0` |
-| `MOLT_MASCOT_CLICKTHROUGH` | Start in click-through (ghost) mode (`1`/`true` to enable) | `0` |
+| `MOLT_MASCOT_CLICKTHROUGH` (or `MOLT_MASCOT_CLICK_THROUGH`) | Start in click-through (ghost) mode (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_HIDE_TEXT` | Start with text hidden (pixel-only) (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_IDLE_DELAY_MS` | Milliseconds to wait after agent/tool end before reverting to `idle` | `800` |
 | `MOLT_MASCOT_ERROR_HOLD_MS` | Milliseconds to hold `error` state before clearing | `5000` |
