@@ -135,6 +135,31 @@ describe("utils", () => {
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("exec");
   });
+  it("defaults alignment when given an invalid value", async () => {
+    const handlers = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: {
+        // @ts-expect-error - intentionally invalid for test
+        alignment: "diagonal",
+      },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+    });
+
+    const fn = handlers.get("@molt/mascot-plugin.state");
+    expect(typeof fn).toBe("function");
+
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.alignment).toBe("bottom-right");
+  });
+
   it("clamps padding >= 0 and opacity to [0,1]", async () => {
     const handlers = new Map<string, any>();
 

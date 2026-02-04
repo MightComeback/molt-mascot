@@ -47,6 +47,39 @@ export function coerceNumber(v: unknown, fallback: number): number {
   return fallback;
 }
 
+function coerceBoolean(v: unknown, fallback: boolean): boolean {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes" || s === "on") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "off") return false;
+  }
+  return fallback;
+}
+
+const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+  "top-center",
+  "bottom-center",
+  "center-left",
+  "center-right",
+  "center",
+];
+
+function coerceAlignment(
+  v: unknown,
+  fallback: NonNullable<PluginConfig["alignment"]>
+): NonNullable<PluginConfig["alignment"]> {
+  if (typeof v === "string" && (allowedAlignments as string[]).includes(v)) {
+    return v as any;
+  }
+  return fallback;
+}
+
 export function truncate(str: string, limit = 140): string {
   // Collapse whitespace/newlines to single spaces for cleaner display
   const s = str.trim().replace(/\s+/g, " ");
@@ -260,9 +293,9 @@ export default function register(api: any) {
 
   // Provide stable defaults server-side so the Electron app can render consistently
   // even when the user hasn't explicitly configured the plugin.
-  const alignment = cfg.alignment ?? "bottom-right";
-  const clickThrough = cfg.clickThrough ?? false;
-  const hideText = cfg.hideText ?? false;
+  const alignment = coerceAlignment(cfg.alignment, "bottom-right");
+  const clickThrough = coerceBoolean(cfg.clickThrough, false);
+  const hideText = coerceBoolean(cfg.hideText, false);
 
   // Padding must be >= 0
   const paddingNum = coerceNumber(cfg.padding, 24);

@@ -64,6 +64,33 @@ function coerceNumber(v, fallback) {
   }
   return fallback;
 }
+function coerceBoolean(v, fallback) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes" || s === "on") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "off") return false;
+  }
+  return fallback;
+}
+var allowedAlignments = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+  "top-center",
+  "bottom-center",
+  "center-left",
+  "center-right",
+  "center"
+];
+function coerceAlignment(v, fallback) {
+  if (typeof v === "string" && allowedAlignments.includes(v)) {
+    return v;
+  }
+  return fallback;
+}
 function truncate(str, limit = 140) {
   const s = str.trim().replace(/\s+/g, " ");
   const chars = [...s];
@@ -192,9 +219,9 @@ function register(api) {
   if (!cfg) cfg = {};
   const idleDelayMs = Math.max(0, coerceNumber(cfg.idleDelayMs, 800));
   const errorHoldMs = Math.max(0, coerceNumber(cfg.errorHoldMs, 5e3));
-  const alignment = cfg.alignment ?? "bottom-right";
-  const clickThrough = cfg.clickThrough ?? false;
-  const hideText = cfg.hideText ?? false;
+  const alignment = coerceAlignment(cfg.alignment, "bottom-right");
+  const clickThrough = coerceBoolean(cfg.clickThrough, false);
+  const hideText = coerceBoolean(cfg.hideText, false);
   const paddingNum = coerceNumber(cfg.padding, 24);
   const padding = paddingNum >= 0 ? paddingNum : 24;
   const opacityNum = coerceNumber(cfg.opacity, 1);
