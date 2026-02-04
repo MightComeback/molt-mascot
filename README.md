@@ -165,11 +165,3 @@ bun run mascot
 ```
 
 (Or see **Quickstart** above for installing from npm.)
-
-
-## Development
-
-```bash
-bun install
-bun run dev
-```
