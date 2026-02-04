@@ -47,7 +47,7 @@ export function coerceNumber(v: unknown, fallback: number): number {
   return fallback;
 }
 
-function coerceBoolean(v: unknown, fallback: boolean): boolean {
+export function coerceBoolean(v: unknown, fallback: boolean): boolean {
   if (typeof v === "boolean") return v;
   if (typeof v === "number") return v !== 0;
   if (typeof v === "string") {

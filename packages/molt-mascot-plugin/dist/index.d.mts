@@ -25,6 +25,7 @@ type State = {
     currentTool?: string;
 };
 declare function coerceNumber(v: unknown, fallback: number): number;
+declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
 declare function truncate(str: string, limit?: number): string;
 /**
  * Remove common error prefixes to save space on the pixel display.
@@ -49,4 +50,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: any): void;
 
-export { type Mode, type PluginConfig, type State, cleanErrorString, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
+export { type Mode, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };

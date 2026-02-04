@@ -730,6 +730,7 @@ function register(api) {
 }
 export {
   cleanErrorString,
+  coerceBoolean,
   coerceNumber,
   register as default,
   id,
