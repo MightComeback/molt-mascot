@@ -172,3 +172,7 @@ bun run mascot
 - Run checks: `bun run test` / `bun run lint`
 - Auto-format: `bun run format`
 
+
+## Repository
+
+This repo contains the **molt-mascot** plugin/package for MIG-15.
