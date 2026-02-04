@@ -165,14 +165,3 @@ bun run mascot
 ```
 
 (Or see **Quickstart** above for installing from npm.)
-
-## Development
-
-- Install deps: `bun install` (or `npm install`)
-- Run checks: `bun run test` / `bun run lint`
-- Auto-format: `bun run format`
-
-
-## Repository
-
-This repo contains the **molt-mascot** plugin/package for MIG-15.
