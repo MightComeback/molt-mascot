@@ -419,6 +419,12 @@ function connect(cfg) {
       return;
     }
 
+    // Any response to the plugin state request clears the in-flight flag,
+    // otherwise a single error frame can permanently stall polling.
+    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId) {
+      pluginStatePending = false;
+    }
+
     // Plugin state response (only honor the response to *our* request).
     // This avoids accidentally treating unrelated "res" frames as mascot state.
     if (
@@ -429,7 +435,6 @@ function connect(cfg) {
       msg.payload?.ok &&
       msg.payload?.state?.mode
     ) {
-      pluginStatePending = false;
       hasPlugin = true;
       startPluginPoller();
       const nextMode = msg.payload.state.mode;
