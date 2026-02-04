@@ -3,8 +3,28 @@ type GatewayCfg = {
   token?: string;
 };
 
-const args = new Set(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const args = new Set(argv);
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
+
+const getArg = (name: string): string | undefined => {
+  const i = argv.findIndex((a) => a === name || a.startsWith(`${name}=`));
+  if (i === -1) return undefined;
+  const a = argv[i];
+  if (a.includes("=")) return a.split("=").slice(1).join("=");
+  return argv[i + 1];
+};
+
+// Compatibility: protocol version can change across Gateway builds.
+// Default to v3 (current), but allow overriding for older gateways.
+const minProtocol = Number(getArg("--min-protocol") ?? process.env.GATEWAY_MIN_PROTOCOL ?? 3);
+const maxProtocol = Number(getArg("--max-protocol") ?? process.env.GATEWAY_MAX_PROTOCOL ?? 3);
+
+if (!Number.isFinite(minProtocol) || !Number.isFinite(maxProtocol)) {
+  console.error("Invalid --min-protocol/--max-protocol (must be numbers)");
+  process.exit(2);
+}
+
 
 const cfg: GatewayCfg = {
   url: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789",
@@ -24,8 +44,8 @@ ws.addEventListener("open", () => {
       id,
       method: "connect",
       params: {
-        minProtocol: 3,
-        maxProtocol: 3,
+        minProtocol,
+        maxProtocol,
         client: {
           id: "cli",
           displayName: "molt-mascot ws-dump",

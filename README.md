@@ -68,6 +68,10 @@ Dump raw Gateway frames:
 
 ```bash
 GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
+
+# If you're on an older/newer Gateway build, you can override protocol negotiation:
+# bun run ws:dump --once --min-protocol 2 --max-protocol 3
+# (or env: GATEWAY_MIN_PROTOCOL / GATEWAY_MAX_PROTOCOL)
 ```
 
 Regenerate screenshots:
