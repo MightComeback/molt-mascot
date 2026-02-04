@@ -169,5 +169,7 @@ bun run mascot
 
 ## Development
 
-- Install deps: `npm install`
-- Run: `npm run dev`
+```bash
+bun install
+bun run dev
+```
