@@ -157,3 +157,7 @@ bun run mascot
 ```
 
 (Or see **Quickstart** above for installing from npm.) 
+
+## Repository
+
+This repository contains the **molt-mascot** plugin (MIG-15).
