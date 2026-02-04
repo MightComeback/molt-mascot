@@ -160,4 +160,4 @@ bun run mascot
 
 ## Repository
 
-This repository contains the **molt-mascot** plugin (MIG-15).
+This repository contains both the **molt-mascot** desktop app and its companion **@molt/mascot-plugin** (tracked as **MIG-15** in Linear).
