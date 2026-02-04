@@ -164,4 +164,4 @@ This repository contains both the **molt-mascot** desktop app and its companion 
 
 ## Package
 
-- npm package: 
+- npm package: https://www.npmjs.com/package/@molt/mascot-plugin 
