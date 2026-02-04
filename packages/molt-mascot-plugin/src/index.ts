@@ -325,6 +325,53 @@ export default function register(api: any) {
   // Track recency so we can show the most recently-active tool when multiple sessions are running tools.
   const agentLastToolTs = new Map<string, number>();
 
+  // Some tools (read/write/web_fetch/etc) can legitimately return strings containing
+  // "error:" without that implying the tool itself failed. For these tools we avoid
+  // text-sniffing and rely on explicit failure signals (status/exitCode/etc).
+  const contentTools = new Set<string>([
+    "read",
+    "write",
+    "edit",
+    "exec",
+    "web_fetch",
+    "web_search",
+    "memory_get",
+    "memory_search",
+    "browser",
+    "canvas",
+    "sessions_history",
+    "sessions_list",
+    "agents_list",
+    "session_status",
+    "sessions_spawn",
+    "sessions_send",
+    "tts",
+    "cron",
+    "nodes",
+    "process",
+    "gateway",
+    "message",
+    "slack",
+    "gog",
+    "github",
+    "notion",
+    "gemini",
+    "bird",
+    "bluebubbles",
+    "clawdhub",
+    "peekaboo",
+    "summarize",
+    "video_frames",
+    "video-frames",
+    "weather",
+    "skill_creator",
+    "skill-creator",
+    "coding_agent",
+    "coding-agent",
+    // multi_tool_use.parallel becomes just "parallel" after prefix stripping
+    "parallel",
+  ]);
+
   const getToolDepth = () => {
     let inputs = 0;
     for (const stack of agentToolStacks.values()) inputs += stack.length;
@@ -608,11 +655,12 @@ export default function register(api: any) {
       // Tools that return raw content (like 'read') can contain "error:" in the text
       // without actually failing. For these, we disable text-sniffing for errors
       // unless an explicit error field is present.
-      const isContentTool = ["read", "write", "edit", "exec", "web_fetch", "web_search", "memory_get", "memory_search", "browser", "canvas", "sessions_history", "sessions_list", "agents_list", "session_status", "sessions_spawn", "sessions_send", "tts", "cron", "nodes", "process", "gateway", "message", "slack", "gog", "github", "notion", "gemini", "bird", "bluebubbles", "clawdhub", "peekaboo", "summarize", "video_frames", "video-frames", "weather", "skill_creator", "skill-creator", "coding_agent", "coding-agent", "parallel"].includes(rawToolName);
-      
-      const textSniffing = !isContentTool && 
+      const isContentTool = contentTools.has(rawToolName);
+
+      const textSniffing =
+        !isContentTool &&
         ((typeof msg === "string" && /^\s*error:/i.test(msg)) ||
-         (typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg)));
+          (typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg)));
 
       const isExplicitError =
         msg?.isError === true ||
