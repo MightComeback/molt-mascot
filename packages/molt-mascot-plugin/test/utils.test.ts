@@ -135,6 +135,38 @@ describe("utils", () => {
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("exec");
   });
+
+  it("sets currentTool to a safe fallback when tool start event has no name", async () => {
+    const handlers = new Map<string, any>();
+    const listeners = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+      on(name: string, fn: any) {
+        listeners.set(name, fn);
+      },
+    });
+
+    const toolListener = listeners.get("tool");
+    expect(typeof toolListener).toBe("function");
+
+    toolListener({ phase: "start", sessionKey: "s1" });
+
+    const stateFn = handlers.get("@molt/mascot-plugin.state");
+    expect(typeof stateFn).toBe("function");
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("tool");
+  });
+
   it("defaults alignment when given an invalid value", async () => {
     const handlers = new Map<string, any>();
 

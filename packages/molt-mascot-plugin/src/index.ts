@@ -537,16 +537,17 @@ export default function register(api: any) {
           ? event.name
           : "";
 
-      stack.push(rawName || "tool");
+      const toolName = rawName || "tool";
+      stack.push(toolName);
       agentToolStacks.set(key, stack);
       agentLastToolTs.set(key, Date.now());
 
-      if (rawName) {
-        state.currentTool = rawName
-          .replace(/^default_api:/, "")
-          .replace(/^functions\./, "")
-          .replace(/^multi_tool_use\./, "");
-      }
+      // Always update currentTool on tool start, even if the event didn't provide a name.
+      state.currentTool = toolName
+        .replace(/^default_api:/, "")
+        .replace(/^functions\./, "")
+        .replace(/^multi_tool_use\./, "");
+
       syncModeFromCounters();
     };
 
