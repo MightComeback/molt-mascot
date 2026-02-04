@@ -683,11 +683,22 @@ export default function register(api: any) {
 
       // Backfill session identifiers from the envelope when missing in the payload.
       // Some Gateway versions use sessionId instead of sessionKey.
-      if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
-      if (!merged.sessionId && envelope?.sessionId) merged.sessionId = envelope.sessionId;
+      const missingId = (v: any) =>
+        v === undefined ||
+        v === null ||
+        (typeof v === "string" && v.trim().length === 0);
+
+      if (missingId(merged.sessionKey) && !missingId(envelope?.sessionKey)) {
+        merged.sessionKey = envelope.sessionKey;
+      }
+      if (missingId(merged.sessionId) && !missingId(envelope?.sessionId)) {
+        merged.sessionId = envelope.sessionId;
+      }
 
       // Normalize: if we only have sessionId, treat it as sessionKey for our bookkeeping.
-      if (!merged.sessionKey && merged.sessionId) merged.sessionKey = merged.sessionId;
+      if (missingId(merged.sessionKey) && !missingId(merged.sessionId)) {
+        merged.sessionKey = merged.sessionId;
+      }
 
       return merged;
     };
