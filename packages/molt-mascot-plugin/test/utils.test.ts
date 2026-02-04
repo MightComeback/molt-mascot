@@ -97,6 +97,44 @@ describe("utils", () => {
     expect(payload?.state?.padding).toBe(12);
   });
 
+
+
+  it("preserves envelope sessionKey/tool when payload is a primitive (v2 framing)", async () => {
+    const handlers = new Map<string, any>();
+    const listeners = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+      on(name: string, fn: any) {
+        listeners.set(name, fn);
+      },
+    });
+
+    const toolListener = listeners.get("tool");
+    expect(typeof toolListener).toBe("function");
+
+    // Simulate a v2 tool start event where the payload is just a primitive/string.
+    toolListener({
+      phase: "start",
+      sessionKey: "s1",
+      tool: "functions.exec",
+      payload: "starting",
+    });
+
+    const stateFn = handlers.get("@molt/mascot-plugin.state");
+    expect(typeof stateFn).toBe("function");
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("exec");
+  });
   it("clamps padding >= 0 and opacity to [0,1]", async () => {
     const handlers = new Map<string, any>();
 
