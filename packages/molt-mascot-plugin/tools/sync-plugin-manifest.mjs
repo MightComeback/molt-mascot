@@ -18,7 +18,8 @@ const next = {
   name: pkg.name,
   version: pkg.version,
   description: pkg.description,
-  main: manifest.main ?? pkg.main,
+  // Keep entrypoint aligned with package.json (avoid packaging mismatches).
+  main: pkg.main ?? manifest.main,
 };
 
 const before = JSON.stringify(manifest, null, 2) + "\n";
