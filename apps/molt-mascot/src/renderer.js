@@ -117,7 +117,8 @@ function isTruthyEnv(v) {
 }
 
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
-const hideTextEnv = (window.moltMascot?.env?.hideText || '').trim();
+// Note: env values may be boolean/number (not always strings), so don't call .trim() here.
+const hideTextEnv = window.moltMascot?.env?.hideText;
 let isTextHidden = isTruthyEnv(hideTextEnv);
 
 // Helper to manage HUD visibility:
@@ -212,7 +213,7 @@ let modeSince = Date.now();
 let idleTimer = null;
 let errorHoldTimer = null;
 let lastErrorMessage = '';
-const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
+const envClickThrough = window.moltMascot?.env?.clickThrough;
 isClickThrough = isTruthyEnv(envClickThrough);
 
 let lastPluginClickThrough = null;
