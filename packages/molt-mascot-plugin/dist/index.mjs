@@ -32,7 +32,7 @@ var package_default = {
     dev: "tsup src/index.ts --watch",
     test: "bun test",
     lint: "oxlint .",
-    prepack: "chmod 644 clawdbot.plugin.json && bun run build"
+    prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`
   },
   keywords: [
     "clawdbot",
