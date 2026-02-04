@@ -240,6 +240,49 @@ function register(api) {
   const activeAgents = /* @__PURE__ */ new Set();
   const agentToolStacks = /* @__PURE__ */ new Map();
   const agentLastToolTs = /* @__PURE__ */ new Map();
+  const contentTools = /* @__PURE__ */ new Set([
+    "read",
+    "write",
+    "edit",
+    "exec",
+    "web_fetch",
+    "web_search",
+    "memory_get",
+    "memory_search",
+    "browser",
+    "canvas",
+    "sessions_history",
+    "sessions_list",
+    "agents_list",
+    "session_status",
+    "sessions_spawn",
+    "sessions_send",
+    "tts",
+    "cron",
+    "nodes",
+    "process",
+    "gateway",
+    "message",
+    "slack",
+    "gog",
+    "github",
+    "notion",
+    "gemini",
+    "bird",
+    "bluebubbles",
+    "clawdhub",
+    "peekaboo",
+    "summarize",
+    "video_frames",
+    "video-frames",
+    "weather",
+    "skill_creator",
+    "skill-creator",
+    "coding_agent",
+    "coding-agent",
+    // multi_tool_use.parallel becomes just "parallel" after prefix stripping
+    "parallel"
+  ]);
   const getToolDepth = () => {
     let inputs = 0;
     for (const stack of agentToolStacks.values()) inputs += stack.length;
@@ -289,6 +332,9 @@ function register(api) {
     state.since = Date.now();
     if (nextLastError) state.lastError = nextLastError;
     else delete state.lastError;
+    if (mode !== "tool") {
+      delete state.currentTool;
+    }
     api?.logger?.info?.(`${pluginId}: state mode=${mode}`);
   };
   const scheduleIdle = (delayMs = idleDelayMs) => {
@@ -408,7 +454,7 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isContentTool = ["read", "write", "edit", "exec", "web_fetch", "web_search", "memory_get", "memory_search", "browser", "canvas", "sessions_history", "sessions_list", "agents_list", "session_status", "sessions_spawn", "sessions_send", "tts", "cron", "nodes", "process", "gateway", "message", "slack", "gog", "github", "notion", "gemini", "bird", "bluebubbles", "clawdhub", "peekaboo", "summarize", "video_frames", "video-frames", "weather", "skill_creator", "skill-creator", "coding_agent", "coding-agent", "parallel"].includes(rawToolName);
+      const isContentTool = contentTools.has(rawToolName);
       const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
       const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
@@ -445,9 +491,16 @@ function register(api) {
         return { ...envelope, payload };
       }
       const merged = { ...envelope, ...payload };
-      if (!merged.sessionKey && envelope?.sessionKey) merged.sessionKey = envelope.sessionKey;
-      if (!merged.sessionId && envelope?.sessionId) merged.sessionId = envelope.sessionId;
-      if (!merged.sessionKey && merged.sessionId) merged.sessionKey = merged.sessionId;
+      const missingId = (v) => v === void 0 || v === null || typeof v === "string" && v.trim().length === 0;
+      if (missingId(merged.sessionKey) && !missingId(envelope?.sessionKey)) {
+        merged.sessionKey = envelope.sessionKey;
+      }
+      if (missingId(merged.sessionId) && !missingId(envelope?.sessionId)) {
+        merged.sessionId = envelope.sessionId;
+      }
+      if (missingId(merged.sessionKey) && !missingId(merged.sessionId)) {
+        merged.sessionKey = merged.sessionId;
+      }
       return merged;
     };
     const handleAgentEvent = (e) => {
