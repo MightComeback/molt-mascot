@@ -169,3 +169,18 @@ This repository contains both the **molt-mascot** desktop app and its companion 
 ## Package
 
 - npm package: https://www.npmjs.com/package/@molt/mascot-plugin 
+
+## Development
+
+- Install deps: 
+- Run checks: 
+> molt-mascot@0.0.1 test
+> bun run --cwd packages/molt-mascot-plugin test
+
+bun test v1.3.7 (ba426210) (or 
+> molt-mascot@0.0.1 lint
+> oxlint .
+
+Found 0 warnings and 0 errors.
+Finished in 27ms on 8 files with 90 rules using 12 threads. if present)
+
