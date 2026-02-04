@@ -165,3 +165,8 @@ bun run mascot
 ```
 
 (Or see **Quickstart** above for installing from npm.)
+
+## Package
+
+This plugin is published as **molt-mascot**.
+
