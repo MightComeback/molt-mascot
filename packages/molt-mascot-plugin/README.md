@@ -21,6 +21,7 @@ From this monorepo (local dev):
 
 ```bash
 # from the monorepo root
+bun run --cwd packages/molt-mascot-plugin build
 clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
