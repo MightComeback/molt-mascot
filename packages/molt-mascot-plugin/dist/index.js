@@ -250,8 +250,8 @@ function register(api) {
     for (const stack of agentToolStacks.values()) inputs += stack.length;
     return inputs;
   };
-  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? // Some event envelopes use generic ids; better than collapsing everything into "unknown".
-  event?.id ?? event?.requestId ?? "unknown";
+  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
+  event?.agentSessionKey ?? event?.agentSessionId ?? event?.agentId ?? event?.agentKey ?? "unknown";
   const recalcCurrentTool = () => {
     let found;
     let bestTs = -1;
