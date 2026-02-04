@@ -452,6 +452,13 @@ export default function register(api: any) {
     if (nextLastError) state.lastError = nextLastError;
     else delete state.lastError;
 
+    // UX polish: currentTool is only meaningful while we're actively in tool mode.
+    // Clear it whenever we leave tool mode to avoid a stale tool name lingering
+    // if an end event was missed or state transitions happen out of order.
+    if (mode !== "tool") {
+      delete state.currentTool;
+    }
+
     api?.logger?.info?.(`${pluginId}: state mode=${mode}`);
   };
 
