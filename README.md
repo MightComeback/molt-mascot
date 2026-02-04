@@ -168,5 +168,7 @@ bun run mascot
 
 ## Development
 
-- Install deps:  (or )
-- Run checks:  / 
+- Install deps: `bun install` (or `npm install`)
+- Run checks: `bun run test` / `bun run lint`
+- Auto-format: `bun run format`
+
