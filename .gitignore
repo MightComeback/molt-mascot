@@ -11,3 +11,6 @@ apps/*/node_modules/
 
 # Local scratch
 .tmp/
+
+# Local cron helper scripts
+.hakky-*.sh
