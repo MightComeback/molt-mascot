@@ -245,8 +245,13 @@ function register(api) {
     for (const stack of agentToolStacks.values()) inputs += stack.length;
     return inputs;
   };
-  const getSessionKey = (event) => event?.sessionKey ?? event?.sessionId ?? // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
-  event?.agentSessionKey ?? event?.agentSessionId ?? event?.agentId ?? event?.agentKey ?? "unknown";
+  const getSessionKey = (event) => {
+    const raw = event?.sessionKey ?? event?.sessionId ?? // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
+    event?.agentSessionKey ?? event?.agentSessionId ?? event?.agentId ?? event?.agentKey;
+    if (typeof raw === "string" && raw.trim()) return raw;
+    if (typeof raw === "number" && Number.isFinite(raw)) return String(raw);
+    return "unknown";
+  };
   const recalcCurrentTool = () => {
     let found;
     let bestTs = -1;
@@ -376,12 +381,11 @@ function register(api) {
       const key = getSessionKey(event);
       const stack = agentToolStacks.get(key) || [];
       const rawName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "";
-      stack.push(rawName || "tool");
+      const toolName = rawName || "tool";
+      stack.push(toolName);
       agentToolStacks.set(key, stack);
       agentLastToolTs.set(key, Date.now());
-      if (rawName) {
-        state.currentTool = rawName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
-      }
+      state.currentTool = toolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
       syncModeFromCounters();
     };
     const onToolEnd = async (event) => {

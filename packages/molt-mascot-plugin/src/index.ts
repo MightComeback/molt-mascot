@@ -75,7 +75,7 @@ function coerceAlignment(
   fallback: NonNullable<PluginConfig["alignment"]>
 ): NonNullable<PluginConfig["alignment"]> {
   if (typeof v === "string" && (allowedAlignments as string[]).includes(v)) {
-    return v as any;
+    return v as NonNullable<PluginConfig["alignment"]>;
   }
   return fallback;
 }
@@ -331,15 +331,22 @@ export default function register(api: any) {
     return inputs;
   };
 
-  const getSessionKey = (event: any) =>
-    event?.sessionKey ??
-    event?.sessionId ??
-    // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
-    event?.agentSessionKey ??
-    event?.agentSessionId ??
-    event?.agentId ??
-    event?.agentKey ??
-    "unknown";
+  const getSessionKey = (event: any) => {
+    // Normalize to a string to avoid accidental Set/Map key splits (e.g. 123 vs "123")
+    // and to handle gateways that emit numeric ids.
+    const raw =
+      event?.sessionKey ??
+      event?.sessionId ??
+      // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
+      event?.agentSessionKey ??
+      event?.agentSessionId ??
+      event?.agentId ??
+      event?.agentKey;
+
+    if (typeof raw === "string" && raw.trim()) return raw;
+    if (typeof raw === "number" && Number.isFinite(raw)) return String(raw);
+    return "unknown";
+  };
 
   const recalcCurrentTool = () => {
     // Pick the most recently-active tool across all sessions.
