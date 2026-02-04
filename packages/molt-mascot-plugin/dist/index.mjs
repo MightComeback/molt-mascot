@@ -103,14 +103,179 @@ function truncate(str, limit = 140) {
   }
   return cut + "\u2026";
 }
+var ERROR_PREFIXES = [
+  // Generic patterns
+  "[a-zA-Z0-9_]*Error",
+  "Tool failed",
+  "Command failed",
+  "Exception",
+  "Warning",
+  "Alert",
+  "Fatal",
+  "panic",
+  "uncaughtException",
+  "Uncaught",
+  // JavaScript/TypeScript built-in errors
+  "TypeError",
+  "ReferenceError",
+  "SyntaxError",
+  "EvalError",
+  "RangeError",
+  "URIError",
+  "AggregateError",
+  // Runtime/System errors
+  "TimeoutError",
+  "SystemError",
+  "AssertionError",
+  "AbortError",
+  "CancellationError",
+  // Environment/Tool prefixes
+  "node:",
+  "fs:",
+  "process:",
+  "internal:",
+  "commonjs:",
+  "bun:",
+  "sh:",
+  "bash:",
+  "zsh:",
+  // CLI tools
+  "git:",
+  "curl:",
+  "wget:",
+  "npm:",
+  "pnpm:",
+  "yarn:",
+  "hakky:",
+  "hakky-tools:",
+  "clawd:",
+  "clawdbot:",
+  // Protocol/API prefixes
+  "rpc:",
+  "grpc:",
+  "deno:",
+  // Infrastructure tools
+  "docker:",
+  "kubectl:",
+  "terraform:",
+  "ansible:",
+  "make:",
+  "cmake:",
+  "gradle:",
+  "mvn:",
+  // Media/Processing tools
+  "ffmpeg:",
+  "python:",
+  "python3:",
+  "go:",
+  "rustc:",
+  "cargo:",
+  // Browser automation
+  "browser:",
+  "playwright:",
+  "chrome:",
+  "firefox:",
+  "safari:",
+  // Clawdbot specific
+  "cron:",
+  "nodes:",
+  // Domain-specific errors
+  "GitError",
+  "GraphQLError",
+  "ProtocolError",
+  "IPCError",
+  "RuntimeError",
+  "BrowserError",
+  "CanvasError",
+  "ExecError",
+  "SpawnError",
+  "ShellError",
+  "NetworkError",
+  "BroadcastError",
+  "PermissionError",
+  "SecurityError",
+  "AuthError",
+  "ForbiddenError",
+  "EvaluationError",
+  "GatewayError",
+  "FetchError",
+  "ClawdError",
+  "AgentSkillError",
+  "PluginError",
+  "RpcError",
+  "MoltError",
+  "MoltMascotError",
+  // AI Provider errors
+  "AnthropicError",
+  "OpenAIError",
+  "OllamaError",
+  "DeepSeekError",
+  "GoogleGenerativeAIError",
+  "GaxiosError",
+  "AxiosError",
+  "ProviderError",
+  // Service errors
+  "PerplexityError",
+  "SonarError",
+  "BraveError",
+  "BunError",
+  "RateLimitError",
+  "ValidationError",
+  "ZodError",
+  // Integration errors
+  "LinearError",
+  "GitHubError",
+  "TelegramError",
+  "DiscordError",
+  "SlackError",
+  "SignalError",
+  "WhatsAppError",
+  "BlueBubblesError",
+  "BirdError",
+  "ClawdHubError",
+  "GeminiError",
+  "GogError",
+  "NotionError",
+  "PeekabooError",
+  "SummarizeError",
+  "VideoFramesError",
+  "SkillCreatorError",
+  "CodingAgentError",
+  "WeatherError",
+  "McpError",
+  // Network/IO errors
+  "WebSocketError",
+  "SocketError",
+  "CronError",
+  "ConnectionError",
+  "RequestError",
+  "ResponseError",
+  // Database errors
+  "DatabaseError",
+  "SqlError",
+  "PrismaError",
+  "MongoError",
+  "RedisError",
+  // Python-style errors
+  "ValueError",
+  "KeyError",
+  "IndexError",
+  "AttributeError",
+  "NameError",
+  "ImportError",
+  "ModuleNotFoundError"
+];
+var ERROR_PREFIX_REGEX = new RegExp(
+  `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
+  "i"
+);
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
-  const str0 = s.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
-  let str = str0;
+  let str = s.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
-    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|fs:|process:|internal:|commonjs:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|hakky:|hakky-tools:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|cron:|nodes:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|AuthError|ForbiddenError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|OllamaError|DeepSeekError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError|BirdError|ClawdHubError|GeminiError|GogError|NotionError|PeekabooError|SummarizeError|VideoFramesError|SkillCreatorError|CodingAgentError|WeatherError|McpError|WebSocketError|SocketError|CronError|ConnectionError|RequestError|ResponseError|DatabaseError|SqlError|PrismaError|MongoError|RedisError|ValueError|KeyError|IndexError|AttributeError|NameError|ImportError|ModuleNotFoundError)(\s*:\s*|\s+)/i, "").trim();
+    str = str.replace(ERROR_PREFIX_REGEX, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
