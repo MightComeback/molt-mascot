@@ -29,7 +29,7 @@ var package_default = {
   },
   scripts: {
     build: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
-    dev: "tsup src/index.ts --watch",
+    dev: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --watch",
     test: "bun test",
     lint: "oxlint .",
     prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`
