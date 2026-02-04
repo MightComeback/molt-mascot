@@ -363,8 +363,18 @@ function connect(cfg) {
       id,
       method: 'connect',
       params: {
-        minProtocol: 3,
-        maxProtocol: 3,
+        // Default to a safe negotiation range so the mascot works across Gateway versions.
+        // (Protocol 3 is preferred, but older Gateways might only speak 2.)
+        minProtocol: (function () {
+          const raw = window.moltMascot?.env?.minProtocol;
+          const v = Number(raw);
+          return Number.isFinite(v) && v > 0 ? v : 2;
+        })(),
+        maxProtocol: (function () {
+          const raw = window.moltMascot?.env?.maxProtocol;
+          const v = Number(raw);
+          return Number.isFinite(v) && v > 0 ? v : 3;
+        })(),
         client: {
           id: 'molt-mascot-desktop',
           displayName: 'Molt Mascot',
