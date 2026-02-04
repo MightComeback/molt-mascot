@@ -161,3 +161,7 @@ bun run mascot
 ## Repository
 
 This repository contains both the **molt-mascot** desktop app and its companion **@molt/mascot-plugin** (tracked as **MIG-15** in Linear).
+
+## Package
+
+- npm package: 
