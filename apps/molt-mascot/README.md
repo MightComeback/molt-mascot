@@ -4,7 +4,7 @@ A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local Cl
 
 ## Overview
 
-Molt Mascot sits on your screen (usually bottom-right) and visually communicates what your Clawdbot agent is doing. It uses a pixel-art style and connects via a local plugin.
+Molt Mascot sits on your screen (usually bottom-right) and visually communicates what your Clawdbot agent is doing. It connects to the local Gateway over WebSocket; the companion plugin is optional but improves correctness and UX.
 
 ## States
 
