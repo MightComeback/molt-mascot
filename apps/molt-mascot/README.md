@@ -73,6 +73,8 @@ To pre-configure the connection to the Gateway (skipping the setup screen):
 |---|---|
 | `GATEWAY_URL` | WebSocket URL (e.g., `ws://127.0.0.1:18789`) |
 | `GATEWAY_TOKEN` | Gateway authentication token |
+| `GATEWAY_MIN_PROTOCOL` | Minimum Gateway WS protocol version to negotiate (optional; useful for older Gateways) |
+| `GATEWAY_MAX_PROTOCOL` | Maximum Gateway WS protocol version to negotiate (optional; useful for newer Gateways) |
 
 ## Controls
 
