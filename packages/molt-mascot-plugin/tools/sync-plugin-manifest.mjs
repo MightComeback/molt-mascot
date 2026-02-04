@@ -15,7 +15,9 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 const next = {
   ...manifest,
   id: pkg.name,
-  name: pkg.name,
+  // Don't clobber a human-friendly display name in the manifest.
+  // (The plugin id is already the canonical key for installs/config.)
+  name: manifest.name ?? pkg.name,
   version: pkg.version,
   description: pkg.description,
   // Keep entrypoint aligned with package.json (avoid packaging mismatches).

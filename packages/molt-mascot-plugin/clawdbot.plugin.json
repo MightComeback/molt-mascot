@@ -1,6 +1,6 @@
 {
   "id": "@molt/mascot-plugin",
-  "name": "@molt/mascot-plugin",
+  "name": "Molt Mascot",
   "version": "0.1.35",
   "description": "Clawdbot plugin for Molt Mascot (pixel mascot)",
   "main": "dist/index.js",
