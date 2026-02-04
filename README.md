@@ -22,6 +22,8 @@ Installing the companion plugin improves correctness (nested tools, error detail
 clawdbot plugins install @molt/mascot-plugin
 
 # Or from the monorepo root (local dev)
+# (build first so dist/ + clawdbot.plugin.json are up to date)
+bun run --cwd packages/molt-mascot-plugin build
 clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
