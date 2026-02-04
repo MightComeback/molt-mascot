@@ -106,9 +106,19 @@ function isMissingMethodResponse(msg) {
   return false;
 }
 
+function isTruthyEnv(v) {
+  if (typeof v !== 'string') {
+    if (typeof v === 'number') return Number.isFinite(v) && v > 0;
+    if (typeof v === 'boolean') return v;
+    return false;
+  }
+  const s = v.trim().toLowerCase();
+  return s === '1' || s === 'true' || s === 'yes' || s === 'y' || s === 'on';
+}
+
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
 const hideTextEnv = (window.moltMascot?.env?.hideText || '').trim();
-let isTextHidden = hideTextEnv === '1' || hideTextEnv.toLowerCase() === 'true';
+let isTextHidden = isTruthyEnv(hideTextEnv);
 
 // Helper to manage HUD visibility:
 // If the user requested hidden text, we respect it—UNLESS we are in error mode.
@@ -203,7 +213,7 @@ let idleTimer = null;
 let errorHoldTimer = null;
 let lastErrorMessage = '';
 const envClickThrough = (window.moltMascot?.env?.clickThrough || '').trim();
-isClickThrough = envClickThrough === '1' || envClickThrough.toLowerCase() === 'true';
+isClickThrough = isTruthyEnv(envClickThrough);
 
 let lastPluginClickThrough = null;
 let lastPluginAlignment = null;
