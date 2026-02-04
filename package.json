@@ -26,11 +26,5 @@
   "devDependencies": {
     "oxlint": "^1.42.0"
   },
-  "version": "0.0.1",
-  "license": "MIT",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ]
+  "license": "MIT"
 }
