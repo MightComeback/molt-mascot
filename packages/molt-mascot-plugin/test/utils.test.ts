@@ -217,4 +217,53 @@ describe("utils", () => {
     expect(payload?.state?.padding).toBe(24);
     expect(payload?.state?.opacity).toBe(1);
   });
+
+  it("coerces boolean config values from strings and numbers", async () => {
+    const handlers = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: {
+        // String boolean values (common in env var configs)
+        clickThrough: "true",
+        hideText: "false",
+      },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+    });
+
+    const fn = handlers.get("@molt/mascot-plugin.state");
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.clickThrough).toBe(true);
+    expect(payload?.state?.hideText).toBe(false);
+  });
+
+  it("coerces numeric string booleans (1/0) correctly", async () => {
+    const handlers = new Map<string, any>();
+
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: {
+        clickThrough: "1",
+        hideText: "0",
+      },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
+    });
+
+    const fn = handlers.get("@molt/mascot-plugin.state");
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.clickThrough).toBe(true);
+    expect(payload?.state?.hideText).toBe(false);
+  });
 });
