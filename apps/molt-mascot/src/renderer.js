@@ -285,12 +285,28 @@ let ws = null;
 let reqId = 0;
 
 let pluginStateReqId = null;
-let pluginStateMethod = '@molt/mascot-plugin.state';
-let pluginStateTriedAlias = false;
+const pluginStateMethods = [
+  '@molt/mascot-plugin.state',
+  // Back-compat aliases (older plugin / older configs)
+  'molt-mascot.state',
+  'molt-mascot-plugin.state',
+  'moltMascot.state',
+  'moltMascotPlugin.state',
+];
+let pluginStateMethodIndex = 0;
+let pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
 
 let pluginResetReqId = null;
-let pluginResetMethod = '@molt/mascot-plugin.reset';
-let pluginResetTriedAlias = false;
+const pluginResetMethods = [
+  '@molt/mascot-plugin.reset',
+  // Back-compat aliases (older plugin / older configs)
+  'molt-mascot.reset',
+  'molt-mascot-plugin.reset',
+  'moltMascot.reset',
+  'moltMascotPlugin.reset',
+];
+let pluginResetMethodIndex = 0;
+let pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
 
 let hasPlugin = false;
 let pluginPollerStarted = false;
@@ -388,14 +404,14 @@ function connect(cfg) {
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
-      // The plugin still exposes "molt-mascot.state" as a back-compat alias.
-      pluginStateMethod = '@molt/mascot-plugin.state';
-      pluginStateTriedAlias = false;
+      // If missing, we'll fall back through back-compat aliases.
+      pluginStateMethodIndex = 0;
+      pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
       pluginStatePending = false;
       pluginStateLastSentAt = 0;
 
-      pluginResetMethod = '@molt/mascot-plugin.reset';
-      pluginResetTriedAlias = false;
+      pluginResetMethodIndex = 0;
+      pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
       pluginResetReqId = null;
 
       sendPluginStateReq('s');
@@ -483,24 +499,28 @@ function connect(cfg) {
       return;
     }
 
-    // If the canonical plugin method isn't installed (older plugin), fall back once.
-    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && isMissingMethodResponse(msg) && !pluginStateTriedAlias) {
+    // If the current plugin method isn't installed (older plugin), fall back through aliases.
+    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && isMissingMethodResponse(msg)) {
       pluginStatePending = false;
-      pluginStateTriedAlias = true;
-      pluginStateMethod = 'molt-mascot.state';
-      pluginStateLastSentAt = 0;
-      sendPluginStateReq('s');
-      return;
+      if (pluginStateMethodIndex < pluginStateMethods.length - 1) {
+        pluginStateMethodIndex += 1;
+        pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
+        pluginStateLastSentAt = 0;
+        sendPluginStateReq('s');
+        return;
+      }
     }
 
-    // If the canonical plugin reset method isn't installed (older plugin), fall back once.
-    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && isMissingMethodResponse(msg) && !pluginResetTriedAlias) {
-      pluginResetTriedAlias = true;
-      pluginResetMethod = 'molt-mascot.reset';
-      const id = nextId('reset');
-      pluginResetReqId = id;
-      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
-      return;
+    // If the current plugin reset method isn't installed (older plugin), fall back through aliases.
+    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && isMissingMethodResponse(msg)) {
+      if (pluginResetMethodIndex < pluginResetMethods.length - 1) {
+        pluginResetMethodIndex += 1;
+        pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+        const id = nextId('reset');
+        pluginResetReqId = id;
+        ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+        return;
+      }
     }
 
     // If we got *any* response to our plugin-state request but it didn't match the
@@ -586,11 +606,11 @@ if (window.moltMascot?.onReset) {
     console.log('Resetting state...');
     setMode(Mode.idle);
     if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
-      pluginResetTriedAlias = false;
-      pluginResetMethod = '@molt/mascot-plugin.reset';
+      pluginResetMethodIndex = 0;
+      pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
       const id = nextId('reset');
       pluginResetReqId = id;
-      // Try canonical method first; on older plugins we fall back to "molt-mascot.reset".
+      // Try canonical method first; on older plugins we fall back through aliases.
       ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
     }
   });
