@@ -166,7 +166,7 @@ bun run mascot
 
 (Or see **Quickstart** above for installing from npm.)
 
-## Package
+## Publish
 
-This plugin is published as **molt-mascot**.
+The plugin package name on npm is **@molt/mascot-plugin**.
 
