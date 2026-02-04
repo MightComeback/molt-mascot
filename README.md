@@ -25,6 +25,8 @@ clawdbot plugins install @molt/mascot-plugin
 clawdbot plugins install ./packages/molt-mascot-plugin
 ```
 
+- npm package: https://www.npmjs.com/package/@molt/mascot-plugin
+
 ### 2. Run App
 
 ```bash
@@ -160,32 +162,5 @@ Then run the app:
 bun run mascot
 ```
 
-(Or see **Quickstart** above for installing from npm.) 
-
-## Repository
-
-This repository contains both the **molt-mascot** desktop app and its companion **@molt/mascot-plugin** (tracked as **MIG-15** in Linear).
-
-## Package
-
-- npm package: https://www.npmjs.com/package/@molt/mascot-plugin
-
-## Development
-
-```bash
-bun install
-
-# Run the mascot app
-bun run mascot
-
-# Watch mode (app + plugin)
-bun run dev
-
-# Checks
-bun run test
-bun run lint
-
-# Auto-format
-bun run format
-```
+(Or see **Quickstart** above for installing from npm.)
 
