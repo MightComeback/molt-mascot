@@ -522,8 +522,9 @@ export default function register(api: any) {
 
     const onToolStart = async (event: any) => {
       clearIdleTimer();
-      // If we are starting a tool, we probably want to clear any old error to show progress?
-      // But syncModeFromCounters handles the override logic.
+      // New tool activity should immediately override any previous error hold.
+      // (The error timer won't flip modes if we're no longer in error, but clearing it avoids stale timers.)
+      clearErrorTimer();
       const key = getSessionKey(event);
       const stack = agentToolStacks.get(key) || [];
 

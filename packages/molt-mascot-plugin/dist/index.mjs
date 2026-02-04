@@ -372,6 +372,7 @@ function register(api) {
     };
     const onToolStart = async (event) => {
       clearIdleTimer();
+      clearErrorTimer();
       const key = getSessionKey(event);
       const stack = agentToolStacks.get(key) || [];
       const rawName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "";
