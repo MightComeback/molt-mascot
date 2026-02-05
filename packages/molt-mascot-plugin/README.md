@@ -113,3 +113,72 @@ If you are running the `molt-mascot` Electron app:
 | `Cmd/Ctrl+Shift+R` | Reset state |
 | `Cmd/Ctrl+Option+Q` | Quit app |
 
+## Utility Functions
+
+The plugin exports several utility functions that can be used independently of the full plugin registration:
+
+### `coerceNumber(v, fallback)`
+
+Converts a value to a number, with validation and fallback.
+
+```typescript
+import { coerceNumber } from '@molt/mascot-plugin';
+
+coerceNumber('800', 800);        // 800
+coerceNumber(123, 0);            // 123
+coerceNumber('not-a-number', 0); // 0
+coerceNumber(null, 0);           // 0
+```
+
+### `coerceBoolean(v, fallback)`
+
+Converts a value to a boolean, handling multiple input types.
+
+```typescript
+import { coerceBoolean } from '@molt/mascot-plugin';
+
+coerceBoolean('true', false);      // true
+coerceBoolean(1, false);           // true
+coerceBoolean('0', true);          // false
+coerceBoolean(null, false);        // false
+coerceBoolean(undefined, false);   // false
+```
+
+### `truncate(str, limit?)`
+
+Truncates a string to a maximum length, with smart word boundary detection.
+
+```typescript
+import { truncate } from '@molt/mascot-plugin';
+
+truncate('This is a very long message', 20); // "This is a ver…"
+truncate('Short', 20);                        // "Short"
+```
+
+### `cleanErrorString(s)`
+
+Removes common error prefixes, ANSI escape codes, and stack traces for cleaner error display.
+
+```typescript
+import { cleanErrorString } from '@molt/mascot-plugin';
+
+cleanErrorString('Error: Command failed: File not found'); // "File not found"
+cleanErrorString('\x1B[31mError: timeout\x1B[0m');        // "timeout"
+```
+
+### `summarizeToolResultMessage(msg)`
+
+Extracts a short, human-readable summary from tool result messages.
+
+```typescript
+import { summarizeToolResultMessage } from '@molt/mascot-plugin';
+
+summarizeToolResultMessage('Success: File saved');
+// "Success: File saved"
+
+summarizeToolResultMessage({ exitCode: 1, stderr: 'Permission denied' });
+// "Permission denied"
+```
+
+**Note:** All exported utilities are ESM/CommonJS compatible and use TypeScript types. They are available in both the bundled distributions (`dist/index.js` / `dist/index.mjs`) and the TypeScript source (`src/index.ts`).
+
