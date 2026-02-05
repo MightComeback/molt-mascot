@@ -38,6 +38,30 @@ export type State = {
   currentTool?: string;
 };
 
+// Plugin API contract definition for better type safety
+export interface PluginApi {
+  id?: string;
+  pluginConfig?: PluginConfig;
+  config?: {
+    plugins?: {
+      entries?: Record<string, { config?: any }>;
+    };
+  };
+  logger?: {
+    info?: (msg: string) => void;
+    warn?: (msg: string) => void;
+    error?: (msg: string) => void;
+  };
+  registerGatewayMethod?: (method: string, handler: any) => void;
+  registerService?: (service: {
+    id: string;
+    start?: () => void;
+    stop?: () => void;
+  }) => void;
+  on?: (event: string, handler: (data: any) => void) => void | (() => void);
+  off?: (event: string, handler: (data: any) => void) => void;
+}
+
 export function coerceNumber(v: unknown, fallback: number): number {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim().length > 0) {
@@ -430,14 +454,14 @@ export function summarizeToolResultMessage(msg: any): string {
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
  */
-export default function register(api: any) {
+export default function register(api: PluginApi) {
   // Prefer the validated per-plugin config injected by Clawdbot.
   // Fallback: read from the global config using this plugin's id.
   // Robustness fix: also check common aliases because users often configure plugins
   // under a short name (e.g. "molt-mascot") even when the runtime id is canonical.
   const pluginId = typeof api?.id === "string" ? api.id : id;
 
-  let cfg: PluginConfig = api?.pluginConfig;
+  let cfg: PluginConfig | undefined = api?.pluginConfig;
 
   if (!cfg) {
     const entries = api?.config?.plugins?.entries;

@@ -24,6 +24,30 @@ type State = {
     opacity?: number;
     currentTool?: string;
 };
+interface PluginApi {
+    id?: string;
+    pluginConfig?: PluginConfig;
+    config?: {
+        plugins?: {
+            entries?: Record<string, {
+                config?: any;
+            }>;
+        };
+    };
+    logger?: {
+        info?: (msg: string) => void;
+        warn?: (msg: string) => void;
+        error?: (msg: string) => void;
+    };
+    registerGatewayMethod?: (method: string, handler: any) => void;
+    registerService?: (service: {
+        id: string;
+        start?: () => void;
+        stop?: () => void;
+    }) => void;
+    on?: (event: string, handler: (data: any) => void) => void | (() => void);
+    off?: (event: string, handler: (data: any) => void) => void;
+}
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
 declare function truncate(str: string, limit?: number): string;
@@ -48,6 +72,6 @@ declare function summarizeToolResultMessage(msg: any): string;
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
  */
-declare function register(api: any): void;
+declare function register(api: PluginApi): void;
 
-export { type Mode, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
+export { type Mode, type PluginApi, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
