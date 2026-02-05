@@ -828,25 +828,18 @@ export default function register(api: PluginApi) {
       // Some Gateway event envelopes carry primitive results under `payload`.
       // After mergeEnvelope(), that primitive ends up at `event.payload`.
       const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
-      let rawToolName =
-        typeof event?.tool === "string"
-          ? event.tool
-          : typeof event?.toolName === "string"
-          ? event.toolName
-          : typeof event?.name === "string"
-          ? event.name
-          : "tool";
-      // UX: Remove verbose default_api: prefix for compact display
-      rawToolName = rawToolName
+      
+      // Extract tool name with fallbacks, preserving order of preference
+      const toolFromEvent = event?.tool ?? event?.toolName ?? event?.name;
+      const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
+      
+      // UX: Remove verbose prefixes for compact display
+      const toolName = rawToolName
         .replace(/^default_api:/, "")
         .replace(/^functions\./, "")
-        .replace(/^multi_tool_use\./, "");
-
-      // Truncate tool name if it's absurdly long to save space on the pixel display
-      const toolName =
-        rawToolName.length > 20
-          ? rawToolName.slice(0, 17) + "…"
-          : rawToolName;
+        .replace(/^multi_tool_use\./, "")
+        // Truncate tool name if absurdly long to save space on the pixel display
+        .slice(0, 20);
 
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";

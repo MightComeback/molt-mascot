@@ -642,9 +642,9 @@ function register(api) {
       recalcCurrentTool();
       const infraError = event?.error;
       const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
-      let rawToolName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "tool";
-      rawToolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
-      const toolName = rawToolName.length > 20 ? rawToolName.slice(0, 17) + "\u2026" : rawToolName;
+      const toolFromEvent = event?.tool ?? event?.toolName ?? event?.name;
+      const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
+      const toolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "").slice(0, 20);
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
