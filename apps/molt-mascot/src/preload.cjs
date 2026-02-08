@@ -21,7 +21,8 @@ contextBridge.exposeInMainWorld('moltMascot', {
     captureDir: process.env.MOLT_MASCOT_CAPTURE_DIR || '',
     idleDelayMs: process.env.MOLT_MASCOT_IDLE_DELAY_MS || '',
     errorHoldMs: process.env.MOLT_MASCOT_ERROR_HOLD_MS || '',
-    hideText: process.env.MOLT_MASCOT_HIDE_TEXT || '',
+    // Back-compat: accept MOLT_MASCOT_HIDE_TEXT and older var spellings
+    hideText: process.env.MOLT_MASCOT_HIDE_TEXT || process.env.MOLT_MASCOT_HIDETEXT || '',
     // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
     clickThrough: process.env.MOLT_MASCOT_CLICKTHROUGH || process.env.MOLT_MASCOT_CLICK_THROUGH || '',
   },
