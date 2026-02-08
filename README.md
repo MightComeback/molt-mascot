@@ -148,23 +148,7 @@ This repo uses **Bun** for running scripts (see `package.json` `packageManager` 
 
 ## Build & install (monorepo)
 
-```bash
-bun install
-
-# Build the Clawdbot plugin (output is in the package dist/)
-bun run --cwd packages/molt-mascot-plugin build
-
-# Install the plugin into your local Clawdbot
-clawdbot plugins install ./packages/molt-mascot-plugin
-```
-
-Then run the app:
-
-```bash
-bun run mascot
-```
-
-(Or see **Quickstart** above for installing from npm.)
+See **Quickstart → Install Plugin** above for both npm install and local-dev install instructions.
 
 ## Publish
 
