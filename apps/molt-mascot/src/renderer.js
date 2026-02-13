@@ -661,6 +661,31 @@ if (isCapture) {
   }
 }
 
+// Global error handlers: surface uncaught errors in the pill so they're visible
+// instead of silently dying in the console.
+window.addEventListener('error', (ev) => {
+  const msg = ev.message || 'Uncaught error';
+  lastErrorMessage = truncate(cleanErrorString(msg), 48);
+  setMode(Mode.error);
+  if (errorHoldTimer) clearTimeout(errorHoldTimer);
+  errorHoldTimer = setTimeout(() => {
+    errorHoldTimer = null;
+    scheduleIdle(0);
+  }, errorHoldMs);
+});
+
+window.addEventListener('unhandledrejection', (ev) => {
+  const raw = ev.reason;
+  const msg = typeof raw === 'string' ? raw : (raw?.message || 'Unhandled promise rejection');
+  lastErrorMessage = truncate(cleanErrorString(msg), 48);
+  setMode(Mode.error);
+  if (errorHoldTimer) clearTimeout(errorHoldTimer);
+  errorHoldTimer = setTimeout(() => {
+    errorHoldTimer = null;
+    scheduleIdle(0);
+  }, errorHoldMs);
+});
+
 let lastPillSec = -1;
 function frame(t) {
   const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
