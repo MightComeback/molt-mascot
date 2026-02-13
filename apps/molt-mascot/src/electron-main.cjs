@@ -202,6 +202,18 @@ app.whenReady().then(async () => {
       console.log('molt-mascot: quit triggered');
       app.quit();
     });
+
+    register('CommandOrControl+Shift+D', () => {
+      if (mainWin && !mainWin.isDestroyed()) {
+        if (mainWin.webContents.isDevToolsOpened()) {
+          mainWin.webContents.closeDevTools();
+        } else {
+          mainWin.webContents.openDevTools({ mode: 'detach' });
+        }
+        // eslint-disable-next-line no-console
+        console.log('molt-mascot: devtools toggled');
+      }
+    });
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
   }
