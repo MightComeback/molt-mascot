@@ -49,9 +49,12 @@ describe('truncate', () => {
 });
 
 describe('cleanErrorString', () => {
-  it('strips error prefixes', () => {
+  it('strips log/error prefixes', () => {
     expect(cleanErrorString('Error: something broke')).toBe('something broke');
     expect(cleanErrorString('TypeError: bad type')).toBe('bad type');
+    expect(cleanErrorString('info: starting up')).toBe('starting up');
+    expect(cleanErrorString('debug: details')).toBe('details');
+    expect(cleanErrorString('warn: heads up')).toBe('heads up');
   });
 
   it('strips ANSI codes', () => {
