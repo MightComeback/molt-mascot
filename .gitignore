@@ -14,3 +14,12 @@ apps/*/node_modules/
 
 # Local cron helper scripts
 .hakky-*.sh
+
+# Cron loop artifacts (auto-generated marker/temp files)
+*-improvement-marker*
+*_improvement_shipped_*
+improvement_*.txt
+dummy_improvement.txt
+last_shipped_timestamp
+animation_frame.txt
+molt-mascot.json
