@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, summarizeToolResultMessage } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage } from "../src/index.ts";
 
 describe("utils", () => {
   it("coerceNumber", () => {
@@ -15,6 +15,37 @@ describe("utils", () => {
     // Space aware truncation
     expect(truncate("hello world", 9)).toBe("hello…"); 
     // "hello world" (11). limit 9. cut=8. "hello wo" -> lastSpace=5 -> "hello" -> "hello…"
+    // Unicode surrogate pairs: emoji counts as 1 char
+    expect(truncate("🦞🦞🦞", 2)).toBe("🦞…");
+    // Collapses whitespace/newlines
+    expect(truncate("hello\n  world", 140)).toBe("hello world");
+    // Limit of 1: no room for ellipsis
+    expect(truncate("hello", 1)).toBe("h");
+  });
+
+  it("coerceBoolean", () => {
+    // Actual booleans pass through
+    expect(coerceBoolean(true, false)).toBe(true);
+    expect(coerceBoolean(false, true)).toBe(false);
+    // Numbers: 0 is false, non-zero is true
+    expect(coerceBoolean(0, true)).toBe(false);
+    expect(coerceBoolean(1, false)).toBe(true);
+    // String variants
+    expect(coerceBoolean("true", false)).toBe(true);
+    expect(coerceBoolean("false", true)).toBe(false);
+    expect(coerceBoolean("yes", false)).toBe(true);
+    expect(coerceBoolean("no", true)).toBe(false);
+    expect(coerceBoolean("on", false)).toBe(true);
+    expect(coerceBoolean("off", true)).toBe(false);
+    expect(coerceBoolean("1", false)).toBe(true);
+    expect(coerceBoolean("0", true)).toBe(false);
+    // Case insensitive
+    expect(coerceBoolean("TRUE", false)).toBe(true);
+    expect(coerceBoolean("False", true)).toBe(false);
+    // Fallback for unrecognized
+    expect(coerceBoolean("maybe", true)).toBe(true);
+    expect(coerceBoolean(undefined, false)).toBe(false);
+    expect(coerceBoolean(null, true)).toBe(true);
   });
 
   it("cleanErrorString", () => {
