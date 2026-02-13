@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, globalShortcut, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, globalShortcut, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -139,6 +139,78 @@ app.whenReady().then(async () => {
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
+  // --- System tray (makes the app discoverable when dock is hidden) ---
+  // Create a tiny 16x16 red square as a tray icon (lobster-red).
+  const trayCanvas = Buffer.alloc(16 * 16 * 4);
+  for (let i = 0; i < 16 * 16; i++) {
+    // #e0433a (lobster red)
+    trayCanvas[i * 4 + 0] = 0xe0;
+    trayCanvas[i * 4 + 1] = 0x43;
+    trayCanvas[i * 4 + 2] = 0x3a;
+    trayCanvas[i * 4 + 3] = 0xff;
+  }
+  const trayIcon = nativeImage.createFromBuffer(trayCanvas, { width: 16, height: 16 });
+  let tray = new Tray(trayIcon);
+  tray.setToolTip('Molt Mascot');
+
+  function rebuildTrayMenu() {
+    const menu = Menu.buildFromTemplate([
+      { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
+      { type: 'separator' },
+      {
+        label: 'Ghost Mode (Click-Through)',
+        type: 'checkbox',
+        checked: clickThrough,
+        click: () => {
+          clickThrough = !clickThrough;
+          if (mainWin && !mainWin.isDestroyed()) {
+            applyClickThrough(mainWin, clickThrough);
+            mainWin.webContents.send('molt-mascot:click-through', clickThrough);
+          }
+          rebuildTrayMenu();
+        },
+      },
+      {
+        label: 'Hide Text',
+        type: 'checkbox',
+        checked: hideText,
+        click: () => {
+          hideText = !hideText;
+          if (mainWin && !mainWin.isDestroyed()) {
+            mainWin.webContents.send('molt-mascot:hide-text', hideText);
+          }
+          rebuildTrayMenu();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Reset State',
+        click: () => {
+          if (mainWin && !mainWin.isDestroyed()) {
+            mainWin.webContents.send('molt-mascot:reset');
+          }
+        },
+      },
+      {
+        label: 'DevTools',
+        click: () => {
+          if (mainWin && !mainWin.isDestroyed()) {
+            if (mainWin.webContents.isDevToolsOpened()) {
+              mainWin.webContents.closeDevTools();
+            } else {
+              mainWin.webContents.openDevTools({ mode: 'detach' });
+            }
+          }
+        },
+      },
+      { type: 'separator' },
+      { label: 'Quit', click: () => app.quit() },
+    ]);
+    tray.setContextMenu(menu);
+  }
+
+  rebuildTrayMenu();
+
   // Alignment cycling order for Cmd+Shift+A shortcut
   const alignmentCycle = [
     'bottom-right', 'bottom-left', 'top-right', 'top-left',
@@ -170,6 +242,7 @@ app.whenReady().then(async () => {
       }
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
+      rebuildTrayMenu();
     });
 
     register('CommandOrControl+Shift+H', () => {
@@ -179,6 +252,7 @@ app.whenReady().then(async () => {
       }
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: hide-text ${hideText ? 'ON' : 'OFF'}`);
+      rebuildTrayMenu();
     });
 
     register('CommandOrControl+Shift+R', () => {
