@@ -197,6 +197,17 @@ function scheduleIdle(delayMs = idleDelayMs) {
 // --- Gateway WS ---
 let ws = null;
 let reqId = 0;
+let reconnectAttempt = 0;
+const RECONNECT_BASE_MS = 1500;
+const RECONNECT_MAX_MS = 30000;
+
+function getReconnectDelay() {
+  // Exponential backoff with jitter: 1.5s, 3s, 6s, 12s... capped at 30s
+  const delay = Math.min(RECONNECT_BASE_MS * Math.pow(2, reconnectAttempt), RECONNECT_MAX_MS);
+  const jitter = delay * 0.2 * Math.random();
+  reconnectAttempt++;
+  return Math.round(delay + jitter);
+}
 
 let pluginStateReqId = null;
 const pluginStateMethods = [
@@ -271,6 +282,7 @@ function connect(cfg) {
   ws = new WebSocket(cfg.url);
 
   ws.addEventListener('open', () => {
+    reconnectAttempt = 0; // Reset backoff on successful connection
     const id = nextId('c');
     const connectFrame = {
       type: 'req',
@@ -502,13 +514,15 @@ function connect(cfg) {
       window._pollInterval = null;
     }
     setMode(Mode.idle);
+    const delay = getReconnectDelay();
+    pill.textContent = `reconnecting in ${Math.round(delay / 1000)}s…`;
     setTimeout(() => {
       // Re-read config to pickup changes or use current env
       const fresh = loadCfg();
       // If we have a valid config, retry. Otherwise, show setup.
       if (fresh && fresh.url) connect(fresh);
       else showSetup({ url: cfg.url, token: cfg.token });
-    }, 1500);
+    }, delay);
   };
 
   ws.addEventListener('error', () => {
