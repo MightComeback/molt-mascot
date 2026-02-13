@@ -56,7 +56,7 @@ function cleanErrorString(s) {
     // (final byte is in the range @-~; not just letters)
     .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
     // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\\\)/g, "")
+    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
     .trim();
   /* eslint-enable no-control-regex */
   let prev = "";
