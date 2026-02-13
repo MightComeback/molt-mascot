@@ -82,7 +82,7 @@ function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
   }
 }
 
-function drawLobster(mode, t) {
+function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // subtle shadow (keeps it readable on transparent backgrounds)
@@ -102,6 +102,7 @@ function drawLobster(mode, t) {
   if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'error') drawSprite(overlay.error, { x: 0, y: bobY - 2, scale: 3 });
+  if (mode === 'idle' && idleDurationMs > 30000) drawSprite(overlay.sleep, { x: 0, y: bobY - 2, scale: 3 });
 }
 
 // --- State machine ---
@@ -621,7 +622,8 @@ if (isCapture) {
 
 let lastPillSec = -1;
 function frame(t) {
-  drawLobster(currentMode, manualTime !== null ? manualTime : t);
+  const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
+  drawLobster(currentMode, manualTime !== null ? manualTime : t, idleDur);
   // Update tooltip duration every second (frame-rate independent)
   const sec = Math.floor(t / 1000);
   if (sec !== lastPillSec) {
