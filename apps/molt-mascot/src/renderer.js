@@ -4,8 +4,6 @@ const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
 const urlInput = document.getElementById('url');
 const tokenInput = document.getElementById('token');
-const saveBtn = document.getElementById('save');
-
 const captureDir = (window.moltMascot?.env?.captureDir || '').trim();
 const isCapture = Boolean(captureDir);
 
@@ -591,7 +589,8 @@ function connect(cfg) {
 }
 
 
-saveBtn.addEventListener('click', () => {
+setup.addEventListener('submit', (e) => {
+  e.preventDefault();
   const cfg = { url: urlInput.value.trim(), token: tokenInput.value.trim() };
   saveCfg(cfg);
   connect(cfg);
