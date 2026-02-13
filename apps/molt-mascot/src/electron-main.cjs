@@ -153,6 +153,16 @@ app.whenReady().then(async () => {
   let tray = new Tray(trayIcon);
   tray.setToolTip('Molt Mascot');
 
+  // Alignment cycling order for Cmd+Shift+A shortcut
+  const alignmentCycle = [
+    'bottom-right', 'bottom-left', 'top-right', 'top-left',
+    'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
+  ];
+  let alignmentIndex = alignmentCycle.indexOf(
+    (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()
+  );
+  if (alignmentIndex < 0) alignmentIndex = 0;
+
   function rebuildTrayMenu() {
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
@@ -172,6 +182,7 @@ app.whenReady().then(async () => {
         label: 'Ghost Mode (Click-Through)',
         type: 'checkbox',
         checked: clickThrough,
+        accelerator: 'CommandOrControl+Shift+M',
         click: () => {
           clickThrough = !clickThrough;
           if (mainWin && !mainWin.isDestroyed()) {
@@ -185,6 +196,7 @@ app.whenReady().then(async () => {
         label: 'Hide Text',
         type: 'checkbox',
         checked: hideText,
+        accelerator: 'CommandOrControl+Shift+H',
         click: () => {
           hideText = !hideText;
           if (mainWin && !mainWin.isDestroyed()) {
@@ -193,9 +205,20 @@ app.whenReady().then(async () => {
           rebuildTrayMenu();
         },
       },
+      {
+        label: `Cycle Alignment (${(alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()})`,
+        accelerator: 'CommandOrControl+Shift+A',
+        click: () => {
+          alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
+          alignmentOverride = alignmentCycle[alignmentIndex];
+          repositionMainWindow();
+          rebuildTrayMenu();
+        },
+      },
       { type: 'separator' },
       {
         label: 'Reset State',
+        accelerator: 'CommandOrControl+Shift+R',
         click: () => {
           if (mainWin && !mainWin.isDestroyed()) {
             mainWin.webContents.send('molt-mascot:reset');
@@ -204,6 +227,7 @@ app.whenReady().then(async () => {
       },
       {
         label: 'DevTools',
+        accelerator: 'CommandOrControl+Shift+D',
         click: () => {
           if (mainWin && !mainWin.isDestroyed()) {
             if (mainWin.webContents.isDevToolsOpened()) {
@@ -221,16 +245,6 @@ app.whenReady().then(async () => {
   }
 
   rebuildTrayMenu();
-
-  // Alignment cycling order for Cmd+Shift+A shortcut
-  const alignmentCycle = [
-    'bottom-right', 'bottom-left', 'top-right', 'top-left',
-    'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
-  ];
-  let alignmentIndex = alignmentCycle.indexOf(
-    (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()
-  );
-  if (alignmentIndex < 0) alignmentIndex = 0;
 
   // Apply initial state once loaded
   mainWin.webContents.once('did-finish-load', () => {
