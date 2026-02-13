@@ -36,6 +36,11 @@ describe('truncate', () => {
     expect(truncate('hello', 1)).toBe('h');
   });
 
+  it('collapses whitespace and newlines', () => {
+    expect(truncate('hello\n  world', 140)).toBe('hello world');
+    expect(truncate('foo   bar\tbaz', 140)).toBe('foo bar baz');
+  });
+
   it('prefers word boundaries', () => {
     // limit=14: 13 chars + ellipsis; "hello world f" has space at 5, within 20 chars
     const result = truncate('hello world foobar baz', 14);

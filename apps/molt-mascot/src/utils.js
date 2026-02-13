@@ -10,7 +10,8 @@ export function coerceDelayMs(v, fallback) {
 }
 
 export function truncate(str, limit = 140) {
-  const s = String(str).trim();
+  // Collapse whitespace/newlines to single spaces for cleaner pill display
+  const s = String(str).trim().replace(/\s+/g, ' ');
   const chars = [...s];
   if (chars.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
