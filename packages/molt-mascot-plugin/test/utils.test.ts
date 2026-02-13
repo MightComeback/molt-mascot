@@ -4,16 +4,20 @@ import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summ
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
   listeners: Map<string, any>;
+  services: Map<string, { start?: () => void; stop?: () => void }>;
 } {
   const handlers = new Map<string, any>();
   const listeners = new Map<string, any>();
+  const services = new Map<string, { start?: () => void; stop?: () => void }>();
   return {
     id: "@molt/mascot-plugin",
     logger: { info() {}, warn() {}, error() {} },
     registerGatewayMethod(name: string, fn: any) { handlers.set(name, fn); },
+    registerService(svc: { id: string; start?: () => void; stop?: () => void }) { services.set(svc.id, svc); },
     on(name: string, fn: any) { listeners.set(name, fn); },
     handlers,
     listeners,
+    services,
     ...overrides,
   };
 }
@@ -390,6 +394,35 @@ describe("utils", () => {
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
+  });
+
+  it("stop() resets published state so clients don't see stale data after reload", async () => {
+    const api = createMockApi();
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Put into active state
+    agentListener({ phase: "start", sessionKey: "s1" });
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("exec");
+
+    // Call stop() on the registered service
+    const svc = api.services.get("@molt/mascot-plugin");
+    expect(svc).toBeDefined();
+    svc!.stop?.();
+
+    // State should be fully reset
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("idle");
+    expect(payload?.state?.currentTool).toBeUndefined();
+    expect(payload?.state?.lastError).toBeUndefined();
   });
 
   it("nested tools maintain correct depth and show most recent tool", async () => {
