@@ -425,6 +425,55 @@ describe("utils", () => {
     expect(payload?.state?.lastError).toBeUndefined();
   });
 
+  it("summarizeToolResultMessage skips generic exit-code message when better detail exists", () => {
+    // When both a generic exit message and a meaningful error are present,
+    // the summary should prefer the meaningful one.
+    expect(
+      summarizeToolResultMessage({
+        message: "Command exited with code 1",
+        stderr: "ENOENT: no such file or directory",
+      })
+    ).toBe("ENOENT: no such file or directory");
+
+    // When the only info IS the exit code, still return it
+    expect(
+      summarizeToolResultMessage({ message: "Command exited with code 127" })
+    ).toBe("Command exited with code 127");
+
+    // undefined returns the string "undefined"
+    expect(summarizeToolResultMessage(undefined)).toBe("undefined");
+  });
+
+  it("multi-session tools show the most recently active tool", async () => {
+    const api = createMockApi();
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Session A starts a tool
+    toolListener({ phase: "start", sessionKey: "a", tool: "web_search" });
+
+    // Small delay so timestamps differ
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Session B starts a different tool (more recent)
+    toolListener({ phase: "start", sessionKey: "b", tool: "exec" });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    // Most recent tool (session B) should win
+    expect(payload?.state?.currentTool).toBe("exec");
+
+    // End session B's tool — session A's tool should now show
+    toolListener({ phase: "end", sessionKey: "b", tool: "exec", result: { status: "ok" } });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("web_search");
+  });
+
   it("nested tools maintain correct depth and show most recent tool", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);
