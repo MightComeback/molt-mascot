@@ -151,7 +151,7 @@ app.whenReady().then(async () => {
   }
   const trayIcon = nativeImage.createFromBuffer(trayCanvas, { width: 16, height: 16 });
   let tray = new Tray(trayIcon);
-  tray.setToolTip('Molt Mascot');
+  tray.setToolTip(`Molt Mascot v${require('../package.json').version}`);
 
   // Alignment cycling order for Cmd+Shift+A shortcut
   const alignmentCycle = [
@@ -164,6 +164,14 @@ app.whenReady().then(async () => {
   if (alignmentIndex < 0) alignmentIndex = 0;
 
   function rebuildTrayMenu() {
+    // Update tooltip to reflect current state (ghost mode, alignment, etc.)
+    const tooltipParts = [`Molt Mascot v${require('../package.json').version}`];
+    if (clickThrough) tooltipParts.push('👻 Ghost');
+    if (hideText) tooltipParts.push('🙈 Text hidden');
+    const currentAlign = (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
+    tooltipParts.push(`📍 ${currentAlign}`);
+    tray.setToolTip(tooltipParts.join(' · '));
+
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
       { type: 'separator' },
