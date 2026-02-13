@@ -1,5 +1,22 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, type PluginApi } from "../src/index.ts";
+
+function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
+  handlers: Map<string, any>;
+  listeners: Map<string, any>;
+} {
+  const handlers = new Map<string, any>();
+  const listeners = new Map<string, any>();
+  return {
+    id: "@molt/mascot-plugin",
+    logger: { info() {}, warn() {}, error() {} },
+    registerGatewayMethod(name: string, fn: any) { handlers.set(name, fn); },
+    on(name: string, fn: any) { listeners.set(name, fn); },
+    handlers,
+    listeners,
+    ...overrides,
+  };
+}
 
 describe("utils", () => {
   it("coerceNumber", () => {
@@ -296,5 +313,116 @@ describe("utils", () => {
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.clickThrough).toBe(true);
     expect(payload?.state?.hideText).toBe(false);
+  });
+
+  it("auto-heals when activeAgents exceeds threshold (prevents unbounded growth)", async () => {
+    const api = createMockApi();
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Start 12 agents without ending them (simulates leaked/orphaned sessions)
+    for (let i = 0; i < 12; i++) {
+      agentListener({ phase: "start", sessionKey: `leak-${i}` });
+    }
+
+    // The 12th start should trigger auto-heal (threshold is 10)
+    // After heal, the set is cleared and only the triggering agent remains
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    // Mode should still be thinking (the triggering agent is active)
+    expect(payload?.state?.mode).toBe("thinking");
+  });
+
+  it("transitions from error to idle after errorHoldMs expires", async () => {
+    const api = createMockApi({
+      pluginConfig: { errorHoldMs: 50 }, // short hold for test
+    });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Start a tool, then end it with an error
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      result: { status: "error", error: "something broke" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("something broke");
+
+    // Wait for error hold to expire
+    await new Promise((r) => setTimeout(r, 80));
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("idle");
+    // lastError should be cleared when not in error mode
+    expect(payload?.state?.lastError).toBeUndefined();
+  });
+
+  it("reset clears error state and active counters", async () => {
+    const api = createMockApi();
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
+
+    // Put into a complex state: agent running + tool active
+    agentListener({ phase: "start", sessionKey: "s1" });
+    toolListener({ phase: "start", sessionKey: "s1", tool: "web_search" });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("web_search");
+
+    // Reset
+    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.ok).toBe(true);
+    expect(payload?.state?.mode).toBe("idle");
+    expect(payload?.state?.currentTool).toBeUndefined();
+  });
+
+  it("nested tools maintain correct depth and show most recent tool", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Start two nested tools
+    toolListener({ phase: "start", sessionKey: "s1", tool: "sessions_spawn" });
+    toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("read");
+
+    // End inner tool — should show outer tool
+    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("tool");
+    expect(payload?.state?.currentTool).toBe("sessions_spawn");
+
+    // End outer tool — triggers scheduleIdle (800ms default delay)
+    toolListener({ phase: "end", sessionKey: "s1", tool: "sessions_spawn", result: { status: "ok" } });
+
+    // Wait for idle delay to fire (30ms configured above)
+    await new Promise((r) => setTimeout(r, 60));
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("idle");
+    expect(payload?.state?.currentTool).toBeUndefined();
   });
 });
