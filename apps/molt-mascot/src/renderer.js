@@ -150,6 +150,9 @@ function syncPill() {
   // Color-coded pill background per mode
   pill.className = `pill--${currentMode}`;
 
+  // Update canvas aria-label for screen readers
+  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
+
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;

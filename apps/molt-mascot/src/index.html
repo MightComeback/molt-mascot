@@ -74,8 +74,8 @@
   </head>
   <body>
     <div id="wrap">
-      <div id="hud"><span id="pill" title="Status">Initializing...</span></div>
-      <canvas id="c" width="96" height="96"></canvas>
+      <div id="hud"><span id="pill" role="status" aria-live="polite" title="Status">Initializing...</span></div>
+      <canvas id="c" width="96" height="96" role="img" aria-label="Molt Mascot pixel lobster"></canvas>
       <div id="setup" hidden>
         <div><b>Connect to Clawdbot Gateway</b></div>
         <input id="url" placeholder="ws://127.0.0.1:18789" />
