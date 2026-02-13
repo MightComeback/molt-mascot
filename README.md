@@ -142,10 +142,10 @@ This repo is tracked in Linear as **MIG-15**. Keep commits small and link them i
 
 ## Package manager notes
 
-This repo uses **Bun** for running scripts (see `package.json` `packageManager` + `scripts`).
+This repo uses **Bun** for installs + running scripts (see `package.json` `packageManager` + `scripts`).
 
-- You *can* install dependencies with `npm install`, but you’ll still need **Bun** to run the repo scripts unless you rewrite them.
 - Recommended: `bun install`
+- Avoid `npm install` here (lockfile + scripts are Bun-first).
 
 ## Build & install (monorepo)
 
