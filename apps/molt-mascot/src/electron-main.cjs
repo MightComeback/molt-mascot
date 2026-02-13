@@ -139,6 +139,16 @@ app.whenReady().then(async () => {
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
+  // Alignment cycling order for Cmd+Shift+A shortcut
+  const alignmentCycle = [
+    'bottom-right', 'bottom-left', 'top-right', 'top-left',
+    'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
+  ];
+  let alignmentIndex = alignmentCycle.indexOf(
+    (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()
+  );
+  if (alignmentIndex < 0) alignmentIndex = 0;
+
   // Apply initial state once loaded
   mainWin.webContents.once('did-finish-load', () => {
     if (hideText) mainWin.webContents.send('molt-mascot:hide-text', hideText);
@@ -177,6 +187,14 @@ app.whenReady().then(async () => {
       if (mainWin && !mainWin.isDestroyed()) {
         mainWin.webContents.send('molt-mascot:reset');
       }
+    });
+
+    register('CommandOrControl+Shift+A', () => {
+      alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
+      alignmentOverride = alignmentCycle[alignmentIndex];
+      repositionMainWindow();
+      // eslint-disable-next-line no-console
+      console.log(`molt-mascot: alignment → ${alignmentOverride}`);
     });
 
     register('CommandOrControl+Alt+Q', () => {

@@ -80,6 +80,7 @@ To pre-configure the connection to the Gateway (skipping the setup screen):
 
 The mascot listens for global shortcuts when active:
 
+- **Cmd/Ctrl + Shift + A**: Cycle **alignment** position (bottom-right → bottom-left → top-right → …).
 - **Cmd/Ctrl + Shift + M**: Toggle **click-through** mode (ignore mouse events).
 - **Cmd/Ctrl + Shift + H**: Toggle **hide text** (show only the pixel avatar).
 - **Cmd/Ctrl + Shift + R**: Force **reset** mascot state (if stuck).
