@@ -158,6 +158,17 @@ app.whenReady().then(async () => {
       { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
       { type: 'separator' },
       {
+        label: mainWin && !mainWin.isDestroyed() && mainWin.isVisible() ? 'Hide Mascot' : 'Show Mascot',
+        accelerator: 'CommandOrControl+Shift+V',
+        click: () => {
+          if (mainWin && !mainWin.isDestroyed()) {
+            if (mainWin.isVisible()) mainWin.hide();
+            else mainWin.show();
+            rebuildTrayMenu();
+          }
+        },
+      },
+      {
         label: 'Ghost Mode (Click-Through)',
         type: 'checkbox',
         checked: clickThrough,
@@ -269,6 +280,19 @@ app.whenReady().then(async () => {
       repositionMainWindow();
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: alignment → ${alignmentOverride}`);
+    });
+
+    register('CommandOrControl+Shift+V', () => {
+      if (mainWin && !mainWin.isDestroyed()) {
+        if (mainWin.isVisible()) {
+          mainWin.hide();
+        } else {
+          mainWin.show();
+        }
+        rebuildTrayMenu();
+        // eslint-disable-next-line no-console
+        console.log(`molt-mascot: visibility ${mainWin.isVisible() ? 'ON' : 'OFF'}`);
+      }
     });
 
     register('CommandOrControl+Alt+Q', () => {
