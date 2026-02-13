@@ -82,6 +82,19 @@ function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
   }
 }
 
+// Blink state: the lobster blinks every 3-6 seconds for ~150ms
+let nextBlinkAt = 2000 + Math.random() * 4000;
+const BLINK_DURATION_MS = 150;
+
+function isBlinking(t) {
+  if (t >= nextBlinkAt) {
+    if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
+    // Schedule next blink 3-6s from now
+    nextBlinkAt = t + 3000 + Math.random() * 3000;
+  }
+  return false;
+}
+
 function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -97,6 +110,19 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   // main sprite
   const bobY = Math.round(bob);
   drawSprite(lobsterIdle[frame], { x: 0, y: bobY, scale: 3 });
+
+  // Blink: paint over the white+pupil eye pixels with the body red color
+  if (isBlinking(t)) {
+    const scale = 3;
+    // Eye positions from sprite: row 8 cols 14-15 (left), 18-19 (right) for whites
+    // Row 9 cols 14 'w',15 'b' (left), 18 'w',19 'b' (right)
+    // Paint a horizontal line of body color over both eye rows
+    ctx.fillStyle = palette.r;
+    // Left eye area (cols 14-15, rows 8-9)
+    ctx.fillRect(14 * scale, (8 + bobY) * scale, 2 * scale, 2 * scale);
+    // Right eye area (cols 18-19, rows 8-9)
+    ctx.fillRect(18 * scale, (8 + bobY) * scale, 2 * scale, 2 * scale);
+  }
 
   // overlays (simple icons) - attached to bob
   if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: bobY - 2, scale: 3 });
