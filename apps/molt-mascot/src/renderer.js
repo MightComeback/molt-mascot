@@ -600,10 +600,13 @@ if (isCapture) {
   }
 }
 
+let lastPillSec = -1;
 function frame(t) {
   drawLobster(currentMode, manualTime !== null ? manualTime : t);
-  // Update tooltip duration every second
-  if (Math.floor(t / 1000) > Math.floor((t - 16) / 1000)) {
+  // Update tooltip duration every second (frame-rate independent)
+  const sec = Math.floor(t / 1000);
+  if (sec !== lastPillSec) {
+    lastPillSec = sec;
     syncPill();
   }
   requestAnimationFrame(frame);
