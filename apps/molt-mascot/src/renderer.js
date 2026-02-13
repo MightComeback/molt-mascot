@@ -274,6 +274,7 @@ function nextId(prefix) {
 function connect(cfg) {
   setup.hidden = true;
   pill.textContent = 'connecting…';
+  pill.className = 'pill--connecting';
 
   if (ws) {
     ws.onclose = null;
@@ -511,6 +512,7 @@ function connect(cfg) {
     hasPlugin = false;
     pluginPollerStarted = false;
     pill.textContent = 'disconnected';
+    pill.className = 'pill--connecting';
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
       window._pollInterval = null;
@@ -527,6 +529,7 @@ function connect(cfg) {
     const updateCountdown = () => {
       const remaining = Math.max(0, Math.ceil((reconnectAt - Date.now()) / 1000));
       pill.textContent = `reconnecting in ${remaining}s…`;
+      pill.className = 'pill--connecting';
     };
     updateCountdown();
     reconnectCountdownTimer = setInterval(updateCountdown, 1000);
@@ -537,6 +540,7 @@ function connect(cfg) {
         reconnectCountdownTimer = null;
       }
       pill.textContent = 'connecting…';
+      pill.className = 'pill--connecting';
       // Re-read config to pickup changes or use current env
       const fresh = loadCfg();
       // If we have a valid config, retry. Otherwise, show setup.
