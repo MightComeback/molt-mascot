@@ -240,6 +240,9 @@ function syncPill() {
 
   pill.textContent = label;
 
+  // Color-coded pill background per mode
+  pill.className = `pill--${currentMode}`;
+
   let tip = `${currentMode} for ${duration}s`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
