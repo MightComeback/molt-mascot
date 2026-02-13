@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv } from '../src/utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration } from '../src/utils.js';
 
 describe('coerceDelayMs', () => {
   it('returns fallback for empty/null/undefined', () => {
@@ -109,6 +109,28 @@ describe('isMissingMethodResponse', () => {
   it('returns false for null/undefined', () => {
     expect(isMissingMethodResponse(null)).toBe(false);
     expect(isMissingMethodResponse(undefined)).toBe(false);
+  });
+});
+
+describe('formatDuration', () => {
+  it('shows seconds for < 60s', () => {
+    expect(formatDuration(0)).toBe('0s');
+    expect(formatDuration(45)).toBe('45s');
+  });
+
+  it('shows minutes and seconds', () => {
+    expect(formatDuration(60)).toBe('1m');
+    expect(formatDuration(135)).toBe('2m 15s');
+  });
+
+  it('shows hours and minutes', () => {
+    expect(formatDuration(3600)).toBe('1h');
+    expect(formatDuration(3660)).toBe('1h 1m');
+    expect(formatDuration(7200)).toBe('2h');
+  });
+
+  it('handles negative input', () => {
+    expect(formatDuration(-5)).toBe('0s');
   });
 });
 

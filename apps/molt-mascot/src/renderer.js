@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration } from './utils.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -154,7 +154,7 @@ function syncPill() {
   // Update canvas aria-label for screen readers
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
 
-  let tip = `${currentMode} for ${duration}s`;
+  let tip = `${currentMode} for ${formatDuration(duration)}`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
   }

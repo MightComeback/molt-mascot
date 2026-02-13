@@ -84,6 +84,17 @@ export function isMissingMethodResponse(msg) {
   return false;
 }
 
+export function formatDuration(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  if (m < 60) return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const remM = m % 60;
+  return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
+}
+
 export function isTruthyEnv(v) {
   if (typeof v !== 'string') {
     if (typeof v === 'number') return Number.isFinite(v) && v > 0;
