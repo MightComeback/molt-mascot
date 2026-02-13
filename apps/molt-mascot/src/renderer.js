@@ -601,6 +601,17 @@ if (window.moltMascot?.onHideText) {
   });
 }
 
+// Double-click pill to copy current status text to clipboard
+pill.addEventListener('dblclick', () => {
+  const text = pill.textContent || '';
+  if (!text || text === 'Initializing...') return;
+  navigator.clipboard.writeText(text).then(() => {
+    const prev = pill.textContent;
+    pill.textContent = 'Copied!';
+    setTimeout(() => { pill.textContent = prev; }, 800);
+  }).catch(() => {});
+});
+
 // boot
 if (isCapture) {
   setup.hidden = true;
