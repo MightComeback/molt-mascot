@@ -292,6 +292,7 @@ app.whenReady().then(async () => {
       alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
       alignmentOverride = alignmentCycle[alignmentIndex];
       repositionMainWindow();
+      rebuildTrayMenu();
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: alignment → ${alignmentOverride}`);
     });
