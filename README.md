@@ -115,6 +115,11 @@ Supported keys:
 ## Troubleshooting
 
 - If the mascot stays in **offline**/**disconnected**, confirm `GATEWAY_URL` points at your local Gateway (and that the Gateway is running).
+  - Quick sanity check:
+    ```bash
+    GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
+    ```
+    You should see at least one frame after connect; if you see auth/protocol errors, fix URL/token or override protocol bounds (`--min-protocol` / `--max-protocol`).
 - If the mascot connects but never leaves **idle**, confirm you’re on a recent Clawdbot build and that your Gateway is emitting agent/tool lifecycle events.
 - If you enabled the plugin but `@molt/mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (derived from `package.json` `name`, i.e. `export const id = pkg.name`). (The plugin also supports method aliases like `molt-mascot.state` / `moltMascot.state` if you have older configs.)
 
