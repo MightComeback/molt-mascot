@@ -197,6 +197,13 @@ app.whenReady().then(async () => {
     }
   });
 
+  ipcMain.on('molt-mascot:set-hide-text', (event, hidden) => {
+    hideText = (typeof hidden === 'boolean') ? hidden : isTruthyEnv(hidden);
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('molt-mascot:hide-text', hideText);
+    }
+  });
+
   function repositionMainWindow() {
     if (!mainWin || mainWin.isDestroyed()) return;
     const display = screen.getPrimaryDisplay();

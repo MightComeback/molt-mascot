@@ -505,6 +505,10 @@ function connect(cfg) {
           lastPluginHideText = nextHideText;
           isTextHidden = nextHideText;
           updateHudVisibility();
+          // Notify main process so the keyboard toggle stays in sync
+          if (window.moltMascot?.setHideText) {
+            window.moltMascot.setHideText(nextHideText);
+          }
         }
       }
 

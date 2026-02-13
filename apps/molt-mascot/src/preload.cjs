@@ -3,6 +3,7 @@ const pkg = require('../package.json');
 
 contextBridge.exposeInMainWorld('moltMascot', {
   setClickThrough: (enabled) => ipcRenderer.send('molt-mascot:set-click-through', enabled),
+  setHideText: (hidden) => ipcRenderer.send('molt-mascot:set-hide-text', hidden),
   setAlignment: (align) => ipcRenderer.send('molt-mascot:set-alignment', align),
   setOpacity: (opacity) => ipcRenderer.send('molt-mascot:set-opacity', opacity),
   setPadding: (padding) => ipcRenderer.send('molt-mascot:set-padding', padding),
