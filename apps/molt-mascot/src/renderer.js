@@ -1,3 +1,5 @@
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv } from './utils.js';
+
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
 const urlInput = document.getElementById('url');
@@ -18,103 +20,8 @@ const DEFAULT_ERROR_HOLD_MS = 5000;
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.
 let isClickThrough = false;
 
-function coerceDelayMs(v, fallback) {
-  if (v === '' || v === null || v === undefined) return fallback;
-  const n = Number(v);
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
-}
-
 const idleDelayMs = coerceDelayMs(window.moltMascot?.env?.idleDelayMs, DEFAULT_IDLE_DELAY_MS);
 const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_ERROR_HOLD_MS);
-
-function truncate(str, limit = 140) {
-  const s = String(str).trim();
-  const chars = [...s];
-  if (chars.length <= limit) return s;
-  // If limit is too small to fit ellipsis, just truncate hard
-  if (limit <= 1) return chars.slice(0, limit).join("");
-
-  // Basic truncate (leave room for 1 char ellipsis)
-  let cut = chars.slice(0, limit - 1).join("");
-  // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
-  const lastSpace = cut.lastIndexOf(" ");
-  if (lastSpace > -1 && cut.length - lastSpace < 20) {
-    cut = cut.slice(0, lastSpace);
-  }
-
-  return cut + "…";
-}
-
-function cleanErrorString(s) {
-  // Performance guard: truncate huge outputs before regex processing
-  if (String(s).length > 4096) s = String(s).slice(0, 4096);
-
-  // Strip ANSI escape codes (colors, cursor moves, etc)
-  /* eslint-disable no-control-regex */
-  let str = String(s)
-    // CSI sequences: ESC [ parameters intermediates final-byte
-    // (final byte is in the range @-~; not just letters)
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
-    // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
-    .trim();
-  /* eslint-enable no-control-regex */
-  let prev = "";
-  while (str !== prev) {
-    prev = str;
-    str = str.replace(/^([a-zA-Z0-9_]*Error|Tool failed|Command failed|Exception|Warning|Alert|Fatal|panic|TypeError|ReferenceError|SyntaxError|EvalError|RangeError|URIError|AggregateError|TimeoutError|SystemError|AssertionError|AbortError|CancellationError|node:|fs:|process:|internal:|commonjs:|bun:|sh:|bash:|zsh:|git:|curl:|wget:|npm:|pnpm:|yarn:|hakky:|hakky-tools:|clawd:|clawdbot:|rpc:|grpc:|deno:|docker:|kubectl:|terraform:|ansible:|make:|cmake:|gradle:|mvn:|ffmpeg:|python:|python3:|go:|rustc:|cargo:|browser:|playwright:|chrome:|firefox:|safari:|cron:|nodes:|uncaughtException|Uncaught|GitError|GraphQLError|ProtocolError|IPCError|RuntimeError|BrowserError|CanvasError|ExecError|SpawnError|ShellError|NetworkError|BroadcastError|PermissionError|SecurityError|AuthError|ForbiddenError|EvaluationError|GatewayError|FetchError|ClawdError|AgentSkillError|PluginError|RpcError|MoltError|MoltMascotError|AnthropicError|OpenAIError|OllamaError|DeepSeekError|GoogleGenerativeAIError|GaxiosError|AxiosError|ProviderError|PerplexityError|SonarError|BraveError|BunError|RateLimitError|ValidationError|ZodError|LinearError|GitHubError|TelegramError|DiscordError|SlackError|SignalError|WhatsAppError|BlueBubblesError|BirdError|ClawdHubError|GeminiError|GogError|NotionError|PeekabooError|SummarizeError|VideoFramesError|SkillCreatorError|CodingAgentError|WeatherError|McpError|WebSocketError|SocketError|CronError|ConnectionError|RequestError|ResponseError|DatabaseError|SqlError|PrismaError|MongoError|RedisError|ValueError|KeyError|IndexError|AttributeError|NameError|ImportError|ModuleNotFoundError)(\s*:\s*|\s+)/i, "").trim();
-  }
-  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
-  
-  // UX Improvement: If we have multiple lines, scan for the most relevant error line.
-  // This extracts "Error: Failed" from logs that might start with "info: starting..."
-  if (lines.length > 1) {
-    // If first line is a generic exit code, always look deeper
-    if (/^Command (exited|failed) with (exit )?code \d+$/.test(lines[0])) {
-      return cleanErrorString(lines[1]);
-    }
-    
-    // Check if any line (other than the first) looks like a strong error signal.
-    // We look for common error prefixes (case-insensitive).
-    const errorLine = lines.find(l => /^(error|fatal|panic|exception|traceback|failed|denied|rejected)/i.test(l));
-    if (errorLine && errorLine !== lines[0]) {
-      return cleanErrorString(errorLine);
-    }
-  }
-
-  return lines[0] || str;
-}
-
-function isMissingMethodResponse(msg) {
-  // Gateway implementations may encode errors either at the top-level (msg.ok=false)
-  // or inside the payload (payload.ok=false). We only want to fall back to legacy
-  // method names when this *specifically* looks like a missing-method error.
-  const ok = msg?.ok;
-  const payloadOk = msg?.payload?.ok;
-  const err = msg?.payload?.error || msg?.error || null;
-  const code = (err?.code || err?.name || '').toString().toLowerCase();
-  const message = (err?.message || err || '').toString().toLowerCase();
-
-  if (ok === true && payloadOk === true) return false;
-
-  // Common variants: "method not found", "unknown method", "unknown rpc method".
-  if (code.includes('method') && code.includes('not') && code.includes('found')) return true;
-  if (message.includes('method not found')) return true;
-  if (message.includes('unknown method')) return true;
-  if (message.includes('unknown rpc method')) return true;
-
-  return false;
-}
-
-function isTruthyEnv(v) {
-  if (typeof v !== 'string') {
-    if (typeof v === 'number') return Number.isFinite(v) && v > 0;
-    if (typeof v === 'boolean') return v;
-    return false;
-  }
-  const s = v.trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 'yes' || s === 'y' || s === 'on';
-}
 
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
 // Note: env values may be boolean/number (not always strings), so don't call .trim() here.
