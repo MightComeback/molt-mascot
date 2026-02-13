@@ -198,6 +198,7 @@ function scheduleIdle(delayMs = idleDelayMs) {
 let ws = null;
 let reqId = 0;
 let reconnectAttempt = 0;
+let reconnectCountdownTimer = null;
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -513,10 +514,28 @@ function connect(cfg) {
       clearInterval(window._pollInterval);
       window._pollInterval = null;
     }
+    if (reconnectCountdownTimer) {
+      clearInterval(reconnectCountdownTimer);
+      reconnectCountdownTimer = null;
+    }
     setMode(Mode.idle);
     const delay = getReconnectDelay();
-    pill.textContent = `reconnecting in ${Math.round(delay / 1000)}s…`;
+    const reconnectAt = Date.now() + delay;
+
+    // Live countdown so the user sees progress instead of a static message
+    const updateCountdown = () => {
+      const remaining = Math.max(0, Math.ceil((reconnectAt - Date.now()) / 1000));
+      pill.textContent = `reconnecting in ${remaining}s…`;
+    };
+    updateCountdown();
+    reconnectCountdownTimer = setInterval(updateCountdown, 1000);
+
     setTimeout(() => {
+      if (reconnectCountdownTimer) {
+        clearInterval(reconnectCountdownTimer);
+        reconnectCountdownTimer = null;
+      }
+      pill.textContent = 'connecting…';
       // Re-read config to pickup changes or use current env
       const fresh = loadCfg();
       // If we have a valid config, retry. Otherwise, show setup.
