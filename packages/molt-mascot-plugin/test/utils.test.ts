@@ -87,6 +87,12 @@ describe("utils", () => {
     // Multi-line logs: prefer the first strong error line over noisy info
     expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
       .toBe("Failed to connect");
+    // Python-style traceback: prefer concrete final error over traceback header
+    expect(
+      cleanErrorString(
+        "Traceback (most recent call last):\n  File \"main.py\", line 1\nValueError: bad input"
+      )
+    ).toBe("bad input");
     // Custom error types
     expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
     // New channels

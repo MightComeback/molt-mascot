@@ -337,10 +337,18 @@ export function cleanErrorString(s: string): string {
     }
     
     // Check if any line (other than the first) looks like a strong error signal.
-    // We look for common error prefixes (case-insensitive).
-    const errorLine = lines.find(l => /^(error|fatal|panic|exception|traceback|failed|denied|rejected)/i.test(l));
-    if (errorLine && errorLine !== lines[0]) {
-      return cleanErrorString(errorLine);
+    // Prefer concrete failure lines over generic traceback headers.
+    const concreteErrorLine = lines.find(
+      (l) => /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(l)
+    );
+    if (concreteErrorLine && concreteErrorLine !== lines[0]) {
+      return cleanErrorString(concreteErrorLine);
+    }
+
+    // Python tracebacks often put the useful error on the final line.
+    const tracebackLine = lines.find((l) => /^traceback\b/i.test(l));
+    if (tracebackLine && lines[lines.length - 1] !== tracebackLine) {
+      return cleanErrorString(lines[lines.length - 1]);
     }
   }
 
