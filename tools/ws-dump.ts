@@ -26,8 +26,15 @@ if (!Number.isFinite(minProtocol) || !Number.isFinite(maxProtocol)) {
 }
 
 
+const rawGatewayUrl = process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
+const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
+  ? rawGatewayUrl.replace("http://", "ws://")
+  : rawGatewayUrl.startsWith("https://")
+    ? rawGatewayUrl.replace("https://", "wss://")
+    : rawGatewayUrl;
+
 const cfg: GatewayCfg = {
-  url: process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789",
+  url: normalizedGatewayUrl,
   token: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN,
 };
 
