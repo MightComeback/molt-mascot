@@ -146,7 +146,7 @@ describe('formatDuration', () => {
 
 describe('isTruthyEnv', () => {
   it('truthy strings', () => {
-    for (const v of ['1', 'true', 'yes', 'y', 'on', 'TRUE', 'Yes', ' 1 ']) {
+    for (const v of ['1', 'true', 't', 'yes', 'y', 'on', 'TRUE', 'Yes', ' 1 ']) {
       expect(isTruthyEnv(v)).toBe(true);
     }
   });

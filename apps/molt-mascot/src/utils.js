@@ -104,5 +104,5 @@ export function isTruthyEnv(v) {
     return false;
   }
   const s = v.trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 'yes' || s === 'y' || s === 'on';
+  return s === '1' || s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === 'on';
 }
