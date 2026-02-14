@@ -54,7 +54,7 @@ export function cleanErrorString(s) {
   // This extracts "Error: Failed" from logs that might start with "info: starting..."
   if (lines.length > 1) {
     // If first line is a generic exit code, always look deeper
-    if (/^Command (exited|failed) with (exit )?code \d+$/.test(lines[0])) {
+    if (/^Command (exited|failed) with (exit )?code \d+(?:\b|:)/.test(lines[0])) {
       return cleanErrorString(lines[1]);
     }
     

@@ -67,6 +67,10 @@ describe('cleanErrorString', () => {
     expect(cleanErrorString('Command exited with code 1\nFailed to connect')).toBe('Failed to connect');
   });
 
+  it('extracts deeper error when exit-code line has a trailing colon', () => {
+    expect(cleanErrorString('Command failed with exit code 1:\nError: missing token')).toBe('missing token');
+  });
+
   it('finds strong error line in multi-line output', () => {
     expect(cleanErrorString('info: starting\nerror: disk full\ndone')).toBe('disk full');
   });
