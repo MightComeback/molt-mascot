@@ -77,6 +77,10 @@ GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
 # If you're on an older/newer Gateway build, you can override protocol negotiation:
 # bun run ws:dump --once --min-protocol 2 --max-protocol 3
 # (or env: GATEWAY_MIN_PROTOCOL / GATEWAY_MAX_PROTOCOL)
+
+# If your Gateway is slow to answer hello-ok, increase once timeout (default 5000ms):
+# bun run ws:dump --once --timeout-ms 12000
+# (or env: GATEWAY_ONCE_TIMEOUT_MS)
 ```
 
 Regenerate screenshots:

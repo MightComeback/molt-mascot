@@ -19,9 +19,15 @@ const getArg = (name: string): string | undefined => {
 // Default to v3 (current), but allow overriding for older gateways.
 const minProtocol = Number(getArg("--min-protocol") ?? process.env.GATEWAY_MIN_PROTOCOL ?? 3);
 const maxProtocol = Number(getArg("--max-protocol") ?? process.env.GATEWAY_MAX_PROTOCOL ?? 3);
+const onceTimeoutMs = Number(getArg("--timeout-ms") ?? process.env.GATEWAY_ONCE_TIMEOUT_MS ?? 5000);
 
 if (!Number.isFinite(minProtocol) || !Number.isFinite(maxProtocol)) {
   console.error("Invalid --min-protocol/--max-protocol (must be numbers)");
+  process.exit(2);
+}
+
+if (!Number.isFinite(onceTimeoutMs) || onceTimeoutMs <= 0) {
+  console.error("Invalid --timeout-ms (must be a positive number)");
   process.exit(2);
 }
 
@@ -98,10 +104,10 @@ ws.addEventListener("message", (ev) => {
 if (once) {
   setTimeout(() => {
     if (!gotHello) {
-      console.error("Timed out waiting for hello-ok");
+      console.error(`Timed out waiting for hello-ok after ${onceTimeoutMs}ms`);
       process.exit(2);
     }
-  }, 5000).unref?.();
+  }, onceTimeoutMs).unref?.();
 }
 
 ws.addEventListener("close", () => {
