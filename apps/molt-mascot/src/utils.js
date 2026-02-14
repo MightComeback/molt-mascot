@@ -13,6 +13,7 @@ export function truncate(str, limit = 140) {
   // Collapse whitespace/newlines to single spaces for cleaner pill display
   const s = String(str).trim().replace(/\s+/g, ' ');
   const chars = [...s];
+  if (limit <= 0) return "";
   if (chars.length <= limit) return s;
   // If limit is too small to fit ellipsis, just truncate hard
   if (limit <= 1) return chars.slice(0, limit).join("");

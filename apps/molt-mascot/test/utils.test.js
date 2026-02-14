@@ -32,8 +32,10 @@ describe('truncate', () => {
     expect(result.endsWith('…')).toBe(true);
   });
 
-  it('handles limit=1', () => {
+  it('handles tiny/non-positive limits', () => {
     expect(truncate('hello', 1)).toBe('h');
+    expect(truncate('hello', 0)).toBe('');
+    expect(truncate('hello', -3)).toBe('');
   });
 
   it('collapses whitespace and newlines', () => {
