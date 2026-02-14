@@ -65,6 +65,7 @@ describe('cleanErrorString', () => {
 
   it('extracts deeper error from generic exit code', () => {
     expect(cleanErrorString('Command exited with code 1\nFailed to connect')).toBe('Failed to connect');
+    expect(cleanErrorString('command failed with exit code 1\nError: missing token')).toBe('missing token');
   });
 
   it('extracts deeper error when exit-code line has a trailing colon', () => {
