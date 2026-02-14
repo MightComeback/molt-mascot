@@ -25,6 +25,10 @@ if (!Number.isFinite(minProtocol) || !Number.isFinite(maxProtocol)) {
   process.exit(2);
 }
 
+if (minProtocol > maxProtocol) {
+  console.error("Invalid protocol range: --min-protocol cannot be greater than --max-protocol");
+  process.exit(2);
+}
 
 const rawGatewayUrl = process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
 const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
