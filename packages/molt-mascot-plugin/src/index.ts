@@ -175,6 +175,7 @@ const ERROR_PREFIXES = [
   "hakky-tools:",
   "clawd:",
   "clawdbot:",
+  "openclaw:",
   // Protocol/API prefixes
   "rpc:",
   "grpc:",
@@ -225,6 +226,7 @@ const ERROR_PREFIXES = [
   "GatewayError",
   "FetchError",
   "ClawdError",
+  "OpenClawError",
   "AgentSkillError",
   "PluginError",
   "RpcError",
