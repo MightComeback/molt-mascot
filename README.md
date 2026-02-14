@@ -136,6 +136,7 @@ bun run dev
 
 # Checks
 bun run lint
+bun run test
 
 # Auto-format
 bun run format
