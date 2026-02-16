@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   setOpacity: (opacity) => ipcRenderer.send('molt-mascot:set-opacity', opacity),
   setPadding: (padding) => ipcRenderer.send('molt-mascot:set-padding', padding),
   snapToPosition: () => ipcRenderer.send('molt-mascot:snap-to-position'),
+  toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
   quit: () => ipcRenderer.send('molt-mascot:quit'),
   onClickThrough: (callback) => ipcRenderer.on('molt-mascot:click-through', (_event, enabled) => callback(enabled)),
   onHideText: (callback) => ipcRenderer.on('molt-mascot:hide-text', (_event, hidden) => callback(hidden)),

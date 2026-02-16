@@ -733,6 +733,9 @@ pill.addEventListener('contextmenu', (e) => {
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
     { separator: true },
+    { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
+      if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
+    }},
     { label: 'Quit', hint: `${modKey}⌥Q`, action: () => {
       if (window.moltMascot?.quit) window.moltMascot.quit();
       else window.close();

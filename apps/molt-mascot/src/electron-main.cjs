@@ -376,6 +376,13 @@ app.whenReady().then(async () => {
 
   ipcMain.on('molt-mascot:quit', () => app.quit());
 
+  ipcMain.on('molt-mascot:toggle-devtools', () => {
+    withMainWin((w) => {
+      if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
+      else w.webContents.openDevTools({ mode: 'detach' });
+    });
+  });
+
   ipcMain.on('molt-mascot:snap-to-position', () => {
     userDragged = false;
     repositionMainWindow({ force: true });
