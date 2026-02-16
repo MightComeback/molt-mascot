@@ -227,6 +227,17 @@ app.whenReady().then(async () => {
   let tray = new Tray(trayIcon);
   tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
+  // Left-click (or double-click on Windows) toggles mascot visibility.
+  // On macOS, `click` fires on left-click; on Windows/Linux, `double-click` is more conventional.
+  const trayToggle = () => {
+    withMainWin((w) => {
+      if (w.isVisible()) w.hide();
+      else w.show();
+      rebuildTrayMenu();
+    });
+  };
+  tray.on('click', trayToggle);
+
   // Alignment cycling order for Cmd+Shift+A shortcut
   // Size presets for Cmd+Shift+Z cycling (label, width, height)
   const sizeCycle = [
