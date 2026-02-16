@@ -622,6 +622,9 @@ function connect(cfg) {
 }
 
 
+// Clear validation error as user types (prevents sticky custom validity)
+urlInput.addEventListener('input', () => urlInput.setCustomValidity(''));
+
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
   const url = urlInput.value.trim();
