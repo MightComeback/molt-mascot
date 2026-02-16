@@ -738,12 +738,25 @@ pill.addEventListener('contextmenu', (e) => {
 
   document.body.appendChild(menu);
 
-  // Dismiss on click outside
+  // Dismiss on click outside or Escape key
   const dismiss = (ev) => {
-    if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', dismiss, true); }
+    if (!menu.contains(ev.target)) { cleanup(); }
+  };
+  const onKey = (ev) => {
+    if (ev.key === 'Escape') { cleanup(); }
+  };
+  const cleanup = () => {
+    menu.remove();
+    document.removeEventListener('click', dismiss, true);
+    document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('blur', cleanup);
   };
   // Use setTimeout so the current click cycle doesn't immediately dismiss
-  setTimeout(() => document.addEventListener('click', dismiss, true), 0);
+  setTimeout(() => {
+    document.addEventListener('click', dismiss, true);
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('blur', cleanup);
+  }, 0);
 });
 
 // boot
