@@ -36,7 +36,7 @@ if (minProtocol > maxProtocol) {
   process.exit(2);
 }
 
-const rawGatewayUrl = process.env.GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
+const rawGatewayUrl = process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
 const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
   ? rawGatewayUrl.replace("http://", "ws://")
   : rawGatewayUrl.startsWith("https://")
@@ -45,7 +45,7 @@ const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
 
 const cfg: GatewayCfg = {
   url: normalizedGatewayUrl,
-  token: process.env.GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN,
+  token: process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN,
 };
 
 let reqId = 0;
