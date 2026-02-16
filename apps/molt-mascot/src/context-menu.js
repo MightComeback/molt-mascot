@@ -119,11 +119,29 @@ export function show(items, { x, y }) {
     if (ev.key === 'Escape') { cleanup(); return; }
     if (ev.key === 'ArrowDown') { ev.preventDefault(); focusNext(); return; }
     if (ev.key === 'ArrowUp') { ev.preventDefault(); focusPrev(); return; }
+    if (ev.key === 'Tab') { cleanup(); return; }
     if (ev.key === 'Home') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[0]); return; }
     if (ev.key === 'End') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[interactiveIndices.length - 1]); return; }
     if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
       ev.preventDefault();
       menuItems[focusIdx].click();
+      return;
+    }
+    // Type-ahead: jump to the next menu item starting with the pressed letter
+    if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      const ch = ev.key.toLowerCase();
+      const curPos = interactiveIndices.indexOf(focusIdx);
+      // Search from the item after the current focus, wrapping around
+      for (let offset = 1; offset <= interactiveIndices.length; offset++) {
+        const candidate = interactiveIndices[(curPos + offset) % interactiveIndices.length];
+        const label = (menuItems[candidate].textContent || '').trim().toLowerCase();
+        // Skip checkmark prefix (✓) for matching
+        const cleanLabel = label.replace(/^✓\s*/, '');
+        if (cleanLabel.startsWith(ch)) {
+          setFocus(candidate);
+          break;
+        }
+      }
     }
   };
 

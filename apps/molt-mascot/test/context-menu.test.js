@@ -16,7 +16,12 @@ function makeElement(tag) {
     tabIndex: -1,
     hidden: false,
     dataset: {},
-    textContent: "",
+    _ownText: "",
+    get textContent() {
+      if (el._children.length === 0) return el._ownText;
+      return el._children.map((c) => c.textContent || '').join('');
+    },
+    set textContent(v) { el._ownText = v; el._children = []; },
     className: "",
     style: {},
     getBoundingClientRect() {
@@ -319,6 +324,73 @@ describe("context-menu", () => {
     // innerHeight(100) - menuHeight(3*28=84) = 16 max top
     expect(top).toBeLessThanOrEqual(16);
     expect(top).toBeGreaterThanOrEqual(0);
+  });
+
+  it("Tab key dismisses the menu", async () => {
+    ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(document.body._children.length).toBe(1);
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    keyHandlers.forEach((fn) => fn({ key: "Tab", preventDefault() {} }));
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("type-ahead jumps to matching menu item by first letter", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Auto-focused on Alpha; press "g" to jump to Gamma
+    dispatch("g");
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+  });
+
+  it("type-ahead skips checkmark prefix", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "✓ Ghost Mode", action: () => {} },
+        { label: "Beta", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Press "g" to jump to "✓ Ghost Mode"
+    dispatch("g");
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
+  });
+
+  it("type-ahead wraps around when searching", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Another", action: () => {} },
+        { label: "Beta", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Auto-focused on Alpha (index 0); press "a" to jump to Another (index 1)
+    dispatch("a");
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
+    // Press "a" again to wrap to Alpha (index 0)
+    dispatch("a");
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
   });
 
   it("sets aria-keyshortcuts on items with hint text", () => {
