@@ -581,6 +581,8 @@ export default function register(api: PluginApi) {
     "skill-creator",
     "coding_agent",
     "coding-agent",
+    "image",
+    "tts",
     // multi_tool_use.parallel becomes just "parallel" after prefix stripping
     "parallel",
   ]);

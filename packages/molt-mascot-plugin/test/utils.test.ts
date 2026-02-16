@@ -487,6 +487,42 @@ describe("utils", () => {
     expect(payload?.state?.currentTool).toBe("web_search");
   });
 
+  it("content tools (image, tts) don't false-positive on text containing 'error:'", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    agentListener({ phase: "start", sessionKey: "s1" });
+
+    // image tool returns content with "error:" in the text — should NOT trigger error mode
+    toolListener({ phase: "start", sessionKey: "s1", tool: "image" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "image",
+      result: "The image shows an error: 404 page not found displayed on screen",
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("thinking"); // back to thinking, not error
+
+    // tts tool similarly
+    toolListener({ phase: "start", sessionKey: "s1", tool: "tts" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "tts",
+      result: "error: this is just the text being spoken",
+    });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("thinking"); // still not error
+  });
+
   it("nested tools maintain correct depth and show most recent tool", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);
