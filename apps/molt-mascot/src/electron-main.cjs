@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
+const { getPosition: _getPosition } = require('./get-position.cjs');
 
 const APP_VERSION = require('../package.json').version;
 
@@ -47,38 +48,21 @@ let alignmentOverride = null;
 // until the next explicit alignment change resets this flag.
 let userDragged = false;
 
-function getPosition(display, width, height, alignOverride, paddingOverride) {
+/**
+ * Wrapper that reads env vars (MOLT_MASCOT_PADDING, MOLT_MASCOT_ALIGN) and
+ * delegates to the pure getPosition helper. The pure function is in
+ * get-position.cjs for testability.
+ */
+function getPosition(display, width, height, alignOverride, paddingOvr) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
   const basePadding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
-  const padding = (Number.isFinite(paddingOverride) && paddingOverride >= 0) ? paddingOverride : basePadding;
+  const resolvedPadding = (Number.isFinite(paddingOvr) && paddingOvr >= 0) ? paddingOvr : basePadding;
 
-  const rawAlign = (typeof alignOverride === 'string' && alignOverride.trim())
+  const resolvedAlign = (typeof alignOverride === 'string' && alignOverride.trim())
     ? alignOverride
     : (process.env.MOLT_MASCOT_ALIGN || 'bottom-right');
-  const align = rawAlign.toLowerCase();
-  const { x, y, width: dw, height: dh } = display.workArea;
 
-  switch (align) {
-    case 'bottom-left':
-      return { x: x + padding, y: y + dh - height - padding };
-    case 'top-right':
-      return { x: x + dw - width - padding, y: y + padding };
-    case 'top-left':
-      return { x: x + padding, y: y + padding };
-    case 'center':
-      return { x: x + (dw - width) / 2, y: y + (dh - height) / 2 };
-    case 'center-left':
-      return { x: x + padding, y: y + (dh - height) / 2 };
-    case 'center-right':
-      return { x: x + dw - width - padding, y: y + (dh - height) / 2 };
-    case 'top-center':
-      return { x: x + (dw - width) / 2, y: y + padding };
-    case 'bottom-center':
-      return { x: x + (dw - width) / 2, y: y + dh - height - padding };
-    case 'bottom-right':
-    default:
-      return { x: x + dw - width - padding, y: y + dh - height - padding };
-  }
+  return _getPosition(display, width, height, resolvedAlign, resolvedPadding);
 }
 
 function createWindow({ capture = false } = {}) {
