@@ -182,7 +182,8 @@ function syncPill() {
   // Update canvas aria-label for screen readers
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
 
-  let tip = `${currentMode} for ${formatDuration(duration)}`;
+  const displayMode = (currentMode === Mode.idle && duration > 30) ? 'sleeping' : currentMode;
+  let tip = `${displayMode} for ${formatDuration(duration)}`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
   }
