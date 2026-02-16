@@ -128,6 +128,10 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'error') drawSprite(overlay.error, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'idle' && idleDurationMs > 30000) drawSprite(overlay.sleep, { x: 0, y: bobY - 2, scale: 3 });
+  if (mode === 'connected') {
+    const sparkleFrame = Math.floor(t / 300) % 2;
+    drawSprite(overlay.connected[sparkleFrame], { x: 0, y: bobY - 2, scale: 3 });
+  }
 }
 
 // --- State machine ---
@@ -136,6 +140,7 @@ const Mode = {
   thinking: 'thinking',
   tool: 'tool',
   error: 'error',
+  connected: 'connected',
 };
 
 let currentMode = Mode.idle;
@@ -159,6 +164,9 @@ function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
   let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  if (currentMode === Mode.connected) {
+    label = 'Connected ✓';
+  }
   if (currentMode === Mode.idle && duration > 30) {
     label = 'Sleeping';
   }
@@ -182,7 +190,8 @@ function syncPill() {
   // Update canvas aria-label for screen readers
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
 
-  const displayMode = (currentMode === Mode.idle && duration > 30) ? 'sleeping' : currentMode;
+  const displayMode = currentMode === Mode.connected ? 'connected'
+    : (currentMode === Mode.idle && duration > 30) ? 'sleeping' : currentMode;
   let tip = `${displayMode} for ${formatDuration(duration)}`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
@@ -390,12 +399,15 @@ function connect(cfg) {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       connectedSince = Date.now();
       connectedUrl = cfg.url || '';
-      // Brief "Connected ✓" flash so the user sees the handshake succeeded
-      // before we settle into idle mode and start polling the plugin.
+      // Brief "Connected ✓" flash with sparkle animation so the user sees
+      // the handshake succeeded before settling into idle mode.
       pill.textContent = 'Connected ✓';
       pill.className = 'pill--connected';
-      currentMode = Mode.idle;
+      currentMode = Mode.connected;
       modeSince = Date.now();
+      // Transition to idle after the celebration
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => setMode(Mode.idle), 2000);
       // Optional: fetch plugin simplified state once.
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // If missing, we'll fall back through back-compat aliases.
@@ -510,7 +522,13 @@ function connect(cfg) {
       if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
         lastErrorMessage = nextErr.trim();
       }
-      setMode(nextMode);
+      // Don't let a plugin idle state cut short the connection celebration sparkle.
+      // Active states (thinking/tool/error) override immediately.
+      if (currentMode === Mode.connected && nextMode === 'idle') {
+        // Let the 2s timer handle the transition naturally.
+      } else {
+        setMode(nextMode);
+      }
       // If mode didn't change but we learned about an error detail, update tooltip.
       if (currentMode === Mode.error) syncPill();
       return;
