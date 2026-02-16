@@ -234,6 +234,21 @@ function setMode(mode) {
   syncPill();
 }
 
+/**
+ * Show an error message in the pill for errorHoldMs, then revert to idle.
+ * Centralizes the repeated error-hold-then-idle pattern used by agent lifecycle,
+ * WebSocket errors, and global uncaught error handlers.
+ */
+function showError(rawMessage, fallback = 'error') {
+  lastErrorMessage = truncate(cleanErrorString(rawMessage || fallback), 48);
+  setMode(Mode.error);
+  if (errorHoldTimer) clearTimeout(errorHoldTimer);
+  errorHoldTimer = setTimeout(() => {
+    errorHoldTimer = null;
+    scheduleIdle(0);
+  }, errorHoldMs);
+}
+
 // For deterministic screenshots / demos.
 window.__moltMascotSetMode = (mode) => {
   if (Object.values(Mode).includes(mode)) setMode(mode);
@@ -584,15 +599,7 @@ function connect(cfg) {
         if (p?.phase === 'end') scheduleIdle(idleDelayMs);
         if (p?.phase === 'error') {
           const raw = p?.error?.message || (typeof p?.error === 'string' ? p.error : 'agent error');
-          lastErrorMessage = truncate(cleanErrorString(raw));
-          setMode(Mode.error);
-          // Hold the error state for the configured duration, then return to idle.
-          // (Don't add the idle-delay on top of the error hold.)
-          if (errorHoldTimer) clearTimeout(errorHoldTimer);
-          errorHoldTimer = setTimeout(() => {
-            errorHoldTimer = null;
-            scheduleIdle(0);
-          }, errorHoldMs);
+          showError(raw, 'agent error');
         }
       }
       if (stream === 'tool') {
@@ -650,20 +657,11 @@ function connect(cfg) {
   };
 
   ws.addEventListener('error', () => {
-    // Only set generic message if we don't already have a more specific error
+    // Only show a generic message if we don't already have a more specific error
     // (e.g. auth failure from the connect handshake). The 'error' event fires
     // before 'close', so blindly overwriting loses useful context.
-    if (!lastErrorMessage) lastErrorMessage = 'WebSocket error';
-    setMode(Mode.error);
-
-    // Mirror the native error hold behavior: don't let a transient WS error
-    // freeze the mascot in error mode forever.
-    if (errorHoldTimer) clearTimeout(errorHoldTimer);
-    errorHoldTimer = setTimeout(() => {
-      errorHoldTimer = null;
-      // If we're still in error mode, revert to idle immediately.
-      if (currentMode === Mode.error) scheduleIdle(0);
-    }, errorHoldMs);
+    if (!lastErrorMessage) showError('WebSocket error');
+    else showError(lastErrorMessage);
   });
 }
 
@@ -839,26 +837,13 @@ if (isCapture) {
 // Global error handlers: surface uncaught errors in the pill so they're visible
 // instead of silently dying in the console.
 window.addEventListener('error', (ev) => {
-  const msg = ev.message || 'Uncaught error';
-  lastErrorMessage = truncate(cleanErrorString(msg), 48);
-  setMode(Mode.error);
-  if (errorHoldTimer) clearTimeout(errorHoldTimer);
-  errorHoldTimer = setTimeout(() => {
-    errorHoldTimer = null;
-    scheduleIdle(0);
-  }, errorHoldMs);
+  showError(ev.message, 'Uncaught error');
 });
 
 window.addEventListener('unhandledrejection', (ev) => {
   const raw = ev.reason;
   const msg = typeof raw === 'string' ? raw : (raw?.message || 'Unhandled promise rejection');
-  lastErrorMessage = truncate(cleanErrorString(msg), 48);
-  setMode(Mode.error);
-  if (errorHoldTimer) clearTimeout(errorHoldTimer);
-  errorHoldTimer = setTimeout(() => {
-    errorHoldTimer = null;
-    scheduleIdle(0);
-  }, errorHoldMs);
+  showError(msg, 'Unhandled promise rejection');
 });
 
 let lastPillSec = -1;
