@@ -798,6 +798,10 @@ pill.addEventListener('contextmenu', (e) => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
+    { label: 'Change Gateway…', action: () => {
+      const cfg = loadCfg();
+      showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' });
+    }},
     { separator: true },
     { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
       if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
