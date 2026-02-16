@@ -883,4 +883,30 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+// Cleanup on page unload (prevents leaked intervals/sockets during hot-reload or navigation)
+window.addEventListener('beforeunload', () => {
+  stopAnimation();
+  if (window._pollInterval) {
+    clearInterval(window._pollInterval);
+    window._pollInterval = null;
+  }
+  if (reconnectCountdownTimer) {
+    clearInterval(reconnectCountdownTimer);
+    reconnectCountdownTimer = null;
+  }
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimer = null;
+  }
+  if (errorHoldTimer) {
+    clearTimeout(errorHoldTimer);
+    errorHoldTimer = null;
+  }
+  if (ws) {
+    ws.onclose = null;
+    try { ws.close(); } catch {}
+    ws = null;
+  }
+});
+
 startAnimation();
