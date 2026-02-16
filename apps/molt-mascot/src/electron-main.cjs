@@ -429,11 +429,13 @@ app.whenReady().then(async () => {
       applyClickThrough(w, clickThrough);
       w.webContents.send('molt-mascot:click-through', clickThrough);
     });
+    rebuildTrayMenu();
   });
 
   ipcMain.on('molt-mascot:set-hide-text', (event, hidden) => {
     hideText = (typeof hidden === 'boolean') ? hidden : isTruthyEnv(hidden);
     withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
+    rebuildTrayMenu();
   });
 
   function repositionMainWindow({ force = false } = {}) {
@@ -457,8 +459,12 @@ app.whenReady().then(async () => {
     // Persist runtime alignment so other IPC updates (like padding) don't snap back
     // to the env/default alignment.
     alignmentOverride = align;
+    // Update cycle index so keyboard shortcut continues from the new position.
+    const idx = alignmentCycle.indexOf(String(align).toLowerCase());
+    if (idx >= 0) alignmentIndex = idx;
 
     repositionMainWindow({ force: true });
+    rebuildTrayMenu();
   });
 
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
