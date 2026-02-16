@@ -190,6 +190,13 @@ function syncPill() {
   if (isClickThrough) {
     tip += ' (ghost mode active)';
   }
+  if (connectedSince) {
+    const uptime = formatDuration(Math.max(0, Math.round((Date.now() - connectedSince) / 1000)));
+    tip += ` · connected ${uptime}`;
+  }
+  if (connectedUrl) {
+    tip += ` · ${connectedUrl}`;
+  }
   const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
   pill.title = tip + ver;
   updateHudVisibility();
@@ -229,6 +236,8 @@ let ws = null;
 let reqId = 0;
 let reconnectAttempt = 0;
 let reconnectCountdownTimer = null;
+let connectedSince = null;   // Date.now() when gateway handshake succeeded
+let connectedUrl = '';        // URL of the current gateway connection
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -379,6 +388,8 @@ function connect(cfg) {
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
+      connectedSince = Date.now();
+      connectedUrl = cfg.url || '';
       // Brief "Connected ✓" flash so the user sees the handshake succeeded
       // before we settle into idle mode and start polling the plugin.
       pill.textContent = 'Connected ✓';
@@ -569,6 +580,8 @@ function connect(cfg) {
   ws.onclose = () => {
     hasPlugin = false;
     pluginPollerStarted = false;
+    connectedSince = null;
+    connectedUrl = '';
     pill.textContent = 'disconnected';
     pill.className = 'pill--connecting';
     if (window._pollInterval) {
