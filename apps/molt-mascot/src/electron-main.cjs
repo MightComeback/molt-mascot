@@ -136,14 +136,6 @@ app.whenReady().then(async () => {
   // Detect manual drags: if the window moves and we didn't trigger it,
   // mark as user-dragged so auto-reposition doesn't snap it back.
   let repositioning = false;
-  // Wrap to set a guard flag during programmatic moves
-  const _reposition = repositionMainWindow;
-  repositionMainWindow = function(opts) {
-    repositioning = true;
-    _reposition(opts);
-    // Small delay to let the 'moved' event fire and be ignored
-    setTimeout(() => { repositioning = false; }, 100);
-  };
 
   mainWin.on('moved', () => {
     if (!repositioning) {
@@ -383,8 +375,12 @@ app.whenReady().then(async () => {
     const display = screen.getPrimaryDisplay();
     const [width, height] = mainWin.getSize();
     const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
+    // Guard flag so the 'moved' event doesn't mark this as a user drag.
+    repositioning = true;
     mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
     userDragged = false;
+    // Small delay to let the 'moved' event fire before clearing the guard.
+    setTimeout(() => { repositioning = false; }, 100);
   }
 
   ipcMain.on('molt-mascot:set-alignment', (event, align) => {
