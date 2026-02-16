@@ -4,6 +4,8 @@ const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 
+const APP_VERSION = require('../package.json').version;
+
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
@@ -174,7 +176,7 @@ app.whenReady().then(async () => {
   }
   const trayIcon = nativeImage.createFromBuffer(trayCanvas, { width: 16, height: 16 });
   let tray = new Tray(trayIcon);
-  tray.setToolTip(`Molt Mascot v${require('../package.json').version}`);
+  tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
   // Alignment cycling order for Cmd+Shift+A shortcut
   const alignmentCycle = [
@@ -188,7 +190,7 @@ app.whenReady().then(async () => {
 
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
-    const tooltipParts = [`Molt Mascot v${require('../package.json').version}`];
+    const tooltipParts = [`Molt Mascot v${APP_VERSION}`];
     if (clickThrough) tooltipParts.push('👻 Ghost');
     if (hideText) tooltipParts.push('🙈 Text hidden');
     const currentAlign = (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
@@ -196,7 +198,7 @@ app.whenReady().then(async () => {
     tray.setToolTip(tooltipParts.join(' · '));
 
     const menu = Menu.buildFromTemplate([
-      { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
+      { label: `Molt Mascot v${APP_VERSION}`, enabled: false },
       { type: 'separator' },
       {
         label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
