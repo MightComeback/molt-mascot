@@ -247,6 +247,7 @@ app.whenReady().then(async () => {
       {
         label: 'Snap to Position',
         toolTip: 'Reset manual drag and snap back to the configured alignment corner',
+        accelerator: 'CommandOrControl+Shift+S',
         click: () => {
           userDragged = false;
           repositionMainWindow({ force: true });
@@ -341,6 +342,13 @@ app.whenReady().then(async () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: quit triggered');
       app.quit();
+    });
+
+    register('CommandOrControl+Shift+S', () => {
+      userDragged = false;
+      repositionMainWindow({ force: true });
+      // eslint-disable-next-line no-console
+      console.log('molt-mascot: snapped to position');
     });
 
     register('CommandOrControl+Shift+D', () => {
