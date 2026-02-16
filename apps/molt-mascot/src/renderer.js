@@ -300,6 +300,12 @@ function connect(cfg) {
   pill.textContent = 'connecting…';
   pill.className = 'pill--connecting';
 
+  // Clear any stale reconnect countdown from a previous connection cycle.
+  if (reconnectCountdownTimer) {
+    clearInterval(reconnectCountdownTimer);
+    reconnectCountdownTimer = null;
+  }
+
   if (ws) {
     ws.onclose = null;
     try { ws.close(); } catch {}
