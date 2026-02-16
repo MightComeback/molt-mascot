@@ -203,6 +203,52 @@ describe("context-menu", () => {
     expect(row._children[1].className).toBe("ctx-hint");
   });
 
+  it("Home key focuses first interactive item", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { separator: true },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    // Wait for deferred listener registration
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Arrow down twice to move focus to Gamma
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    dispatch("ArrowDown"); // Beta (skips separator, wraps from Alpha→Beta)
+    dispatch("ArrowDown"); // Gamma
+
+    // Now press Home — should jump to first interactive item (Alpha)
+    dispatch("Home");
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
+  });
+
+  it("End key focuses last interactive item", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { separator: true },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+
+    // Press End — should jump to last interactive item (Gamma)
+    dispatch("End");
+    expect(menu._children[3]._classes.has("ctx-focus")).toBe(true);
+    // Alpha should not be focused
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [
