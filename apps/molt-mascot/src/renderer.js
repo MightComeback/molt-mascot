@@ -320,7 +320,9 @@ function connect(cfg) {
   ws = new WebSocket(cfg.url);
 
   ws.addEventListener('open', () => {
-    reconnectAttempt = 0; // Reset backoff on successful connection
+    // NOTE: Don't reset reconnectAttempt here — only after hello-ok.
+    // A successful TCP/WS handshake doesn't mean auth passed; resetting
+    // backoff prematurely causes tight reconnect loops on auth failures.
     connectReqId = nextId('c');
     const connectFrame = {
       type: 'req',
@@ -374,6 +376,7 @@ function connect(cfg) {
     }
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
+      reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       pill.textContent = 'connected';
       setMode(Mode.idle);
       // Optional: fetch plugin simplified state once.
