@@ -157,6 +157,13 @@ describe('formatDuration', () => {
     expect(formatDuration(7200)).toBe('2h');
   });
 
+  it('shows days and hours for 24h+', () => {
+    expect(formatDuration(86400)).toBe('1d');
+    expect(formatDuration(90000)).toBe('1d 1h');
+    expect(formatDuration(172800)).toBe('2d');
+    expect(formatDuration(180000)).toBe('2d 2h');
+  });
+
   it('handles negative input', () => {
     expect(formatDuration(-5)).toBe('0s');
   });
