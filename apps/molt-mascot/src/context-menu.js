@@ -36,8 +36,9 @@ export function show(items, { x, y }) {
   menu.id = 'molt-ctx';
   menu.setAttribute('role', 'menu');
   menu.setAttribute('aria-label', 'Mascot actions');
-  menu.style.left = `${Math.min(x, window.innerWidth - 140)}px`;
-  menu.style.top = `${Math.min(y, window.innerHeight - 120)}px`;
+  // Position initially off-screen so we can measure actual dimensions
+  menu.style.left = '-9999px';
+  menu.style.top = '-9999px';
 
   for (const item of items) {
     if (item.separator) {
@@ -66,6 +67,16 @@ export function show(items, { x, y }) {
   }
 
   document.body.appendChild(menu);
+
+  // Reposition using actual measured dimensions to prevent overflow
+  const menuRect = typeof menu.getBoundingClientRect === 'function'
+    ? menu.getBoundingClientRect()
+    : { width: 140, height: 120 };
+  const clampedX = Math.max(0, Math.min(x, window.innerWidth - menuRect.width));
+  const clampedY = Math.max(0, Math.min(y, window.innerHeight - menuRect.height));
+  menu.style.left = `${clampedX}px`;
+  menu.style.top = `${clampedY}px`;
+
   activeMenu = menu;
 
   // Keyboard navigation

@@ -708,6 +708,19 @@ pill.addEventListener('dblclick', () => {
   }).catch(() => {});
 });
 
+// Keyboard: Enter or Space on the pill opens the context menu (a11y)
+pill.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    const rect = pill.getBoundingClientRect();
+    pill.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      clientX: rect.left,
+      clientY: rect.bottom + 4,
+    }));
+  }
+});
+
 // Right-click context menu on pill for quick access to common actions
 pill.addEventListener('contextmenu', (e) => {
   e.preventDefault();
