@@ -686,6 +686,8 @@ window.addEventListener('unhandledrejection', (ev) => {
 });
 
 let lastPillSec = -1;
+let animFrameId = null;
+
 function frame(t) {
   const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
   drawLobster(currentMode, manualTime !== null ? manualTime : t, idleDur);
@@ -695,6 +697,31 @@ function frame(t) {
     lastPillSec = sec;
     syncPill();
   }
-  requestAnimationFrame(frame);
+  animFrameId = requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+
+function startAnimation() {
+  if (animFrameId === null) {
+    animFrameId = requestAnimationFrame(frame);
+  }
+}
+
+function stopAnimation() {
+  if (animFrameId !== null) {
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+  }
+}
+
+// Pause animation when the window is hidden/minimized to save CPU.
+// requestAnimationFrame already throttles in background tabs in most browsers,
+// but Electron BrowserWindows may not honor that—explicit control is safer.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopAnimation();
+  } else {
+    startAnimation();
+  }
+});
+
+startAnimation();
