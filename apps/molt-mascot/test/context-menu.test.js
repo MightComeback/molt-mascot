@@ -393,6 +393,27 @@ describe("context-menu", () => {
     expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
   });
 
+  it("mouseenter on item moves focus indicator to that item", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "First", action: () => {} },
+        { label: "Second", action: () => {} },
+        { label: "Third", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Auto-focused on First (index 0)
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
+
+    // Simulate mouseenter on Third (index 2)
+    const enterHandlers = menu._children[2]._listeners["mouseenter"] || [];
+    enterHandlers.forEach((fn) => fn());
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [

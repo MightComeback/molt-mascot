@@ -163,6 +163,13 @@ export function show(items, { x, y }) {
     window.addEventListener('blur', cleanup);
   }, 0);
 
+  // Hybrid mouse/keyboard navigation: when the mouse enters a menu item,
+  // move the visual focus indicator to it so keyboard and pointer highlighting
+  // never conflict (mirrors native OS context-menu behavior).
+  for (const idx of interactiveIndices) {
+    menuItems[idx].addEventListener('mouseenter', () => setFocus(idx));
+  }
+
   // Auto-focus first interactive item
   if (interactiveIndices.length) setFocus(interactiveIndices[0]);
 
