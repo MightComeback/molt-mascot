@@ -15,6 +15,11 @@ const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 let paddingOverride = null;
 let alignmentOverride = null;
 
+// Track whether the user has manually dragged the window.
+// If they have, skip automatic repositioning (display-metrics-changed, etc.)
+// until the next explicit alignment change resets this flag.
+let userDragged = false;
+
 function getPosition(display, width, height, alignOverride, paddingOverride) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
   const basePadding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
@@ -128,6 +133,24 @@ app.whenReady().then(async () => {
 
   let mainWin = createWindow();
 
+  // Detect manual drags: if the window moves and we didn't trigger it,
+  // mark as user-dragged so auto-reposition doesn't snap it back.
+  let repositioning = false;
+  // Wrap to set a guard flag during programmatic moves
+  const _reposition = repositionMainWindow;
+  repositionMainWindow = function(opts) {
+    repositioning = true;
+    _reposition(opts);
+    // Small delay to let the 'moved' event fire and be ignored
+    setTimeout(() => { repositioning = false; }, 100);
+  };
+
+  mainWin.on('moved', () => {
+    if (!repositioning) {
+      userDragged = true;
+    }
+  });
+
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
@@ -216,7 +239,7 @@ app.whenReady().then(async () => {
         click: () => {
           alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
           alignmentOverride = alignmentCycle[alignmentIndex];
-          repositionMainWindow();
+          repositionMainWindow({ force: true });
           rebuildTrayMenu();
         },
       },
@@ -296,7 +319,7 @@ app.whenReady().then(async () => {
     register('CommandOrControl+Shift+A', () => {
       alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
       alignmentOverride = alignmentCycle[alignmentIndex];
-      repositionMainWindow();
+      repositionMainWindow({ force: true });
       rebuildTrayMenu();
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: alignment → ${alignmentOverride}`);
@@ -352,12 +375,16 @@ app.whenReady().then(async () => {
     }
   });
 
-  function repositionMainWindow() {
+  function repositionMainWindow({ force = false } = {}) {
     if (!mainWin || mainWin.isDestroyed()) return;
+    // If the user dragged the window manually, don't snap it back
+    // unless this is an explicit alignment/padding change (force=true).
+    if (userDragged && !force) return;
     const display = screen.getPrimaryDisplay();
     const [width, height] = mainWin.getSize();
     const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
     mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
+    userDragged = false;
   }
 
   ipcMain.on('molt-mascot:set-alignment', (event, align) => {
@@ -365,7 +392,7 @@ app.whenReady().then(async () => {
     // to the env/default alignment.
     alignmentOverride = align;
 
-    repositionMainWindow();
+    repositionMainWindow({ force: true });
   });
 
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
@@ -381,7 +408,7 @@ app.whenReady().then(async () => {
     const v = Number(padding);
     if (!Number.isFinite(v) || v < 0) return;
     paddingOverride = v;
-    repositionMainWindow();
+    repositionMainWindow({ force: true });
   });
 
   // Keep the mascot pinned when display workArea changes (monitor attach/detach,
