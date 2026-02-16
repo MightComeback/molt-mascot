@@ -57,6 +57,8 @@ export function show(items, { x, y }) {
       const hintSpan = document.createElement('span');
       hintSpan.textContent = item.hint;
       hintSpan.className = 'ctx-hint';
+      // Expose keyboard shortcut to assistive technology
+      row.setAttribute('aria-keyshortcuts', item.hint);
       row.appendChild(hintSpan);
     }
     row.addEventListener('click', () => { cleanup(); item.action?.(); });

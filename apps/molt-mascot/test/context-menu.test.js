@@ -202,4 +202,16 @@ describe("context-menu", () => {
     expect(row._children[1].textContent).toBe("⌘⇧M");
     expect(row._children[1].className).toBe("ctx-hint");
   });
+
+  it("sets aria-keyshortcuts on items with hint text", () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "With Hint", hint: "⌘⇧M", action: () => {} },
+        { label: "No Hint", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    expect(menu._children[0]._attrs["aria-keyshortcuts"]).toBe("⌘⇧M");
+    expect(menu._children[1]._attrs["aria-keyshortcuts"]).toBeUndefined();
+  });
 });
