@@ -95,6 +95,11 @@ describe("utils", () => {
         "Traceback (most recent call last):\n  File \"main.py\", line 1\nValueError: bad input"
       )
     ).toBe("bad input");
+    // Log-level prefixes
+    expect(cleanErrorString("info: starting up")).toBe("starting up");
+    expect(cleanErrorString("debug: variable dump")).toBe("variable dump");
+    expect(cleanErrorString("trace: call stack")).toBe("call stack");
+    expect(cleanErrorString("warn: deprecation notice")).toBe("deprecation notice");
     // Custom error types
     expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
     // New channels

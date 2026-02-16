@@ -140,6 +140,11 @@ const ERROR_PREFIXES = [
   "panic",
   "uncaughtException",
   "Uncaught",
+  // Log-level prefixes (parity with renderer cleanErrorString)
+  "info",
+  "debug",
+  "trace",
+  "warn",
   // JavaScript/TypeScript built-in errors
   "TypeError",
   "ReferenceError",
