@@ -11,6 +11,17 @@ if (process.platform === 'win32') {
 
 const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 
+// Late-bound reference set once the window is created.
+let _mainWin = null;
+
+/**
+ * Run `fn(win)` only if the main window is alive.
+ * Eliminates 14+ `mainWin && !mainWin.isDestroyed()` guards scattered through the file.
+ */
+function withMainWin(fn) {
+  if (_mainWin && !_mainWin.isDestroyed()) return fn(_mainWin);
+}
+
 // Runtime overrides (can be pushed from the plugin via IPC)
 let paddingOverride = null;
 let alignmentOverride = null;
@@ -131,13 +142,13 @@ app.whenReady().then(async () => {
     return;
   }
 
-  let mainWin = createWindow();
+  _mainWin = createWindow();
 
   // Detect manual drags: if the window moves and we didn't trigger it,
   // mark as user-dragged so auto-reposition doesn't snap it back.
   let repositioning = false;
 
-  mainWin.on('moved', () => {
+  _mainWin.on('moved', () => {
     if (!repositioning) {
       userDragged = true;
     }
@@ -147,7 +158,7 @@ app.whenReady().then(async () => {
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
   let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH);
-  applyClickThrough(mainWin, clickThrough);
+  applyClickThrough(_mainWin, clickThrough);
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
@@ -188,14 +199,14 @@ app.whenReady().then(async () => {
       { label: `Molt Mascot v${require('../package.json').version}`, enabled: false },
       { type: 'separator' },
       {
-        label: mainWin && !mainWin.isDestroyed() && mainWin.isVisible() ? 'Hide Mascot' : 'Show Mascot',
+        label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
         accelerator: 'CommandOrControl+Shift+V',
         click: () => {
-          if (mainWin && !mainWin.isDestroyed()) {
-            if (mainWin.isVisible()) mainWin.hide();
-            else mainWin.show();
+          withMainWin((w) => {
+            if (w.isVisible()) w.hide();
+            else w.show();
             rebuildTrayMenu();
-          }
+          });
         },
       },
       {
@@ -205,10 +216,10 @@ app.whenReady().then(async () => {
         accelerator: 'CommandOrControl+Shift+M',
         click: () => {
           clickThrough = !clickThrough;
-          if (mainWin && !mainWin.isDestroyed()) {
-            applyClickThrough(mainWin, clickThrough);
-            mainWin.webContents.send('molt-mascot:click-through', clickThrough);
-          }
+          withMainWin((w) => {
+            applyClickThrough(w, clickThrough);
+            w.webContents.send('molt-mascot:click-through', clickThrough);
+          });
           rebuildTrayMenu();
         },
       },
@@ -219,9 +230,7 @@ app.whenReady().then(async () => {
         accelerator: 'CommandOrControl+Shift+H',
         click: () => {
           hideText = !hideText;
-          if (mainWin && !mainWin.isDestroyed()) {
-            mainWin.webContents.send('molt-mascot:hide-text', hideText);
-          }
+          withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
           rebuildTrayMenu();
         },
       },
@@ -240,22 +249,17 @@ app.whenReady().then(async () => {
         label: 'Reset State',
         accelerator: 'CommandOrControl+Shift+R',
         click: () => {
-          if (mainWin && !mainWin.isDestroyed()) {
-            mainWin.webContents.send('molt-mascot:reset');
-          }
+          withMainWin((w) => w.webContents.send('molt-mascot:reset'));
         },
       },
       {
         label: 'DevTools',
         accelerator: 'CommandOrControl+Shift+D',
         click: () => {
-          if (mainWin && !mainWin.isDestroyed()) {
-            if (mainWin.webContents.isDevToolsOpened()) {
-              mainWin.webContents.closeDevTools();
-            } else {
-              mainWin.webContents.openDevTools({ mode: 'detach' });
-            }
-          }
+          withMainWin((w) => {
+            if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
+            else w.webContents.openDevTools({ mode: 'detach' });
+          });
         },
       },
       { type: 'separator' },
@@ -267,9 +271,11 @@ app.whenReady().then(async () => {
   rebuildTrayMenu();
 
   // Apply initial state once loaded
-  mainWin.webContents.once('did-finish-load', () => {
-    if (hideText) mainWin.webContents.send('molt-mascot:hide-text', hideText);
-    if (clickThrough) mainWin.webContents.send('molt-mascot:click-through', clickThrough);
+  _mainWin.webContents.once('did-finish-load', () => {
+    withMainWin((w) => {
+      if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
+      if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
+    });
   });
 
   try {
@@ -281,10 +287,10 @@ app.whenReady().then(async () => {
 
     register('CommandOrControl+Shift+M', () => {
       clickThrough = !clickThrough;
-      if (mainWin && !mainWin.isDestroyed()) {
-        applyClickThrough(mainWin, clickThrough);
-        mainWin.webContents.send('molt-mascot:click-through', clickThrough);
-      }
+      withMainWin((w) => {
+        applyClickThrough(w, clickThrough);
+        w.webContents.send('molt-mascot:click-through', clickThrough);
+      });
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
       rebuildTrayMenu();
@@ -292,9 +298,7 @@ app.whenReady().then(async () => {
 
     register('CommandOrControl+Shift+H', () => {
       hideText = !hideText;
-      if (mainWin && !mainWin.isDestroyed()) {
-        mainWin.webContents.send('molt-mascot:hide-text', hideText);
-      }
+      withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: hide-text ${hideText ? 'ON' : 'OFF'}`);
       rebuildTrayMenu();
@@ -303,9 +307,7 @@ app.whenReady().then(async () => {
     register('CommandOrControl+Shift+R', () => {
       // eslint-disable-next-line no-console
       console.log('molt-mascot: reset triggered');
-      if (mainWin && !mainWin.isDestroyed()) {
-        mainWin.webContents.send('molt-mascot:reset');
-      }
+      withMainWin((w) => w.webContents.send('molt-mascot:reset'));
     });
 
     register('CommandOrControl+Shift+A', () => {
@@ -318,16 +320,13 @@ app.whenReady().then(async () => {
     });
 
     register('CommandOrControl+Shift+V', () => {
-      if (mainWin && !mainWin.isDestroyed()) {
-        if (mainWin.isVisible()) {
-          mainWin.hide();
-        } else {
-          mainWin.show();
-        }
+      withMainWin((w) => {
+        if (w.isVisible()) w.hide();
+        else w.show();
         rebuildTrayMenu();
         // eslint-disable-next-line no-console
-        console.log(`molt-mascot: visibility ${mainWin.isVisible() ? 'ON' : 'OFF'}`);
-      }
+        console.log(`molt-mascot: visibility ${w.isVisible() ? 'ON' : 'OFF'}`);
+      });
     });
 
     register('CommandOrControl+Alt+Q', () => {
@@ -337,15 +336,12 @@ app.whenReady().then(async () => {
     });
 
     register('CommandOrControl+Shift+D', () => {
-      if (mainWin && !mainWin.isDestroyed()) {
-        if (mainWin.webContents.isDevToolsOpened()) {
-          mainWin.webContents.closeDevTools();
-        } else {
-          mainWin.webContents.openDevTools({ mode: 'detach' });
-        }
+      withMainWin((w) => {
+        if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
+        else w.webContents.openDevTools({ mode: 'detach' });
         // eslint-disable-next-line no-console
         console.log('molt-mascot: devtools toggled');
-      }
+      });
     });
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
@@ -356,33 +352,32 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
     // `Boolean("false") === true`, so we need a more careful coercion here.
     clickThrough = (typeof enabled === 'boolean') ? enabled : isTruthyEnv(enabled);
-    if (mainWin && !mainWin.isDestroyed()) {
-      applyClickThrough(mainWin, clickThrough);
-      mainWin.webContents.send('molt-mascot:click-through', clickThrough);
-    }
+    withMainWin((w) => {
+      applyClickThrough(w, clickThrough);
+      w.webContents.send('molt-mascot:click-through', clickThrough);
+    });
   });
 
   ipcMain.on('molt-mascot:set-hide-text', (event, hidden) => {
     hideText = (typeof hidden === 'boolean') ? hidden : isTruthyEnv(hidden);
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('molt-mascot:hide-text', hideText);
-    }
+    withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
   });
 
   function repositionMainWindow({ force = false } = {}) {
-    if (!mainWin || mainWin.isDestroyed()) return;
-    // If the user dragged the window manually, don't snap it back
-    // unless this is an explicit alignment/padding change (force=true).
-    if (userDragged && !force) return;
-    const display = screen.getPrimaryDisplay();
-    const [width, height] = mainWin.getSize();
-    const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
-    // Guard flag so the 'moved' event doesn't mark this as a user drag.
-    repositioning = true;
-    mainWin.setPosition(Math.round(pos.x), Math.round(pos.y), true);
-    userDragged = false;
-    // Small delay to let the 'moved' event fire before clearing the guard.
-    setTimeout(() => { repositioning = false; }, 100);
+    withMainWin((w) => {
+      // If the user dragged the window manually, don't snap it back
+      // unless this is an explicit alignment/padding change (force=true).
+      if (userDragged && !force) return;
+      const display = screen.getPrimaryDisplay();
+      const [width, height] = w.getSize();
+      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
+      // Guard flag so the 'moved' event doesn't mark this as a user drag.
+      repositioning = true;
+      w.setPosition(Math.round(pos.x), Math.round(pos.y), true);
+      userDragged = false;
+      // Small delay to let the 'moved' event fire before clearing the guard.
+      setTimeout(() => { repositioning = false; }, 100);
+    });
   }
 
   ipcMain.on('molt-mascot:set-alignment', (event, align) => {
@@ -394,12 +389,10 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
-    if (mainWin && !mainWin.isDestroyed()) {
+    withMainWin((w) => {
       const v = Number(opacity);
-      if (Number.isFinite(v) && v >= 0 && v <= 1) {
-        mainWin.setOpacity(v);
-      }
-    }
+      if (Number.isFinite(v) && v >= 0 && v <= 1) w.setOpacity(v);
+    });
   });
 
   ipcMain.on('molt-mascot:set-padding', (event, padding) => {
@@ -419,8 +412,8 @@ app.whenReady().then(async () => {
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      mainWin = createWindow();
-      applyClickThrough(mainWin, clickThrough);
+      _mainWin = createWindow();
+      applyClickThrough(_mainWin, clickThrough);
     }
   });
 
