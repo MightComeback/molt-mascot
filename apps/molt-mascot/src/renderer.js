@@ -158,6 +158,9 @@ function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
   let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  if (currentMode === Mode.idle && duration > 30) {
+    label = 'Sleeping';
+  }
   if (currentMode === Mode.tool && currentTool) {
     label = truncate(currentTool, 24);
   }
