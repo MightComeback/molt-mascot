@@ -187,6 +187,15 @@ app.whenReady().then(async () => {
   tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
   // Alignment cycling order for Cmd+Shift+A shortcut
+  // Size presets for Cmd+Shift+Z cycling (label, width, height)
+  const sizeCycle = [
+    { label: 'small', width: 160, height: 140 },
+    { label: 'medium', width: 240, height: 200 },
+    { label: 'large', width: 360, height: 300 },
+  ];
+  // Start at current window size (default is medium)
+  let sizeIndex = 1;
+
   const alignmentCycle = [
     'bottom-right', 'bottom-left', 'top-right', 'top-left',
     'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
@@ -252,6 +261,19 @@ app.whenReady().then(async () => {
           alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
           alignmentOverride = alignmentCycle[alignmentIndex];
           repositionMainWindow({ force: true });
+          rebuildTrayMenu();
+        },
+      },
+      {
+        label: `Size: ${sizeCycle[sizeIndex].label} (${sizeCycle[sizeIndex].width}×${sizeCycle[sizeIndex].height})`,
+        accelerator: 'CommandOrControl+Shift+Z',
+        click: () => {
+          sizeIndex = (sizeIndex + 1) % sizeCycle.length;
+          const { width, height } = sizeCycle[sizeIndex];
+          withMainWin((w) => {
+            w.setSize(width, height, true);
+            repositionMainWindow({ force: true });
+          });
           rebuildTrayMenu();
         },
       },
@@ -362,6 +384,18 @@ app.whenReady().then(async () => {
       console.log('molt-mascot: snapped to position');
     });
 
+    register('CommandOrControl+Shift+Z', () => {
+      sizeIndex = (sizeIndex + 1) % sizeCycle.length;
+      const { width, height } = sizeCycle[sizeIndex];
+      withMainWin((w) => {
+        w.setSize(width, height, true);
+        repositionMainWindow({ force: true });
+      });
+      rebuildTrayMenu();
+      // eslint-disable-next-line no-console
+      console.log(`molt-mascot: size → ${sizeCycle[sizeIndex].label} (${width}×${height})`);
+    });
+
     register('CommandOrControl+Shift+D', () => {
       withMainWin((w) => {
         if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
@@ -431,6 +465,16 @@ app.whenReady().then(async () => {
     withMainWin((w) => {
       const v = Number(opacity);
       if (Number.isFinite(v) && v >= 0 && v <= 1) w.setOpacity(v);
+    });
+  });
+
+  ipcMain.on('molt-mascot:set-size', (event, size) => {
+    const w = Number(size?.width);
+    const h = Number(size?.height);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w < 80 || h < 80) return;
+    withMainWin((win) => {
+      win.setSize(Math.round(w), Math.round(h), true);
+      repositionMainWindow({ force: true });
     });
   });
 
