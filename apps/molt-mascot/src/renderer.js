@@ -665,6 +665,87 @@ pill.addEventListener('dblclick', () => {
   }).catch(() => {});
 });
 
+// Right-click context menu on pill for quick access to common actions
+pill.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+
+  // Remove any existing context menu
+  const existing = document.getElementById('molt-ctx');
+  if (existing) existing.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'molt-ctx';
+  Object.assign(menu.style, {
+    position: 'fixed',
+    left: `${Math.min(e.clientX, window.innerWidth - 140)}px`,
+    top: `${Math.min(e.clientY, window.innerHeight - 120)}px`,
+    background: 'rgba(20,20,20,0.9)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    borderRadius: '8px',
+    padding: '4px 0',
+    fontSize: '11px',
+    color: 'rgba(255,255,255,0.9)',
+    backdropFilter: 'blur(12px)',
+    zIndex: '9999',
+    minWidth: '120px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+  });
+
+  const items = [
+    { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, action: () => {
+      if (window.moltMascot?.setClickThrough) {
+        isClickThrough = !isClickThrough;
+        window.moltMascot.setClickThrough(isClickThrough);
+        syncPill();
+      }
+    }},
+    { label: `${isTextHidden ? '✓ ' : ''}Hide Text`, action: () => {
+      if (window.moltMascot?.setHideText) {
+        isTextHidden = !isTextHidden;
+        window.moltMascot.setHideText(isTextHidden);
+        updateHudVisibility();
+      }
+    }},
+    { label: 'Reset State', action: () => {
+      setMode(Mode.idle);
+      if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
+        pluginResetMethodIndex = 0;
+        pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+        const id = nextId('reset');
+        pluginResetReqId = id;
+        ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+      }
+    }},
+    { label: 'Copy Status', action: () => {
+      const text = pill.textContent || '';
+      if (text) navigator.clipboard.writeText(text).catch(() => {});
+    }},
+  ];
+
+  for (const item of items) {
+    const row = document.createElement('div');
+    row.textContent = item.label;
+    Object.assign(row.style, {
+      padding: '5px 12px',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+    });
+    row.addEventListener('mouseenter', () => { row.style.background = 'rgba(255,255,255,0.1)'; });
+    row.addEventListener('mouseleave', () => { row.style.background = 'transparent'; });
+    row.addEventListener('click', () => { menu.remove(); item.action(); });
+    menu.appendChild(row);
+  }
+
+  document.body.appendChild(menu);
+
+  // Dismiss on click outside
+  const dismiss = (ev) => {
+    if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', dismiss, true); }
+  };
+  // Use setTimeout so the current click cycle doesn't immediately dismiss
+  setTimeout(() => document.addEventListener('click', dismiss, true), 0);
+});
+
 // boot
 if (isCapture) {
   setup.hidden = true;
