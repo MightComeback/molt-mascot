@@ -1,7 +1,7 @@
 {
   "name": "@molt/mascot-plugin",
   "version": "0.1.35",
-  "description": "Clawdbot plugin for Molt Mascot (pixel mascot)",
+  "description": "OpenClaw plugin for Molt Mascot (pixel mascot)",
   "publishConfig": {
     "access": "public"
   },

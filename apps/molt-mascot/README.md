@@ -1,10 +1,10 @@
 # Molt Mascot 🦞
 
-A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.
+A tiny, always-on-top desktop mascot (pixel lobster) that reflects your local OpenClaw Gateway state.
 
 ## Overview
 
-Molt Mascot sits on your screen (usually bottom-right) and visually communicates what your Clawdbot agent is doing. It connects to the local Gateway over WebSocket; the companion plugin is optional but improves correctness and UX.
+Molt Mascot sits on your screen (usually bottom-right) and visually communicates what your OpenClaw agent is doing. It connects to the local Gateway over WebSocket; the companion plugin is optional but improves correctness and UX.
 
 ## States
 
@@ -20,7 +20,7 @@ This app is built with [Electron](https://www.electronjs.org/).
 ### Prerequisites
 
 - [Bun](https://bun.sh)
-- A running Clawdbot instance (for state updates)
+- A running OpenClaw instance (for state updates)
 
 ### Setup
 

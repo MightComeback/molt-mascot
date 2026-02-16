@@ -2,7 +2,7 @@
   "name": "@molt/mascot",
   "version": "0.1.36",
   "private": true,
-  "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local Clawdbot Gateway state.",
+  "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local OpenClaw Gateway state.",
   "author": "Might <might@example.com>",
   "license": "MIT",
   "repository": {

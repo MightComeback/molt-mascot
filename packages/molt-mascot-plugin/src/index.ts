@@ -207,7 +207,7 @@ const ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
-  // Clawdbot specific
+  // OpenClaw specific
   "cron:",
   "nodes:",
   // Domain-specific errors
@@ -470,7 +470,7 @@ export function summarizeToolResultMessage(msg: any): string {
  * and exposes the .state and .reset methods to the Gateway.
  */
 export default function register(api: PluginApi) {
-  // Prefer the validated per-plugin config injected by Clawdbot.
+  // Prefer the validated per-plugin config injected by OpenClaw.
   // Fallback: read from the global config using this plugin's id.
   // Robustness fix: also check common aliases because users often configure plugins
   // under a short name (e.g. "molt-mascot") even when the runtime id is canonical.

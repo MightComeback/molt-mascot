@@ -1,6 +1,6 @@
 # MightComeback/molt-mascot
 
-A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **Clawdbot** Gateway state: `idle` / `thinking` / `tool` / `error`.
+A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **OpenClaw** Gateway state: `idle` / `thinking` / `tool` / `error`.
 
 ## Screenshots
 
@@ -80,7 +80,7 @@ bun run mascot
 ## Project Structure
 
 - `apps/molt-mascot` (@molt/mascot): The Electron desktop app.
-- `packages/molt-mascot-plugin` (@molt/mascot-plugin): The optional Clawdbot server plugin.
+- `packages/molt-mascot-plugin` (@molt/mascot-plugin): The optional OpenClaw server plugin.
 - `tools/`: Dev scripts (WS dump, etc).
 
 ## Dev tools
@@ -107,7 +107,7 @@ bun run screenshots
 
 ## Plugin (optional)
 
-There’s a small Clawdbot plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
+There's a small OpenClaw plugin included (`packages/molt-mascot-plugin`) that exposes a simplified RPC method.
 
 Recommended (follows `pluginId.action`):
 - `@molt/mascot-plugin.state` → `{ ok: true, state: { mode, since, lastError?, currentTool?, alignment, clickThrough, hideText, padding, opacity } }`
@@ -130,7 +130,7 @@ Supported keys:
 - `opacity` (number): window opacity (0.0 - 1.0)
 - `padding` (number): screen edge padding
 
-(Loading plugins requires a Clawdbot config change + gateway restart; do it when you’re awake.)
+(Loading plugins requires an OpenClaw config change + gateway restart; do it when you're awake.)
 
 ## Troubleshooting
 
@@ -140,8 +140,8 @@ Supported keys:
     GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
     ```
     You should see at least one frame after connect; if you see auth/protocol errors, fix URL/token or override protocol bounds (`--min-protocol` / `--max-protocol`).
-- If the mascot connects but never leaves **idle**, confirm you’re on a recent Clawdbot build and that your Gateway is emitting agent/tool lifecycle events.
-- If you enabled the plugin but `@molt/mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your Clawdbot config (`plugins.entries.<id>`), and the runtime export (derived from `package.json` `name`, i.e. `export const id = pkg.name`). (The plugin also supports method aliases like `molt-mascot.state` / `moltMascot.state` if you have older configs.)
+- If the mascot connects but never leaves **idle**, confirm you're on a recent OpenClaw build and that your Gateway is emitting agent/tool lifecycle events.
+- If you enabled the plugin but `@molt/mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your OpenClaw config (`plugins.entries.<id>`), and the runtime export (derived from `package.json` `name`, i.e. `export const id = pkg.name`). (The plugin also supports method aliases like `molt-mascot.state` / `moltMascot.state` if you have older configs.)
 
 ## Develop
 
