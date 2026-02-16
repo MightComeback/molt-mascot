@@ -377,8 +377,12 @@ function connect(cfg) {
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
-      pill.textContent = 'connected';
-      setMode(Mode.idle);
+      // Brief "Connected ✓" flash so the user sees the handshake succeeded
+      // before we settle into idle mode and start polling the plugin.
+      pill.textContent = 'Connected ✓';
+      pill.className = 'pill--connected';
+      currentMode = Mode.idle;
+      modeSince = Date.now();
       // Optional: fetch plugin simplified state once.
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // If missing, we'll fall back through back-compat aliases.
