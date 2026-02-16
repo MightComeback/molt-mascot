@@ -244,6 +244,14 @@ app.whenReady().then(async () => {
           rebuildTrayMenu();
         },
       },
+      {
+        label: 'Snap to Position',
+        toolTip: 'Reset manual drag and snap back to the configured alignment corner',
+        click: () => {
+          userDragged = false;
+          repositionMainWindow({ force: true });
+        },
+      },
       { type: 'separator' },
       {
         label: 'Reset State',
