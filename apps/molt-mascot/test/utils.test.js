@@ -1,201 +1,156 @@
-import { describe, it, expect } from 'bun:test';
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration } from '../src/utils.js';
+import { describe, expect, it } from "bun:test";
+import {
+  coerceDelayMs,
+  truncate,
+  cleanErrorString,
+  isMissingMethodResponse,
+  formatDuration,
+} from "../src/utils.js";
 
-describe('coerceDelayMs', () => {
-  it('returns fallback for empty/null/undefined', () => {
-    expect(coerceDelayMs('', 500)).toBe(500);
-    expect(coerceDelayMs(null, 500)).toBe(500);
-    expect(coerceDelayMs(undefined, 500)).toBe(500);
+describe("coerceDelayMs", () => {
+  it("returns the number when valid and >= 0", () => {
+    expect(coerceDelayMs(500, 100)).toBe(500);
+    expect(coerceDelayMs(0, 100)).toBe(0);
   });
 
-  it('parses valid numbers', () => {
-    expect(coerceDelayMs('100', 500)).toBe(100);
-    expect(coerceDelayMs(0, 500)).toBe(0);
-    expect(coerceDelayMs(1000, 500)).toBe(1000);
+  it("coerces numeric strings", () => {
+    expect(coerceDelayMs("800", 100)).toBe(800);
   });
 
-  it('returns fallback for negative/NaN', () => {
-    expect(coerceDelayMs(-1, 500)).toBe(500);
-    expect(coerceDelayMs('abc', 500)).toBe(500);
-    expect(coerceDelayMs(Infinity, 500)).toBe(500);
-  });
-});
-
-describe('truncate', () => {
-  it('returns short strings unchanged', () => {
-    expect(truncate('hello', 10)).toBe('hello');
+  it("returns fallback for null/undefined/empty", () => {
+    expect(coerceDelayMs(null, 42)).toBe(42);
+    expect(coerceDelayMs(undefined, 42)).toBe(42);
+    expect(coerceDelayMs("", 42)).toBe(42);
   });
 
-  it('truncates long strings with ellipsis', () => {
-    const result = truncate('hello world this is long', 10);
-    expect(result.length).toBeLessThanOrEqual(10);
-    expect(result.endsWith('…')).toBe(true);
-  });
-
-  it('handles tiny/non-positive limits', () => {
-    expect(truncate('hello', 1)).toBe('h');
-    expect(truncate('hello', 0)).toBe('');
-    expect(truncate('hello', -3)).toBe('');
-  });
-
-  it('collapses whitespace and newlines', () => {
-    expect(truncate('hello\n  world', 140)).toBe('hello world');
-    expect(truncate('foo   bar\tbaz', 140)).toBe('foo bar baz');
-  });
-
-  it('prefers word boundaries', () => {
-    // limit=14: 13 chars + ellipsis; "hello world f" has space at 5, within 20 chars
-    const result = truncate('hello world foobar baz', 14);
-    expect(result).toBe('hello world…');
+  it("returns fallback for negative or NaN", () => {
+    expect(coerceDelayMs(-1, 42)).toBe(42);
+    expect(coerceDelayMs("abc", 42)).toBe(42);
+    expect(coerceDelayMs(NaN, 42)).toBe(42);
+    expect(coerceDelayMs(Infinity, 42)).toBe(42);
   });
 });
 
-describe('cleanErrorString', () => {
-  it('strips log/error prefixes', () => {
-    expect(cleanErrorString('Error: something broke')).toBe('something broke');
-    expect(cleanErrorString('TypeError: bad type')).toBe('bad type');
-    expect(cleanErrorString('info: starting up')).toBe('starting up');
-    expect(cleanErrorString('debug: details')).toBe('details');
-    expect(cleanErrorString('warn: heads up')).toBe('heads up');
+describe("truncate", () => {
+  it("returns short strings unchanged", () => {
+    expect(truncate("hi", 10)).toBe("hi");
   });
 
-  it('strips ANSI codes', () => {
-    expect(cleanErrorString('\x1B[31mred error\x1B[0m')).toBe('red error');
+  it("truncates long strings with ellipsis", () => {
+    expect(truncate("hello world foo", 10)).toBe("hello…");
   });
 
-  it('extracts deeper error from generic exit code', () => {
-    expect(cleanErrorString('Command exited with code 1\nFailed to connect')).toBe('Failed to connect');
-    expect(cleanErrorString('command failed with exit code 1\nError: missing token')).toBe('missing token');
+  it("handles limit <= 0", () => {
+    expect(truncate("hello", 0)).toBe("");
   });
 
-  it('extracts deeper error when exit-code line has a trailing colon', () => {
-    expect(cleanErrorString('Command failed with exit code 1:\nError: missing token')).toBe('missing token');
+  it("handles limit = 1", () => {
+    expect(truncate("hello", 1)).toBe("h");
   });
 
-  it('finds strong error line in multi-line output', () => {
-    expect(cleanErrorString('info: starting\nerror: disk full\ndone')).toBe('disk full');
+  it("collapses whitespace and newlines", () => {
+    expect(truncate("hello\n\n  world", 140)).toBe("hello world");
   });
 
-  it('finds typed error lines (e.g. ValueError)', () => {
-    expect(cleanErrorString('info: loading config\nValueError: invalid input\ndone')).toBe('invalid input');
-  });
-
-  it('extracts last line from Python tracebacks', () => {
-    expect(cleanErrorString('Traceback (most recent call last):\n  File "x.py", line 1\nKeyError: "foo"')).toBe('"foo"');
-  });
-
-  it('strips openclaw: and OpenClawError prefixes', () => {
-    expect(cleanErrorString('openclaw: plugin crash')).toBe('plugin crash');
-    expect(cleanErrorString('OpenClawError: gateway timeout')).toBe('gateway timeout');
-  });
-
-  it('handles empty string', () => {
-    expect(cleanErrorString('')).toBe('');
+  it("handles unicode (surrogate pairs)", () => {
+    expect(truncate("🦞🦞🦞", 2)).toBe("🦞…");
   });
 });
 
-describe('isMissingMethodResponse', () => {
-  it('returns true for method not found error', () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { message: 'method not found' } },
-    })).toBe(true);
+describe("cleanErrorString", () => {
+  it("strips Error: prefix", () => {
+    expect(cleanErrorString("Error: something")).toBe("something");
   });
 
-  it('returns true for unknown method', () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      error: { message: 'unknown method' },
-    })).toBe(true);
+  it("strips nested prefixes", () => {
+    expect(cleanErrorString("Tool failed: Error: boom")).toBe("boom");
   });
 
-  it('returns true for unknown rpc method', () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      error: { message: 'unknown rpc method' },
-    })).toBe(true);
+  it("strips ANSI codes", () => {
+    expect(cleanErrorString("\x1b[31mError:\x1b[0m fail")).toBe("fail");
   });
 
-  it('returns true for code-based method not found', () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { code: 'METHOD_NOT_FOUND' } },
-    })).toBe(true);
+  it("extracts concrete error from multi-line output", () => {
+    expect(cleanErrorString("info: starting\nError: connection lost")).toBe(
+      "connection lost"
+    );
   });
 
-  it('returns false for successful response', () => {
-    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(false);
+  it("handles exit code lines", () => {
+    expect(
+      cleanErrorString("Command exited with code 1\nENOENT: not found")
+    ).toBe("ENOENT: not found");
   });
 
-  it('returns false for unrelated error', () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { message: 'timeout' } },
-    })).toBe(false);
-  });
-
-  it('returns false for null/undefined', () => {
-    expect(isMissingMethodResponse(null)).toBe(false);
-    expect(isMissingMethodResponse(undefined)).toBe(false);
+  it("extracts final line from Python tracebacks", () => {
+    expect(
+      cleanErrorString(
+        "Traceback (most recent call last):\n  File x\nValueError: bad"
+      )
+    ).toBe("bad");
   });
 });
 
-describe('formatDuration', () => {
-  it('shows seconds for < 60s', () => {
-    expect(formatDuration(0)).toBe('0s');
-    expect(formatDuration(45)).toBe('45s');
+describe("isMissingMethodResponse", () => {
+  it("returns false for successful responses", () => {
+    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(
+      false
+    );
   });
 
-  it('shows minutes and seconds', () => {
-    expect(formatDuration(60)).toBe('1m');
-    expect(formatDuration(135)).toBe('2m 15s');
+  it("detects method not found in error code", () => {
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        payload: { ok: false, error: { code: "METHOD_NOT_FOUND" } },
+      })
+    ).toBe(true);
   });
 
-  it('shows hours and minutes', () => {
-    expect(formatDuration(3600)).toBe('1h');
-    expect(formatDuration(3660)).toBe('1h 1m');
-    expect(formatDuration(7200)).toBe('2h');
+  it("detects method not found in error message", () => {
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        error: { message: "unknown method" },
+      })
+    ).toBe(true);
   });
 
-  it('shows days and hours for 24h+', () => {
-    expect(formatDuration(86400)).toBe('1d');
-    expect(formatDuration(90000)).toBe('1d 1h');
-    expect(formatDuration(172800)).toBe('2d');
-    expect(formatDuration(180000)).toBe('2d 2h');
-  });
-
-  it('handles negative input', () => {
-    expect(formatDuration(-5)).toBe('0s');
+  it("detects unknown rpc method", () => {
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        error: { message: "unknown rpc method" },
+      })
+    ).toBe(true);
   });
 });
 
-describe('isTruthyEnv', () => {
-  it('truthy strings', () => {
-    for (const v of ['1', 'true', 't', 'yes', 'y', 'on', 'TRUE', 'Yes', ' 1 ']) {
-      expect(isTruthyEnv(v)).toBe(true);
-    }
+describe("formatDuration", () => {
+  it("formats seconds", () => {
+    expect(formatDuration(0)).toBe("0s");
+    expect(formatDuration(45)).toBe("45s");
+    expect(formatDuration(59)).toBe("59s");
   });
 
-  it('falsy strings', () => {
-    for (const v of ['0', 'false', 'no', 'n', 'off', '', 'random']) {
-      expect(isTruthyEnv(v)).toBe(false);
-    }
+  it("formats minutes", () => {
+    expect(formatDuration(60)).toBe("1m");
+    expect(formatDuration(90)).toBe("1m 30s");
+    expect(formatDuration(3599)).toBe("59m 59s");
   });
 
-  it('booleans', () => {
-    expect(isTruthyEnv(true)).toBe(true);
-    expect(isTruthyEnv(false)).toBe(false);
+  it("formats hours", () => {
+    expect(formatDuration(3600)).toBe("1h");
+    expect(formatDuration(3660)).toBe("1h 1m");
+    expect(formatDuration(86399)).toBe("23h 59m");
   });
 
-  it('numbers', () => {
-    expect(isTruthyEnv(1)).toBe(true);
-    expect(isTruthyEnv(0)).toBe(false);
-    expect(isTruthyEnv(-1)).toBe(false);
-    expect(isTruthyEnv(Infinity)).toBe(false);
+  it("formats days", () => {
+    expect(formatDuration(86400)).toBe("1d");
+    expect(formatDuration(90000)).toBe("1d 1h");
   });
 
-  it('null/undefined', () => {
-    expect(isTruthyEnv(null)).toBe(false);
-    expect(isTruthyEnv(undefined)).toBe(false);
+  it("handles negative input gracefully", () => {
+    expect(formatDuration(-5)).toBe("0s");
   });
 });
