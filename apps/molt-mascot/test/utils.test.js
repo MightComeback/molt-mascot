@@ -84,6 +84,11 @@ describe('cleanErrorString', () => {
     expect(cleanErrorString('Traceback (most recent call last):\n  File "x.py", line 1\nKeyError: "foo"')).toBe('"foo"');
   });
 
+  it('strips openclaw: and OpenClawError prefixes', () => {
+    expect(cleanErrorString('openclaw: plugin crash')).toBe('plugin crash');
+    expect(cleanErrorString('OpenClawError: gateway timeout')).toBe('gateway timeout');
+  });
+
   it('handles empty string', () => {
     expect(cleanErrorString('')).toBe('');
   });
