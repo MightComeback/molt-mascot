@@ -812,6 +812,9 @@ function stopAnimation() {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     stopAnimation();
+    // Dismiss any open context menu when the window is hidden (e.g. via ⌘⇧V toggle)
+    // to prevent stale menus lingering when the window reappears.
+    ctxMenu.dismiss();
   } else {
     startAnimation();
   }
