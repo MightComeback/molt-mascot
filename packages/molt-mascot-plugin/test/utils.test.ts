@@ -83,6 +83,8 @@ describe("utils", () => {
     expect(cleanErrorString("\u001b]8;;https://example.com\u0007Error: boom\u001b]8;;\u0007")).toBe("boom");
     // Exit code handling
     expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
+    // Trailing colon after exit code (some shells format this way)
+    expect(cleanErrorString("Command failed with exit code 1:\nError: missing token")).toBe("missing token");
 
     // Multi-line logs: prefer the first strong error line over noisy info
     expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
