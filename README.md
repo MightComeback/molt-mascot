@@ -75,6 +75,7 @@ bun run mascot
 | Cmd/Ctrl+Shift+A | Cycle alignment position |
 | Cmd/Ctrl+Shift+R | Reset state (force idle) |
 | Cmd/Ctrl+Shift+S | Snap to position (reset manual drag) |
+| Cmd/Ctrl+Shift+Z | Cycle window size (small → medium → large) |
 | Cmd/Ctrl+Shift+D | Toggle DevTools |
 | Cmd/Ctrl+Alt+Q | Quit application |
 
