@@ -72,16 +72,19 @@
         cursor: pointer;
       }
       #setup small { opacity: 0.85; display: block; margin-top: 6px; line-height: 1.2; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     </style>
   </head>
   <body>
     <div id="wrap">
       <div id="hud"><span id="pill" role="status" aria-live="polite" title="Status">Initializing...</span></div>
       <canvas id="c" width="96" height="96" role="img" aria-label="Molt Mascot pixel lobster"></canvas>
-      <form id="setup" hidden>
+      <form id="setup" hidden aria-label="Gateway connection settings">
         <div><b>Connect to OpenClaw Gateway</b></div>
-        <input id="url" placeholder="ws://127.0.0.1:18789" autofocus />
-        <input type="password" id="token" placeholder="token (optional)" autocomplete="off" />
+        <label for="url" class="sr-only">Gateway URL</label>
+        <input id="url" placeholder="ws://127.0.0.1:18789" aria-label="Gateway WebSocket URL" autofocus />
+        <label for="token" class="sr-only">Auth token</label>
+        <input type="password" id="token" placeholder="token (optional)" aria-label="Gateway auth token" autocomplete="off" />
         <button id="save" type="submit">Save + connect</button>
         <small>
           Tip: if your Gateway requires a token, set <code>gateway.auth.token</code> in OpenClaw config
