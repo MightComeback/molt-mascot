@@ -249,6 +249,51 @@ describe("context-menu", () => {
     expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
   });
 
+  it("Escape key dismisses the menu", async () => {
+    ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(document.body._children.length).toBe(1);
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    keyHandlers.forEach((fn) => fn({ key: "Escape", preventDefault() {} }));
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("Enter key activates focused item", async () => {
+    let activated = false;
+    const menu = ctxMenu.show(
+      [{ label: "Go", action: () => { activated = true; } }],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // First item is auto-focused on show
+    dispatch("Enter");
+    expect(activated).toBe(true);
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("ArrowUp wraps to last item from first", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "First", action: () => {} },
+        { label: "Second", action: () => {} },
+        { label: "Third", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Auto-focused on First; ArrowUp should wrap to Third
+    dispatch("ArrowUp");
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [
