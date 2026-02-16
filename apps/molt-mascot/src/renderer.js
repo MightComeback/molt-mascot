@@ -1,4 +1,5 @@
 import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration } from './utils.js';
+import * as ctxMenu from './context-menu.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -683,21 +684,10 @@ pill.addEventListener('dblclick', () => {
 pill.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 
-  // Remove any existing context menu
-  const existing = document.getElementById('molt-ctx');
-  if (existing) existing.remove();
-
-  const menu = document.createElement('div');
-  menu.id = 'molt-ctx';
-  menu.setAttribute('role', 'menu');
-  menu.setAttribute('aria-label', 'Mascot actions');
-  menu.style.left = `${Math.min(e.clientX, window.innerWidth - 140)}px`;
-  menu.style.top = `${Math.min(e.clientY, window.innerHeight - 120)}px`;
-
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
   const modKey = isMac ? '⌘' : 'Ctrl';
 
-  const items = [
+  ctxMenu.show([
     { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}⇧M`, action: () => {
       if (window.moltMascot?.setClickThrough) {
         isClickThrough = !isClickThrough;
@@ -737,104 +727,7 @@ pill.addEventListener('contextmenu', (e) => {
       if (window.moltMascot?.quit) window.moltMascot.quit();
       else window.close();
     }},
-  ];
-
-  for (const item of items) {
-    if (item.separator) {
-      const sep = document.createElement('div');
-      sep.dataset.separator = '';
-      sep.setAttribute('role', 'separator');
-      menu.appendChild(sep);
-      continue;
-    }
-    const row = document.createElement('div');
-    row.setAttribute('role', 'menuitem');
-    row.tabIndex = -1;
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = item.label;
-    row.appendChild(labelSpan);
-    if (item.hint) {
-      const hintSpan = document.createElement('span');
-      hintSpan.textContent = item.hint;
-      hintSpan.className = 'ctx-hint';
-      row.appendChild(hintSpan);
-    }
-    row.addEventListener('click', () => { menu.remove(); item.action(); });
-    menu.appendChild(row);
-  }
-
-  document.body.appendChild(menu);
-
-  // Keyboard navigation: arrow keys to move focus (skipping separators), Enter to activate
-  const menuItems = Array.from(menu.children);
-  let focusIdx = -1;
-
-  // Indices of interactive (non-separator) items
-  const interactiveIndices = menuItems
-    .map((el, i) => ({ el, i }))
-    .filter(({ el }) => el.dataset.separator === undefined)
-    .map(({ i }) => i);
-
-  const setFocus = (idx) => {
-    if (idx < 0 || idx >= menuItems.length) return;
-    // Clear previous highlight
-    if (focusIdx >= 0 && focusIdx < menuItems.length) {
-      menuItems[focusIdx].classList.remove('ctx-focus');
-    }
-    focusIdx = idx;
-    menuItems[focusIdx].classList.add('ctx-focus');
-  };
-
-  const focusNext = () => {
-    if (!interactiveIndices.length) return;
-    const cur = interactiveIndices.indexOf(focusIdx);
-    const next = cur < interactiveIndices.length - 1 ? cur + 1 : 0;
-    setFocus(interactiveIndices[next]);
-  };
-
-  const focusPrev = () => {
-    if (!interactiveIndices.length) return;
-    const cur = interactiveIndices.indexOf(focusIdx);
-    const prev = cur > 0 ? cur - 1 : interactiveIndices.length - 1;
-    setFocus(interactiveIndices[prev]);
-  };
-
-  // Dismiss on click outside or Escape key
-  const dismiss = (ev) => {
-    if (!menu.contains(ev.target)) { cleanup(); }
-  };
-  const onKey = (ev) => {
-    if (ev.key === 'Escape') { cleanup(); return; }
-    if (ev.key === 'ArrowDown') {
-      ev.preventDefault();
-      focusNext();
-      return;
-    }
-    if (ev.key === 'ArrowUp') {
-      ev.preventDefault();
-      focusPrev();
-      return;
-    }
-    if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
-      ev.preventDefault();
-      menuItems[focusIdx].click();
-    }
-  };
-  const cleanup = () => {
-    menu.remove();
-    document.removeEventListener('click', dismiss, true);
-    document.removeEventListener('keydown', onKey, true);
-    window.removeEventListener('blur', cleanup);
-  };
-  // Use setTimeout so the current click cycle doesn't immediately dismiss
-  setTimeout(() => {
-    document.addEventListener('click', dismiss, true);
-    document.addEventListener('keydown', onKey, true);
-    window.addEventListener('blur', cleanup);
-  }, 0);
-
-  // Auto-focus first interactive item so keyboard navigation is immediately usable
-  if (interactiveIndices.length) setFocus(interactiveIndices[0]);
+  ], { x: e.clientX, y: e.clientY });
 });
 
 // boot

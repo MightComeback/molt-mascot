@@ -1,0 +1,137 @@
+/**
+ * Context menu module for Molt Mascot.
+ * Extracted from renderer.js for maintainability and testability.
+ */
+
+/**
+ * @typedef {Object} MenuItem
+ * @property {string} [label]
+ * @property {string} [hint]
+ * @property {() => void} [action]
+ * @property {boolean} [separator]
+ */
+
+let activeMenu = null;
+let activeCleanup = null;
+
+/**
+ * Dismiss any currently open context menu.
+ */
+export function dismiss() {
+  if (activeCleanup) activeCleanup();
+}
+
+/**
+ * Show a context menu at the given coordinates.
+ * Automatically dismisses any previously open menu.
+ *
+ * @param {MenuItem[]} items - Menu items (use { separator: true } for dividers)
+ * @param {{ x: number, y: number }} position - Screen coordinates
+ * @returns {HTMLElement} The menu DOM element
+ */
+export function show(items, { x, y }) {
+  dismiss();
+
+  const menu = document.createElement('div');
+  menu.id = 'molt-ctx';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Mascot actions');
+  menu.style.left = `${Math.min(x, window.innerWidth - 140)}px`;
+  menu.style.top = `${Math.min(y, window.innerHeight - 120)}px`;
+
+  for (const item of items) {
+    if (item.separator) {
+      const sep = document.createElement('div');
+      sep.dataset.separator = '';
+      sep.setAttribute('role', 'separator');
+      menu.appendChild(sep);
+      continue;
+    }
+    const row = document.createElement('div');
+    row.setAttribute('role', 'menuitem');
+    row.tabIndex = -1;
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = item.label;
+    row.appendChild(labelSpan);
+    if (item.hint) {
+      const hintSpan = document.createElement('span');
+      hintSpan.textContent = item.hint;
+      hintSpan.className = 'ctx-hint';
+      row.appendChild(hintSpan);
+    }
+    row.addEventListener('click', () => { cleanup(); item.action?.(); });
+    menu.appendChild(row);
+  }
+
+  document.body.appendChild(menu);
+  activeMenu = menu;
+
+  // Keyboard navigation
+  const menuItems = Array.from(menu.children);
+  let focusIdx = -1;
+
+  const interactiveIndices = menuItems
+    .map((el, i) => ({ el, i }))
+    .filter(({ el }) => el.dataset.separator === undefined)
+    .map(({ i }) => i);
+
+  const setFocus = (idx) => {
+    if (idx < 0 || idx >= menuItems.length) return;
+    if (focusIdx >= 0 && focusIdx < menuItems.length) {
+      menuItems[focusIdx].classList.remove('ctx-focus');
+    }
+    focusIdx = idx;
+    menuItems[focusIdx].classList.add('ctx-focus');
+  };
+
+  const focusNext = () => {
+    if (!interactiveIndices.length) return;
+    const cur = interactiveIndices.indexOf(focusIdx);
+    const next = cur < interactiveIndices.length - 1 ? cur + 1 : 0;
+    setFocus(interactiveIndices[next]);
+  };
+
+  const focusPrev = () => {
+    if (!interactiveIndices.length) return;
+    const cur = interactiveIndices.indexOf(focusIdx);
+    const prev = cur > 0 ? cur - 1 : interactiveIndices.length - 1;
+    setFocus(interactiveIndices[prev]);
+  };
+
+  const onOutsideClick = (ev) => {
+    if (!menu.contains(ev.target)) cleanup();
+  };
+
+  const onKey = (ev) => {
+    if (ev.key === 'Escape') { cleanup(); return; }
+    if (ev.key === 'ArrowDown') { ev.preventDefault(); focusNext(); return; }
+    if (ev.key === 'ArrowUp') { ev.preventDefault(); focusPrev(); return; }
+    if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
+      ev.preventDefault();
+      menuItems[focusIdx].click();
+    }
+  };
+
+  function cleanup() {
+    menu.remove();
+    document.removeEventListener('click', onOutsideClick, true);
+    document.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('blur', cleanup);
+    activeMenu = null;
+    activeCleanup = null;
+  }
+
+  activeCleanup = cleanup;
+
+  // Defer listener registration so the triggering click doesn't immediately dismiss
+  setTimeout(() => {
+    document.addEventListener('click', onOutsideClick, true);
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('blur', cleanup);
+  }, 0);
+
+  // Auto-focus first interactive item
+  if (interactiveIndices.length) setFocus(interactiveIndices[0]);
+
+  return menu;
+}
