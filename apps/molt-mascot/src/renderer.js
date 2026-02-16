@@ -733,6 +733,7 @@ pill.addEventListener('contextmenu', (e) => {
   for (const item of items) {
     if (item.separator) {
       const sep = document.createElement('div');
+      sep.dataset.separator = '';
       Object.assign(sep.style, {
         height: '1px',
         margin: '4px 8px',
@@ -772,9 +773,15 @@ pill.addEventListener('contextmenu', (e) => {
 
   document.body.appendChild(menu);
 
-  // Keyboard navigation: arrow keys to move focus, Enter to activate
+  // Keyboard navigation: arrow keys to move focus (skipping separators), Enter to activate
   const menuItems = Array.from(menu.children);
   let focusIdx = -1;
+
+  // Indices of interactive (non-separator) items
+  const interactiveIndices = menuItems
+    .map((el, i) => ({ el, i }))
+    .filter(({ el }) => el.dataset.separator === undefined)
+    .map(({ i }) => i);
 
   const setFocus = (idx) => {
     if (idx < 0 || idx >= menuItems.length) return;
@@ -786,6 +793,20 @@ pill.addEventListener('contextmenu', (e) => {
     menuItems[focusIdx].style.background = 'rgba(255,255,255,0.1)';
   };
 
+  const focusNext = () => {
+    if (!interactiveIndices.length) return;
+    const cur = interactiveIndices.indexOf(focusIdx);
+    const next = cur < interactiveIndices.length - 1 ? cur + 1 : 0;
+    setFocus(interactiveIndices[next]);
+  };
+
+  const focusPrev = () => {
+    if (!interactiveIndices.length) return;
+    const cur = interactiveIndices.indexOf(focusIdx);
+    const prev = cur > 0 ? cur - 1 : interactiveIndices.length - 1;
+    setFocus(interactiveIndices[prev]);
+  };
+
   // Dismiss on click outside or Escape key
   const dismiss = (ev) => {
     if (!menu.contains(ev.target)) { cleanup(); }
@@ -794,12 +815,12 @@ pill.addEventListener('contextmenu', (e) => {
     if (ev.key === 'Escape') { cleanup(); return; }
     if (ev.key === 'ArrowDown') {
       ev.preventDefault();
-      setFocus(focusIdx < menuItems.length - 1 ? focusIdx + 1 : 0);
+      focusNext();
       return;
     }
     if (ev.key === 'ArrowUp') {
       ev.preventDefault();
-      setFocus(focusIdx > 0 ? focusIdx - 1 : menuItems.length - 1);
+      focusPrev();
       return;
     }
     if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
@@ -820,8 +841,8 @@ pill.addEventListener('contextmenu', (e) => {
     window.addEventListener('blur', cleanup);
   }, 0);
 
-  // Auto-focus first item so keyboard navigation is immediately usable
-  setFocus(0);
+  // Auto-focus first interactive item so keyboard navigation is immediately usable
+  if (interactiveIndices.length) setFocus(interactiveIndices[0]);
 });
 
 // boot
