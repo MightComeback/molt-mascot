@@ -691,22 +691,25 @@ pill.addEventListener('contextmenu', (e) => {
     boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
   });
 
+  const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
+  const modKey = isMac ? '⌘' : 'Ctrl';
+
   const items = [
-    { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, action: () => {
+    { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}⇧M`, action: () => {
       if (window.moltMascot?.setClickThrough) {
         isClickThrough = !isClickThrough;
         window.moltMascot.setClickThrough(isClickThrough);
         syncPill();
       }
     }},
-    { label: `${isTextHidden ? '✓ ' : ''}Hide Text`, action: () => {
+    { label: `${isTextHidden ? '✓ ' : ''}Hide Text`, hint: `${modKey}⇧H`, action: () => {
       if (window.moltMascot?.setHideText) {
         isTextHidden = !isTextHidden;
         window.moltMascot.setHideText(isTextHidden);
         updateHudVisibility();
       }
     }},
-    { label: 'Reset State', action: () => {
+    { label: 'Reset State', hint: `${modKey}⇧R`, action: () => {
       setMode(Mode.idle);
       if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
         pluginResetMethodIndex = 0;
@@ -724,12 +727,28 @@ pill.addEventListener('contextmenu', (e) => {
 
   for (const item of items) {
     const row = document.createElement('div');
-    row.textContent = item.label;
     Object.assign(row.style, {
       padding: '5px 12px',
       cursor: 'pointer',
       whiteSpace: 'nowrap',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: '12px',
     });
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = item.label;
+    row.appendChild(labelSpan);
+    if (item.hint) {
+      const hintSpan = document.createElement('span');
+      hintSpan.textContent = item.hint;
+      Object.assign(hintSpan.style, {
+        opacity: '0.45',
+        fontSize: '10px',
+        flexShrink: '0',
+      });
+      row.appendChild(hintSpan);
+    }
     row.addEventListener('mouseenter', () => { row.style.background = 'rgba(255,255,255,0.1)'; });
     row.addEventListener('mouseleave', () => { row.style.background = 'transparent'; });
     row.addEventListener('click', () => { menu.remove(); item.action(); });
