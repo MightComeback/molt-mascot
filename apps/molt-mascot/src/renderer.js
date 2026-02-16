@@ -691,21 +691,8 @@ pill.addEventListener('contextmenu', (e) => {
   menu.id = 'molt-ctx';
   menu.setAttribute('role', 'menu');
   menu.setAttribute('aria-label', 'Mascot actions');
-  Object.assign(menu.style, {
-    position: 'fixed',
-    left: `${Math.min(e.clientX, window.innerWidth - 140)}px`,
-    top: `${Math.min(e.clientY, window.innerHeight - 120)}px`,
-    background: 'rgba(20,20,20,0.9)',
-    border: '1px solid rgba(255,255,255,0.15)',
-    borderRadius: '8px',
-    padding: '4px 0',
-    fontSize: '11px',
-    color: 'rgba(255,255,255,0.9)',
-    backdropFilter: 'blur(12px)',
-    zIndex: '9999',
-    minWidth: '120px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-  });
+  menu.style.left = `${Math.min(e.clientX, window.innerWidth - 140)}px`;
+  menu.style.top = `${Math.min(e.clientY, window.innerHeight - 120)}px`;
 
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
   const modKey = isMac ? '⌘' : 'Ctrl';
@@ -757,41 +744,21 @@ pill.addEventListener('contextmenu', (e) => {
       const sep = document.createElement('div');
       sep.dataset.separator = '';
       sep.setAttribute('role', 'separator');
-      Object.assign(sep.style, {
-        height: '1px',
-        margin: '4px 8px',
-        background: 'rgba(255,255,255,0.1)',
-      });
       menu.appendChild(sep);
       continue;
     }
     const row = document.createElement('div');
     row.setAttribute('role', 'menuitem');
     row.tabIndex = -1;
-    Object.assign(row.style, {
-      padding: '5px 12px',
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: '12px',
-    });
     const labelSpan = document.createElement('span');
     labelSpan.textContent = item.label;
     row.appendChild(labelSpan);
     if (item.hint) {
       const hintSpan = document.createElement('span');
       hintSpan.textContent = item.hint;
-      Object.assign(hintSpan.style, {
-        opacity: '0.45',
-        fontSize: '10px',
-        flexShrink: '0',
-      });
+      hintSpan.className = 'ctx-hint';
       row.appendChild(hintSpan);
     }
-    row.addEventListener('mouseenter', () => { row.style.background = 'rgba(255,255,255,0.1)'; });
-    row.addEventListener('mouseleave', () => { row.style.background = 'transparent'; });
     row.addEventListener('click', () => { menu.remove(); item.action(); });
     menu.appendChild(row);
   }
@@ -812,10 +779,10 @@ pill.addEventListener('contextmenu', (e) => {
     if (idx < 0 || idx >= menuItems.length) return;
     // Clear previous highlight
     if (focusIdx >= 0 && focusIdx < menuItems.length) {
-      menuItems[focusIdx].style.background = 'transparent';
+      menuItems[focusIdx].classList.remove('ctx-focus');
     }
     focusIdx = idx;
-    menuItems[focusIdx].style.background = 'rgba(255,255,255,0.1)';
+    menuItems[focusIdx].classList.add('ctx-focus');
   };
 
   const focusNext = () => {
