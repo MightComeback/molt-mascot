@@ -675,6 +675,8 @@ pill.addEventListener('contextmenu', (e) => {
 
   const menu = document.createElement('div');
   menu.id = 'molt-ctx';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Mascot actions');
   Object.assign(menu.style, {
     position: 'fixed',
     left: `${Math.min(e.clientX, window.innerWidth - 140)}px`,
@@ -734,6 +736,7 @@ pill.addEventListener('contextmenu', (e) => {
     if (item.separator) {
       const sep = document.createElement('div');
       sep.dataset.separator = '';
+      sep.setAttribute('role', 'separator');
       Object.assign(sep.style, {
         height: '1px',
         margin: '4px 8px',
@@ -743,6 +746,8 @@ pill.addEventListener('contextmenu', (e) => {
       continue;
     }
     const row = document.createElement('div');
+    row.setAttribute('role', 'menuitem');
+    row.tabIndex = -1;
     Object.assign(row.style, {
       padding: '5px 12px',
       cursor: 'pointer',
