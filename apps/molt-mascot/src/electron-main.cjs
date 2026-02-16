@@ -215,19 +215,31 @@ app.whenReady().then(async () => {
     w: [0xf8, 0xf7, 0xff, 0xff],
     b: [0x10, 0x10, 0x14, 0xff],
   };
-  const trayCanvas = Buffer.alloc(16 * 16 * 4);
-  for (let row = 0; row < 16; row++) {
-    for (let col = 0; col < 16; col++) {
-      const ch = traySprite[row][col] || '.';
-      const [r, g, b, a] = trayColors[ch] || trayColors['.'];
-      const off = (row * 16 + col) * 4;
-      trayCanvas[off] = r;
-      trayCanvas[off + 1] = g;
-      trayCanvas[off + 2] = b;
-      trayCanvas[off + 3] = a;
+  // Render the tray sprite at a given scale (1x = 16px, 2x = 32px for Retina).
+  function renderTraySprite(scale) {
+    const size = 16 * scale;
+    const buf = Buffer.alloc(size * size * 4);
+    for (let row = 0; row < 16; row++) {
+      for (let col = 0; col < 16; col++) {
+        const ch = traySprite[row][col] || '.';
+        const [r, g, b, a] = trayColors[ch] || trayColors['.'];
+        for (let dy = 0; dy < scale; dy++) {
+          for (let dx = 0; dx < scale; dx++) {
+            const off = ((row * scale + dy) * size + (col * scale + dx)) * 4;
+            buf[off] = r;
+            buf[off + 1] = g;
+            buf[off + 2] = b;
+            buf[off + 3] = a;
+          }
+        }
+      }
     }
+    return buf;
   }
-  const trayIcon = nativeImage.createFromBuffer(trayCanvas, { width: 16, height: 16 });
+
+  // Build a multi-resolution tray icon: 16px @1x + 32px @2x for crisp Retina rendering.
+  const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
+  trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
   let tray = new Tray(trayIcon);
   tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
