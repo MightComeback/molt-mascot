@@ -207,6 +207,9 @@ function syncPill() {
   if (connectedUrl) {
     tip += ` · ${connectedUrl}`;
   }
+  if (reconnectAttempt > 0 && !connectedSince) {
+    tip += ` · retry #${reconnectAttempt}`;
+  }
   const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
   pill.title = tip + ver;
   updateHudVisibility();
@@ -640,7 +643,10 @@ function connect(cfg) {
   };
 
   ws.addEventListener('error', () => {
-    lastErrorMessage = 'WebSocket error';
+    // Only set generic message if we don't already have a more specific error
+    // (e.g. auth failure from the connect handshake). The 'error' event fires
+    // before 'close', so blindly overwriting loses useful context.
+    if (!lastErrorMessage) lastErrorMessage = 'WebSocket error';
     setMode(Mode.error);
 
     // Mirror the native error hold behavior: don't let a transient WS error
