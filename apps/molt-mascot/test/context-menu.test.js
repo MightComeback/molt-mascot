@@ -19,6 +19,11 @@ function makeElement(tag) {
     textContent: "",
     className: "",
     style: {},
+    getBoundingClientRect() {
+      // Approximate: 140×(children * 28) or fallback
+      const itemCount = Math.max(1, el._children.length);
+      return { width: 140, height: itemCount * 28, top: 0, left: 0, right: 140, bottom: itemCount * 28 };
+    },
     classList: {
       add(c) { el._classes.add(c); },
       remove(c) { el._classes.delete(c); },
@@ -292,6 +297,28 @@ describe("context-menu", () => {
     dispatch("ArrowUp");
     expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
     expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
+  });
+
+  it("clamps menu position using getBoundingClientRect dimensions", () => {
+    globalThis.innerWidth = 160;
+    globalThis.innerHeight = 100;
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 500, y: 500 }
+    );
+    const left = parseInt(menu.style.left);
+    const top = parseInt(menu.style.top);
+    // Menu should be clamped so it doesn't overflow the viewport
+    // innerWidth(160) - menuWidth(140) = 20 max left
+    expect(left).toBeLessThanOrEqual(20);
+    expect(left).toBeGreaterThanOrEqual(0);
+    // innerHeight(100) - menuHeight(3*28=84) = 16 max top
+    expect(top).toBeLessThanOrEqual(16);
+    expect(top).toBeGreaterThanOrEqual(0);
   });
 
   it("sets aria-keyshortcuts on items with hint text", () => {
