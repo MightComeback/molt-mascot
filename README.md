@@ -48,6 +48,8 @@ bun run mascot
 - **Quit application**: **Cmd/Ctrl+Option+Q** (the dock icon is hidden on macOS)
 - **Hide Text** (pixel-only mode): set `MOLT_MASCOT_HIDE_TEXT=1` (or legacy `MOLT_MASCOT_HIDETEXT=1`) to hide the status pill/HUD.
   - Toggle at runtime with **Cmd/Ctrl+Shift+H**
+- **Show/Hide Mascot**: **Cmd/Ctrl+Shift+V** (toggle window visibility)
+- **Cycle Alignment**: **Cmd/Ctrl+Shift+A** (cycle through all 9 alignment positions)
 - **Reset State**: **Cmd/Ctrl+Shift+R** (force idle/clear error)
 - **DevTools**: **Cmd/Ctrl+Shift+D** (toggle detached DevTools for debugging WS frames)
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
@@ -60,6 +62,20 @@ bun run mascot
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `CLAWDBOT_GATEWAY_URL` / `CLAWDBOT_GATEWAY_TOKEN`)
+- **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
+- **Double-click pill**: Copies the current status text to clipboard
+
+### Keyboard shortcuts summary
+
+| Shortcut | Action |
+|---|---|
+| Cmd/Ctrl+Shift+M | Toggle ghost mode (click-through) |
+| Cmd/Ctrl+Shift+H | Toggle hide text |
+| Cmd/Ctrl+Shift+V | Show/hide mascot window |
+| Cmd/Ctrl+Shift+A | Cycle alignment position |
+| Cmd/Ctrl+Shift+R | Reset state (force idle) |
+| Cmd/Ctrl+Shift+D | Toggle DevTools |
+| Cmd/Ctrl+Alt+Q | Quit application |
 
 ## Project Structure
 
