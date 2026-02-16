@@ -625,6 +625,17 @@ function connect(cfg) {
 // Clear validation error as user types (prevents sticky custom validity)
 urlInput.addEventListener('input', () => urlInput.setCustomValidity(''));
 
+// ESC dismisses the setup form if we have a saved config (reconnect with existing creds)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !setup.hidden) {
+    const cfg = loadCfg();
+    if (cfg?.url) {
+      setup.hidden = true;
+      connect(cfg);
+    }
+  }
+});
+
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
   const url = urlInput.value.trim();

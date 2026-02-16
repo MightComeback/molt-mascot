@@ -99,6 +99,7 @@
         background: rgba(255,255,255,0.08);
       }
       #setup small { opacity: 0.85; display: block; margin-top: 6px; line-height: 1.2; }
+      kbd { font-family: ui-monospace, monospace; font-size: 0.9em; padding: 1px 4px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
       /* Context menu */
       #molt-ctx {
@@ -153,6 +154,7 @@
         <small>
           Tip: if your Gateway requires a token, set <code>gateway.auth.token</code> in OpenClaw config
           (or start with <code>--token</code>), then paste it here.
+          Press <kbd>Esc</kbd> to dismiss and reconnect with saved credentials.
         </small>
       </form>
     </div>
