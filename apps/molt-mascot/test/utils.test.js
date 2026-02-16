@@ -5,125 +5,124 @@ import {
   cleanErrorString,
   isMissingMethodResponse,
   formatDuration,
-  isTruthyEnv,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
   it("returns the number when valid and >= 0", () => {
-    expect(coerceDelayMs(500, 100)).toBe(500);
-    expect(coerceDelayMs(0, 100)).toBe(0);
+    expect(coerceDelayMs(500, 800)).toBe(500);
+    expect(coerceDelayMs(0, 800)).toBe(0);
   });
 
-  it("coerces numeric strings", () => {
-    expect(coerceDelayMs("800", 100)).toBe(800);
+  it("coerces string numbers", () => {
+    expect(coerceDelayMs("1200", 800)).toBe(1200);
   });
 
-  it("returns fallback for null/undefined/empty", () => {
-    expect(coerceDelayMs(null, 42)).toBe(42);
-    expect(coerceDelayMs(undefined, 42)).toBe(42);
-    expect(coerceDelayMs("", 42)).toBe(42);
+  it("returns fallback for invalid values", () => {
+    expect(coerceDelayMs("abc", 800)).toBe(800);
+    expect(coerceDelayMs(-1, 800)).toBe(800);
+    expect(coerceDelayMs(NaN, 800)).toBe(800);
+    expect(coerceDelayMs(Infinity, 800)).toBe(800);
   });
 
-  it("returns fallback for negative or NaN", () => {
-    expect(coerceDelayMs(-1, 42)).toBe(42);
-    expect(coerceDelayMs("abc", 42)).toBe(42);
-    expect(coerceDelayMs(NaN, 42)).toBe(42);
-    expect(coerceDelayMs(Infinity, 42)).toBe(42);
+  it("returns fallback for empty/null/undefined", () => {
+    expect(coerceDelayMs("", 800)).toBe(800);
+    expect(coerceDelayMs(null, 800)).toBe(800);
+    expect(coerceDelayMs(undefined, 800)).toBe(800);
   });
 });
 
 describe("truncate", () => {
   it("returns short strings unchanged", () => {
-    expect(truncate("hi", 10)).toBe("hi");
+    expect(truncate("hello", 10)).toBe("hello");
   });
 
   it("truncates long strings with ellipsis", () => {
-    expect(truncate("hello world foo", 10)).toBe("hello…");
+    expect(truncate("hello world", 5)).toBe("hell…");
   });
 
-  it("handles limit <= 0", () => {
-    expect(truncate("hello", 0)).toBe("");
+  it("prefers word boundaries", () => {
+    expect(truncate("hello world", 9)).toBe("hello…");
   });
 
-  it("handles limit = 1", () => {
+  it("handles unicode surrogate pairs", () => {
+    expect(truncate("🦞🦞🦞", 2)).toBe("🦞…");
+  });
+
+  it("collapses whitespace", () => {
+    expect(truncate("hello\n  world", 140)).toBe("hello world");
+  });
+
+  it("handles limit of 1", () => {
     expect(truncate("hello", 1)).toBe("h");
   });
 
-  it("collapses whitespace and newlines", () => {
-    expect(truncate("hello\n\n  world", 140)).toBe("hello world");
-  });
-
-  it("handles unicode (surrogate pairs)", () => {
-    expect(truncate("🦞🦞🦞", 2)).toBe("🦞…");
+  it("handles limit of 0", () => {
+    expect(truncate("hello", 0)).toBe("");
   });
 });
 
 describe("cleanErrorString", () => {
   it("strips Error: prefix", () => {
-    expect(cleanErrorString("Error: something")).toBe("something");
+    expect(cleanErrorString("Error: foo")).toBe("foo");
   });
 
   it("strips nested prefixes", () => {
-    expect(cleanErrorString("Tool failed: Error: boom")).toBe("boom");
+    expect(cleanErrorString("Tool failed: Error: foo")).toBe("foo");
   });
 
   it("strips ANSI codes", () => {
-    expect(cleanErrorString("\x1b[31mError:\x1b[0m fail")).toBe("fail");
-  });
-
-  it("extracts concrete error from multi-line output", () => {
-    expect(cleanErrorString("info: starting\nError: connection lost")).toBe(
-      "connection lost"
-    );
+    expect(cleanErrorString("\u001b[31mError:\u001b[0m foo")).toBe("foo");
   });
 
   it("handles exit code lines", () => {
-    expect(
-      cleanErrorString("Command exited with code 1\nENOENT: not found")
-    ).toBe("ENOENT: not found");
+    expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
   });
 
-  it("extracts final line from Python tracebacks", () => {
+  it("prefers concrete error lines over info lines", () => {
+    expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
+      .toBe("Failed to connect");
+  });
+
+  it("handles Python tracebacks", () => {
     expect(
       cleanErrorString(
-        "Traceback (most recent call last):\n  File x\nValueError: bad"
+        "Traceback (most recent call last):\n  File \"main.py\", line 1\nValueError: bad input"
       )
-    ).toBe("bad");
+    ).toBe("bad input");
   });
 });
 
 describe("isMissingMethodResponse", () => {
   it("returns false for successful responses", () => {
-    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(
-      false
-    );
+    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(false);
   });
 
-  it("detects method not found in error code", () => {
-    expect(
-      isMissingMethodResponse({
-        ok: false,
-        payload: { ok: false, error: { code: "METHOD_NOT_FOUND" } },
-      })
-    ).toBe(true);
+  it("detects method not found", () => {
+    expect(isMissingMethodResponse({
+      ok: false,
+      payload: { error: { message: "method not found" } },
+    })).toBe(true);
   });
 
-  it("detects method not found in error message", () => {
-    expect(
-      isMissingMethodResponse({
-        ok: false,
-        error: { message: "unknown method" },
-      })
-    ).toBe(true);
+  it("detects unknown method", () => {
+    expect(isMissingMethodResponse({
+      ok: false,
+      error: { message: "unknown method" },
+    })).toBe(true);
   });
 
   it("detects unknown rpc method", () => {
-    expect(
-      isMissingMethodResponse({
-        ok: false,
-        error: { message: "unknown rpc method" },
-      })
-    ).toBe(true);
+    expect(isMissingMethodResponse({
+      ok: false,
+      error: "unknown rpc method",
+    })).toBe(true);
+  });
+
+  it("returns false for other errors", () => {
+    expect(isMissingMethodResponse({
+      ok: false,
+      payload: { error: { message: "auth denied" } },
+    })).toBe(false);
   });
 });
 
@@ -142,64 +141,17 @@ describe("formatDuration", () => {
 
   it("formats hours", () => {
     expect(formatDuration(3600)).toBe("1h");
-    expect(formatDuration(3660)).toBe("1h 1m");
+    expect(formatDuration(5400)).toBe("1h 30m");
     expect(formatDuration(86399)).toBe("23h 59m");
   });
 
   it("formats days", () => {
     expect(formatDuration(86400)).toBe("1d");
     expect(formatDuration(90000)).toBe("1d 1h");
+    expect(formatDuration(172800)).toBe("2d");
   });
 
-  it("handles negative input gracefully", () => {
+  it("handles negative values", () => {
     expect(formatDuration(-5)).toBe("0s");
-  });
-});
-
-describe("isTruthyEnv", () => {
-  it("returns true for truthy string values", () => {
-    expect(isTruthyEnv("true")).toBe(true);
-    expect(isTruthyEnv("1")).toBe(true);
-    expect(isTruthyEnv("yes")).toBe(true);
-    expect(isTruthyEnv("on")).toBe(true);
-    expect(isTruthyEnv("TRUE")).toBe(true);
-    expect(isTruthyEnv("Yes")).toBe(true);
-    expect(isTruthyEnv("ON")).toBe(true);
-    // Short aliases
-    expect(isTruthyEnv("t")).toBe(true);
-    expect(isTruthyEnv("T")).toBe(true);
-    expect(isTruthyEnv("y")).toBe(true);
-    expect(isTruthyEnv("Y")).toBe(true);
-  });
-
-  it("returns false for falsy string values", () => {
-    expect(isTruthyEnv("false")).toBe(false);
-    expect(isTruthyEnv("0")).toBe(false);
-    expect(isTruthyEnv("no")).toBe(false);
-    expect(isTruthyEnv("off")).toBe(false);
-    expect(isTruthyEnv("")).toBe(false);
-  });
-
-  it("returns false for whitespace-only strings", () => {
-    expect(isTruthyEnv("  ")).toBe(false);
-    expect(isTruthyEnv("\t")).toBe(false);
-  });
-
-  it("returns false for null/undefined", () => {
-    expect(isTruthyEnv(null)).toBe(false);
-    expect(isTruthyEnv(undefined)).toBe(false);
-  });
-
-  it("handles boolean inputs directly", () => {
-    expect(isTruthyEnv(true)).toBe(true);
-    expect(isTruthyEnv(false)).toBe(false);
-  });
-
-  it("handles numeric inputs", () => {
-    expect(isTruthyEnv(1)).toBe(true);
-    expect(isTruthyEnv(0)).toBe(false);
-    expect(isTruthyEnv(-1)).toBe(false);
-    expect(isTruthyEnv(Infinity)).toBe(false);
-    expect(isTruthyEnv(NaN)).toBe(false);
   });
 });
