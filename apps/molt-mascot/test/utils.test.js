@@ -198,5 +198,8 @@ describe("isTruthyEnv", () => {
   it("handles numeric inputs", () => {
     expect(isTruthyEnv(1)).toBe(true);
     expect(isTruthyEnv(0)).toBe(false);
+    expect(isTruthyEnv(-1)).toBe(false);
+    expect(isTruthyEnv(Infinity)).toBe(false);
+    expect(isTruthyEnv(NaN)).toBe(false);
   });
 });
