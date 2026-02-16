@@ -51,6 +51,10 @@ export function show(items, { x, y }) {
     const row = document.createElement('div');
     row.setAttribute('role', 'menuitem');
     row.tabIndex = -1;
+    if (item.disabled) {
+      row.setAttribute('aria-disabled', 'true');
+      row.dataset.disabled = '';
+    }
     const labelSpan = document.createElement('span');
     labelSpan.textContent = item.label;
     row.appendChild(labelSpan);
@@ -62,7 +66,7 @@ export function show(items, { x, y }) {
       row.setAttribute('aria-keyshortcuts', item.hint);
       row.appendChild(hintSpan);
     }
-    row.addEventListener('click', () => { cleanup(); item.action?.(); });
+    row.addEventListener('click', () => { if (item.disabled) return; cleanup(); item.action?.(); });
     menu.appendChild(row);
   }
 
@@ -85,7 +89,7 @@ export function show(items, { x, y }) {
 
   const interactiveIndices = menuItems
     .map((el, i) => ({ el, i }))
-    .filter(({ el }) => el.dataset.separator === undefined)
+    .filter(({ el }) => el.dataset.separator === undefined && el.dataset.disabled === undefined)
     .map(({ i }) => i);
 
   const setFocus = (idx) => {

@@ -414,6 +414,49 @@ describe("context-menu", () => {
     expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
   });
 
+  it("disabled items are skipped by keyboard navigation", async () => {
+    let called = false;
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Disabled", disabled: true, action: () => { called = true; } },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // ArrowDown from Alpha should skip Disabled and land on Gamma
+    dispatch("ArrowDown");
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(false);
+  });
+
+  it("clicking a disabled item does not call action or dismiss menu", () => {
+    let called = false;
+    const menu = ctxMenu.show(
+      [{ label: "No", disabled: true, action: () => { called = true; } }],
+      { x: 0, y: 0 }
+    );
+    menu._children[0].click();
+    expect(called).toBe(false);
+    expect(document.body._children.length).toBe(1);
+  });
+
+  it("disabled items have aria-disabled attribute", () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Enabled", action: () => {} },
+        { label: "Disabled", disabled: true, action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    expect(menu._children[0]._attrs["aria-disabled"]).toBeUndefined();
+    expect(menu._children[1]._attrs["aria-disabled"]).toBe("true");
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [
