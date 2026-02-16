@@ -11,9 +11,21 @@ contextBridge.exposeInMainWorld('moltMascot', {
   snapToPosition: () => ipcRenderer.send('molt-mascot:snap-to-position'),
   toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
   quit: () => ipcRenderer.send('molt-mascot:quit'),
-  onClickThrough: (callback) => ipcRenderer.on('molt-mascot:click-through', (_event, enabled) => callback(enabled)),
-  onHideText: (callback) => ipcRenderer.on('molt-mascot:hide-text', (_event, hidden) => callback(hidden)),
-  onReset: (callback) => ipcRenderer.on('molt-mascot:reset', () => callback()),
+  onClickThrough: (callback) => {
+    const handler = (_event, enabled) => callback(enabled);
+    ipcRenderer.on('molt-mascot:click-through', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:click-through', handler);
+  },
+  onHideText: (callback) => {
+    const handler = (_event, hidden) => callback(hidden);
+    ipcRenderer.on('molt-mascot:hide-text', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:hide-text', handler);
+  },
+  onReset: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('molt-mascot:reset', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:reset', handler);
+  },
   platform: process.platform,
   version: pkg.version,
   env: {
