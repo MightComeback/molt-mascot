@@ -238,6 +238,8 @@ function getReconnectDelay() {
   return Math.round(delay + jitter);
 }
 
+let connectReqId = null;
+
 let pluginStateReqId = null;
 const pluginStateMethods = [
   '@molt/mascot-plugin.state',
@@ -319,10 +321,10 @@ function connect(cfg) {
 
   ws.addEventListener('open', () => {
     reconnectAttempt = 0; // Reset backoff on successful connection
-    const id = nextId('c');
+    connectReqId = nextId('c');
     const connectFrame = {
       type: 'req',
-      id,
+      id: connectReqId,
       method: 'connect',
       params: {
         // Default to a safe negotiation range so the mascot works across Gateway versions.
@@ -388,6 +390,20 @@ function connect(cfg) {
 
       sendPluginStateReq('s');
 
+      return;
+    }
+
+    // Handle connect handshake failure (auth denied, protocol mismatch, etc.)
+    // Without this, a rejected connect leaves the pill stuck on "connecting…" forever.
+    if (msg.type === 'res' && msg.id && msg.id === connectReqId && !msg.payload?.type?.startsWith('hello')) {
+      const err = msg.payload?.error || msg.error;
+      const detail = typeof err === 'string' ? err
+        : err?.message || err?.code || 'connection rejected';
+      lastErrorMessage = truncate(cleanErrorString(String(detail)), 48);
+      setMode(Mode.error);
+      pill.textContent = lastErrorMessage;
+      // Show setup so the user can fix credentials
+      showSetup({ url: urlInput.value, token: tokenInput.value });
       return;
     }
 
