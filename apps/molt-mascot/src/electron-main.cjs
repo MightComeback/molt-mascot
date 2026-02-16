@@ -187,14 +187,45 @@ app.whenReady().then(async () => {
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
-  // Create a tiny 16x16 red square as a tray icon (lobster-red).
+  // 16x16 pixel-art lobster icon for the tray (matches the mascot sprite style).
+  // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a, h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
+  const traySprite = [
+    '......kkkk......',
+    '.....krrrrk.....',
+    '....krhhhhrkk...',
+    '....krhwrhwrrk..',
+    '....krhbrhbrrk..',
+    '.....krhhrrkk...',
+    '......krrrkk....',
+    '....kkrrkrrkk...',
+    '...krrk...krrk..',
+    '..krrk.....krrk.',
+    '..krk.......krk.',
+    '..krrk.....krrk.',
+    '...krrk...krrk..',
+    '....kkrrkrrkk...',
+    '......krrrkk....',
+    '.......kkk......',
+  ];
+  const trayColors = {
+    '.': [0, 0, 0, 0],
+    k: [0x4a, 0x0f, 0x14, 0xff],
+    r: [0xe0, 0x43, 0x3a, 0xff],
+    h: [0xff, 0x8b, 0x7f, 0xff],
+    w: [0xf8, 0xf7, 0xff, 0xff],
+    b: [0x10, 0x10, 0x14, 0xff],
+  };
   const trayCanvas = Buffer.alloc(16 * 16 * 4);
-  for (let i = 0; i < 16 * 16; i++) {
-    // #e0433a (lobster red)
-    trayCanvas[i * 4 + 0] = 0xe0;
-    trayCanvas[i * 4 + 1] = 0x43;
-    trayCanvas[i * 4 + 2] = 0x3a;
-    trayCanvas[i * 4 + 3] = 0xff;
+  for (let row = 0; row < 16; row++) {
+    for (let col = 0; col < 16; col++) {
+      const ch = traySprite[row][col] || '.';
+      const [r, g, b, a] = trayColors[ch] || trayColors['.'];
+      const off = (row * 16 + col) * 4;
+      trayCanvas[off] = r;
+      trayCanvas[off + 1] = g;
+      trayCanvas[off + 2] = b;
+      trayCanvas[off + 3] = a;
+    }
   }
   const trayIcon = nativeImage.createFromBuffer(trayCanvas, { width: 16, height: 16 });
   let tray = new Tray(trayIcon);
