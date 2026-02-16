@@ -165,6 +165,11 @@ describe("isTruthyEnv", () => {
     expect(isTruthyEnv("TRUE")).toBe(true);
     expect(isTruthyEnv("Yes")).toBe(true);
     expect(isTruthyEnv("ON")).toBe(true);
+    // Short aliases
+    expect(isTruthyEnv("t")).toBe(true);
+    expect(isTruthyEnv("T")).toBe(true);
+    expect(isTruthyEnv("y")).toBe(true);
+    expect(isTruthyEnv("Y")).toBe(true);
   });
 
   it("returns false for falsy string values", () => {
@@ -173,6 +178,11 @@ describe("isTruthyEnv", () => {
     expect(isTruthyEnv("no")).toBe(false);
     expect(isTruthyEnv("off")).toBe(false);
     expect(isTruthyEnv("")).toBe(false);
+  });
+
+  it("returns false for whitespace-only strings", () => {
+    expect(isTruthyEnv("  ")).toBe(false);
+    expect(isTruthyEnv("\t")).toBe(false);
   });
 
   it("returns false for null/undefined", () => {

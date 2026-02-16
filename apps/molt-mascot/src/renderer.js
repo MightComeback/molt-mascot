@@ -623,7 +623,17 @@ function connect(cfg) {
 
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
-  const cfg = { url: urlInput.value.trim(), token: tokenInput.value.trim() };
+  const url = urlInput.value.trim();
+
+  // Validate WebSocket URL before attempting connection
+  if (url && !/^wss?:\/\/.+/i.test(url)) {
+    urlInput.setCustomValidity('URL must start with ws:// or wss://');
+    urlInput.reportValidity();
+    return;
+  }
+  urlInput.setCustomValidity('');
+
+  const cfg = { url, token: tokenInput.value.trim() };
   saveCfg(cfg);
   connect(cfg);
 });
