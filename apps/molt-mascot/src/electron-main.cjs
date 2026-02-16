@@ -469,6 +469,15 @@ app.whenReady().then(async () => {
     });
   });
 
+  ipcMain.on('molt-mascot:cycle-alignment', () => {
+    alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
+    alignmentOverride = alignmentCycle[alignmentIndex];
+    repositionMainWindow({ force: true });
+    rebuildTrayMenu();
+    // eslint-disable-next-line no-console
+    console.log(`molt-mascot: alignment → ${alignmentOverride}`);
+  });
+
   ipcMain.on('molt-mascot:snap-to-position', () => {
     userDragged = false;
     repositionMainWindow({ force: true });
