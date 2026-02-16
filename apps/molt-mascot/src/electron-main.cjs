@@ -133,6 +133,14 @@ function applyClickThrough(win, enabled) {
 }
 
 app.whenReady().then(async () => {
+  // macOS About panel (visible via tray > right-click on app name in menu bar)
+  app.setAboutPanelOptions({
+    applicationName: 'Molt Mascot',
+    applicationVersion: APP_VERSION,
+    copyright: '© 2025 MightComeback',
+    website: 'https://github.com/MightComeback/molt-mascot',
+  });
+
   // Hide dock icon on macOS for a true desktop widget experience
   if (process.platform === 'darwin' && app.dock) {
     app.dock.hide();
@@ -199,6 +207,7 @@ app.whenReady().then(async () => {
 
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${APP_VERSION}`, enabled: false },
+      { label: 'About Molt Mascot', click: () => app.showAboutPanel() },
       { type: 'separator' },
       {
         label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
