@@ -11,6 +11,20 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
 }
 
+// Single-instance lock: prevent duplicate mascots from cluttering the desktop.
+// If a second instance is launched, focus the existing window instead.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    withMainWin((w) => {
+      if (!w.isVisible()) w.show();
+      w.focus();
+    });
+  });
+}
+
 const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 
 // Late-bound reference set once the window is created.
