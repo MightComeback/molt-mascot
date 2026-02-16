@@ -76,6 +76,14 @@ describe('cleanErrorString', () => {
     expect(cleanErrorString('info: starting\nerror: disk full\ndone')).toBe('disk full');
   });
 
+  it('finds typed error lines (e.g. ValueError)', () => {
+    expect(cleanErrorString('info: loading config\nValueError: invalid input\ndone')).toBe('invalid input');
+  });
+
+  it('extracts last line from Python tracebacks', () => {
+    expect(cleanErrorString('Traceback (most recent call last):\n  File "x.py", line 1\nKeyError: "foo"')).toBe('"foo"');
+  });
+
   it('handles empty string', () => {
     expect(cleanErrorString('')).toBe('');
   });
