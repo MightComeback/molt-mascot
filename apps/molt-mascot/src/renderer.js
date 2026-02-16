@@ -725,6 +725,9 @@ pill.addEventListener('contextmenu', (e) => {
         ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
       }
     }},
+    { label: 'Snap to Position', hint: `${modKey}⇧S`, action: () => {
+      if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition();
+    }},
     { label: 'Copy Status', action: () => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});

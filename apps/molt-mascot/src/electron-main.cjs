@@ -365,6 +365,11 @@ app.whenReady().then(async () => {
 
   ipcMain.on('molt-mascot:quit', () => app.quit());
 
+  ipcMain.on('molt-mascot:snap-to-position', () => {
+    userDragged = false;
+    repositionMainWindow({ force: true });
+  });
+
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
     // `Boolean("false") === true`, so we need a more careful coercion here.
     clickThrough = (typeof enabled === 'boolean') ? enabled : isTruthyEnv(enabled);
