@@ -1,0 +1,205 @@
+import { describe, expect, it, beforeEach, afterEach } from "bun:test";
+
+// Minimal DOM shim for context-menu tests (jsdom-free).
+// context-menu.js uses: document.createElement, document.body.appendChild,
+// document.addEventListener, document.removeEventListener, window.addEventListener,
+// window.removeEventListener, window.innerWidth, window.innerHeight.
+
+function makeElement(tag) {
+  const el = {
+    _tag: tag,
+    _children: [],
+    _listeners: {},
+    _classes: new Set(),
+    _attrs: {},
+    id: "",
+    tabIndex: -1,
+    hidden: false,
+    dataset: {},
+    textContent: "",
+    className: "",
+    style: {},
+    classList: {
+      add(c) { el._classes.add(c); },
+      remove(c) { el._classes.delete(c); },
+      contains(c) { return el._classes.has(c); },
+    },
+    setAttribute(k, v) { el._attrs[k] = v; },
+    getAttribute(k) { return el._attrs[k] ?? null; },
+    appendChild(child) { el._children.push(child); child._parent = el; },
+    remove() {
+      if (el._parent) {
+        el._parent._children = el._parent._children.filter((c) => c !== el);
+      }
+    },
+    contains(other) {
+      if (other === el) return true;
+      return el._children.some((c) => c === other || c.contains?.(other));
+    },
+    addEventListener(type, fn) {
+      (el._listeners[type] ??= []).push(fn);
+    },
+    removeEventListener(type, fn) {
+      if (el._listeners[type]) {
+        el._listeners[type] = el._listeners[type].filter((f) => f !== fn);
+      }
+    },
+    click() {
+      (el._listeners["click"] || []).forEach((fn) => fn({ target: el }));
+    },
+    get children() { return el._children; },
+  };
+  return el;
+}
+
+let _origDocument, _origWindow;
+
+function setupDom() {
+  const body = makeElement("body");
+
+  const doc = {
+    createElement: (tag) => makeElement(tag),
+    body,
+    _listeners: {},
+    addEventListener(type, fn, capture) {
+      (doc._listeners[type] ??= []).push(fn);
+    },
+    removeEventListener(type, fn, capture) {
+      if (doc._listeners[type]) {
+        doc._listeners[type] = doc._listeners[type].filter((f) => f !== fn);
+      }
+    },
+    hidden: false,
+  };
+
+  _origDocument = globalThis.document;
+  globalThis.document = doc;
+
+  // Patch window minimally
+  _origWindow = {};
+  for (const k of ["innerWidth", "innerHeight", "addEventListener", "removeEventListener"]) {
+    _origWindow[k] = globalThis[k];
+  }
+  globalThis.innerWidth = 800;
+  globalThis.innerHeight = 600;
+
+  const winListeners = {};
+  globalThis.addEventListener = (type, fn) => {
+    (winListeners[type] ??= []).push(fn);
+  };
+  globalThis.removeEventListener = (type, fn) => {
+    if (winListeners[type]) {
+      winListeners[type] = winListeners[type].filter((f) => f !== fn);
+    }
+  };
+  globalThis._winListeners = winListeners;
+
+  // context-menu.js references `window` directly (browser global)
+  if (typeof globalThis.window === "undefined") {
+    globalThis.window = globalThis;
+    _origWindow._hadWindow = false;
+  } else {
+    _origWindow._hadWindow = true;
+  }
+}
+
+function teardownDom() {
+  globalThis.document = _origDocument;
+  if (!_origWindow._hadWindow) {
+    delete globalThis.window;
+  }
+  for (const [k, v] of Object.entries(_origWindow)) {
+    if (k.startsWith("_")) continue;
+    globalThis[k] = v;
+  }
+  delete globalThis._winListeners;
+}
+
+describe("context-menu", () => {
+  let ctxMenu;
+
+  beforeEach(async () => {
+    setupDom();
+    // Fresh import each time (module state resets aren't guaranteed,
+    // but the dismiss() call at the start of show() handles it).
+    ctxMenu = await import("../src/context-menu.js");
+  });
+
+  afterEach(async () => {
+    // Dismiss any open menu to cancel deferred setTimeout listeners
+    ctxMenu.dismiss();
+    // Flush the deferred setTimeout(…, 0) from show() so it doesn't fire after teardown
+    await new Promise((r) => setTimeout(r, 5));
+    teardownDom();
+  });
+
+  it("show() appends a menu element to body", () => {
+    const items = [{ label: "Test", action: () => {} }];
+    const menu = ctxMenu.show(items, { x: 100, y: 100 });
+    expect(menu).toBeDefined();
+    expect(menu.id).toBe("molt-ctx");
+    expect(document.body._children).toContain(menu);
+  });
+
+  it("show() creates menu items with correct labels", () => {
+    const items = [
+      { label: "Alpha", action: () => {} },
+      { separator: true },
+      { label: "Beta", action: () => {} },
+    ];
+    const menu = ctxMenu.show(items, { x: 0, y: 0 });
+    // 3 children: Alpha, separator, Beta
+    expect(menu._children.length).toBe(3);
+    expect(menu._children[1]._attrs.role).toBe("separator");
+  });
+
+  it("show() positions menu within viewport bounds", () => {
+    globalThis.innerWidth = 200;
+    globalThis.innerHeight = 200;
+    const menu = ctxMenu.show([{ label: "X" }], { x: 9999, y: 9999 });
+    const left = parseInt(menu.style.left);
+    const top = parseInt(menu.style.top);
+    expect(left).toBeLessThanOrEqual(200);
+    expect(top).toBeLessThanOrEqual(200);
+  });
+
+  it("dismiss() removes the active menu", () => {
+    ctxMenu.show([{ label: "X" }], { x: 0, y: 0 });
+    expect(document.body._children.length).toBe(1);
+    ctxMenu.dismiss();
+    // After dismiss, the menu element calls remove() on itself
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("show() dismisses previous menu before creating a new one", () => {
+    ctxMenu.show([{ label: "First" }], { x: 0, y: 0 });
+    ctxMenu.show([{ label: "Second" }], { x: 0, y: 0 });
+    // Only the second menu should remain
+    expect(document.body._children.length).toBe(1);
+    expect(document.body._children[0]._children[0]._children[0].textContent).toBe("Second");
+  });
+
+  it("clicking a menu item calls its action and removes the menu", () => {
+    let called = false;
+    const menu = ctxMenu.show(
+      [{ label: "Do it", action: () => { called = true; } }],
+      { x: 0, y: 0 }
+    );
+    // Click the menu item (first child)
+    menu._children[0].click();
+    expect(called).toBe(true);
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("renders hint text when provided", () => {
+    const menu = ctxMenu.show(
+      [{ label: "Ghost", hint: "⌘⇧M", action: () => {} }],
+      { x: 0, y: 0 }
+    );
+    const row = menu._children[0];
+    // row has label span + hint span
+    expect(row._children.length).toBe(2);
+    expect(row._children[1].textContent).toBe("⌘⇧M");
+    expect(row._children[1].className).toBe("ctx-hint");
+  });
+});
