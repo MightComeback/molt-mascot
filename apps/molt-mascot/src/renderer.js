@@ -723,9 +723,24 @@ pill.addEventListener('contextmenu', (e) => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
+    { separator: true },
+    { label: 'Quit', hint: `${modKey}⌥Q`, action: () => {
+      if (window.moltMascot?.quit) window.moltMascot.quit();
+      else window.close();
+    }},
   ];
 
   for (const item of items) {
+    if (item.separator) {
+      const sep = document.createElement('div');
+      Object.assign(sep.style, {
+        height: '1px',
+        margin: '4px 8px',
+        background: 'rgba(255,255,255,0.1)',
+      });
+      menu.appendChild(sep);
+      continue;
+    }
     const row = document.createElement('div');
     Object.assign(row.style, {
       padding: '5px 12px',
