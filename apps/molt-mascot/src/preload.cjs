@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   setPadding: (padding) => ipcRenderer.send('molt-mascot:set-padding', padding),
   setSize: (size) => ipcRenderer.send('molt-mascot:set-size', size),
   snapToPosition: () => ipcRenderer.send('molt-mascot:snap-to-position'),
+  cycleSize: () => ipcRenderer.send('molt-mascot:cycle-size'),
   toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
   quit: () => ipcRenderer.send('molt-mascot:quit'),
   onClickThrough: (callback) => {

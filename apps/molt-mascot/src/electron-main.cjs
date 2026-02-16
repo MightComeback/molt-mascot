@@ -436,6 +436,18 @@ app.whenReady().then(async () => {
     repositionMainWindow({ force: true });
   });
 
+  ipcMain.on('molt-mascot:cycle-size', () => {
+    sizeIndex = (sizeIndex + 1) % sizeCycle.length;
+    const { width, height } = sizeCycle[sizeIndex];
+    withMainWin((w) => {
+      w.setSize(width, height, true);
+      repositionMainWindow({ force: true });
+    });
+    rebuildTrayMenu();
+    // eslint-disable-next-line no-console
+    console.log(`molt-mascot: size → ${sizeCycle[sizeIndex].label} (${width}×${height})`);
+  });
+
   ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
     // `Boolean("false") === true`, so we need a more careful coercion here.
     clickThrough = (typeof enabled === 'boolean') ? enabled : isTruthyEnv(enabled);

@@ -730,6 +730,9 @@ pill.addEventListener('contextmenu', (e) => {
     { label: 'Snap to Position', hint: `${modKey}⇧S`, action: () => {
       if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition();
     }},
+    { label: 'Cycle Size', hint: `${modKey}⇧Z`, action: () => {
+      if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize();
+    }},
     { label: 'Copy Status', action: () => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});
