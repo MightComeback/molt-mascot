@@ -5,6 +5,7 @@ import {
   cleanErrorString,
   isMissingMethodResponse,
   formatDuration,
+  isTruthyEnv,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -152,5 +153,40 @@ describe("formatDuration", () => {
 
   it("handles negative input gracefully", () => {
     expect(formatDuration(-5)).toBe("0s");
+  });
+});
+
+describe("isTruthyEnv", () => {
+  it("returns true for truthy string values", () => {
+    expect(isTruthyEnv("true")).toBe(true);
+    expect(isTruthyEnv("1")).toBe(true);
+    expect(isTruthyEnv("yes")).toBe(true);
+    expect(isTruthyEnv("on")).toBe(true);
+    expect(isTruthyEnv("TRUE")).toBe(true);
+    expect(isTruthyEnv("Yes")).toBe(true);
+    expect(isTruthyEnv("ON")).toBe(true);
+  });
+
+  it("returns false for falsy string values", () => {
+    expect(isTruthyEnv("false")).toBe(false);
+    expect(isTruthyEnv("0")).toBe(false);
+    expect(isTruthyEnv("no")).toBe(false);
+    expect(isTruthyEnv("off")).toBe(false);
+    expect(isTruthyEnv("")).toBe(false);
+  });
+
+  it("returns false for null/undefined", () => {
+    expect(isTruthyEnv(null)).toBe(false);
+    expect(isTruthyEnv(undefined)).toBe(false);
+  });
+
+  it("handles boolean inputs directly", () => {
+    expect(isTruthyEnv(true)).toBe(true);
+    expect(isTruthyEnv(false)).toBe(false);
+  });
+
+  it("handles numeric inputs", () => {
+    expect(isTruthyEnv(1)).toBe(true);
+    expect(isTruthyEnv(0)).toBe(false);
   });
 });
