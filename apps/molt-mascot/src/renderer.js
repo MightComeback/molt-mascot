@@ -757,12 +757,40 @@ pill.addEventListener('contextmenu', (e) => {
 
   document.body.appendChild(menu);
 
+  // Keyboard navigation: arrow keys to move focus, Enter to activate
+  const menuItems = Array.from(menu.children);
+  let focusIdx = -1;
+
+  const setFocus = (idx) => {
+    if (idx < 0 || idx >= menuItems.length) return;
+    // Clear previous highlight
+    if (focusIdx >= 0 && focusIdx < menuItems.length) {
+      menuItems[focusIdx].style.background = 'transparent';
+    }
+    focusIdx = idx;
+    menuItems[focusIdx].style.background = 'rgba(255,255,255,0.1)';
+  };
+
   // Dismiss on click outside or Escape key
   const dismiss = (ev) => {
     if (!menu.contains(ev.target)) { cleanup(); }
   };
   const onKey = (ev) => {
-    if (ev.key === 'Escape') { cleanup(); }
+    if (ev.key === 'Escape') { cleanup(); return; }
+    if (ev.key === 'ArrowDown') {
+      ev.preventDefault();
+      setFocus(focusIdx < menuItems.length - 1 ? focusIdx + 1 : 0);
+      return;
+    }
+    if (ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      setFocus(focusIdx > 0 ? focusIdx - 1 : menuItems.length - 1);
+      return;
+    }
+    if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
+      ev.preventDefault();
+      menuItems[focusIdx].click();
+    }
   };
   const cleanup = () => {
     menu.remove();
