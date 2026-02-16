@@ -585,6 +585,8 @@ export default function register(api: PluginApi) {
     "tts",
     // multi_tool_use.parallel becomes just "parallel" after prefix stripping
     "parallel",
+    // Linear integration via hakky-tools
+    "hakky-tools",
   ]);
 
   const getToolDepth = () => {

@@ -184,8 +184,9 @@ function syncPill() {
 
   pill.textContent = label;
 
-  // Color-coded pill background per mode
-  pill.className = `pill--${currentMode}`;
+  // Color-coded pill background per mode (sleeping gets its own class)
+  const isSleeping = currentMode === Mode.idle && duration > 30;
+  pill.className = isSleeping ? 'pill--sleeping' : `pill--${currentMode}`;
 
   // Update canvas aria-label for screen readers
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
