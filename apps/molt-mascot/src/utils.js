@@ -105,12 +105,6 @@ export function formatDuration(seconds) {
   return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
 }
 
-export function isTruthyEnv(v) {
-  if (typeof v !== 'string') {
-    if (typeof v === 'number') return Number.isFinite(v) && v > 0;
-    if (typeof v === 'boolean') return v;
-    return false;
-  }
-  const s = v.trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === 'on';
-}
+// Re-export from shared CJS module so both electron-main and renderer use the same impl.
+// Bun/esbuild handle CJS → ESM interop transparently.
+export { isTruthyEnv } from './is-truthy-env.cjs';

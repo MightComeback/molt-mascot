@@ -2,6 +2,8 @@ const { app, BrowserWindow, screen, globalShortcut, ipcMain, Tray, Menu, nativeI
 const path = require('path');
 const fs = require('fs');
 
+const { isTruthyEnv } = require('./is-truthy-env.cjs');
+
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
@@ -12,11 +14,6 @@ const CAPTURE_DIR = process.env.MOLT_MASCOT_CAPTURE_DIR;
 // Runtime overrides (can be pushed from the plugin via IPC)
 let paddingOverride = null;
 let alignmentOverride = null;
-
-function isTruthyEnv(v) {
-  const s = String(v || '').trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 'yes' || s === 'on';
-}
 
 function getPosition(display, width, height, alignOverride, paddingOverride) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
