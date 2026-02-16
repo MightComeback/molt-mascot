@@ -804,6 +804,9 @@ pill.addEventListener('contextmenu', (e) => {
     document.addEventListener('keydown', onKey, true);
     window.addEventListener('blur', cleanup);
   }, 0);
+
+  // Auto-focus first item so keyboard navigation is immediately usable
+  setFocus(0);
 });
 
 // boot
