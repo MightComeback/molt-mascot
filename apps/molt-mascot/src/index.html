@@ -59,10 +59,15 @@
         50% { transform: scale(1.05); }
         100% { transform: scale(1); opacity: 1; }
       }
-      #pill.pill--sleeping { background: rgba(88,86,214,0.3); border-color: rgba(88,86,214,0.4); }
+      #pill.pill--sleeping { background: rgba(88,86,214,0.3); border-color: rgba(88,86,214,0.4); animation: pill-sleep 4s ease-in-out infinite; }
+      @keyframes pill-sleep {
+        0%, 100% { opacity: 0.85; }
+        50% { opacity: 0.45; }
+      }
       @media (prefers-reduced-motion: reduce) {
         #pill.pill--thinking { animation: none; }
         #pill.pill--connected { animation: none; }
+        #pill.pill--sleeping { animation: none; }
       }
       #setup {
         position: absolute;
