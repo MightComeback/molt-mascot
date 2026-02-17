@@ -82,4 +82,15 @@ describe("getPosition", () => {
     const pos = getPosition(display, W, H, "top-left", 0);
     expect(pos).toEqual({ x: 0, y: 0 });
   });
+
+  it("rounds fractional center positions to integers", () => {
+    // Odd display width/height produces fractional center coords
+    const odd = { workArea: { x: 0, y: 0, width: 1921, height: 1081 } };
+    const pos = getPosition(odd, W, H, "center", 0);
+    expect(pos.x).toBe(Math.round((1921 - 240) / 2));
+    expect(pos.y).toBe(Math.round((1081 - 200) / 2));
+    // Verify they're integers (no fractional pixels)
+    expect(Number.isInteger(pos.x)).toBe(true);
+    expect(Number.isInteger(pos.y)).toBe(true);
+  });
 });

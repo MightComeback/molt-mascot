@@ -12,27 +12,31 @@ function getPosition(display, width, height, alignOverride, paddingOverride) {
   const align = rawAlign.toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
 
+  // Round to integers — fractional pixel positions cause blurry rendering
+  // on non-Retina displays and trigger Electron console warnings.
+  let px, py;
   switch (align) {
     case 'bottom-left':
-      return { x: x + padding, y: y + dh - height - padding };
+      px = x + padding; py = y + dh - height - padding; break;
     case 'top-right':
-      return { x: x + dw - width - padding, y: y + padding };
+      px = x + dw - width - padding; py = y + padding; break;
     case 'top-left':
-      return { x: x + padding, y: y + padding };
+      px = x + padding; py = y + padding; break;
     case 'center':
-      return { x: x + (dw - width) / 2, y: y + (dh - height) / 2 };
+      px = x + (dw - width) / 2; py = y + (dh - height) / 2; break;
     case 'center-left':
-      return { x: x + padding, y: y + (dh - height) / 2 };
+      px = x + padding; py = y + (dh - height) / 2; break;
     case 'center-right':
-      return { x: x + dw - width - padding, y: y + (dh - height) / 2 };
+      px = x + dw - width - padding; py = y + (dh - height) / 2; break;
     case 'top-center':
-      return { x: x + (dw - width) / 2, y: y + padding };
+      px = x + (dw - width) / 2; py = y + padding; break;
     case 'bottom-center':
-      return { x: x + (dw - width) / 2, y: y + dh - height - padding };
+      px = x + (dw - width) / 2; py = y + dh - height - padding; break;
     case 'bottom-right':
     default:
-      return { x: x + dw - width - padding, y: y + dh - height - padding };
+      px = x + dw - width - padding; py = y + dh - height - padding; break;
   }
+  return { x: Math.round(px), y: Math.round(py) };
 }
 
 module.exports = { getPosition };
