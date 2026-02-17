@@ -11,6 +11,30 @@ const isCapture = Boolean(captureDir);
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
+// Dynamic canvas scaling: adjust pixel scale based on container size so the lobster
+// fills the window proportionally across small/medium/large presets.
+// The sprite is 32 rows × 32 cols; we pick the largest integer scale that fits.
+const SPRITE_SIZE = 32;
+let currentScale = 3; // default for 240×200 (medium)
+
+function recalcCanvasScale() {
+  const wrap = document.getElementById('wrap');
+  if (!wrap) return;
+  // Reserve ~20% for the HUD pill and padding
+  const availW = wrap.clientWidth * 0.9;
+  const availH = wrap.clientHeight * 0.8;
+  const maxScale = Math.max(2, Math.floor(Math.min(availW / SPRITE_SIZE, availH / SPRITE_SIZE)));
+  if (maxScale !== currentScale) {
+    currentScale = maxScale;
+    canvas.width = SPRITE_SIZE * currentScale;
+    canvas.height = SPRITE_SIZE * currentScale;
+  }
+}
+
+recalcCanvasScale();
+// Re-check on resize (triggered by Electron setSize via cycleSize)
+window.addEventListener('resize', recalcCanvasScale);
+
 const STORAGE_KEY = 'moltMascot:gateway';
 
 const DEFAULT_IDLE_DELAY_MS = 800;
@@ -77,7 +101,7 @@ function showSetup(prefill) {
 
 import { palette, lobsterIdle, overlay } from './sprites.js';
 
-function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
+function drawSprite(sprite, { x = 0, y = 0, scale = currentScale } = {}) {
   for (let py = 0; py < sprite.length; py += 1) {
     const row = sprite[py];
     for (let px = 0; px < row.length; px += 1) {
@@ -116,36 +140,39 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
   const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
 
+  const s = currentScale;
+
   // subtle shadow (keeps it readable on transparent backgrounds)
   // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
   // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
-  const shadowScaleX = 26 - bob * 0.4;
-  const shadowScaleY = 10 - bob * 0.2;
+  const shadowCenterX = (SPRITE_SIZE * s) / 2;
+  const shadowCenterY = (SPRITE_SIZE * s) * 0.81;
+  const shadowScaleX = (26 * s / 3) - bob * 0.4;
+  const shadowScaleY = (10 * s / 3) - bob * 0.2;
   const shadowAlpha = Math.max(0.15, 0.35 - bob * 0.02);
   ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
   ctx.beginPath();
-  ctx.ellipse(48, 78, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
+  ctx.ellipse(shadowCenterX, shadowCenterY, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // main sprite
   const bobY = Math.round(bob);
-  drawSprite(lobsterIdle[frame], { x: 0, y: bobY, scale: 3 });
+  drawSprite(lobsterIdle[frame], { x: 0, y: bobY, scale: s });
 
   // Blink: paint over the white+pupil eye pixels with the body red color
   if (isBlinking(t)) {
-    const scale = 3;
     // Eye positions from sprite: row 8 cols 14-15 (left), 18-19 (right) for whites
     // Row 9 cols 14 'w',15 'b' (left), 18 'w',19 'b' (right)
     // Paint a horizontal line of body color over both eye rows
     ctx.fillStyle = palette.r;
     // Left eye area (cols 14-15, rows 8-9)
-    ctx.fillRect(14 * scale, (8 + bobY) * scale, 2 * scale, 2 * scale);
+    ctx.fillRect(14 * s, (8 + bobY) * s, 2 * s, 2 * s);
     // Right eye area (cols 18-19, rows 8-9)
-    ctx.fillRect(18 * scale, (8 + bobY) * scale, 2 * scale, 2 * scale);
+    ctx.fillRect(18 * s, (8 + bobY) * s, 2 * s, 2 * s);
   }
 
   // overlays (simple icons) - attached to bob; modes are mutually exclusive
-  const overlayOpts = { x: 0, y: bobY - 2, scale: 3 };
+  const overlayOpts = { x: 0, y: bobY - 2, scale: s };
   if (mode === 'thinking') {
     drawSprite(overlay.thinking, overlayOpts);
   } else if (mode === 'tool') {
