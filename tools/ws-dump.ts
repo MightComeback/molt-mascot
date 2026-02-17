@@ -149,6 +149,12 @@ ws.addEventListener("message", (ev) => {
         // Still check for hello-ok even when filtering (needed for --once)
         if (msg.type === "res" && msg.payload?.type === "hello-ok") {
           gotHello = true;
+          const proto = msg.payload?.protocol ?? msg.payload?.protocolVersion;
+          const gwVer = msg.payload?.gateway?.version ?? msg.payload?.version;
+          const parts: string[] = ["ws-dump: connected"];
+          if (proto != null) parts.push(`protocol=${proto}`);
+          if (gwVer) parts.push(`gateway=${gwVer}`);
+          console.error(parts.join(" "));
           if (once) {
             try { ws.close(); } catch {}
             return;
@@ -163,6 +169,13 @@ ws.addEventListener("message", (ev) => {
 
     if (msg.type === "res" && msg.payload?.type === "hello-ok") {
       gotHello = true;
+      // Print negotiated protocol info to stderr for quick diagnostics
+      const proto = msg.payload?.protocol ?? msg.payload?.protocolVersion;
+      const gwVer = msg.payload?.gateway?.version ?? msg.payload?.version;
+      const parts: string[] = ["ws-dump: connected"];
+      if (proto != null) parts.push(`protocol=${proto}`);
+      if (gwVer) parts.push(`gateway=${gwVer}`);
+      console.error(parts.join(" "));
       if (once) {
         try { ws.close(); } catch {}
         return;
