@@ -968,6 +968,39 @@ pill.addEventListener('keydown', (e) => {
   }
 });
 
+/**
+ * Build a multi-line debug info string for diagnostics.
+ * Extracted so it can be tested and reused (context menu, IPC export, etc.).
+ */
+function buildDebugInfo() {
+  const lines = [];
+  const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : 'dev';
+  lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
+  lines.push(`Mode: ${currentMode}`);
+  const dur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
+  lines.push(`Mode duration: ${formatDuration(dur)}`);
+  if (connectedSince) {
+    const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
+    lines.push(`Uptime: ${formatDuration(up)}`);
+    lines.push(`Gateway: ${connectedUrl}`);
+  } else {
+    lines.push('Gateway: disconnected');
+    if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
+  }
+  lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
+  if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
+  if (currentTool) lines.push(`Current tool: ${currentTool}`);
+  if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
+  lines.push(`Alignment: ${lastPluginAlignment || 'bottom-right'}`);
+  lines.push(`Size: ${currentSizeLabel}, Opacity: ${Math.round(currentOpacity * 100)}%`);
+  lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
+  lines.push(`Platform: ${navigator.platform || 'unknown'}`);
+  return lines.join('\n');
+}
+
+// Expose for testing
+window.__moltMascotBuildDebugInfo = buildDebugInfo;
+
 // Right-click context menu on pill or canvas for quick access to common actions.
 // Users often right-click the lobster sprite rather than the tiny pill, so both
 // elements open the same context menu for discoverability.
@@ -1027,29 +1060,8 @@ function showContextMenu(e) {
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
     { label: 'Copy Debug Info', action: () => {
-      const lines = [];
-      const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : 'dev';
-      lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
-      lines.push(`Mode: ${currentMode}`);
-      const dur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-      lines.push(`Mode duration: ${formatDuration(dur)}`);
-      if (connectedSince) {
-        const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-        lines.push(`Uptime: ${formatDuration(up)}`);
-        lines.push(`Gateway: ${connectedUrl}`);
-      } else {
-        lines.push('Gateway: disconnected');
-        if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
-      }
-      lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
-      if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
-      if (currentTool) lines.push(`Current tool: ${currentTool}`);
-      if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
-      lines.push(`Alignment: ${lastPluginAlignment || 'bottom-right'}`);
-      lines.push(`Size: ${currentSizeLabel}, Opacity: ${Math.round(currentOpacity * 100)}%`);
-      lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
-      lines.push(`Platform: ${navigator.platform || 'unknown'}`);
-      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      const text = buildDebugInfo();
+      navigator.clipboard.writeText(text).then(() => {
         const prev = pill.textContent;
         pill.textContent = 'Copied!';
         setTimeout(() => { pill.textContent = prev; }, 800);
