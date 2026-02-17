@@ -1126,7 +1126,11 @@ function showContextMenu(e) {
     }},
     { label: 'Copy Status', action: () => {
       const text = pill.textContent || '';
-      if (text) navigator.clipboard.writeText(text).catch(() => {});
+      if (text) navigator.clipboard.writeText(text).then(() => {
+        const prev = pill.textContent;
+        pill.textContent = 'Copied!';
+        setTimeout(() => { pill.textContent = prev; }, 800);
+      }).catch(() => {});
     }},
     { label: 'Copy Debug Info', action: () => {
       const text = buildDebugInfo();
