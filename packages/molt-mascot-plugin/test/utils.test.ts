@@ -136,6 +136,14 @@ describe("utils", () => {
     expect(cleanErrorString("[2026-02-17T15:30:00Z] Error: timeout")).toBe("timeout");
     expect(cleanErrorString("2026-02-17T15:30:00.123Z Error: connection lost")).toBe("connection lost");
     expect(cleanErrorString("[2026-02-17 15:30:00] fatal: bad ref")).toBe("bad ref");
+    // POSIX signal descriptions: strip trailing signal number for brevity
+    expect(cleanErrorString("Killed: 9")).toBe("Killed");
+    expect(cleanErrorString("Segmentation fault: 11")).toBe("Segmentation fault");
+    expect(cleanErrorString("Abort trap: 6")).toBe("Abort trap");
+    expect(cleanErrorString("Bus error: 10")).toBe("Bus error");
+    // Multi-line with signal: first line kept as-is (regex only matches at end of string)
+    expect(cleanErrorString("Killed: 9\nError: out of memory")).toBe("out of memory");
+    expect(cleanErrorString("Terminated: 15")).toBe("Terminated");
   });
 
   it("summarizeToolResultMessage", () => {

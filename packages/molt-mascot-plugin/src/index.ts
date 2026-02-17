@@ -384,6 +384,13 @@ export function cleanErrorString(s: string): string {
     .replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "")
     .trim();
 
+  // Clean POSIX signal descriptions: strip the trailing signal number for brevity.
+  // e.g. "Killed: 9" → "Killed", "Segmentation fault: 11" → "Segmentation fault"
+  // These are common on macOS/Linux when processes are killed by signals.
+  str = str
+    .replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1")
+    .trim();
+
   // Iteratively strip error prefixes (handles nested prefixes like "Error: Tool failed: msg")
   let prev = "";
   while (str !== prev) {
