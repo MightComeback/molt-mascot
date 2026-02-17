@@ -15,6 +15,10 @@ const STORAGE_KEY = 'moltMascot:gateway';
 
 const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
+// How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
+// 120s avoids false "sleeping" during normal usage pauses between queries.
+const SLEEP_THRESHOLD_S = 120;
+const SLEEP_THRESHOLD_MS = SLEEP_THRESHOLD_S * 1000;
 
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.
 let isClickThrough = false;
@@ -137,7 +141,7 @@ function drawLobster(mode, t, idleDurationMs = 0) {
     drawSprite(overlay.tool, overlayOpts);
   } else if (mode === 'error') {
     drawSprite(overlay.error, overlayOpts);
-  } else if (mode === 'idle' && idleDurationMs > 30000) {
+  } else if (mode === 'idle' && idleDurationMs > SLEEP_THRESHOLD_MS) {
     drawSprite(overlay.sleep[Math.floor(t / 800) % 2], overlayOpts);
   } else if (mode === 'connecting') {
     drawSprite(overlay.connecting[Math.floor(t / 500) % 2], overlayOpts);
@@ -180,7 +184,7 @@ function syncPill() {
   if (currentMode === Mode.connected) {
     label = 'Connected ✓';
   }
-  if (currentMode === Mode.idle && duration > 30) {
+  if (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) {
     label = 'Sleeping';
   }
   if (currentMode === Mode.tool && currentTool) {
@@ -198,14 +202,14 @@ function syncPill() {
   pill.textContent = label;
 
   // Color-coded pill background per mode (sleeping gets its own class)
-  const isSleeping = currentMode === Mode.idle && duration > 30;
+  const isSleeping = currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S;
   pill.className = isSleeping ? 'pill--sleeping' : `pill--${currentMode}`;
 
   // Update canvas aria-label for screen readers
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
 
   const displayMode = currentMode === Mode.connected ? 'connected'
-    : (currentMode === Mode.idle && duration > 30) ? 'sleeping' : currentMode;
+    : (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) ? 'sleeping' : currentMode;
   let tip = `${displayMode} for ${formatDuration(duration)}`;
   if (currentMode === Mode.error && lastErrorMessage) {
     tip += ` — ${lastErrorMessage}`;
@@ -961,7 +965,7 @@ let lastFrameAt = 0;
 function getFrameIntervalMs() {
   if (currentMode === Mode.idle) {
     const idleDur = Date.now() - modeSince;
-    return idleDur > 30000 ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
+    return idleDur > SLEEP_THRESHOLD_MS ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
   }
   return 0; // active modes: no throttle (full rAF rate)
 }
