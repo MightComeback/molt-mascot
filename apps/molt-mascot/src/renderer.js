@@ -277,6 +277,36 @@ let connectedUrl = '';        // URL of the current gateway connection
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
+// Application-level connection health check.
+// If no WS message is received within this window, assume the connection is
+// stale (zombie TCP) and force a reconnect. The 1s plugin poller ensures
+// at least one message per second on a healthy connection, so 15s is generous.
+const STALE_CONNECTION_MS = 15000;
+let lastMessageAt = 0;
+let staleCheckTimer = null;
+
+function startStaleCheck() {
+  stopStaleCheck();
+  lastMessageAt = Date.now();
+  staleCheckTimer = setInterval(() => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!connectedSince) return; // Not yet handshaked
+    if (Date.now() - lastMessageAt > STALE_CONNECTION_MS) {
+      // eslint-disable-next-line no-console
+      console.warn('molt-mascot: connection stale, forcing reconnect');
+      showError('connection stale');
+      try { ws.close(); } catch {}
+    }
+  }, 5000);
+}
+
+function stopStaleCheck() {
+  if (staleCheckTimer) {
+    clearInterval(staleCheckTimer);
+    staleCheckTimer = null;
+  }
+}
+
 function getReconnectDelay() {
   // Exponential backoff with jitter: 1.5s, 3s, 6s, 12s... capped at 30s
   const delay = Math.min(RECONNECT_BASE_MS * Math.pow(2, reconnectAttempt), RECONNECT_MAX_MS);
@@ -407,6 +437,7 @@ function connect(cfg) {
   });
 
   ws.addEventListener('message', (ev) => {
+    lastMessageAt = Date.now();
     let msg;
     try {
       msg = JSON.parse(String(ev.data));
@@ -428,6 +459,7 @@ function connect(cfg) {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       connectedSince = Date.now();
       connectedUrl = cfg.url || '';
+      startStaleCheck();
       // Brief "Connected ✓" flash with sparkle animation so the user sees
       // the handshake succeeded before settling into idle mode.
       pill.textContent = 'Connected ✓';
@@ -623,6 +655,7 @@ function connect(cfg) {
     pluginStateLastSentAt = 0;
     connectedSince = null;
     connectedUrl = '';
+    stopStaleCheck();
     pill.textContent = 'disconnected';
     pill.className = 'pill--connecting';
     if (window._pollInterval) {
@@ -907,6 +940,7 @@ window.addEventListener('beforeunload', () => {
     clearInterval(reconnectCountdownTimer);
     reconnectCountdownTimer = null;
   }
+  stopStaleCheck();
   if (idleTimer) {
     clearTimeout(idleTimer);
     idleTimer = null;
