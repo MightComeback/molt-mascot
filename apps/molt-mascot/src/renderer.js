@@ -195,6 +195,9 @@ function syncPill() {
   if (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) {
     label = `Sleeping ${formatDuration(duration)}`;
   }
+  if (currentMode === Mode.connecting && duration > 2) {
+    label = `Connecting… ${formatDuration(duration)}`;
+  }
   if (currentMode === Mode.tool && currentTool) {
     label = truncate(currentTool, 24);
   }
