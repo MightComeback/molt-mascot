@@ -724,8 +724,10 @@ function connect(cfg) {
     // Only show a generic message if we don't already have a more specific error
     // (e.g. auth failure from the connect handshake). The 'error' event fires
     // before 'close', so blindly overwriting loses useful context.
-    if (!lastErrorMessage) showError('WebSocket error');
-    else showError(lastErrorMessage);
+    // If we're already in error mode with a specific message, don't reset the
+    // timer and duration counter — that causes a visual "jump" for no reason.
+    if (currentMode === Mode.error && lastErrorMessage) return;
+    showError(lastErrorMessage || 'WebSocket error');
   });
 }
 
