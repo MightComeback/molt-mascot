@@ -29,11 +29,11 @@ export function truncate(str, limit = 140) {
   return cut + "…";
 }
 
-// Import cleanErrorString from the plugin (single source of truth).
-// The renderer previously duplicated the full implementation; now we delegate
-// to the canonical version to avoid drift between plugin and renderer logic.
-import { cleanErrorString } from '@molt/mascot-plugin';
-export { cleanErrorString };
+// Import shared utilities from the plugin (single source of truth).
+// The renderer previously duplicated these implementations; now we delegate
+// to the canonical versions to avoid drift between plugin and renderer logic.
+import { cleanErrorString, formatDuration } from '@molt/mascot-plugin';
+export { cleanErrorString, formatDuration };
 
 export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;
@@ -54,20 +54,6 @@ export function isMissingMethodResponse(msg) {
   if (message.includes('unknown rpc method')) return true;
 
   return false;
-}
-
-export function formatDuration(seconds) {
-  const s = Math.max(0, Math.round(seconds));
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  if (m < 60) return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
-  const h = Math.floor(m / 60);
-  const remM = m % 60;
-  if (h < 24) return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
-  const d = Math.floor(h / 24);
-  const remH = h % 24;
-  return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
 }
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -45,6 +45,21 @@ describe("utils", () => {
     // Limit of 0 or negative: return empty string
     expect(truncate("hello", 0)).toBe("");
     expect(truncate("hello", -5)).toBe("");
+  });
+
+  it("formatDuration", () => {
+    expect(formatDuration(0)).toBe("0s");
+    expect(formatDuration(45)).toBe("45s");
+    expect(formatDuration(60)).toBe("1m");
+    expect(formatDuration(90)).toBe("1m 30s");
+    expect(formatDuration(3600)).toBe("1h");
+    expect(formatDuration(3661)).toBe("1h 1m");
+    expect(formatDuration(86400)).toBe("1d");
+    expect(formatDuration(90000)).toBe("1d 1h");
+    // Negative clamps to 0
+    expect(formatDuration(-5)).toBe("0s");
+    // Fractional rounds
+    expect(formatDuration(59.7)).toBe("1m");
   });
 
   it("coerceBoolean", () => {

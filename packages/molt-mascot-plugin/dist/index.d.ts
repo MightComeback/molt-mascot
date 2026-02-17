@@ -56,6 +56,12 @@ declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
 declare function truncate(str: string, limit?: number): string;
 /**
+ * Format a duration in seconds into a compact human-readable string.
+ * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
+ * Exported so the Electron renderer can reuse the same implementation (single source of truth).
+ */
+declare function formatDuration(seconds: number): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -86,4 +92,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, formatDuration, id, summarizeToolResultMessage, truncate, version };
