@@ -7,6 +7,30 @@ const { getPosition: _getPosition } = require('./get-position.cjs');
 
 const APP_VERSION = require('../package.json').version;
 
+// --- User preference persistence ---
+// Save runtime preferences (alignment, size, ghost mode, hide-text) to a JSON file
+// so they survive app restarts without requiring env vars.
+const PREFS_FILE = path.join(app.getPath('userData'), 'preferences.json');
+
+function loadPrefs() {
+  try {
+    return JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function savePrefs(patch) {
+  try {
+    const current = loadPrefs();
+    const merged = { ...current, ...patch };
+    fs.mkdirSync(path.dirname(PREFS_FILE), { recursive: true });
+    fs.writeFileSync(PREFS_FILE, JSON.stringify(merged, null, 2));
+  } catch {
+    // Best-effort; don't crash if disk is full or permissions are wrong.
+  }
+}
+
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
@@ -154,12 +178,23 @@ app.whenReady().then(async () => {
   // mark as user-dragged so auto-reposition doesn't snap it back.
   let repositioning = false;
 
+  // Load saved preferences (alignment, size, ghost mode, hide-text).
+  // Env vars take precedence over saved prefs; saved prefs take precedence over defaults.
+  const savedPrefs = loadPrefs();
+
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
-  let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH);
+  const envClickThrough = process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH;
+  let clickThrough = envClickThrough ? isTruthyEnv(envClickThrough) : (savedPrefs.clickThrough ?? false);
 
-  let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
+  const envHideText = process.env.MOLT_MASCOT_HIDE_TEXT;
+  let hideText = envHideText ? isTruthyEnv(envHideText) : (savedPrefs.hideText ?? false);
+
+  // Restore saved alignment if no env override
+  if (!alignmentOverride && savedPrefs.alignment) {
+    alignmentOverride = savedPrefs.alignment;
+  }
 
   // --- Core action helpers ---
   // Deduplicated logic used by keyboard shortcuts, tray menu, IPC, and context menu.
@@ -173,6 +208,7 @@ app.whenReady().then(async () => {
       applyClickThrough(w, clickThrough);
       w.webContents.send('molt-mascot:click-through', clickThrough);
     });
+    savePrefs({ clickThrough });
     rebuildTrayMenu();
   }
 
@@ -181,6 +217,7 @@ app.whenReady().then(async () => {
       ? ((typeof forceValue === 'boolean') ? forceValue : isTruthyEnv(forceValue))
       : !hideText;
     withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
+    savePrefs({ hideText });
     rebuildTrayMenu();
   }
 
@@ -193,6 +230,7 @@ app.whenReady().then(async () => {
     alignmentOverride = alignmentCycle[alignmentIndex];
     repositionMainWindow({ force: true });
     withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
+    savePrefs({ alignment: alignmentOverride });
     rebuildTrayMenu();
   }
 
@@ -217,6 +255,7 @@ app.whenReady().then(async () => {
       repositionMainWindow({ force: true });
       w.webContents.send('molt-mascot:size', label);
     });
+    savePrefs({ sizeIndex });
     rebuildTrayMenu();
   }
 
@@ -299,9 +338,10 @@ app.whenReady().then(async () => {
     return buf;
   }
 
-  // Build a multi-resolution tray icon: 16px @1x + 32px @2x for crisp Retina rendering.
+  // Build a multi-resolution tray icon: 16px @1x + 32px @2x + 48px @3x for crisp rendering on all DPIs.
   const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
   trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
+  trayIcon.addRepresentation({ buffer: renderTraySprite(3), width: 48, height: 48, scaleFactor: 3.0 });
   let tray = new Tray(trayIcon);
   tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
@@ -323,8 +363,9 @@ app.whenReady().then(async () => {
     { label: 'medium', width: 240, height: 200 },
     { label: 'large', width: 360, height: 300 },
   ];
-  // Start at current window size (default is medium)
-  let sizeIndex = 1;
+  // Start at saved size or default to medium
+  let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
+    ? savedPrefs.sizeIndex : 1;
 
   const alignmentCycle = [
     'bottom-right', 'bottom-left', 'top-right', 'top-left',
@@ -334,6 +375,18 @@ app.whenReady().then(async () => {
     (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()
   );
   if (alignmentIndex < 0) alignmentIndex = 0;
+
+  // Apply restored size preference to the initial window (if different from default medium).
+  if (sizeIndex !== 1) {
+    const { label, width, height } = sizeCycle[sizeIndex];
+    withMainWin((w) => {
+      w.setSize(width, height, true);
+      repositionMainWindow({ force: true });
+      w.webContents.once('did-finish-load', () => {
+        w.webContents.send('molt-mascot:size', label);
+      });
+    });
+  }
 
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
@@ -464,6 +517,7 @@ app.whenReady().then(async () => {
     repositionMainWindow({ force: true });
     // Notify renderer so the context menu label updates immediately
     withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
+    savePrefs({ alignment: alignmentOverride });
     rebuildTrayMenu();
   });
 
@@ -486,6 +540,7 @@ app.whenReady().then(async () => {
         repositionMainWindow({ force: true });
         win.webContents.send('molt-mascot:size', label);
       });
+      savePrefs({ sizeIndex });
       rebuildTrayMenu();
       return;
     }
