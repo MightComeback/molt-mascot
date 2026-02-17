@@ -52,6 +52,14 @@ declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
 declare function truncate(str: string, limit?: number): string;
 /**
+ * Common error prefixes to strip for cleaner display.
+ * Organized by category for maintainability.
+ * Exported so the Electron renderer can reuse the same list (single source of truth).
+ */
+declare const ERROR_PREFIXES: string[];
+/** Build the error prefix regex once for performance. */
+declare const ERROR_PREFIX_REGEX: RegExp;
+/**
  * Remove common error prefixes to save space on the pixel display.
  * e.g. "Error: Tool failed: File not found" -> "File not found"
  */
@@ -74,4 +82,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { type Mode, type PluginApi, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };

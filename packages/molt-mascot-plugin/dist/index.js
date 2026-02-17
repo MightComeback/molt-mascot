@@ -20,6 +20,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  ERROR_PREFIXES: () => ERROR_PREFIXES,
+  ERROR_PREFIX_REGEX: () => ERROR_PREFIX_REGEX,
   cleanErrorString: () => cleanErrorString,
   coerceBoolean: () => coerceBoolean,
   coerceNumber: () => coerceNumber,
@@ -35,7 +37,7 @@ module.exports = __toCommonJS(index_exports);
 var package_default = {
   name: "@molt/mascot-plugin",
   version: "0.1.35",
-  description: "Clawdbot plugin for Molt Mascot (pixel mascot)",
+  description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
   },
@@ -148,6 +150,11 @@ var ERROR_PREFIXES = [
   "panic",
   "uncaughtException",
   "Uncaught",
+  // Log-level prefixes (parity with renderer cleanErrorString)
+  "info",
+  "debug",
+  "trace",
+  "warn",
   // JavaScript/TypeScript built-in errors
   "TypeError",
   "ReferenceError",
@@ -183,6 +190,7 @@ var ERROR_PREFIXES = [
   "hakky-tools:",
   "clawd:",
   "clawdbot:",
+  "openclaw:",
   // Protocol/API prefixes
   "rpc:",
   "grpc:",
@@ -209,7 +217,7 @@ var ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
-  // Clawdbot specific
+  // OpenClaw specific
   "cron:",
   "nodes:",
   // Domain-specific errors
@@ -233,6 +241,7 @@ var ERROR_PREFIXES = [
   "GatewayError",
   "FetchError",
   "ClawdError",
+  "OpenClawError",
   "AgentSkillError",
   "PluginError",
   "RpcError",
@@ -312,12 +321,18 @@ function cleanErrorString(s) {
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
-    if (/^Command (exited|failed) with (exit )?code \d+$/.test(lines[0])) {
+    if (/^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])) {
       return cleanErrorString(lines[1]);
     }
-    const errorLine = lines.find((l) => /^(error|fatal|panic|exception|traceback|failed|denied|rejected)/i.test(l));
-    if (errorLine && errorLine !== lines[0]) {
-      return cleanErrorString(errorLine);
+    const concreteErrorLine = lines.find(
+      (l) => /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(l)
+    );
+    if (concreteErrorLine && concreteErrorLine !== lines[0]) {
+      return cleanErrorString(concreteErrorLine);
+    }
+    const tracebackLine = lines.find((l) => /^traceback\b/i.test(l));
+    if (tracebackLine && lines[lines.length - 1] !== tracebackLine) {
+      return cleanErrorString(lines[lines.length - 1]);
     }
   }
   return lines[0] || str;
@@ -478,8 +493,12 @@ function register(api) {
     "skill-creator",
     "coding_agent",
     "coding-agent",
+    "image",
+    "tts",
     // multi_tool_use.parallel becomes just "parallel" after prefix stripping
-    "parallel"
+    "parallel",
+    // Linear integration via hakky-tools
+    "hakky-tools"
   ]);
   const getToolDepth = () => {
     let inputs = 0;
@@ -763,6 +782,8 @@ function register(api) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  ERROR_PREFIXES,
+  ERROR_PREFIX_REGEX,
   cleanErrorString,
   coerceBoolean,
   coerceNumber,

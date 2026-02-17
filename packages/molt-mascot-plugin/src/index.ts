@@ -127,8 +127,9 @@ export function truncate(str: string, limit = 140): string {
 /**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
+ * Exported so the Electron renderer can reuse the same list (single source of truth).
  */
-const ERROR_PREFIXES = [
+export const ERROR_PREFIXES = [
   // Generic patterns
   "[a-zA-Z0-9_]*Error",
   "Tool failed",
@@ -299,7 +300,7 @@ const ERROR_PREFIXES = [
 ];
 
 /** Build the error prefix regex once for performance. */
-const ERROR_PREFIX_REGEX = new RegExp(
+export const ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
   "i"
 );

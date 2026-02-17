@@ -29,72 +29,9 @@ export function truncate(str, limit = 140) {
   return cut + "…";
 }
 
-/**
- * Common error prefixes to strip for cleaner display.
- * Organized by category for maintainability (mirrors the plugin's ERROR_PREFIXES).
- */
-const ERROR_PREFIXES = [
-  // Generic patterns
-  "[a-zA-Z0-9_]*Error", "Tool failed", "Command failed", "Exception",
-  "Warning", "Alert", "Fatal", "panic", "uncaughtException", "Uncaught",
-  // Log-level prefixes
-  "info", "debug", "trace", "warn",
-  // JavaScript/TypeScript built-in errors
-  "TypeError", "ReferenceError", "SyntaxError", "EvalError", "RangeError",
-  "URIError", "AggregateError",
-  // Runtime/System errors
-  "TimeoutError", "SystemError", "AssertionError", "AbortError", "CancellationError",
-  // Environment/Tool prefixes
-  "node:", "fs:", "process:", "internal:", "commonjs:", "bun:",
-  "sh:", "bash:", "zsh:",
-  // CLI tools
-  "git:", "curl:", "wget:", "npm:", "pnpm:", "yarn:",
-  "hakky:", "hakky-tools:", "clawd:", "clawdbot:", "openclaw:",
-  // Protocol/API prefixes
-  "rpc:", "grpc:", "deno:",
-  // Infrastructure tools
-  "docker:", "kubectl:", "terraform:", "ansible:",
-  "make:", "cmake:", "gradle:", "mvn:",
-  // Media/Processing tools
-  "ffmpeg:", "python:", "python3:", "go:", "rustc:", "cargo:",
-  // Browser automation
-  "browser:", "playwright:", "chrome:", "firefox:", "safari:",
-  // OpenClaw specific
-  "cron:", "nodes:",
-  // Domain-specific errors
-  "GitError", "GraphQLError", "ProtocolError", "IPCError", "RuntimeError",
-  "BrowserError", "CanvasError", "ExecError", "SpawnError", "ShellError",
-  "NetworkError", "BroadcastError", "PermissionError", "SecurityError",
-  "AuthError", "ForbiddenError", "EvaluationError", "GatewayError",
-  "FetchError", "ClawdError", "OpenClawError", "AgentSkillError",
-  "PluginError", "RpcError", "MoltError", "MoltMascotError",
-  // AI Provider errors
-  "AnthropicError", "OpenAIError", "OllamaError", "DeepSeekError",
-  "GoogleGenerativeAIError", "GaxiosError", "AxiosError", "ProviderError",
-  // Service errors
-  "PerplexityError", "SonarError", "BraveError", "BunError",
-  "RateLimitError", "ValidationError", "ZodError",
-  // Integration errors
-  "LinearError", "GitHubError", "TelegramError", "DiscordError",
-  "SlackError", "SignalError", "WhatsAppError", "BlueBubblesError",
-  "BirdError", "ClawdHubError", "GeminiError", "GogError", "NotionError",
-  "PeekabooError", "SummarizeError", "VideoFramesError",
-  "SkillCreatorError", "CodingAgentError", "WeatherError", "McpError",
-  // Network/IO errors
-  "WebSocketError", "SocketError", "CronError", "ConnectionError",
-  "RequestError", "ResponseError",
-  // Database errors
-  "DatabaseError", "SqlError", "PrismaError", "MongoError", "RedisError",
-  // Python-style errors
-  "ValueError", "KeyError", "IndexError", "AttributeError",
-  "NameError", "ImportError", "ModuleNotFoundError",
-];
-
-/** Build the error prefix regex once for performance. */
-const ERROR_PREFIX_REGEX = new RegExp(
-  `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
-  "i"
-);
+// Import error prefix regex from the plugin (single source of truth).
+// The plugin exports both ERROR_PREFIXES and ERROR_PREFIX_REGEX.
+import { ERROR_PREFIX_REGEX } from '@molt/mascot-plugin';
 
 export function cleanErrorString(s) {
   // Performance guard: truncate huge outputs before regex processing

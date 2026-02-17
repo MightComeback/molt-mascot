@@ -10,8 +10,9 @@
     },
     "apps/molt-mascot": {
       "name": "@molt/mascot",
-      "version": "0.1.35",
+      "version": "0.1.41",
       "dependencies": {
+        "@molt/mascot-plugin": "workspace:*",
         "electron": "^30.0.0",
       },
       "devDependencies": {
