@@ -599,7 +599,6 @@ export default function register(api: PluginApi) {
     "coding_agent",
     "coding-agent",
     "image",
-    "tts",
     // multi_tool_use.parallel becomes just "parallel" after prefix stripping
     "parallel",
     // Linear integration via hakky-tools
