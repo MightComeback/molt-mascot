@@ -53,6 +53,7 @@ bun run mascot
 - **Reset State**: **Cmd/Ctrl+Shift+R** (force idle/clear error)
 - **Snap to Position**: **Cmd/Ctrl+Shift+S** (reset manual drag, reposition to current alignment)
 - **Cycle Size**: **Cmd/Ctrl+Shift+Z** (cycle through small → medium → large window sizes)
+- **Cycle Opacity**: **Cmd/Ctrl+Shift+O** (cycle through 100% → 80% → 60% → 40%)
 - **DevTools**: **Cmd/Ctrl+Shift+D** (toggle detached DevTools for debugging WS frames)
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
   - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center-left`, `center-right`, `center`
@@ -78,6 +79,7 @@ bun run mascot
 | Cmd/Ctrl+Shift+R | Reset state (force idle) |
 | Cmd/Ctrl+Shift+S | Snap to position (reset manual drag) |
 | Cmd/Ctrl+Shift+Z | Cycle window size (small → medium → large) |
+| Cmd/Ctrl+Shift+O | Cycle opacity (100% → 80% → 60% → 40%) |
 | Cmd/Ctrl+Shift+D | Toggle DevTools |
 | Cmd/Ctrl+Alt+Q | Quit application |
 
