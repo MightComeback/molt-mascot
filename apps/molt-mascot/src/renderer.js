@@ -821,7 +821,7 @@ pill.addEventListener('contextmenu', (e) => {
         ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
       }
     }},
-    { label: 'Cycle Alignment', hint: `${modKey}⇧A`, action: () => {
+    { label: `Cycle Alignment (${lastPluginAlignment || 'bottom-right'})`, hint: `${modKey}⇧A`, action: () => {
       if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment();
     }},
     { label: 'Snap to Position', hint: `${modKey}⇧S`, action: () => {
