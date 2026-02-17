@@ -1000,7 +1000,8 @@ function buildDebugInfo() {
   lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${navigator.platform || 'unknown'}`);
   // Include Electron/Chrome/Node versions for bug reports
-  const versions = process.versions || {};
+  // Use preload-exposed versions (process.versions is unavailable in isolated renderer)
+  const versions = window.moltMascot?.versions || {};
   const runtimeParts = [
     versions.electron ? `Electron ${versions.electron}` : null,
     versions.chrome ? `Chrome ${versions.chrome}` : null,

@@ -47,6 +47,11 @@ contextBridge.exposeInMainWorld('moltMascot', {
   cycleOpacity: () => ipcRenderer.send('molt-mascot:cycle-opacity'),
   platform: process.platform,
   version: pkg.version,
+  versions: {
+    electron: process.versions.electron || '',
+    chrome: process.versions.chrome || '',
+    node: process.versions.node || '',
+  },
   env: {
     gatewayUrl: process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',
     gatewayToken: process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || process.env.gatewayToken || '',
