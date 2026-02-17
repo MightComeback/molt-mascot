@@ -101,6 +101,11 @@ function saveCfg(cfg) {
 function showSetup(prefill) {
   if (isCapture) return;
   setup.hidden = false;
+  // Re-enable form controls in case they were disabled during a connection attempt
+  const saveBtnEl = document.getElementById('save');
+  if (saveBtnEl) { saveBtnEl.disabled = false; saveBtnEl.textContent = 'Save + connect'; }
+  urlInput.disabled = false;
+  tokenInput.disabled = false;
   // Only show Cancel button when there's a saved config to fall back to
   const cancelBtn = document.getElementById('cancel');
   if (cancelBtn) cancelBtn.hidden = !loadCfg()?.url;
@@ -895,6 +900,8 @@ if (cancelBtn) {
   cancelBtn.addEventListener('click', dismissSetup);
 }
 
+const saveBtn = document.getElementById('save');
+
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
   let url = urlInput.value.trim();
@@ -911,6 +918,15 @@ setup.addEventListener('submit', (e) => {
     return;
   }
   urlInput.setCustomValidity('');
+
+  // Disable form controls while connecting to prevent double-submits
+  // and provide visual feedback that the connection attempt is in progress.
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Connecting…';
+  }
+  urlInput.disabled = true;
+  tokenInput.disabled = true;
 
   const cfg = { url, token: tokenInput.value.trim() };
   saveCfg(cfg);
