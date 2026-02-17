@@ -6,12 +6,12 @@
 /**
  * @typedef {Object} MenuItem
  * @property {string} [label]
- * @property {string} [hint]
+ * @property {string} [hint] - Keyboard shortcut hint displayed on the right
  * @property {() => void} [action]
- * @property {boolean} [separator]
+ * @property {boolean} [separator] - Render as a visual divider instead of a clickable item
+ * @property {boolean} [disabled] - Render as non-interactive (skipped by keyboard nav)
  */
 
-let _activeMenu = null;
 let activeCleanup = null;
 
 /**
@@ -85,8 +85,6 @@ export function show(items, { x, y }) {
   menu.style.left = `${clampedX}px`;
   menu.style.top = `${clampedY}px`;
 
-  _activeMenu = menu;
-
   // Keyboard navigation
   const menuItems = Array.from(menu.children);
   let focusIdx = -1;
@@ -158,7 +156,6 @@ export function show(items, { x, y }) {
     document.removeEventListener('click', onOutsideClick, true);
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('blur', cleanup);
-    _activeMenu = null;
     activeCleanup = null;
   }
 
