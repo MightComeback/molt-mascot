@@ -504,10 +504,20 @@ app.whenReady().then(async () => {
 
   // Keep the mascot pinned when display workArea changes (monitor attach/detach,
   // resolution/dock changes, etc.).
+  // Debounce to avoid jittery repositioning when metrics fire rapidly
+  // (e.g. during resolution transitions, dock auto-hide, or display scaling changes).
+  let displayDebounce = null;
+  const debouncedReposition = () => {
+    if (displayDebounce) clearTimeout(displayDebounce);
+    displayDebounce = setTimeout(() => {
+      displayDebounce = null;
+      repositionMainWindow();
+    }, 150);
+  };
   try {
-    screen.on('display-metrics-changed', repositionMainWindow);
-    screen.on('display-added', repositionMainWindow);
-    screen.on('display-removed', repositionMainWindow);
+    screen.on('display-metrics-changed', debouncedReposition);
+    screen.on('display-added', debouncedReposition);
+    screen.on('display-removed', debouncedReposition);
   } catch {}
 
   app.on('activate', () => {
