@@ -97,6 +97,11 @@ function showSetup(prefill) {
   syncPill();
   urlInput.value = prefill?.url || 'ws://127.0.0.1:18789';
   tokenInput.value = prefill?.token || '';
+  // Show version in setup form so users can identify their build
+  const versionEl = document.getElementById('setup-version');
+  if (versionEl && window.moltMascot?.version) {
+    versionEl.textContent = `v${window.moltMascot.version}`;
+  }
 }
 
 import { palette, lobsterIdle, overlay } from './sprites.js';
