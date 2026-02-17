@@ -112,6 +112,18 @@ describe("isMissingMethodResponse", () => {
     })).toBe(true);
   });
 
+  it("detects JSON-RPC -32601 error code", () => {
+    expect(isMissingMethodResponse({
+      ok: false,
+      payload: { error: { code: -32601, message: "Method not found" } },
+    })).toBe(true);
+    // numeric code alone, no descriptive message
+    expect(isMissingMethodResponse({
+      ok: false,
+      error: { code: -32601 },
+    })).toBe(true);
+  });
+
   it("detects unknown rpc method", () => {
     expect(isMissingMethodResponse({
       ok: false,

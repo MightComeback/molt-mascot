@@ -44,6 +44,10 @@ export function isMissingMethodResponse(msg) {
 
   if (ok === true && payloadOk === true) return false;
 
+  // JSON-RPC standard: -32601 means "Method not found"
+  const numericCode = Number(err?.code);
+  if (numericCode === -32601) return true;
+
   if (code.includes('method') && code.includes('not') && code.includes('found')) return true;
   if (message.includes('method not found')) return true;
   if (message.includes('unknown method')) return true;
