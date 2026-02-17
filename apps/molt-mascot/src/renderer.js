@@ -994,6 +994,10 @@ function buildDebugInfo() {
   lines.push(`Alignment: ${lastPluginAlignment || 'bottom-right'}`);
   lines.push(`Size: ${currentSizeLabel}, Opacity: ${Math.round(currentOpacity * 100)}%`);
   lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
+  lines.push(`Reduced motion: ${reducedMotion}`);
+  const fpsInterval = getFrameIntervalMs();
+  const fpsLabel = fpsInterval === 0 ? '~60fps' : `~${Math.round(1000 / fpsInterval)}fps`;
+  lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${navigator.platform || 'unknown'}`);
   return lines.join('\n');
 }
