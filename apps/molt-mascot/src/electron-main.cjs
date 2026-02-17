@@ -299,6 +299,9 @@ app.whenReady().then(async () => {
    * to avoid duplicating the same setup in two places.
    */
   function wireMainWindow(win) {
+    win.on('closed', () => {
+      if (_mainWin === win) _mainWin = null;
+    });
     win.on('moved', () => {
       if (!repositioning) userDragged = true;
     });
