@@ -6,6 +6,10 @@
     "apps/*"
   ],
   "packageManager": "bun@1.3.7",
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "bun run --cwd packages/molt-mascot-plugin dev & bun run --cwd apps/molt-mascot dev",
     "mascot": "bun run --cwd apps/molt-mascot dev",
