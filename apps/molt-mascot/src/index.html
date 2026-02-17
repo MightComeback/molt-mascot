@@ -52,7 +52,12 @@
       #pill.pill--tool { background: rgba(52,199,89,0.4); border-color: rgba(52,199,89,0.5); }
       #pill.pill--error { background: rgba(255,59,48,0.4); border-color: rgba(255,59,48,0.5); }
       #pill.pill--connecting { background: rgba(255,214,10,0.35); border-color: rgba(255,214,10,0.45); }
-      #pill.pill--connected { background: rgba(52,199,89,0.4); border-color: rgba(52,199,89,0.5); }
+      #pill.pill--connected { background: rgba(52,199,89,0.4); border-color: rgba(52,199,89,0.5); animation: pill-connected 0.6s ease-out; }
+      @keyframes pill-connected {
+        0% { transform: scale(0.9); opacity: 0.5; }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+      }
       #pill.pill--sleeping { background: rgba(88,86,214,0.3); border-color: rgba(88,86,214,0.4); }
       #setup {
         position: absolute;
