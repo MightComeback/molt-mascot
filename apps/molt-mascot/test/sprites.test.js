@@ -30,7 +30,7 @@ describe("sprites", () => {
   });
 
   it("palette values are valid CSS colors or null", () => {
-    for (const [key, value] of Object.entries(palette)) {
+    for (const [_key, value] of Object.entries(palette)) {
       if (value === null) continue;
       expect(typeof value).toBe("string");
       expect(value.length).toBeGreaterThan(0);
