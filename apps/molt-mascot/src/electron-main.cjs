@@ -497,7 +497,7 @@ app.whenReady().then(async () => {
         click: actionToggleDevTools,
       },
       { type: 'separator' },
-      { label: 'Quit', click: () => app.quit() },
+      { label: 'Quit', accelerator: 'CommandOrControl+Alt+Q', click: () => app.quit() },
     ]);
     tray.setContextMenu(menu);
   }
