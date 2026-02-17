@@ -313,6 +313,10 @@ app.whenReady().then(async () => {
         // Send initial opacity so the renderer displays the correct percentage
         // in the context menu without waiting for a plugin state push.
         if (opacityIndex !== 0) w.webContents.send('molt-mascot:opacity', opacityCycle[opacityIndex]);
+        // Send initial size label so the renderer context menu reflects the
+        // saved preference. Previously this was only sent outside wireMainWindow,
+        // so macOS `activate` re-creation would miss it.
+        if (sizeIndex !== 1) w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
       });
     });
   }
@@ -423,15 +427,6 @@ app.whenReady().then(async () => {
     if (opacityIndex !== 0) {
       withMainWin((w) => w.setOpacity(opacityCycle[opacityIndex]));
     }
-  }
-
-  // Notify renderer of the initial size label so context menu is correct on launch.
-  if (sizeIndex !== 1) {
-    withMainWin((w) => {
-      w.webContents.once('did-finish-load', () => {
-        w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
-      });
-    });
   }
 
   function rebuildTrayMenu() {
