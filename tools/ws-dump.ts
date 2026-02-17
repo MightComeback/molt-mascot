@@ -5,6 +5,27 @@ type GatewayCfg = {
 
 const argv = process.argv.slice(2);
 const args = new Set(argv);
+
+if (args.has("--help") || args.has("-h")) {
+  console.log(`Usage: bun tools/ws-dump.ts [options]
+
+Connect to an OpenClaw Gateway WebSocket and print all frames as JSON.
+
+Options:
+  --once, --exit          Exit after receiving hello-ok
+  --timeout-ms=<ms>       Timeout for --once mode (default: 5000)
+  --min-protocol=<n>      Minimum protocol version (default: 3)
+  --max-protocol=<n>      Maximum protocol version (default: 3)
+  -h, --help              Show this help
+
+Environment:
+  GATEWAY_URL             WebSocket URL (default: ws://127.0.0.1:18789)
+  GATEWAY_TOKEN           Authentication token
+  OPENCLAW_GATEWAY_URL    Alias for GATEWAY_URL
+  OPENCLAW_GATEWAY_TOKEN  Alias for GATEWAY_TOKEN`);
+  process.exit(0);
+}
+
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 
 const getArg = (name: string): string | undefined => {
