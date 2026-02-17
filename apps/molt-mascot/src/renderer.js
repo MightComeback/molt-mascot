@@ -192,6 +192,8 @@ function drawLobster(mode, t, idleDurationMs = 0) {
     drawSprite(overlay.connecting[Math.floor(t / 500) % 2], overlayOpts);
   } else if (mode === 'connected') {
     drawSprite(overlay.connected[Math.floor(t / 300) % 2], overlayOpts);
+  } else if (mode === 'disconnected') {
+    drawSprite(overlay.disconnected, overlayOpts);
   }
 }
 
@@ -203,6 +205,7 @@ const Mode = {
   error: 'error',
   connecting: 'connecting',
   connected: 'connected',
+  disconnected: 'disconnected',
 };
 
 let currentMode = Mode.idle;
@@ -236,6 +239,9 @@ function syncPill() {
   }
   if (currentMode === Mode.connecting && duration > 2) {
     label = `Connecting… ${formatDuration(duration)}`;
+  }
+  if (currentMode === Mode.disconnected) {
+    label = `Disconnected ${formatDuration(duration)}`;
   }
   if (currentMode === Mode.tool && currentTool) {
     label = truncate(currentTool, 24);
@@ -755,7 +761,7 @@ function connect(cfg) {
     lastPluginSize = null;
     stopStaleCheck();
     pill.textContent = 'disconnected';
-    pill.className = 'pill--connecting';
+    pill.className = 'pill--disconnected';
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
       window._pollInterval = null;
@@ -764,7 +770,7 @@ function connect(cfg) {
       clearInterval(reconnectCountdownTimer);
       reconnectCountdownTimer = null;
     }
-    setMode(Mode.idle);
+    setMode(Mode.disconnected);
     const delay = getReconnectDelay();
     const reconnectAt = Date.now() + delay;
 
@@ -772,7 +778,7 @@ function connect(cfg) {
     const updateCountdown = () => {
       const remaining = Math.max(0, Math.ceil((reconnectAt - Date.now()) / 1000));
       pill.textContent = `reconnecting in ${remaining}s…`;
-      pill.className = 'pill--connecting';
+      pill.className = 'pill--disconnected';
     };
     updateCountdown();
     reconnectCountdownTimer = setInterval(updateCountdown, 1000);

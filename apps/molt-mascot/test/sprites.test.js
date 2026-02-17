@@ -80,6 +80,12 @@ describe("sprites", () => {
     });
   });
 
+  describe("overlay.disconnected", () => {
+    it("is a valid 32x32 sprite", () => {
+      validateFrame(overlay.disconnected, "disconnected");
+    });
+  });
+
   describe("overlay.connecting", () => {
     it("has 2 frames", () => {
       expect(overlay.connecting.length).toBe(2);
