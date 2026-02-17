@@ -385,6 +385,16 @@ export class GatewayClient {
     return this._reconnectAttempt;
   }
 
+  /** The plugin state method name that last succeeded (null if not yet resolved). */
+  get pluginStateMethod() {
+    return this.hasPlugin ? PLUGIN_STATE_METHODS[this._pluginStateMethodIndex] : null;
+  }
+
+  /** The plugin reset method name currently in use (follows state method resolution). */
+  get pluginResetMethod() {
+    return this.hasPlugin ? PLUGIN_RESET_METHODS[this._pluginResetMethodIndex] : null;
+  }
+
   /**
    * Tear down all timers and close the socket.
    */

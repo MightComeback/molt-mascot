@@ -267,6 +267,57 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("pluginStateMethod returns resolved method after successful plugin handshake", () => {
+    const client = new GatewayClient();
+    expect(client.pluginStateMethod).toBeNull();
+
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Still null before plugin responds
+    expect(client.pluginStateMethod).toBeNull();
+
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    expect(client.pluginStateMethod).toBe("@molt/mascot-plugin.state");
+    expect(client.pluginResetMethod).toBe("@molt/mascot-plugin.reset");
+
+    client.destroy();
+  });
+
+  it("pluginStateMethod reflects fallback method after primary fails", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // First method fails
+    const stateReqId1 = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId1, ok: false,
+      payload: { error: { message: "unknown method" } },
+    });
+
+    // Second method succeeds
+    const stateReqId2 = ws._sent[2].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId2, ok: true,
+      payload: { ok: true, state: { mode: "thinking", since: Date.now() } },
+    });
+
+    expect(client.pluginStateMethod).toBe("molt-mascot.state");
+    client.destroy();
+  });
+
   it("omits auth param when no token provided", () => {
     const client = new GatewayClient();
     client.connect({ url: "ws://localhost:18789" });
