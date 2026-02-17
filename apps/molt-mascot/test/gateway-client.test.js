@@ -421,8 +421,8 @@ describe("GatewayClient", () => {
 
   it("plugin reset fallback succeeds on second method", () => {
     const client = new GatewayClient();
-    let pluginState = null;
-    client.onPluginState = (s) => { pluginState = s; };
+    let _pluginState = null;
+    client.onPluginState = (s) => { _pluginState = s; };
     client.connect({ url: "ws://localhost:18789" });
 
     const ws = MockWebSocket._last;
