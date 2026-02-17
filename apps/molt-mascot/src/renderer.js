@@ -114,9 +114,14 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // subtle shadow (keeps it readable on transparent backgrounds)
-  ctx.fillStyle = palette.s;
+  // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
+  // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
+  const shadowScaleX = 26 - bob * 0.4;
+  const shadowScaleY = 10 - bob * 0.2;
+  const shadowAlpha = Math.max(0.15, 0.35 - bob * 0.02);
+  ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
   ctx.beginPath();
-  ctx.ellipse(48, 78, 26, 10, 0, 0, Math.PI * 2);
+  ctx.ellipse(48, 78, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
   ctx.fill();
 
   const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
