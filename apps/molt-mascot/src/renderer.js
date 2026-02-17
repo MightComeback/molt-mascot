@@ -343,6 +343,7 @@ const RECONNECT_MAX_MS = 30000;
 // stale (zombie TCP) and force a reconnect. The 1s plugin poller ensures
 // at least one message per second on a healthy connection, so 15s is generous.
 const STALE_CONNECTION_MS = 15000;
+const STALE_CHECK_INTERVAL_MS = 5000;
 let lastMessageAt = 0;
 let staleCheckTimer = null;
 
@@ -358,7 +359,7 @@ function startStaleCheck() {
       showError('connection stale');
       try { ws.close(); } catch {}
     }
-  }, 5000);
+  }, STALE_CHECK_INTERVAL_MS);
 }
 
 function stopStaleCheck() {
