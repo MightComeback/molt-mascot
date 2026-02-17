@@ -139,6 +139,13 @@ function isBlinking(t) {
   return false;
 }
 
+// Eye geometry extracted from the sprite grid (row/col/size in sprite pixels).
+// Keeping these as named constants avoids magic numbers scattered through drawLobster.
+const EYE_LEFT_COL = 14;
+const EYE_RIGHT_COL = 18;
+const EYE_ROW = 8;
+const EYE_SIZE = 2; // 2×2 sprite pixels per eye
+
 function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -166,14 +173,9 @@ function drawLobster(mode, t, idleDurationMs = 0) {
 
   // Blink: paint over the white+pupil eye pixels with the body red color
   if (isBlinking(t)) {
-    // Eye positions from sprite: row 8 cols 14-15 (left), 18-19 (right) for whites
-    // Row 9 cols 14 'w',15 'b' (left), 18 'w',19 'b' (right)
-    // Paint a horizontal line of body color over both eye rows
     ctx.fillStyle = palette.r;
-    // Left eye area (cols 14-15, rows 8-9)
-    ctx.fillRect(14 * s, (8 + bobY) * s, 2 * s, 2 * s);
-    // Right eye area (cols 18-19, rows 8-9)
-    ctx.fillRect(18 * s, (8 + bobY) * s, 2 * s, 2 * s);
+    ctx.fillRect(EYE_LEFT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
+    ctx.fillRect(EYE_RIGHT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
   }
 
   // overlays (simple icons) - attached to bob; modes are mutually exclusive
