@@ -412,4 +412,33 @@ describe("GatewayClient", () => {
 
     client.destroy();
   });
+
+  it("fires onPluginStateReset on disconnect so consumers clear cached config", async () => {
+    const client = new GatewayClient({ reconnectBaseMs: 50000 });
+    let resetFired = false;
+    let disconnectFired = false;
+    let resetBeforeDisconnect = false;
+
+    client.onPluginStateReset = () => {
+      resetFired = true;
+      // Verify reset fires BEFORE disconnect
+      resetBeforeDisconnect = !disconnectFired;
+    };
+    client.onDisconnect = () => { disconnectFired = true; };
+
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Simulate disconnect
+    ws.onclose();
+
+    expect(resetFired).toBe(true);
+    expect(disconnectFired).toBe(true);
+    expect(resetBeforeDisconnect).toBe(true);
+
+    client.destroy();
+  });
 });

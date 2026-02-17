@@ -100,6 +100,8 @@ export class GatewayClient {
     this.onDisconnect = null;
     /** @type {((error: string) => void)|null} */
     this.onError = null;
+    /** @type {(() => void)|null} Called on disconnect so consumers can clear cached plugin config (clickThrough, alignment, etc.) */
+    this.onPluginStateReset = null;
   }
 
   _nextId(prefix) {
@@ -316,6 +318,7 @@ export class GatewayClient {
       this.connectedUrl = '';
       this._stopStaleCheck();
 
+      this.onPluginStateReset?.();
       this.onDisconnect?.();
 
       const delay = this._getReconnectDelay();
