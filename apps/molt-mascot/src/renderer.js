@@ -928,8 +928,27 @@ window.addEventListener('unhandledrejection', (ev) => {
 
 let lastPillSec = -1;
 let animFrameId = null;
+let lastFrameAt = 0;
+
+// Throttle frame rate when idle/sleeping to save CPU.
+// Active modes (thinking, tool, connecting, connected) run at full 60fps for smooth animation.
+// Idle mode runs at ~15fps (enough for gentle bobbing), sleeping at ~4fps (minimal ZZZ animation).
+function getFrameIntervalMs() {
+  if (currentMode === Mode.idle) {
+    const idleDur = Date.now() - modeSince;
+    return idleDur > 30000 ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
+  }
+  return 0; // active modes: no throttle (full rAF rate)
+}
 
 function frame(t) {
+  const interval = getFrameIntervalMs();
+  if (interval > 0 && t - lastFrameAt < interval) {
+    animFrameId = requestAnimationFrame(frame);
+    return;
+  }
+  lastFrameAt = t;
+
   const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
   drawLobster(currentMode, manualTime !== null ? manualTime : t, idleDur);
   // Update tooltip duration every second (frame-rate independent)
