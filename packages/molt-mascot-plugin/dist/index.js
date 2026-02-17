@@ -134,6 +134,7 @@ function coerceAlignment(v, fallback) {
   return fallback;
 }
 function truncate(str, limit = 140) {
+  if (limit <= 0) return "";
   const s = str.trim().replace(/\s+/g, " ");
   const chars = [...s];
   if (chars.length <= limit) return s;
@@ -240,7 +241,6 @@ var ERROR_PREFIXES = [
   "ShellError",
   "NetworkError",
   "BroadcastError",
-  "PermissionError",
   "SecurityError",
   "AuthError",
   "ForbiddenError",
@@ -312,7 +312,27 @@ var ERROR_PREFIXES = [
   "AttributeError",
   "NameError",
   "ImportError",
-  "ModuleNotFoundError"
+  "ModuleNotFoundError",
+  "FileNotFoundError",
+  "FileExistsError",
+  "IsADirectoryError",
+  "NotADirectoryError",
+  "PermissionError",
+  "IOError",
+  "OSError",
+  "EOFError",
+  "OverflowError",
+  "RecursionError",
+  "NotImplementedError",
+  "StopIteration",
+  "BrokenPipeError",
+  "ChildProcessError",
+  "InterruptedError",
+  "BlockingIOError",
+  "ProcessLookupError",
+  "ConnectionRefusedError",
+  "ConnectionResetError",
+  "ConnectionAbortedError"
 ];
 var ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
@@ -320,7 +340,8 @@ var ERROR_PREFIX_REGEX = new RegExp(
 );
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
-  let str = s.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
+  let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
+  str = str.replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -357,6 +378,13 @@ function summarizeToolResultMessage(msg) {
   }
   if (msg === void 0) {
     return "undefined";
+  }
+  if (Array.isArray(msg)) {
+    const texts = msg.map(
+      (item) => typeof item === "string" ? item : typeof item?.text === "string" ? item.text : typeof item?.name === "string" ? item.name : typeof item?.title === "string" ? item.title : null
+    ).filter(Boolean);
+    if (texts.length > 0) return truncate(cleanErrorString(texts.join(", ")));
+    if (msg.length === 0) return "empty";
   }
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
@@ -455,7 +483,8 @@ function register(api) {
     hideText,
     padding,
     opacity,
-    size
+    size,
+    version
   };
   let idleTimer = null;
   let errorTimer = null;

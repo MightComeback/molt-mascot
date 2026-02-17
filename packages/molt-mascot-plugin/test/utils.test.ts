@@ -117,6 +117,10 @@ describe("utils", () => {
     expect(cleanErrorString("RecursionError: maximum recursion depth exceeded")).toBe("maximum recursion depth exceeded");
     expect(cleanErrorString("NotImplementedError: abstract method")).toBe("abstract method");
     expect(cleanErrorString("OSError: [Errno 28] No space left on device")).toBe("[Errno 28] No space left on device");
+    // ISO-8601 timestamp prefixes from log output
+    expect(cleanErrorString("[2026-02-17T15:30:00Z] Error: timeout")).toBe("timeout");
+    expect(cleanErrorString("2026-02-17T15:30:00.123Z Error: connection lost")).toBe("connection lost");
+    expect(cleanErrorString("[2026-02-17 15:30:00] fatal: bad ref")).toBe("bad ref");
   });
 
   it("summarizeToolResultMessage", () => {

@@ -26,6 +26,7 @@ type State = {
     opacity?: number;
     size?: Size;
     currentTool?: string;
+    version?: string;
 };
 interface PluginApi {
     id?: string;

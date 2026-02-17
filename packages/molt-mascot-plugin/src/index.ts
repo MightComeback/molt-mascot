@@ -359,6 +359,12 @@ export function cleanErrorString(s: string): string {
     .trim();
   /* eslint-enable no-control-regex */
 
+  // Strip leading ISO-8601 timestamps commonly found in log output.
+  // e.g. "[2026-02-17T15:30:00Z] Error: ..." or "2026-02-17T15:30:00.123Z Error: ..."
+  str = str
+    .replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "")
+    .trim();
+
   // Iteratively strip error prefixes (handles nested prefixes like "Error: Tool failed: msg")
   let prev = "";
   while (str !== prev) {
