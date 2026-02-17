@@ -28,13 +28,38 @@
   "build": {
     "appId": "com.mightcomeback.molt-mascot",
     "productName": "Molt Mascot",
-    "artifactName": "molt-mascot-${version}.${ext}",
+    "artifactName": "molt-mascot-${version}-${os}-${arch}.${ext}",
     "files": [
       "src/**/*",
       "package.json",
       "!src/**/*.test.*",
       "!test/**"
-    ]
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "darkModeSupport": true
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    },
+    "linux": {
+      "category": "Utility",
+      "target": [
+        { "target": "AppImage", "arch": ["x64", "arm64"] },
+        { "target": "deb", "arch": ["x64", "arm64"] }
+      ]
+    }
   },
   "keywords": [
     "electron",
