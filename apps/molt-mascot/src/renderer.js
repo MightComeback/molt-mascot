@@ -300,6 +300,7 @@ let ws = null;
 let reqId = 0;
 let reconnectAttempt = 0;
 let reconnectCountdownTimer = null;
+let reconnectTimer = null;    // setTimeout id for the reconnect attempt itself
 let connectedSince = null;   // Date.now() when gateway handshake succeeded
 let connectedUrl = '';        // URL of the current gateway connection
 const RECONNECT_BASE_MS = 1500;
@@ -412,10 +413,14 @@ function connect(cfg) {
   pill.textContent = 'connecting…';
   pill.className = 'pill--connecting';
 
-  // Clear any stale reconnect countdown from a previous connection cycle.
+  // Clear any stale reconnect timers from a previous connection cycle.
   if (reconnectCountdownTimer) {
     clearInterval(reconnectCountdownTimer);
     reconnectCountdownTimer = null;
+  }
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
   }
 
   if (ws) {
@@ -735,7 +740,8 @@ function connect(cfg) {
     updateCountdown();
     reconnectCountdownTimer = setInterval(updateCountdown, 1000);
 
-    setTimeout(() => {
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
       if (reconnectCountdownTimer) {
         clearInterval(reconnectCountdownTimer);
         reconnectCountdownTimer = null;
@@ -925,6 +931,10 @@ pill.addEventListener('contextmenu', (e) => {
         clearInterval(reconnectCountdownTimer);
         reconnectCountdownTimer = null;
       }
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       if (ws) {
         ws.onclose = null;
         try { ws.close(); } catch {}
@@ -1058,6 +1068,10 @@ window.addEventListener('beforeunload', () => {
   if (reconnectCountdownTimer) {
     clearInterval(reconnectCountdownTimer);
     reconnectCountdownTimer = null;
+  }
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
   }
   stopStaleCheck();
   if (idleTimer) {
