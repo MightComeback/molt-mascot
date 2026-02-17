@@ -377,6 +377,12 @@ app.whenReady().then(async () => {
   const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
   trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
   trayIcon.addRepresentation({ buffer: renderTraySprite(3), width: 48, height: 48, scaleFactor: 3.0 });
+  // Mark as template on macOS so the system auto-tints the icon for light/dark menu bars.
+  // Template images use alpha as the shape and ignore RGB values, which means the icon
+  // stays legible regardless of the user's appearance setting.
+  if (process.platform === 'darwin') {
+    trayIcon.setTemplateImage(true);
+  }
   let tray = new Tray(trayIcon);
   tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
