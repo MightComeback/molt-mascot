@@ -171,9 +171,9 @@
       <form id="setup" hidden aria-label="Gateway connection settings">
         <div><b>Connect to OpenClaw Gateway</b></div>
         <label for="url" class="sr-only">Gateway URL</label>
-        <input id="url" placeholder="ws://127.0.0.1:18789" aria-label="Gateway WebSocket URL" autofocus />
+        <input id="url" placeholder="ws://127.0.0.1:18789" aria-label="Gateway WebSocket URL" spellcheck="false" autocomplete="off" autocapitalize="off" autofocus />
         <label for="token" class="sr-only">Auth token</label>
-        <input type="password" id="token" placeholder="token (optional)" aria-label="Gateway auth token" autocomplete="off" />
+        <input type="password" id="token" placeholder="token (optional)" aria-label="Gateway auth token" spellcheck="false" autocomplete="off" />
         <button id="save" type="submit">Save + connect</button>
         <small>
           Tip: if your Gateway requires a token, set <code>gateway.auth.token</code> in OpenClaw config

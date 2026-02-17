@@ -331,6 +331,30 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("fires onError and onHandshakeFailure for invalid WebSocket URL", () => {
+    // Temporarily make WebSocket constructor throw for invalid URLs
+    const OrigWS = globalThis.WebSocket;
+    globalThis.WebSocket = class extends OrigWS {
+      constructor(url) {
+        if (!url || !url.startsWith("ws")) throw new Error("Invalid URL");
+        super(url);
+      }
+    };
+
+    const client = new GatewayClient();
+    let errorMsg = "";
+    let failureMsg = "";
+    client.onError = (msg) => { errorMsg = msg; };
+    client.onHandshakeFailure = (msg) => { failureMsg = msg; };
+    client.connect({ url: "" });
+
+    expect(errorMsg).toBe("Invalid URL");
+    expect(failureMsg).toBe("Invalid URL");
+
+    globalThis.WebSocket = OrigWS;
+    client.destroy();
+  });
+
   it("fires onError when WebSocket emits error", () => {
     const client = new GatewayClient();
     let errorMsg = "";
