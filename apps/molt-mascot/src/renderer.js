@@ -619,6 +619,8 @@ function connect(cfg) {
   ws.onclose = () => {
     hasPlugin = false;
     pluginPollerStarted = false;
+    pluginStatePending = false;
+    pluginStateLastSentAt = 0;
     connectedSince = null;
     connectedUrl = '';
     pill.textContent = 'disconnected';
