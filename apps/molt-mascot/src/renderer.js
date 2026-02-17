@@ -48,7 +48,14 @@ const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
 // 120s avoids false "sleeping" during normal usage pauses between queries.
-const SLEEP_THRESHOLD_S = 120;
+// Configurable via MOLT_MASCOT_SLEEP_THRESHOLD_S env var.
+const DEFAULT_SLEEP_THRESHOLD_S = 120;
+const SLEEP_THRESHOLD_S = (() => {
+  const raw = window.moltMascot?.env?.sleepThresholdS;
+  if (raw === '' || raw === null || raw === undefined) return DEFAULT_SLEEP_THRESHOLD_S;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_SLEEP_THRESHOLD_S;
+})();
 const SLEEP_THRESHOLD_MS = SLEEP_THRESHOLD_S * 1000;
 
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.

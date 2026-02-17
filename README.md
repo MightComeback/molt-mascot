@@ -64,6 +64,7 @@ bun run mascot
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
+  - `MOLT_MASCOT_SLEEP_THRESHOLD_S` (default: 120) — seconds idle before showing ZZZ sleep overlay
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard

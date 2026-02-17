@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
     // Prefer the same env vars as tools/ws-dump for consistency.
     minProtocol: process.env.GATEWAY_MIN_PROTOCOL || process.env.MOLT_MASCOT_MIN_PROTOCOL || '',
     maxProtocol: process.env.GATEWAY_MAX_PROTOCOL || process.env.MOLT_MASCOT_MAX_PROTOCOL || '',
+    sleepThresholdS: process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S || '',
     captureDir: process.env.MOLT_MASCOT_CAPTURE_DIR || '',
     idleDelayMs: process.env.MOLT_MASCOT_IDLE_DELAY_MS || '',
     errorHoldMs: process.env.MOLT_MASCOT_ERROR_HOLD_MS || '',
