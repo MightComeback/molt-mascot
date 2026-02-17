@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, mock } from "bun:test";
+import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 
 // gateway-client.js uses WebSocket which isn't available in Bun test by default.
 // We mock WebSocket to test the client logic in isolation.
@@ -56,7 +56,7 @@ describe("GatewayClient", () => {
     createdSockets = [];
     // Capture WebSocket instances created by the client
     (globalThis as any).WebSocket = class extends MockWebSocket {
-      constructor(url: string) {
+      constructor(_url: string) {
         super();
         createdSockets.push(this);
       }
