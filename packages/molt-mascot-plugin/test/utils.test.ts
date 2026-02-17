@@ -150,6 +150,11 @@ describe("utils", () => {
     // Multi-line with signal: first line kept as-is (regex only matches at end of string)
     expect(cleanErrorString("Killed: 9\nError: out of memory")).toBe("out of memory");
     expect(cleanErrorString("Terminated: 15")).toBe("Terminated");
+
+    // File-path:line:col prefixes (Node/Bun stack traces)
+    expect(cleanErrorString("/Users/foo/bar.js:42:10: TypeError: Cannot read properties")).toBe("Cannot read properties");
+    expect(cleanErrorString("/app/src/index.ts:100: Error: connection failed")).toBe("connection failed");
+    expect(cleanErrorString("C:\\Users\\dev\\app.js:15:3: RangeError: out of bounds")).toBe("out of bounds");
   });
 
   it("summarizeToolResultMessage", () => {

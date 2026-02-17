@@ -388,6 +388,13 @@ export function cleanErrorString(s: string): string {
     .replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "")
     .trim();
 
+  // Strip leading file-path:line:col prefixes common in Node/Bun stack traces.
+  // e.g. "/Users/foo/bar.js:42:10: TypeError: ..." → "TypeError: ..."
+  // Also handles Windows paths: "C:\foo\bar.js:42: Error: ..." → "Error: ..."
+  str = str
+    .replace(/^(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "")
+    .trim();
+
   // Clean POSIX signal descriptions: strip the trailing signal number for brevity.
   // e.g. "Killed: 9" → "Killed", "Segmentation fault: 11" → "Segmentation fault"
   // These are common on macOS/Linux when processes are killed by signals.
