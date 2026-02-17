@@ -161,6 +161,71 @@ app.whenReady().then(async () => {
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
 
+  // --- Core action helpers ---
+  // Deduplicated logic used by keyboard shortcuts, tray menu, IPC, and context menu.
+  // Each action is defined once to prevent drift between the three trigger paths.
+
+  function actionToggleGhostMode(forceValue) {
+    clickThrough = forceValue !== undefined
+      ? ((typeof forceValue === 'boolean') ? forceValue : isTruthyEnv(forceValue))
+      : !clickThrough;
+    withMainWin((w) => {
+      applyClickThrough(w, clickThrough);
+      w.webContents.send('molt-mascot:click-through', clickThrough);
+    });
+    rebuildTrayMenu();
+  }
+
+  function actionToggleHideText(forceValue) {
+    hideText = forceValue !== undefined
+      ? ((typeof forceValue === 'boolean') ? forceValue : isTruthyEnv(forceValue))
+      : !hideText;
+    withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
+    rebuildTrayMenu();
+  }
+
+  function actionResetState() {
+    withMainWin((w) => w.webContents.send('molt-mascot:reset'));
+  }
+
+  function actionCycleAlignment() {
+    alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
+    alignmentOverride = alignmentCycle[alignmentIndex];
+    repositionMainWindow({ force: true });
+    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
+    rebuildTrayMenu();
+  }
+
+  function actionToggleVisibility() {
+    withMainWin((w) => {
+      if (w.isVisible()) w.hide();
+      else w.show();
+      rebuildTrayMenu();
+    });
+  }
+
+  function actionSnapToPosition() {
+    userDragged = false;
+    repositionMainWindow({ force: true });
+  }
+
+  function actionCycleSize() {
+    sizeIndex = (sizeIndex + 1) % sizeCycle.length;
+    const { width, height } = sizeCycle[sizeIndex];
+    withMainWin((w) => {
+      w.setSize(width, height, true);
+      repositionMainWindow({ force: true });
+    });
+    rebuildTrayMenu();
+  }
+
+  function actionToggleDevTools() {
+    withMainWin((w) => {
+      if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
+      else w.webContents.openDevTools({ mode: 'detach' });
+    });
+  }
+
   /**
    * Wire up common event listeners on a freshly created main window.
    * Shared between initial creation and macOS `activate` re-creation
@@ -285,89 +350,48 @@ app.whenReady().then(async () => {
       {
         label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
         accelerator: 'CommandOrControl+Shift+V',
-        click: () => {
-          withMainWin((w) => {
-            if (w.isVisible()) w.hide();
-            else w.show();
-            rebuildTrayMenu();
-          });
-        },
+        click: actionToggleVisibility,
       },
       {
         label: 'Ghost Mode (Click-Through)',
         type: 'checkbox',
         checked: clickThrough,
         accelerator: 'CommandOrControl+Shift+M',
-        click: () => {
-          clickThrough = !clickThrough;
-          withMainWin((w) => {
-            applyClickThrough(w, clickThrough);
-            w.webContents.send('molt-mascot:click-through', clickThrough);
-          });
-          rebuildTrayMenu();
-        },
+        click: () => actionToggleGhostMode(),
       },
       {
         label: 'Hide Text',
         type: 'checkbox',
         checked: hideText,
         accelerator: 'CommandOrControl+Shift+H',
-        click: () => {
-          hideText = !hideText;
-          withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
-          rebuildTrayMenu();
-        },
+        click: () => actionToggleHideText(),
       },
       {
         label: `Cycle Alignment (${(alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()})`,
         accelerator: 'CommandOrControl+Shift+A',
-        click: () => {
-          alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
-          alignmentOverride = alignmentCycle[alignmentIndex];
-          repositionMainWindow({ force: true });
-          withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
-          rebuildTrayMenu();
-        },
+        click: actionCycleAlignment,
       },
       {
         label: `Size: ${sizeCycle[sizeIndex].label} (${sizeCycle[sizeIndex].width}×${sizeCycle[sizeIndex].height})`,
         accelerator: 'CommandOrControl+Shift+Z',
-        click: () => {
-          sizeIndex = (sizeIndex + 1) % sizeCycle.length;
-          const { width, height } = sizeCycle[sizeIndex];
-          withMainWin((w) => {
-            w.setSize(width, height, true);
-            repositionMainWindow({ force: true });
-          });
-          rebuildTrayMenu();
-        },
+        click: actionCycleSize,
       },
       {
         label: 'Snap to Position',
         toolTip: 'Reset manual drag and snap back to the configured alignment corner',
         accelerator: 'CommandOrControl+Shift+S',
-        click: () => {
-          userDragged = false;
-          repositionMainWindow({ force: true });
-        },
+        click: actionSnapToPosition,
       },
       { type: 'separator' },
       {
         label: 'Reset State',
         accelerator: 'CommandOrControl+Shift+R',
-        click: () => {
-          withMainWin((w) => w.webContents.send('molt-mascot:reset'));
-        },
+        click: actionResetState,
       },
       {
         label: 'DevTools',
         accelerator: 'CommandOrControl+Shift+D',
-        click: () => {
-          withMainWin((w) => {
-            if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
-            else w.webContents.openDevTools({ mode: 'detach' });
-          });
-        },
+        click: actionToggleDevTools,
       },
       { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
@@ -384,146 +408,32 @@ app.whenReady().then(async () => {
       }
     };
 
-    register('CommandOrControl+Shift+M', () => {
-      clickThrough = !clickThrough;
-      withMainWin((w) => {
-        applyClickThrough(w, clickThrough);
-        w.webContents.send('molt-mascot:click-through', clickThrough);
-      });
-      // eslint-disable-next-line no-console
-      console.log(`molt-mascot: click-through ${clickThrough ? 'ON' : 'OFF'}`);
-      rebuildTrayMenu();
-    });
-
-    register('CommandOrControl+Shift+H', () => {
-      hideText = !hideText;
-      withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
-      // eslint-disable-next-line no-console
-      console.log(`molt-mascot: hide-text ${hideText ? 'ON' : 'OFF'}`);
-      rebuildTrayMenu();
-    });
-
-    register('CommandOrControl+Shift+R', () => {
-      // eslint-disable-next-line no-console
-      console.log('molt-mascot: reset triggered');
-      withMainWin((w) => w.webContents.send('molt-mascot:reset'));
-    });
-
-    register('CommandOrControl+Shift+A', () => {
-      alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
-      alignmentOverride = alignmentCycle[alignmentIndex];
-      repositionMainWindow({ force: true });
-      withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
-      rebuildTrayMenu();
-      // eslint-disable-next-line no-console
-      console.log(`molt-mascot: alignment → ${alignmentOverride}`);
-    });
-
-    register('CommandOrControl+Shift+V', () => {
-      withMainWin((w) => {
-        if (w.isVisible()) w.hide();
-        else w.show();
-        rebuildTrayMenu();
-        // eslint-disable-next-line no-console
-        console.log(`molt-mascot: visibility ${w.isVisible() ? 'ON' : 'OFF'}`);
-      });
-    });
-
-    register('CommandOrControl+Alt+Q', () => {
-      // eslint-disable-next-line no-console
-      console.log('molt-mascot: quit triggered');
-      app.quit();
-    });
-
-    register('CommandOrControl+Shift+S', () => {
-      userDragged = false;
-      repositionMainWindow({ force: true });
-      // eslint-disable-next-line no-console
-      console.log('molt-mascot: snapped to position');
-    });
-
-    register('CommandOrControl+Shift+Z', () => {
-      sizeIndex = (sizeIndex + 1) % sizeCycle.length;
-      const { width, height } = sizeCycle[sizeIndex];
-      withMainWin((w) => {
-        w.setSize(width, height, true);
-        repositionMainWindow({ force: true });
-      });
-      rebuildTrayMenu();
-      // eslint-disable-next-line no-console
-      console.log(`molt-mascot: size → ${sizeCycle[sizeIndex].label} (${width}×${height})`);
-    });
-
-    register('CommandOrControl+Shift+D', () => {
-      withMainWin((w) => {
-        if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
-        else w.webContents.openDevTools({ mode: 'detach' });
-        // eslint-disable-next-line no-console
-        console.log('molt-mascot: devtools toggled');
-      });
-    });
+    register('CommandOrControl+Shift+M', () => actionToggleGhostMode());
+    register('CommandOrControl+Shift+H', () => actionToggleHideText());
+    register('CommandOrControl+Shift+R', actionResetState);
+    register('CommandOrControl+Shift+A', actionCycleAlignment);
+    register('CommandOrControl+Shift+V', actionToggleVisibility);
+    register('CommandOrControl+Alt+Q', () => app.quit());
+    register('CommandOrControl+Shift+S', actionSnapToPosition);
+    register('CommandOrControl+Shift+Z', actionCycleSize);
+    register('CommandOrControl+Shift+D', actionToggleDevTools);
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
   }
 
   ipcMain.on('molt-mascot:quit', () => app.quit());
-
-  ipcMain.on('molt-mascot:toggle-devtools', () => {
-    withMainWin((w) => {
-      if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
-      else w.webContents.openDevTools({ mode: 'detach' });
-    });
-  });
-
-  ipcMain.on('molt-mascot:cycle-alignment', () => {
-    alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
-    alignmentOverride = alignmentCycle[alignmentIndex];
-    repositionMainWindow({ force: true });
-    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
-    rebuildTrayMenu();
-    // eslint-disable-next-line no-console
-    console.log(`molt-mascot: alignment → ${alignmentOverride}`);
-  });
-
-  ipcMain.on('molt-mascot:snap-to-position', () => {
-    userDragged = false;
-    repositionMainWindow({ force: true });
-  });
-
+  ipcMain.on('molt-mascot:toggle-devtools', actionToggleDevTools);
+  ipcMain.on('molt-mascot:cycle-alignment', actionCycleAlignment);
+  ipcMain.on('molt-mascot:snap-to-position', actionSnapToPosition);
   ipcMain.on('molt-mascot:hide', () => {
     withMainWin((w) => {
       w.hide();
       rebuildTrayMenu();
     });
   });
-
-  ipcMain.on('molt-mascot:cycle-size', () => {
-    sizeIndex = (sizeIndex + 1) % sizeCycle.length;
-    const { width, height } = sizeCycle[sizeIndex];
-    withMainWin((w) => {
-      w.setSize(width, height, true);
-      repositionMainWindow({ force: true });
-    });
-    rebuildTrayMenu();
-    // eslint-disable-next-line no-console
-    console.log(`molt-mascot: size → ${sizeCycle[sizeIndex].label} (${width}×${height})`);
-  });
-
-  ipcMain.on('molt-mascot:set-click-through', (event, enabled) => {
-    // `Boolean("false") === true`, so we need a more careful coercion here.
-    clickThrough = (typeof enabled === 'boolean') ? enabled : isTruthyEnv(enabled);
-    withMainWin((w) => {
-      applyClickThrough(w, clickThrough);
-      w.webContents.send('molt-mascot:click-through', clickThrough);
-    });
-    rebuildTrayMenu();
-  });
-
-  ipcMain.on('molt-mascot:set-hide-text', (event, hidden) => {
-    hideText = (typeof hidden === 'boolean') ? hidden : isTruthyEnv(hidden);
-    withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
-    rebuildTrayMenu();
-  });
+  ipcMain.on('molt-mascot:cycle-size', actionCycleSize);
+  ipcMain.on('molt-mascot:set-click-through', (_event, enabled) => actionToggleGhostMode(enabled));
+  ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {
