@@ -554,7 +554,19 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
     withMainWin((w) => {
       const v = Number(opacity);
-      if (Number.isFinite(v) && v >= 0 && v <= 1) w.setOpacity(v);
+      if (Number.isFinite(v) && v >= 0 && v <= 1) {
+        w.setOpacity(v);
+        // Sync the cycle index to the closest preset so keyboard cycling
+        // continues from a sensible position after a plugin-pushed value.
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < opacityCycle.length; i++) {
+          const d = Math.abs(opacityCycle[i] - v);
+          if (d < bestDist) { bestDist = d; bestIdx = i; }
+        }
+        opacityIndex = bestIdx;
+        savePrefs({ opacityIndex });
+      }
     });
   });
 
