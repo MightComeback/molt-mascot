@@ -52,7 +52,12 @@ function loadCfg() {
 }
 
 function saveCfg(cfg) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  } catch {
+    // Storage full or unavailable (e.g. private browsing) — silently ignore.
+    // The app will still work for the current session; credentials just won't persist.
+  }
 }
 
 function showSetup(prefill) {
