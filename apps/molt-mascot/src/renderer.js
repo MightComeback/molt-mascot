@@ -740,19 +740,26 @@ setup.addEventListener('submit', (e) => {
 // IPC listener subscriptions — store unsubscribe functions for cleanup on unload.
 const ipcUnsubs = [];
 
+/**
+ * Reset the mascot state locally and (if connected) on the plugin side.
+ * Extracted to avoid duplicating the reset sequence across IPC + context menu.
+ */
+function resetState() {
+  setMode(Mode.idle);
+  if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
+    pluginResetMethodIndex = 0;
+    pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+    const id = nextId('reset');
+    pluginResetReqId = id;
+    ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+  }
+}
+
 if (window.moltMascot?.onReset) {
   ipcUnsubs.push(window.moltMascot.onReset(() => {
     // eslint-disable-next-line no-console
     console.log('Resetting state...');
-    setMode(Mode.idle);
-    if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
-      pluginResetMethodIndex = 0;
-      pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
-      const id = nextId('reset');
-      pluginResetReqId = id;
-      // Try canonical method first; on older plugins we fall back through aliases.
-      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
-    }
+    resetState();
   }));
 }
 
@@ -827,16 +834,7 @@ pill.addEventListener('contextmenu', (e) => {
         updateHudVisibility();
       }
     }},
-    { label: 'Reset State', hint: `${modKey}⇧R`, action: () => {
-      setMode(Mode.idle);
-      if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
-        pluginResetMethodIndex = 0;
-        pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
-        const id = nextId('reset');
-        pluginResetReqId = id;
-        ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
-      }
-    }},
+    { label: 'Reset State', hint: `${modKey}⇧R`, action: resetState },
     { label: `Cycle Alignment (${lastPluginAlignment || 'bottom-right'})`, hint: `${modKey}⇧A`, action: () => {
       if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment();
     }},
