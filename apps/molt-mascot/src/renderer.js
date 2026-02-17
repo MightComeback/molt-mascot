@@ -244,8 +244,13 @@ function syncPill() {
   if (currentMode === Mode.disconnected) {
     label = `Disconnected ${formatDuration(duration)}`;
   }
+  if (currentMode === Mode.thinking && duration > 2) {
+    label = `Thinking ${formatDuration(duration)}`;
+  }
   if (currentMode === Mode.tool && currentTool) {
-    label = truncate(currentTool, 24);
+    label = duration > 2
+      ? truncate(`${currentTool} ${formatDuration(duration)}`, 32)
+      : truncate(currentTool, 24);
   }
   if (currentMode === Mode.error && lastErrorMessage) {
     // UX Polish: show actual error in the HUD (truncated)
