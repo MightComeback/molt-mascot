@@ -103,6 +103,8 @@ describe("utils", () => {
     expect(cleanErrorString("debug: variable dump")).toBe("variable dump");
     expect(cleanErrorString("trace: call stack")).toBe("call stack");
     expect(cleanErrorString("warn: deprecation notice")).toBe("deprecation notice");
+    // 8-bit CSI (0x9B) sequences
+    expect(cleanErrorString("\x9B31mError:\x9B0m foo")).toBe("foo");
     // Custom error types
     expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
     // New channels

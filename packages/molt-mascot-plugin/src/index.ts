@@ -330,10 +330,10 @@ export function cleanErrorString(s: string): string {
   // Strip ANSI escape codes (colors, cursor moves, etc)
   /* eslint-disable no-control-regex */
   let str = s
-    // CSI sequences: ESC [ ... <final>
+    // CSI sequences: ESC [ ... <final>  OR  8-bit CSI (0x9B) ... <final>
     // Full match per ANSI: ESC [ parameters intermediates final-byte
     // (final byte is in the range @-~; not just letters)
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "")
     // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \
     .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
     .trim();
