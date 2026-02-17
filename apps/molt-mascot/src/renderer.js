@@ -837,6 +837,23 @@ pill.addEventListener('contextmenu', (e) => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
+    { label: 'Reconnect Now', disabled: Boolean(connectedSince), action: () => {
+      // Force an immediate reconnect, bypassing the exponential backoff timer.
+      if (connectedSince) return; // already connected
+      reconnectAttempt = 0; // reset backoff
+      if (reconnectCountdownTimer) {
+        clearInterval(reconnectCountdownTimer);
+        reconnectCountdownTimer = null;
+      }
+      if (ws) {
+        ws.onclose = null;
+        try { ws.close(); } catch {}
+        ws = null;
+      }
+      const cfg = loadCfg();
+      if (cfg?.url) connect(cfg);
+      else showSetup({ url: 'ws://127.0.0.1:18789', token: '' });
+    }},
     { label: 'Change Gateway…', action: () => {
       const cfg = loadCfg();
       showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' });
