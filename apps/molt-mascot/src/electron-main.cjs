@@ -635,6 +635,10 @@ app.whenReady().then(async () => {
 
   app.on('will-quit', () => {
     try { globalShortcut.unregisterAll(); } catch {}
+    // Destroy tray icon to prevent ghost icons on Windows/Linux after quit.
+    try { if (tray) { tray.destroy(); tray = null; } } catch {}
+    // Cancel any pending display-metrics debounce timer.
+    if (displayDebounce) { clearTimeout(displayDebounce); displayDebounce = null; }
   });
 });
 
