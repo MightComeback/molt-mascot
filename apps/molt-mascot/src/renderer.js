@@ -32,8 +32,15 @@ function recalcCanvasScale() {
 }
 
 recalcCanvasScale();
-// Re-check on resize (triggered by Electron setSize via cycleSize)
-window.addEventListener('resize', recalcCanvasScale);
+// Re-check on resize (triggered by Electron setSize via cycleSize).
+// Debounced to avoid redundant recalculations during rapid resize sequences
+// (e.g. display-metrics-changed firing multiple times in quick succession).
+let _resizeTimer = null;
+function _debouncedRecalcScale() {
+  if (_resizeTimer) clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => { _resizeTimer = null; recalcCanvasScale(); }, 50);
+}
+window.addEventListener('resize', _debouncedRecalcScale);
 
 const STORAGE_KEY = 'moltMascot:gateway';
 
@@ -1241,6 +1248,8 @@ window.addEventListener('beforeunload', () => {
   }
   // Remove media-query listener to avoid leaks during hot-reload
   motionQuery?.removeEventListener?.('change', _onMotionChange);
+  // Cancel debounced resize timer
+  if (_resizeTimer) { clearTimeout(_resizeTimer); _resizeTimer = null; }
   // Unsubscribe IPC listeners to prevent leaked handlers during hot-reload
   for (const unsub of ipcUnsubs) {
     try { unsub?.(); } catch {}
