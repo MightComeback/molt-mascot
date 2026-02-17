@@ -51,6 +51,8 @@ bun run mascot
 - **Show/Hide Mascot**: **Cmd/Ctrl+Shift+V** (toggle window visibility)
 - **Cycle Alignment**: **Cmd/Ctrl+Shift+A** (cycle through all 9 alignment positions)
 - **Reset State**: **Cmd/Ctrl+Shift+R** (force idle/clear error)
+- **Snap to Position**: **Cmd/Ctrl+Shift+S** (reset manual drag, reposition to current alignment)
+- **Cycle Size**: **Cmd/Ctrl+Shift+Z** (cycle through small → medium → large window sizes)
 - **DevTools**: **Cmd/Ctrl+Shift+D** (toggle detached DevTools for debugging WS frames)
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
   - Values: `bottom-right`, `bottom-left`, `top-right`, `top-left`, `top-center`, `bottom-center`, `center-left`, `center-right`, `center`
