@@ -999,6 +999,14 @@ function buildDebugInfo() {
   const fpsLabel = fpsInterval === 0 ? '~60fps' : `~${Math.round(1000 / fpsInterval)}fps`;
   lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${navigator.platform || 'unknown'}`);
+  // Include Electron/Chrome/Node versions for bug reports
+  const versions = process.versions || {};
+  const runtimeParts = [
+    versions.electron ? `Electron ${versions.electron}` : null,
+    versions.chrome ? `Chrome ${versions.chrome}` : null,
+    versions.node ? `Node ${versions.node}` : null,
+  ].filter(Boolean);
+  if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
   return lines.join('\n');
 }
 
