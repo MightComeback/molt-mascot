@@ -497,8 +497,10 @@ function connect(cfg) {
       lastErrorMessage = truncate(cleanErrorString(String(detail)), 48);
       setMode(Mode.error);
       pill.textContent = lastErrorMessage;
-      // Show setup so the user can fix credentials
-      showSetup({ url: urlInput.value, token: tokenInput.value });
+      // Show setup so the user can fix credentials.
+      // Use the actual URL/token we connected with (from cfg) rather than stale input values,
+      // so the form reflects what was attempted — especially important when env vars seeded the config.
+      showSetup(cfg);
       return;
     }
 
