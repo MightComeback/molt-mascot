@@ -63,8 +63,13 @@ describe("sprites", () => {
   });
 
   describe("overlay.thinking", () => {
-    it("is a valid 32x32 sprite", () => {
-      validateFrame(overlay.thinking, "thinking");
+    it("has 2 frames", () => {
+      expect(overlay.thinking.length).toBe(2);
+    });
+
+    it("frames are valid 32x32 sprites", () => {
+      validateFrame(overlay.thinking[0], "thinking[0]");
+      validateFrame(overlay.thinking[1], "thinking[1]");
     });
   });
 

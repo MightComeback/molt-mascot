@@ -181,7 +181,7 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   // overlays (simple icons) - attached to bob; modes are mutually exclusive
   const overlayOpts = { x: 0, y: bobY - 2, scale: s };
   if (mode === 'thinking') {
-    drawSprite(overlay.thinking, overlayOpts);
+    drawSprite(overlay.thinking[Math.floor(t / 600) % 2], overlayOpts);
   } else if (mode === 'tool') {
     drawSprite(overlay.tool, overlayOpts);
   } else if (mode === 'error') {
