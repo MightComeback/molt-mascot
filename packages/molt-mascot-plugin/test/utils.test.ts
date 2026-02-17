@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -708,5 +708,32 @@ describe("utils", () => {
     await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
+  });
+
+  it("coerceSize returns valid sizes and falls back for invalid values", () => {
+    expect(coerceSize("small", "medium")).toBe("small");
+    expect(coerceSize("medium", "small")).toBe("medium");
+    expect(coerceSize("large", "small")).toBe("large");
+    expect(coerceSize("huge", "medium")).toBe("medium");
+    expect(coerceSize(42, "medium")).toBe("medium");
+    expect(coerceSize(undefined, "large")).toBe("large");
+    expect(coerceSize(null, "small")).toBe("small");
+  });
+
+  it("coerceAlignment returns valid alignments and falls back for invalid values", () => {
+    expect(coerceAlignment("top-left", "bottom-right")).toBe("top-left");
+    expect(coerceAlignment("center", "bottom-right")).toBe("center");
+    expect(coerceAlignment("bottom-center", "top-left")).toBe("bottom-center");
+    expect(coerceAlignment("invalid", "bottom-right")).toBe("bottom-right");
+    expect(coerceAlignment(123, "top-right")).toBe("top-right");
+    expect(coerceAlignment(undefined, "center-left")).toBe("center-left");
+  });
+
+  it("allowedAlignments and allowedSizes are complete", () => {
+    expect(allowedAlignments).toContain("top-left");
+    expect(allowedAlignments).toContain("bottom-right");
+    expect(allowedAlignments).toContain("center");
+    expect(allowedAlignments).toHaveLength(9);
+    expect(allowedSizes).toEqual(["small", "medium", "large"]);
   });
 });

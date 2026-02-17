@@ -91,7 +91,7 @@ export function coerceBoolean(v: unknown, fallback: boolean): boolean {
   return fallback;
 }
 
-const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
+export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "top-left",
   "top-right",
   "bottom-left",
@@ -103,16 +103,16 @@ const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center",
 ];
 
-const allowedSizes: Size[] = ["small", "medium", "large"];
+export const allowedSizes: Size[] = ["small", "medium", "large"];
 
-function coerceSize(v: unknown, fallback: Size): Size {
+export function coerceSize(v: unknown, fallback: Size): Size {
   if (typeof v === "string" && (allowedSizes as string[]).includes(v)) {
     return v as Size;
   }
   return fallback;
 }
 
-function coerceAlignment(
+export function coerceAlignment(
   v: unknown,
   fallback: NonNullable<PluginConfig["alignment"]>
 ): NonNullable<PluginConfig["alignment"]> {

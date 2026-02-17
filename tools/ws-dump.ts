@@ -6,6 +6,12 @@ type GatewayCfg = {
 const argv = process.argv.slice(2);
 const args = new Set(argv);
 
+if (args.has("--version") || args.has("-V")) {
+  const pkg = require("../apps/molt-mascot/package.json");
+  console.log(`ws-dump ${pkg.version || "0.0.0"}`);
+  process.exit(0);
+}
+
 if (args.has("--help") || args.has("-h")) {
   console.log(`Usage: bun tools/ws-dump.ts [options]
 
@@ -19,6 +25,7 @@ Options:
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
   --compact               Print JSON on a single line instead of pretty-printed
+  -V, --version           Show version and exit
   -h, --help              Show this help
 
 Environment:
