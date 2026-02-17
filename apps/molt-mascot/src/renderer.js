@@ -926,8 +926,10 @@ pill.addEventListener('keydown', (e) => {
   }
 });
 
-// Right-click context menu on pill for quick access to common actions
-pill.addEventListener('contextmenu', (e) => {
+// Right-click context menu on pill or canvas for quick access to common actions.
+// Users often right-click the lobster sprite rather than the tiny pill, so both
+// elements open the same context menu for discoverability.
+function showContextMenu(e) {
   e.preventDefault();
 
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
@@ -1013,7 +1015,10 @@ pill.addEventListener('contextmenu', (e) => {
       else window.close();
     }},
   ], { x: e.clientX, y: e.clientY });
-});
+}
+
+pill.addEventListener('contextmenu', showContextMenu);
+canvas.addEventListener('contextmenu', showContextMenu);
 
 // boot
 if (isCapture) {
