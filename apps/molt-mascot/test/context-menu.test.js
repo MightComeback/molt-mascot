@@ -445,6 +445,26 @@ describe("context-menu", () => {
     expect(document.body._children.length).toBe(1);
   });
 
+  it("mouseleave on menu clears focus indicator", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "First", action: () => {} },
+        { label: "Second", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Auto-focused on First
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
+
+    // Simulate mouseleave on the menu element
+    const leaveHandlers = menu._listeners["mouseleave"] || [];
+    leaveHandlers.forEach((fn) => fn());
+    expect(menu._children[0]._classes.has("ctx-focus")).toBe(false);
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(false);
+  });
+
   it("disabled items have aria-disabled attribute", () => {
     const menu = ctxMenu.show(
       [

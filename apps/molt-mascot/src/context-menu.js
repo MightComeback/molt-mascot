@@ -174,6 +174,15 @@ export function show(items, { x, y }) {
     menuItems[idx].addEventListener('mouseenter', () => setFocus(idx));
   }
 
+  // Clear focus highlight when the mouse leaves the menu entirely,
+  // matching native OS context-menu behavior.
+  menu.addEventListener('mouseleave', () => {
+    if (focusIdx >= 0 && focusIdx < menuItems.length) {
+      menuItems[focusIdx].classList.remove('ctx-focus');
+    }
+    focusIdx = -1;
+  });
+
   // Auto-focus first interactive item
   if (interactiveIndices.length) setFocus(interactiveIndices[0]);
 
