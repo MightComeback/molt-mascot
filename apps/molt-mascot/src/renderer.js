@@ -123,21 +123,20 @@ function drawLobster(mode, t, idleDurationMs = 0) {
     ctx.fillRect(18 * scale, (8 + bobY) * scale, 2 * scale, 2 * scale);
   }
 
-  // overlays (simple icons) - attached to bob
-  if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: bobY - 2, scale: 3 });
-  if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: bobY - 2, scale: 3 });
-  if (mode === 'error') drawSprite(overlay.error, { x: 0, y: bobY - 2, scale: 3 });
-  if (mode === 'idle' && idleDurationMs > 30000) {
-    const sleepFrame = Math.floor(t / 800) % 2;
-    drawSprite(overlay.sleep[sleepFrame], { x: 0, y: bobY - 2, scale: 3 });
-  }
-  if (mode === 'connecting') {
-    const dotFrame = Math.floor(t / 500) % 2;
-    drawSprite(overlay.connecting[dotFrame], { x: 0, y: bobY - 2, scale: 3 });
-  }
-  if (mode === 'connected') {
-    const sparkleFrame = Math.floor(t / 300) % 2;
-    drawSprite(overlay.connected[sparkleFrame], { x: 0, y: bobY - 2, scale: 3 });
+  // overlays (simple icons) - attached to bob; modes are mutually exclusive
+  const overlayOpts = { x: 0, y: bobY - 2, scale: 3 };
+  if (mode === 'thinking') {
+    drawSprite(overlay.thinking, overlayOpts);
+  } else if (mode === 'tool') {
+    drawSprite(overlay.tool, overlayOpts);
+  } else if (mode === 'error') {
+    drawSprite(overlay.error, overlayOpts);
+  } else if (mode === 'idle' && idleDurationMs > 30000) {
+    drawSprite(overlay.sleep[Math.floor(t / 800) % 2], overlayOpts);
+  } else if (mode === 'connecting') {
+    drawSprite(overlay.connecting[Math.floor(t / 500) % 2], overlayOpts);
+  } else if (mode === 'connected') {
+    drawSprite(overlay.connected[Math.floor(t / 300) % 2], overlayOpts);
   }
 }
 
