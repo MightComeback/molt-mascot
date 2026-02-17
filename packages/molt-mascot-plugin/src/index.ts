@@ -395,11 +395,15 @@ export function cleanErrorString(s: string): string {
     .replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1")
     .trim();
 
-  // Iteratively strip error prefixes (handles nested prefixes like "Error: Tool failed: msg")
+  // Iteratively strip error prefixes and POSIX errno codes.
+  // Handles nested prefixes like "Error: Tool failed: ENOENT: no such file"
+  // Errno codes: ENOENT, EACCES, EPERM, ECONNREFUSED, etc.
+  const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
   let prev = "";
   while (str !== prev) {
     prev = str;
     str = str.replace(ERROR_PREFIX_REGEX, "").trim();
+    str = str.replace(ERRNO_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);

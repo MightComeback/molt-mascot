@@ -136,6 +136,12 @@ describe("utils", () => {
     expect(cleanErrorString("[2026-02-17T15:30:00Z] Error: timeout")).toBe("timeout");
     expect(cleanErrorString("2026-02-17T15:30:00.123Z Error: connection lost")).toBe("connection lost");
     expect(cleanErrorString("[2026-02-17 15:30:00] fatal: bad ref")).toBe("bad ref");
+    // POSIX errno codes (Node/Bun style)
+    expect(cleanErrorString("ENOENT: no such file or directory, open '/foo'")).toBe("no such file or directory, open '/foo'");
+    expect(cleanErrorString("EACCES: permission denied, open '/etc/shadow'")).toBe("permission denied, open '/etc/shadow'");
+    expect(cleanErrorString("EPERM: operation not permitted")).toBe("operation not permitted");
+    expect(cleanErrorString("ECONNREFUSED: connection refused")).toBe("connection refused");
+    expect(cleanErrorString("Error: ENOENT: no such file")).toBe("no such file");
     // POSIX signal descriptions: strip trailing signal number for brevity
     expect(cleanErrorString("Killed: 9")).toBe("Killed");
     expect(cleanErrorString("Segmentation fault: 11")).toBe("Segmentation fault");
@@ -527,7 +533,7 @@ describe("utils", () => {
         message: "Command exited with code 1",
         stderr: "ENOENT: no such file or directory",
       })
-    ).toBe("ENOENT: no such file or directory");
+    ).toBe("no such file or directory");
 
     // When the only info IS the exit code, still return it
     expect(
