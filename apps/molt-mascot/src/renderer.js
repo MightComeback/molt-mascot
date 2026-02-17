@@ -231,6 +231,9 @@ function setMode(mode) {
   }
 
   if (mode !== Mode.error) lastErrorMessage = '';
+  // Clear stale tool name when leaving tool mode so it doesn't linger
+  // if the plugin connection drops and native events take over.
+  if (mode !== Mode.tool) currentTool = '';
   syncPill();
 }
 
