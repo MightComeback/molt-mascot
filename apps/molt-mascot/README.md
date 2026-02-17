@@ -64,6 +64,7 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_HIDE_TEXT` (or legacy `MOLT_MASCOT_HIDETEXT`) | Start with text hidden (pixel-only) (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_IDLE_DELAY_MS` | Milliseconds to wait after agent/tool end before reverting to `idle` | `800` |
 | `MOLT_MASCOT_ERROR_HOLD_MS` | Milliseconds to hold `error` state before clearing | `5000` |
+| `MOLT_MASCOT_SLEEP_THRESHOLD_S` | Seconds idle before showing sleeping state (ZZZ overlay). Set to `0` to disable. | `120` |
 
 ### Connection Configuration
 
