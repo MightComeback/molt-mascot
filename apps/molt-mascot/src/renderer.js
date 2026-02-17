@@ -253,6 +253,13 @@ let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 
 function syncPill() {
+  // Dynamically adjust aria-live so error announcements are immediate (assertive)
+  // while routine status updates remain polite and non-intrusive.
+  const ariaLive = currentMode === Mode.error ? 'assertive' : 'polite';
+  if (pill.getAttribute('aria-live') !== ariaLive) {
+    pill.setAttribute('aria-live', ariaLive);
+  }
+
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
   let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
