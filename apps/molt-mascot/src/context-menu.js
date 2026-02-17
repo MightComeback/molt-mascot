@@ -11,7 +11,7 @@
  * @property {boolean} [separator]
  */
 
-let activeMenu = null;
+let _activeMenu = null;
 let activeCleanup = null;
 
 /**
@@ -81,7 +81,7 @@ export function show(items, { x, y }) {
   menu.style.left = `${clampedX}px`;
   menu.style.top = `${clampedY}px`;
 
-  activeMenu = menu;
+  _activeMenu = menu;
 
   // Keyboard navigation
   const menuItems = Array.from(menu.children);
@@ -154,7 +154,7 @@ export function show(items, { x, y }) {
     document.removeEventListener('click', onOutsideClick, true);
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('blur', cleanup);
-    activeMenu = null;
+    _activeMenu = null;
     activeCleanup = null;
   }
 

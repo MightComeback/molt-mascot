@@ -71,10 +71,10 @@ function setupDom() {
     createElement: (tag) => makeElement(tag),
     body,
     _listeners: {},
-    addEventListener(type, fn, capture) {
+    addEventListener(type, fn, _capture) {
       (doc._listeners[type] ??= []).push(fn);
     },
-    removeEventListener(type, fn, capture) {
+    removeEventListener(type, fn, _capture) {
       if (doc._listeners[type]) {
         doc._listeners[type] = doc._listeners[type].filter((f) => f !== fn);
       }
@@ -271,7 +271,7 @@ describe("context-menu", () => {
 
   it("Enter key activates focused item", async () => {
     let activated = false;
-    const menu = ctxMenu.show(
+    ctxMenu.show(
       [{ label: "Go", action: () => { activated = true; } }],
       { x: 0, y: 0 }
     );
@@ -415,11 +415,11 @@ describe("context-menu", () => {
   });
 
   it("disabled items are skipped by keyboard navigation", async () => {
-    let called = false;
+    let _called = false;
     const menu = ctxMenu.show(
       [
         { label: "Alpha", action: () => {} },
-        { label: "Disabled", disabled: true, action: () => { called = true; } },
+        { label: "Disabled", disabled: true, action: () => { _called = true; } },
         { label: "Gamma", action: () => {} },
       ],
       { x: 0, y: 0 }
