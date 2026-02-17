@@ -330,4 +330,86 @@ describe("GatewayClient", () => {
 
     client.destroy();
   });
+
+  it("fires onError when WebSocket emits error", () => {
+    const client = new GatewayClient();
+    let errorMsg = "";
+    client.onError = (msg) => { errorMsg = msg; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("error", {});
+
+    expect(errorMsg).toBe("WebSocket error");
+    client.destroy();
+  });
+
+  it("detects stale connection and closes socket", async () => {
+    const client = new GatewayClient({
+      staleConnectionMs: 50,
+      staleCheckIntervalMs: 20,
+    });
+    let errorMsg = "";
+    client.onError = (msg) => { errorMsg = msg; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Wait for stale check to fire (50ms stale + 20ms check interval)
+    await new Promise((r) => setTimeout(r, 120));
+
+    expect(errorMsg).toBe("connection stale");
+    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
+
+    client.destroy();
+  });
+
+  it("forwards raw messages via onMessage callback", () => {
+    const client = new GatewayClient();
+    const messages = [];
+    client.onMessage = (msg) => { messages.push(msg); };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    ws._emitMessage({ type: "custom", data: "test" });
+
+    expect(messages.length).toBeGreaterThanOrEqual(1);
+    expect(messages.some((m) => m.type === "custom")).toBe(true);
+
+    client.destroy();
+  });
+
+  it("triggers snappy plugin state poll on events when plugin is active", async () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Mark plugin as active
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Wait past the 150ms rate-limit window so the next poll isn't throttled
+    await new Promise((r) => setTimeout(r, 200));
+
+    const sentBefore = ws._sent.length;
+
+    // Emit an event — should trigger an immediate plugin state poll
+    ws._emitMessage({ type: "event", event: "agent", payload: { phase: "start" } });
+
+    // Should have sent at least one more plugin state request
+    expect(ws._sent.length).toBeGreaterThan(sentBefore);
+
+    client.destroy();
+  });
 });
