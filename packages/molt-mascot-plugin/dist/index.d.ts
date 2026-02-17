@@ -1,6 +1,7 @@
 declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
+type Size = "small" | "medium" | "large";
 type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;
@@ -9,6 +10,7 @@ type PluginConfig = {
     hideText?: boolean;
     padding?: number;
     opacity?: number;
+    size?: Size;
 };
 type State = {
     mode: Mode;
@@ -22,6 +24,7 @@ type State = {
     hideText?: boolean;
     padding?: number;
     opacity?: number;
+    size?: Size;
     currentTool?: string;
 };
 interface PluginApi {
@@ -82,4 +85,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, id, summarizeToolResultMessage, truncate, version };

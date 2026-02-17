@@ -29,57 +29,11 @@ export function truncate(str, limit = 140) {
   return cut + "…";
 }
 
-// Import error prefix regex from the plugin (single source of truth).
-// The plugin exports both ERROR_PREFIXES and ERROR_PREFIX_REGEX.
-import { ERROR_PREFIX_REGEX } from '@molt/mascot-plugin';
-
-export function cleanErrorString(s) {
-  // Performance guard: truncate huge outputs before regex processing
-  if (String(s).length > 4096) s = String(s).slice(0, 4096);
-
-  // Strip ANSI escape codes (colors, cursor moves, etc)
-  /* eslint-disable no-control-regex */
-  let str = String(s)
-    // CSI sequences: ESC [ parameters intermediates final-byte
-    // (final byte is in the range @-~; not just letters)
-    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
-    // OSC sequences: ESC ] ... BEL  OR  ESC ] ... ESC \\
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
-    .trim();
-  /* eslint-enable no-control-regex */
-  let prev = "";
-  while (str !== prev) {
-    prev = str;
-    str = str.replace(ERROR_PREFIX_REGEX, "").trim();
-  }
-  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
-  
-  // UX Improvement: If we have multiple lines, scan for the most relevant error line.
-  // This extracts "Error: Failed" from logs that might start with "info: starting..."
-  if (lines.length > 1) {
-    // If first line is a generic exit code, always look deeper
-    if (/^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])) {
-      return cleanErrorString(lines[1]);
-    }
-    
-    // Check if any line (other than the first) looks like a strong error signal.
-    // Prefer concrete failure lines over generic traceback headers.
-    const concreteErrorLine = lines.find(
-      (l) => /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(l)
-    );
-    if (concreteErrorLine && concreteErrorLine !== lines[0]) {
-      return cleanErrorString(concreteErrorLine);
-    }
-
-    // Python tracebacks often put the useful error on the final line.
-    const tracebackLine = lines.find((l) => /^traceback\b/i.test(l));
-    if (tracebackLine && lines[lines.length - 1] !== tracebackLine) {
-      return cleanErrorString(lines[lines.length - 1]);
-    }
-  }
-
-  return lines[0] || str;
-}
+// Import cleanErrorString from the plugin (single source of truth).
+// The renderer previously duplicated the full implementation; now we delegate
+// to the canonical version to avoid drift between plugin and renderer logic.
+import { cleanErrorString } from '@molt/mascot-plugin';
+export { cleanErrorString };
 
 export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;

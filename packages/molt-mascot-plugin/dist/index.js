@@ -120,6 +120,13 @@ var allowedAlignments = [
   "center-right",
   "center"
 ];
+var allowedSizes = ["small", "medium", "large"];
+function coerceSize(v, fallback) {
+  if (typeof v === "string" && allowedSizes.includes(v)) {
+    return v;
+  }
+  return fallback;
+}
 function coerceAlignment(v, fallback) {
   if (typeof v === "string" && allowedAlignments.includes(v)) {
     return v;
@@ -439,6 +446,7 @@ function register(api) {
   const padding = paddingNum >= 0 ? paddingNum : 24;
   const opacityNum = coerceNumber(cfg.opacity, 1);
   const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
+  const size = coerceSize(cfg.size, "medium");
   const state = {
     mode: "idle",
     since: Date.now(),
@@ -446,7 +454,8 @@ function register(api) {
     clickThrough,
     hideText,
     padding,
-    opacity
+    opacity,
+    size
   };
   let idleTimer = null;
   let errorTimer = null;
