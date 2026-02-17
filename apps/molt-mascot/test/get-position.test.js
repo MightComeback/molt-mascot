@@ -83,6 +83,33 @@ describe("getPosition", () => {
     expect(pos).toEqual({ x: 0, y: 0 });
   });
 
+  it("clamps position when padding exceeds display size", () => {
+    const small = { workArea: { x: 0, y: 0, width: 300, height: 250 } };
+    // padding=500 would push top-left to (500, 500), way off-screen
+    const pos = getPosition(small, W, H, "top-left", 500);
+    // Should clamp to keep window inside work area
+    expect(pos.x).toBeGreaterThanOrEqual(0);
+    expect(pos.y).toBeGreaterThanOrEqual(0);
+    expect(pos.x + W).toBeLessThanOrEqual(300);
+    expect(pos.y + H).toBeLessThanOrEqual(250);
+  });
+
+  it("clamps position when window is larger than display", () => {
+    const tiny = { workArea: { x: 0, y: 0, width: 100, height: 80 } };
+    const pos = getPosition(tiny, W, H, "bottom-right", 0);
+    // Window (240x200) exceeds display (100x80); clamp to origin
+    expect(pos.x).toBe(0);
+    expect(pos.y).toBe(0);
+  });
+
+  it("clamps with work area offset", () => {
+    const offset = { workArea: { x: 200, y: 100, width: 300, height: 250 } };
+    const pos = getPosition(offset, W, H, "bottom-right", 500);
+    // Should stay within [200, 200+300-240] x [100, 100+250-200]
+    expect(pos.x).toBeGreaterThanOrEqual(200);
+    expect(pos.y).toBeGreaterThanOrEqual(100);
+  });
+
   it("rounds fractional center positions to integers", () => {
     // Odd display width/height produces fractional center coords
     const odd = { workArea: { x: 0, y: 0, width: 1921, height: 1081 } };

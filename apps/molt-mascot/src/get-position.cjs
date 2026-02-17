@@ -36,6 +36,11 @@ function getPosition(display, width, height, alignOverride, paddingOverride) {
     default:
       px = x + dw - width - padding; py = y + dh - height - padding; break;
   }
+  // Clamp to work area so the window never ends up off-screen
+  // (e.g. when padding is larger than the display or window exceeds display size).
+  px = Math.max(x, Math.min(px, x + dw - width));
+  py = Math.max(y, Math.min(py, y + dh - height));
+
   return { x: Math.round(px), y: Math.round(py) };
 }
 
