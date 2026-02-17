@@ -101,6 +101,9 @@ function saveCfg(cfg) {
 function showSetup(prefill) {
   if (isCapture) return;
   setup.hidden = false;
+  // Only show Cancel button when there's a saved config to fall back to
+  const cancelBtn = document.getElementById('cancel');
+  if (cancelBtn) cancelBtn.hidden = !loadCfg()?.url;
   // Ensure we can click the form!
   if (window.moltMascot?.setClickThrough) {
     window.moltMascot.setClickThrough(false);
@@ -871,16 +874,26 @@ function connect(cfg) {
 // Clear validation error as user types (prevents sticky custom validity)
 urlInput.addEventListener('input', () => urlInput.setCustomValidity(''));
 
+// Dismiss setup form and reconnect with saved config (shared by ESC key and Cancel button).
+function dismissSetup() {
+  if (setup.hidden) return;
+  const cfg = loadCfg();
+  if (cfg?.url) {
+    setup.hidden = true;
+    connect(cfg);
+  }
+}
+
 // ESC dismisses the setup form if we have a saved config (reconnect with existing creds)
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !setup.hidden) {
-    const cfg = loadCfg();
-    if (cfg?.url) {
-      setup.hidden = true;
-      connect(cfg);
-    }
-  }
+  if (e.key === 'Escape' && !setup.hidden) dismissSetup();
 });
+
+// Cancel button dismisses the setup form (visible alternative to ESC)
+const cancelBtn = document.getElementById('cancel');
+if (cancelBtn) {
+  cancelBtn.addEventListener('click', dismissSetup);
+}
 
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
