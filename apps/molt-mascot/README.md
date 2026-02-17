@@ -76,13 +76,39 @@ To pre-configure the connection to the Gateway (skipping the setup screen):
 | `GATEWAY_MIN_PROTOCOL` | Minimum Gateway WS protocol version to negotiate (optional; useful for older Gateways) |
 | `GATEWAY_MAX_PROTOCOL` | Maximum Gateway WS protocol version to negotiate (optional; useful for newer Gateways) |
 
+## System Tray
+
+On macOS, the dock icon is hidden for a clean desktop-widget feel. A system tray icon (pixel lobster) provides access to all controls and shows the current state in its tooltip.
+
+Left-click the tray icon to toggle mascot visibility.
+
 ## Controls
 
-The mascot listens for global shortcuts when active:
+### Keyboard Shortcuts
 
-- **Cmd/Ctrl + Shift + A**: Cycle **alignment** position (bottom-right → bottom-left → top-right → …).
-- **Cmd/Ctrl + Shift + M**: Toggle **click-through** mode (ignore mouse events).
-- **Cmd/Ctrl + Shift + H**: Toggle **hide text** (show only the pixel avatar).
-- **Cmd/Ctrl + Shift + R**: Force **reset** mascot state (if stuck).
-- **Cmd/Ctrl + Shift + D**: Toggle detached **DevTools** (useful for debugging WS frames/UI state).
-- **Cmd/Ctrl + Alt/Option + Q**: **Quit** the mascot.
+The mascot registers global shortcuts when active:
+
+| Shortcut | Action |
+|---|---|
+| ⌘/Ctrl + ⇧ + A | Cycle **alignment** position (bottom-right → bottom-left → top-right → …) |
+| ⌘/Ctrl + ⇧ + M | Toggle **ghost mode** (click-through — mouse events pass through) |
+| ⌘/Ctrl + ⇧ + H | Toggle **hide text** (show only the pixel avatar) |
+| ⌘/Ctrl + ⇧ + V | Toggle **visibility** (hide/show the mascot window) |
+| ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
+| ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300) |
+| ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
+| ⌘/Ctrl + ⇧ + D | Toggle detached **DevTools** (debug WS frames / UI state) |
+| ⌘/Ctrl + ⌥ + Q | **Quit** the mascot |
+
+### Context Menu
+
+Right-click the status pill to access all actions: ghost mode, hide text, reset, alignment cycling, snap to position, size cycling, copy status, reconnect, change gateway, hide mascot, devtools, and quit.
+
+### Pill Interactions
+
+- **Double-click** the pill to copy the current status text to clipboard.
+- **Enter/Space** on the focused pill opens the context menu (keyboard accessibility).
+
+## Screenshot Capture
+
+Set `MOLT_MASCOT_CAPTURE_DIR` to a directory path to capture deterministic screenshots of all modes (idle, thinking, tool, error) and exit. Useful for docs and CI.
