@@ -150,25 +150,37 @@ app.whenReady().then(async () => {
     return;
   }
 
-  _mainWin = createWindow();
-
   // Detect manual drags: if the window moves and we didn't trigger it,
   // mark as user-dragged so auto-reposition doesn't snap it back.
   let repositioning = false;
-
-  _mainWin.on('moved', () => {
-    if (!repositioning) {
-      userDragged = true;
-    }
-  });
 
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
   let clickThrough = isTruthyEnv(process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH);
-  applyClickThrough(_mainWin, clickThrough);
 
   let hideText = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT);
+
+  /**
+   * Wire up common event listeners on a freshly created main window.
+   * Shared between initial creation and macOS `activate` re-creation
+   * to avoid duplicating the same setup in two places.
+   */
+  function wireMainWindow(win) {
+    win.on('moved', () => {
+      if (!repositioning) userDragged = true;
+    });
+    applyClickThrough(win, clickThrough);
+    win.webContents.once('did-finish-load', () => {
+      withMainWin((w) => {
+        if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
+        if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
+      });
+    });
+  }
+
+  _mainWin = createWindow();
+  wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
   // 16x16 pixel-art lobster icon for the tray (matches the mascot sprite style).
@@ -363,14 +375,6 @@ app.whenReady().then(async () => {
   }
 
   rebuildTrayMenu();
-
-  // Apply initial state once loaded
-  _mainWin.webContents.once('did-finish-load', () => {
-    withMainWin((w) => {
-      if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
-      if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
-    });
-  });
 
   try {
     const register = (acc, cb) => {
@@ -582,18 +586,7 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       _mainWin = createWindow();
-      applyClickThrough(_mainWin, clickThrough);
-
-      // Re-apply the same initial state and event wiring as the first window.
-      _mainWin.on('moved', () => {
-        if (!repositioning) userDragged = true;
-      });
-      _mainWin.webContents.once('did-finish-load', () => {
-        withMainWin((w) => {
-          if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
-          if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
-        });
-      });
+      wireMainWindow(_mainWin);
     }
   });
 
