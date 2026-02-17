@@ -133,8 +133,12 @@
         outline: 2px solid rgba(10,132,255,0.8);
         outline-offset: 2px;
       }
-      #setup button:active {
+      #setup button:active:not(:disabled) {
         background: rgba(255,255,255,0.08);
+      }
+      #setup button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
       #setup small { opacity: 0.85; display: block; margin-top: 6px; line-height: 1.2; }
       kbd { font-family: ui-monospace, monospace; font-size: 0.9em; padding: 1px 4px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
