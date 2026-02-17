@@ -320,6 +320,7 @@ function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
   let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
   str = str.replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "").trim();
+  str = str.replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1").trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -462,7 +463,9 @@ function register(api) {
     padding,
     opacity,
     size,
-    version
+    version,
+    toolCalls: 0,
+    toolErrors: 0
   };
   let idleTimer = null;
   let errorTimer = null;
@@ -588,6 +591,7 @@ function register(api) {
     api?.logger?.warn?.(`${pluginId}: entering error mode: ${message}`);
     clearIdleTimer();
     clearErrorTimer();
+    state.toolErrors = (state.toolErrors ?? 0) + 1;
     setMode("error", { lastError: { message, ts: Date.now() } });
     errorTimer = setTimeout(() => {
       if (state.mode === "error") {
@@ -619,6 +623,8 @@ function register(api) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
+    state.toolCalls = 0;
+    state.toolErrors = 0;
     agentToolStacks.clear();
     agentLastToolTs.clear();
     activeAgents.clear();
@@ -663,6 +669,7 @@ function register(api) {
       stack.push(toolName);
       agentToolStacks.set(key, stack);
       agentLastToolTs.set(key, Date.now());
+      state.toolCalls = (state.toolCalls ?? 0) + 1;
       state.currentTool = toolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
       syncModeFromCounters();
     };

@@ -227,6 +227,8 @@ let lastPluginPadding = null;
 let lastPluginSize = null;
 let currentSizeLabel = 'medium';
 let pluginVersion = '';
+let pluginToolCalls = 0;
+let pluginToolErrors = 0;
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -288,6 +290,10 @@ function syncPill() {
   }
   if (reconnectAttempt > 0 && !connectedSince) {
     tip += ` · retry #${reconnectAttempt}`;
+  }
+  if (pluginToolCalls > 0) {
+    tip += ` · ${pluginToolCalls} calls`;
+    if (pluginToolErrors > 0) tip += `, ${pluginToolErrors} errors`;
   }
   const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : '';
   const plugVer = pluginVersion ? `plugin v${pluginVersion}` : '';
@@ -674,6 +680,14 @@ function connect(cfg) {
       // Sync plugin version (static metadata for tooltip/debugging)
       if (typeof msg.payload.state.version === 'string' && msg.payload.state.version) {
         pluginVersion = msg.payload.state.version;
+      }
+
+      // Sync activity counters for tooltip display
+      if (typeof msg.payload.state.toolCalls === 'number') {
+        pluginToolCalls = msg.payload.state.toolCalls;
+      }
+      if (typeof msg.payload.state.toolErrors === 'number') {
+        pluginToolErrors = msg.payload.state.toolErrors;
       }
 
       // Sync hideText

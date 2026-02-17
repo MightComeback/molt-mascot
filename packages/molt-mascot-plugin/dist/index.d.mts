@@ -27,6 +27,10 @@ type State = {
     size?: Size;
     currentTool?: string;
     version?: string;
+    /** Cumulative count of tool invocations since plugin start. */
+    toolCalls?: number;
+    /** Cumulative count of tool errors since plugin start. */
+    toolErrors?: number;
 };
 interface PluginApi {
     id?: string;

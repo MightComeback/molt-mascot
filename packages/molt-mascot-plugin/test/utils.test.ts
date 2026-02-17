@@ -628,6 +628,43 @@ describe("utils", () => {
     expect(payload.state.version).toMatch(/^\d+\.\d+/);
   });
 
+  it("tracks toolCalls and toolErrors counters", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
+
+    let payload: any;
+
+    // Initially zero
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.toolCalls).toBe(0);
+    expect(payload?.state?.toolErrors).toBe(0);
+
+    // Start and end a tool successfully — increments toolCalls only
+    toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
+    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.toolCalls).toBe(1);
+    expect(payload?.state?.toolErrors).toBe(0);
+
+    // Start and end a tool with error — increments both
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({ phase: "end", sessionKey: "s1", tool: "exec", result: { status: "error", error: "fail" } });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.toolCalls).toBe(2);
+    expect(payload?.state?.toolErrors).toBe(1);
+
+    // Reset clears counters
+    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.toolCalls).toBe(0);
+    expect(payload?.state?.toolErrors).toBe(0);
+  });
+
   it("nested tools maintain correct depth and show most recent tool", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);

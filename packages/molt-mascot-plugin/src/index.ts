@@ -41,6 +41,10 @@ export type State = {
   size?: Size;
   currentTool?: string;
   version?: string;
+  /** Cumulative count of tool invocations since plugin start. */
+  toolCalls?: number;
+  /** Cumulative count of tool errors since plugin start. */
+  toolErrors?: number;
 };
 
 // Plugin API contract definition for better type safety
@@ -618,6 +622,8 @@ export default function register(api: PluginApi) {
     opacity,
     size,
     version,
+    toolCalls: 0,
+    toolErrors: 0,
   };
 
   let idleTimer: any = null;
@@ -797,6 +803,7 @@ export default function register(api: PluginApi) {
     api?.logger?.warn?.(`${pluginId}: entering error mode: ${message}`);
     clearIdleTimer();
     clearErrorTimer();
+    state.toolErrors = (state.toolErrors ?? 0) + 1;
 
     setMode("error", { lastError: { message, ts: Date.now() } });
 
@@ -841,6 +848,8 @@ export default function register(api: PluginApi) {
     delete state.lastError;
     delete state.currentTool;
     // Preserve version through resets (it's static metadata, not runtime state).
+    state.toolCalls = 0;
+    state.toolErrors = 0;
     agentToolStacks.clear();
     agentLastToolTs.clear();
     activeAgents.clear();
@@ -911,6 +920,7 @@ export default function register(api: PluginApi) {
       stack.push(toolName);
       agentToolStacks.set(key, stack);
       agentLastToolTs.set(key, Date.now());
+      state.toolCalls = (state.toolCalls ?? 0) + 1;
 
       // Always update currentTool on tool start, even if the event didn't provide a name.
       state.currentTool = toolName
