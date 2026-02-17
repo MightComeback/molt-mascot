@@ -622,6 +622,7 @@ function connect(cfg) {
         const nextOpacity = msg.payload.state.opacity;
         if (nextOpacity !== lastPluginOpacity && window.moltMascot?.setOpacity) {
           lastPluginOpacity = nextOpacity;
+          currentOpacity = nextOpacity;
           window.moltMascot.setOpacity(nextOpacity);
         }
       }
@@ -880,6 +881,13 @@ if (window.moltMascot?.onSize) {
   }));
 }
 
+let currentOpacity = 1.0;
+if (window.moltMascot?.onOpacity) {
+  ipcUnsubs.push(window.moltMascot.onOpacity((opacity) => {
+    currentOpacity = opacity;
+  }));
+}
+
 // Double-click pill to copy current status text to clipboard
 pill.addEventListener('dblclick', () => {
   const text = pill.textContent || '';
@@ -946,6 +954,9 @@ pill.addEventListener('contextmenu', (e) => {
     }},
     { label: `Cycle Size (${currentSizeLabel})`, hint: `${modKey}⇧Z`, action: () => {
       if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize();
+    }},
+    { label: `Opacity (${Math.round(currentOpacity * 100)}%)`, hint: `${modKey}⇧O`, action: () => {
+      if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity();
     }},
     { label: 'Copy Status', action: () => {
       const text = pill.textContent || '';

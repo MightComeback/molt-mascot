@@ -247,6 +247,21 @@ app.whenReady().then(async () => {
     repositionMainWindow({ force: true });
   }
 
+  // Opacity presets for cycling (Cmd+Shift+O)
+  const opacityCycle = [1.0, 0.8, 0.6, 0.4];
+  let opacityIndex = 0;
+
+  function actionCycleOpacity() {
+    opacityIndex = (opacityIndex + 1) % opacityCycle.length;
+    const opacity = opacityCycle[opacityIndex];
+    withMainWin((w) => {
+      w.setOpacity(opacity);
+      w.webContents.send('molt-mascot:opacity', opacity);
+    });
+    savePrefs({ opacityIndex });
+    rebuildTrayMenu();
+  }
+
   function actionCycleSize() {
     sizeIndex = (sizeIndex + 1) % sizeCycle.length;
     const { label, width, height } = sizeCycle[sizeIndex];
@@ -376,6 +391,14 @@ app.whenReady().then(async () => {
   );
   if (alignmentIndex < 0) alignmentIndex = 0;
 
+  // Restore saved opacity preference
+  if (typeof savedPrefs.opacityIndex === 'number' && savedPrefs.opacityIndex >= 0 && savedPrefs.opacityIndex < opacityCycle.length) {
+    opacityIndex = savedPrefs.opacityIndex;
+    if (opacityIndex !== 0) {
+      withMainWin((w) => w.setOpacity(opacityCycle[opacityIndex]));
+    }
+  }
+
   // Apply restored size preference to the initial window (if different from default medium).
   if (sizeIndex !== 1) {
     const { label, width, height } = sizeCycle[sizeIndex];
@@ -431,6 +454,11 @@ app.whenReady().then(async () => {
         click: actionCycleSize,
       },
       {
+        label: `Opacity: ${Math.round(opacityCycle[opacityIndex] * 100)}%`,
+        accelerator: 'CommandOrControl+Shift+O',
+        click: actionCycleOpacity,
+      },
+      {
         label: 'Snap to Position',
         toolTip: 'Reset manual drag and snap back to the configured alignment corner',
         accelerator: 'CommandOrControl+Shift+S',
@@ -470,6 +498,7 @@ app.whenReady().then(async () => {
     register('CommandOrControl+Alt+Q', () => app.quit());
     register('CommandOrControl+Shift+S', actionSnapToPosition);
     register('CommandOrControl+Shift+Z', actionCycleSize);
+    register('CommandOrControl+Shift+O', actionCycleOpacity);
     register('CommandOrControl+Shift+D', actionToggleDevTools);
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
@@ -488,6 +517,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:cycle-size', actionCycleSize);
   ipcMain.on('molt-mascot:set-click-through', (_event, enabled) => actionToggleGhostMode(enabled));
   ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
+  ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {

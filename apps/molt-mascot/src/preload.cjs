@@ -39,6 +39,12 @@ contextBridge.exposeInMainWorld('moltMascot', {
     ipcRenderer.on('molt-mascot:size', handler);
     return () => ipcRenderer.removeListener('molt-mascot:size', handler);
   },
+  onOpacity: (callback) => {
+    const handler = (_event, opacity) => callback(opacity);
+    ipcRenderer.on('molt-mascot:opacity', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:opacity', handler);
+  },
+  cycleOpacity: () => ipcRenderer.send('molt-mascot:cycle-opacity'),
   platform: process.platform,
   version: pkg.version,
   env: {
