@@ -88,7 +88,8 @@ function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
 const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
 let reducedMotion = motionQuery?.matches ?? false;
-motionQuery?.addEventListener?.('change', (e) => { reducedMotion = e.matches; });
+const _onMotionChange = (e) => { reducedMotion = e.matches; };
+motionQuery?.addEventListener?.('change', _onMotionChange);
 
 // Blink state: the lobster blinks every 3-6 seconds for ~150ms
 let nextBlinkAt = 2000 + Math.random() * 4000;
@@ -1052,6 +1053,8 @@ window.addEventListener('beforeunload', () => {
     try { ws.close(); } catch {}
     ws = null;
   }
+  // Remove media-query listener to avoid leaks during hot-reload
+  motionQuery?.removeEventListener?.('change', _onMotionChange);
   // Unsubscribe IPC listeners to prevent leaked handlers during hot-reload
   for (const unsub of ipcUnsubs) {
     try { unsub?.(); } catch {}
