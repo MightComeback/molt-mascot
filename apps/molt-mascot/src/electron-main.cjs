@@ -295,6 +295,12 @@ app.whenReady().then(async () => {
       withMainWin((w) => {
         if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
         if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
+        // Send initial alignment so the renderer context menu reflects the saved
+        // preference even when no plugin is connected to push it.
+        if (alignmentOverride) w.webContents.send('molt-mascot:alignment', alignmentOverride);
+        // Send initial opacity so the renderer displays the correct percentage
+        // in the context menu without waiting for a plugin state push.
+        if (opacityIndex !== 0) w.webContents.send('molt-mascot:opacity', opacityCycle[opacityIndex]);
       });
     });
   }
