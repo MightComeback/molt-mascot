@@ -152,45 +152,11 @@ ws.addEventListener("message", (ev) => {
   try {
     const msg = JSON.parse(raw);
 
-    // Apply filter: match against msg.type, msg.event, or msg.payload?.phase
-    if (filters.length > 0) {
-      const candidates = [msg.type, msg.event, msg.payload?.phase].map((v) =>
-        typeof v === "string" ? v.toLowerCase() : ""
-      );
-      if (!filters.some((f) => candidates.includes(f))) {
-        // Still check for hello-ok even when filtering (needed for --once)
-        if (msg.type === "res" && msg.payload?.type === "hello-ok") {
-          gotHello = true;
-          const proto = msg.payload?.protocol ?? msg.payload?.protocolVersion;
-          const gwVer = msg.payload?.gateway?.version ?? msg.payload?.version;
-          const parts: string[] = ["ws-dump: connected"];
-          if (proto != null) parts.push(`protocol=${proto}`);
-          if (gwVer) parts.push(`gateway=${gwVer}`);
-          console.error(parts.join(" "));
-          if (stateMode) {
-            stateReqId = nextId("s");
-            ws.send(JSON.stringify({
-              type: "req", id: stateReqId,
-              method: PLUGIN_STATE_METHODS[stateMethodIndex],
-              params: {},
-            }));
-            return;
-          }
-          if (once) {
-            try { ws.close(); } catch {}
-            return;
-          }
-          ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
-        }
-        return;
-      }
-    }
-
-    console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
-
-    if (msg.type === "res" && msg.payload?.type === "hello-ok") {
+    // Centralised hello-ok handler — runs regardless of filters so --once/--state
+    // always work, but only prints the frame when it passes the filter gate.
+    const isHelloOk = msg.type === "res" && msg.payload?.type === "hello-ok";
+    if (isHelloOk && !gotHello) {
       gotHello = true;
-      // Print negotiated protocol info to stderr for quick diagnostics
       const proto = msg.payload?.protocol ?? msg.payload?.protocolVersion;
       const gwVer = msg.payload?.gateway?.version ?? msg.payload?.version;
       const parts: string[] = ["ws-dump: connected"];
@@ -204,13 +170,26 @@ ws.addEventListener("message", (ev) => {
           method: PLUGIN_STATE_METHODS[stateMethodIndex],
           params: {},
         }));
-        return;
-      }
-      if (once) {
+      } else if (once) {
         try { ws.close(); } catch {}
-        return;
+      } else {
+        ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
       }
-      ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
+    }
+
+    // Apply filter: match against msg.type, msg.event, or msg.payload?.phase
+    if (filters.length > 0) {
+      const candidates = [msg.type, msg.event, msg.payload?.phase].map((v) =>
+        typeof v === "string" ? v.toLowerCase() : ""
+      );
+      if (!filters.some((f) => candidates.includes(f))) return;
+    }
+
+    // Don't re-print hello-ok in --once/--state modes (already handled above)
+    if (isHelloOk && (once || stateMode)) {
+      // skip printing — we already acted on it
+    } else {
+      console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
     }
 
     // --state mode: handle plugin state response
