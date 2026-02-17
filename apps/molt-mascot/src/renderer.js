@@ -285,6 +285,8 @@ function syncPill() {
   }
   const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
   pill.title = tip + ver;
+  // Mirror tooltip on the canvas so hovering the lobster sprite also shows status.
+  canvas.title = tip + ver;
   updateHudVisibility();
 }
 
