@@ -113,6 +113,9 @@ function isBlinking(t) {
 function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
+  const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
+
   // subtle shadow (keeps it readable on transparent backgrounds)
   // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
   // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
@@ -123,9 +126,6 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.beginPath();
   ctx.ellipse(48, 78, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
   ctx.fill();
-
-  const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
-  const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
 
   // main sprite
   const bobY = Math.round(bob);
