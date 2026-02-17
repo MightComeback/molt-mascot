@@ -19,7 +19,8 @@ Connect to an OpenClaw Gateway WebSocket and print all frames as JSON.
 
 Options:
   --once, --exit          Exit after receiving hello-ok
-  --timeout-ms=<ms>       Timeout for --once mode (default: 5000)
+  --state                 Print plugin state and exit (shortcut for quick checks)
+  --timeout-ms=<ms>       Timeout for --once/--state mode (default: 5000)
   --min-protocol=<n>      Minimum protocol version (default: 3)
   --max-protocol=<n>      Maximum protocol version (default: 3)
   --filter=<type>         Only print events matching this type/event name
@@ -37,6 +38,7 @@ Environment:
 }
 
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
+const stateMode = args.has("--state");
 
 const getArg = (name: string): string | undefined => {
   const i = argv.findIndex((a) => a === name || a.startsWith(`${name}=`));
@@ -134,6 +136,16 @@ ws.addEventListener("error", (ev) => {
 });
 
 let gotHello = false;
+let stateReqId: string | null = null;
+
+const PLUGIN_STATE_METHODS = [
+  "@molt/mascot-plugin.state",
+  "molt-mascot.state",
+  "molt-mascot-plugin.state",
+  "moltMascot.state",
+  "moltMascotPlugin.state",
+];
+let stateMethodIndex = 0;
 
 ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
@@ -155,6 +167,15 @@ ws.addEventListener("message", (ev) => {
           if (proto != null) parts.push(`protocol=${proto}`);
           if (gwVer) parts.push(`gateway=${gwVer}`);
           console.error(parts.join(" "));
+          if (stateMode) {
+            stateReqId = nextId("s");
+            ws.send(JSON.stringify({
+              type: "req", id: stateReqId,
+              method: PLUGIN_STATE_METHODS[stateMethodIndex],
+              params: {},
+            }));
+            return;
+          }
           if (once) {
             try { ws.close(); } catch {}
             return;
@@ -176,22 +197,61 @@ ws.addEventListener("message", (ev) => {
       if (proto != null) parts.push(`protocol=${proto}`);
       if (gwVer) parts.push(`gateway=${gwVer}`);
       console.error(parts.join(" "));
+      if (stateMode) {
+        stateReqId = nextId("s");
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        return;
+      }
       if (once) {
         try { ws.close(); } catch {}
         return;
       }
       ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
     }
+
+    // --state mode: handle plugin state response
+    if (stateMode && msg.type === "res" && msg.id === stateReqId) {
+      if (msg.ok && msg.payload?.ok && msg.payload?.state) {
+        console.log(compact ? JSON.stringify(msg.payload.state) : JSON.stringify(msg.payload.state, null, 2));
+        try { ws.close(); } catch {}
+        return;
+      }
+      // Method not found - try next alias
+      const err = msg.payload?.error || msg.error;
+      const code = Number(err?.code);
+      const errMsg = (err?.message || err || "").toString().toLowerCase();
+      const isMissing = code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method");
+      if (isMissing && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+        stateMethodIndex++;
+        stateReqId = nextId("s");
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        return;
+      }
+      console.error("ws-dump: plugin not available (no state method found)");
+      process.exit(1);
+    }
   } catch {
     console.log(raw);
   }
 });
 
-// Safety: in --once mode, don’t hang forever if the server never replies.
-if (once) {
+// Safety: in --once/--state mode, don't hang forever if the server never replies.
+if (once || stateMode) {
   setTimeout(() => {
     if (!gotHello) {
       console.error(`Timed out waiting for hello-ok after ${onceTimeoutMs}ms`);
+      process.exit(2);
+    }
+    if (stateMode) {
+      console.error("Timed out waiting for plugin state response");
       process.exit(2);
     }
   }, onceTimeoutMs).unref?.();
