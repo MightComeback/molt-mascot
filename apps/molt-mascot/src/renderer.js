@@ -127,7 +127,10 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   if (mode === 'thinking') drawSprite(overlay.thinking, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'tool') drawSprite(overlay.tool, { x: 0, y: bobY - 2, scale: 3 });
   if (mode === 'error') drawSprite(overlay.error, { x: 0, y: bobY - 2, scale: 3 });
-  if (mode === 'idle' && idleDurationMs > 30000) drawSprite(overlay.sleep, { x: 0, y: bobY - 2, scale: 3 });
+  if (mode === 'idle' && idleDurationMs > 30000) {
+    const sleepFrame = Math.floor(t / 800) % 2;
+    drawSprite(overlay.sleep[sleepFrame], { x: 0, y: bobY - 2, scale: 3 });
+  }
   if (mode === 'connecting') {
     const dotFrame = Math.floor(t / 500) % 2;
     drawSprite(overlay.connecting[dotFrame], { x: 0, y: bobY - 2, scale: 3 });
