@@ -738,8 +738,11 @@ setup.addEventListener('submit', (e) => {
   connect(cfg);
 });
 
+// IPC listener subscriptions — store unsubscribe functions for cleanup on unload.
+const ipcUnsubs = [];
+
 if (window.moltMascot?.onReset) {
-  window.moltMascot.onReset(() => {
+  ipcUnsubs.push(window.moltMascot.onReset(() => {
     // eslint-disable-next-line no-console
     console.log('Resetting state...');
     setMode(Mode.idle);
@@ -751,21 +754,21 @@ if (window.moltMascot?.onReset) {
       // Try canonical method first; on older plugins we fall back through aliases.
       ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
     }
-  });
+  }));
 }
 
 if (window.moltMascot?.onClickThrough) {
-  window.moltMascot.onClickThrough((enabled) => {
+  ipcUnsubs.push(window.moltMascot.onClickThrough((enabled) => {
     isClickThrough = Boolean(enabled);
     syncPill();
-  });
+  }));
 }
 
 if (window.moltMascot?.onHideText) {
-  window.moltMascot.onHideText((hidden) => {
+  ipcUnsubs.push(window.moltMascot.onHideText((hidden) => {
     isTextHidden = hidden;
     updateHudVisibility();
-  });
+  }));
 }
 
 // Double-click pill to copy current status text to clipboard
@@ -985,6 +988,11 @@ window.addEventListener('beforeunload', () => {
     try { ws.close(); } catch {}
     ws = null;
   }
+  // Unsubscribe IPC listeners to prevent leaked handlers during hot-reload
+  for (const unsub of ipcUnsubs) {
+    try { unsub?.(); } catch {}
+  }
+  ipcUnsubs.length = 0;
 });
 
 startAnimation();
