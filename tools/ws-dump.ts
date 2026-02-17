@@ -20,7 +20,8 @@ Connect to an OpenClaw Gateway WebSocket and print all frames as JSON.
 Options:
   --once, --exit          Exit after receiving hello-ok
   --state                 Print plugin state and exit (shortcut for quick checks)
-  --timeout-ms=<ms>       Timeout for --once/--state mode (default: 5000)
+  --reset                 Reset plugin state and exit (clears error/tool/counters)
+  --timeout-ms=<ms>       Timeout for --once/--state/--reset mode (default: 5000)
   --min-protocol=<n>      Minimum protocol version (default: 3)
   --max-protocol=<n>      Maximum protocol version (default: 3)
   --filter=<type>         Only print events matching this type/event name
@@ -39,6 +40,7 @@ Environment:
 
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 const stateMode = args.has("--state");
+const resetMode = args.has("--reset");
 
 const getArg = (name: string): string | undefined => {
   const i = argv.findIndex((a) => a === name || a.startsWith(`${name}=`));
@@ -137,6 +139,7 @@ ws.addEventListener("error", (ev) => {
 
 let gotHello = false;
 let stateReqId: string | null = null;
+let resetReqId: string | null = null;
 
 const PLUGIN_STATE_METHODS = [
   "@molt/mascot-plugin.state",
@@ -146,6 +149,15 @@ const PLUGIN_STATE_METHODS = [
   "moltMascotPlugin.state",
 ];
 let stateMethodIndex = 0;
+
+const PLUGIN_RESET_METHODS = [
+  "@molt/mascot-plugin.reset",
+  "molt-mascot.reset",
+  "molt-mascot-plugin.reset",
+  "moltMascot.reset",
+  "moltMascotPlugin.reset",
+];
+let resetMethodIndex = 0;
 
 ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
@@ -163,7 +175,14 @@ ws.addEventListener("message", (ev) => {
       if (proto != null) parts.push(`protocol=${proto}`);
       if (gwVer) parts.push(`gateway=${gwVer}`);
       console.error(parts.join(" "));
-      if (stateMode) {
+      if (resetMode) {
+        resetReqId = nextId("r");
+        ws.send(JSON.stringify({
+          type: "req", id: resetReqId,
+          method: PLUGIN_RESET_METHODS[resetMethodIndex],
+          params: {},
+        }));
+      } else if (stateMode) {
         stateReqId = nextId("s");
         ws.send(JSON.stringify({
           type: "req", id: stateReqId,
@@ -190,6 +209,33 @@ ws.addEventListener("message", (ev) => {
       // skip printing — we already acted on it
     } else {
       console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
+    }
+
+    // --reset mode: handle plugin reset response
+    if (resetMode && msg.type === "res" && msg.id === resetReqId) {
+      if (msg.ok && msg.payload?.ok && msg.payload?.state) {
+        console.error("ws-dump: plugin state reset");
+        console.log(compact ? JSON.stringify(msg.payload.state) : JSON.stringify(msg.payload.state, null, 2));
+        try { ws.close(); } catch {}
+        return;
+      }
+      // Method not found — try next alias
+      const err = msg.payload?.error || msg.error;
+      const code = Number(err?.code);
+      const errMsg = (err?.message || err || "").toString().toLowerCase();
+      const isMissing = code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method");
+      if (isMissing && resetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
+        resetMethodIndex++;
+        resetReqId = nextId("r");
+        ws.send(JSON.stringify({
+          type: "req", id: resetReqId,
+          method: PLUGIN_RESET_METHODS[resetMethodIndex],
+          params: {},
+        }));
+        return;
+      }
+      console.error("ws-dump: plugin not available (no reset method found)");
+      process.exit(1);
     }
 
     // --state mode: handle plugin state response
@@ -223,7 +269,7 @@ ws.addEventListener("message", (ev) => {
 });
 
 // Safety: in --once/--state mode, don't hang forever if the server never replies.
-if (once || stateMode) {
+if (once || stateMode || resetMode) {
   setTimeout(() => {
     if (!gotHello) {
       console.error(`Timed out waiting for hello-ok after ${onceTimeoutMs}ms`);
@@ -231,6 +277,10 @@ if (once || stateMode) {
     }
     if (stateMode) {
       console.error("Timed out waiting for plugin state response");
+      process.exit(2);
+    }
+    if (resetMode) {
+      console.error("Timed out waiting for plugin reset response");
       process.exit(2);
     }
   }, onceTimeoutMs).unref?.();
