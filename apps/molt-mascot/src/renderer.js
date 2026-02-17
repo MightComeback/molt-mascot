@@ -657,6 +657,14 @@ function connect(cfg) {
     pluginStateLastSentAt = 0;
     connectedSince = null;
     connectedUrl = '';
+    // Reset cached plugin state so re-syncing works after reconnect.
+    // Without this, change-detection guards suppress identical values
+    // from a fresh plugin handshake, leaving stale local config.
+    lastPluginClickThrough = null;
+    lastPluginAlignment = null;
+    lastPluginHideText = null;
+    lastPluginOpacity = null;
+    lastPluginPadding = null;
     stopStaleCheck();
     pill.textContent = 'disconnected';
     pill.className = 'pill--connecting';
