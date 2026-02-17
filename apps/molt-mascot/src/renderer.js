@@ -1128,7 +1128,18 @@ let lastFrameAt = 0;
 // Throttle frame rate when idle/sleeping to save CPU.
 // Active modes (thinking, tool, connecting, connected) run at full 60fps for smooth animation.
 // Idle mode runs at ~15fps (enough for gentle bobbing), sleeping at ~4fps (minimal ZZZ animation).
+// When prefers-reduced-motion is active, all animations are static so we throttle harder
+// across the board — the sprite never bobs/blinks, only pill text changes matter.
 function getFrameIntervalMs() {
+  if (reducedMotion) {
+    // No bobbing/blinking, so we only need to update pill text (~1s granularity).
+    // Use ~2fps for active modes (snappy pill updates) and ~1fps for idle/sleeping.
+    if (currentMode === Mode.idle) {
+      const idleDur = Date.now() - modeSince;
+      return idleDur > SLEEP_THRESHOLD_MS ? 2000 : 1000;
+    }
+    return 500; // active modes with reduced motion: ~2fps
+  }
   if (currentMode === Mode.idle) {
     const idleDur = Date.now() - modeSince;
     return idleDur > SLEEP_THRESHOLD_MS ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
