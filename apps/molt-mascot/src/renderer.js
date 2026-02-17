@@ -1068,6 +1068,8 @@ function getFrameIntervalMs() {
     const idleDur = Date.now() - modeSince;
     return idleDur > SLEEP_THRESHOLD_MS ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
   }
+  // Disconnected / error: gentle animation only, ~10fps saves CPU
+  if (currentMode === Mode.disconnected || currentMode === Mode.error) return 100;
   return 0; // active modes: no throttle (full rAF rate)
 }
 
