@@ -864,7 +864,12 @@ document.addEventListener('keydown', (e) => {
 
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
-  const url = urlInput.value.trim();
+  let url = urlInput.value.trim();
+
+  // Auto-normalize http(s) URLs to ws(s) so users can paste Gateway URLs directly.
+  // Matches the same normalization in tools/ws-dump.ts for consistency.
+  if (/^https:\/\//i.test(url)) url = url.replace(/^https:\/\//i, 'wss://');
+  else if (/^http:\/\//i.test(url)) url = url.replace(/^http:\/\//i, 'ws://');
 
   // Validate WebSocket URL before attempting connection
   if (url && !/^wss?:\/\/.+/i.test(url)) {
@@ -1098,7 +1103,10 @@ if (isCapture) {
   pill.textContent = 'demo';
 } else {
   const cfg = loadCfg();
-  const envUrl = (window.moltMascot?.env?.gatewayUrl || '').trim();
+  let envUrl = (window.moltMascot?.env?.gatewayUrl || '').trim();
+  // Normalize http(s) to ws(s) for env-seeded URLs too
+  if (/^https:\/\//i.test(envUrl)) envUrl = envUrl.replace(/^https:\/\//i, 'wss://');
+  else if (/^http:\/\//i.test(envUrl)) envUrl = envUrl.replace(/^http:\/\//i, 'ws://');
   const envToken = (window.moltMascot?.env?.gatewayToken || '').trim();
 
   // If environment provides credentials at runtime, they take precedence.
