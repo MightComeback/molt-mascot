@@ -118,6 +118,7 @@ function coerceAlignment(
 }
 
 export function truncate(str: string, limit = 140): string {
+  if (limit <= 0) return "";
   // Collapse whitespace/newlines to single spaces for cleaner display
   const s = str.trim().replace(/\s+/g, " ");
   // Use iterator to handle surrogate pairs (unicode-safe)

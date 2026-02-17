@@ -42,6 +42,9 @@ describe("utils", () => {
     expect(truncate("hello\n  world", 140)).toBe("hello world");
     // Limit of 1: no room for ellipsis
     expect(truncate("hello", 1)).toBe("h");
+    // Limit of 0 or negative: return empty string
+    expect(truncate("hello", 0)).toBe("");
+    expect(truncate("hello", -5)).toBe("");
   });
 
   it("coerceBoolean", () => {
