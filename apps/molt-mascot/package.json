@@ -28,7 +28,13 @@
   "build": {
     "appId": "com.mightcomeback.molt-mascot",
     "productName": "Molt Mascot",
-    "artifactName": "molt-mascot-${version}.${ext}"
+    "artifactName": "molt-mascot-${version}.${ext}",
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!src/**/*.test.*",
+      "!test/**"
+    ]
   },
   "keywords": [
     "electron",
