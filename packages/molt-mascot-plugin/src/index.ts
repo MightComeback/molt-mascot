@@ -238,7 +238,6 @@ export const ERROR_PREFIXES = [
   "ShellError",
   "NetworkError",
   "BroadcastError",
-  "PermissionError",
   "SecurityError",
   "AuthError",
   "ForbiddenError",
