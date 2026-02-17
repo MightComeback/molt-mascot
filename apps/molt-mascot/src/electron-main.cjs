@@ -583,6 +583,17 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       _mainWin = createWindow();
       applyClickThrough(_mainWin, clickThrough);
+
+      // Re-apply the same initial state and event wiring as the first window.
+      _mainWin.on('moved', () => {
+        if (!repositioning) userDragged = true;
+      });
+      _mainWin.webContents.once('did-finish-load', () => {
+        withMainWin((w) => {
+          if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
+          if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
+        });
+      });
     }
   });
 
