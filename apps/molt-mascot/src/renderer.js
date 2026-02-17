@@ -613,6 +613,7 @@ function connect(cfg) {
         const nextSize = msg.payload.state.size;
         if (nextSize !== lastPluginSize && window.moltMascot?.setSize) {
           lastPluginSize = nextSize;
+          currentSizeLabel = nextSize;
           window.moltMascot.setSize(nextSize);
         }
       }
