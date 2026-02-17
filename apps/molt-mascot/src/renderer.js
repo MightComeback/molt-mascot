@@ -799,7 +799,18 @@ pill.addEventListener('contextmenu', (e) => {
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
   const modKey = isMac ? '⌘' : 'Ctrl';
 
+  // Build a status summary line for the context menu header
+  const statusParts = [currentMode.charAt(0).toUpperCase() + currentMode.slice(1)];
+  const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
+  if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
+  if (connectedSince) {
+    const upSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
+    statusParts.push(`↑ ${formatDuration(upSec)}`);
+  }
+
   ctxMenu.show([
+    { label: statusParts.join(' · '), disabled: true },
+    { separator: true },
     { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}⇧M`, action: () => {
       if (window.moltMascot?.setClickThrough) {
         isClickThrough = !isClickThrough;
@@ -837,9 +848,9 @@ pill.addEventListener('contextmenu', (e) => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).catch(() => {});
     }},
-    { label: 'Reconnect Now', disabled: Boolean(connectedSince), action: () => {
+    { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', action: () => {
       // Force an immediate reconnect, bypassing the exponential backoff timer.
-      if (connectedSince) return; // already connected
+      // Works even when connected (useful for config changes or stale connections).
       reconnectAttempt = 0; // reset backoff
       if (reconnectCountdownTimer) {
         clearInterval(reconnectCountdownTimer);
