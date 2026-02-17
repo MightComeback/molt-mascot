@@ -483,6 +483,13 @@ app.whenReady().then(async () => {
     repositionMainWindow({ force: true });
   });
 
+  ipcMain.on('molt-mascot:hide', () => {
+    withMainWin((w) => {
+      w.hide();
+      rebuildTrayMenu();
+    });
+  });
+
   ipcMain.on('molt-mascot:cycle-size', () => {
     sizeIndex = (sizeIndex + 1) % sizeCycle.length;
     const { width, height } = sizeCycle[sizeIndex];

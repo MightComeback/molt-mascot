@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   cycleAlignment: () => ipcRenderer.send('molt-mascot:cycle-alignment'),
   snapToPosition: () => ipcRenderer.send('molt-mascot:snap-to-position'),
   cycleSize: () => ipcRenderer.send('molt-mascot:cycle-size'),
+  hide: () => ipcRenderer.send('molt-mascot:hide'),
   toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
   quit: () => ipcRenderer.send('molt-mascot:quit'),
   onClickThrough: (callback) => {
