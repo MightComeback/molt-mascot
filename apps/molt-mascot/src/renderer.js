@@ -178,6 +178,7 @@ let lastPluginHideText = null;
 let lastPluginOpacity = null;
 let lastPluginPadding = null;
 let lastPluginSize = null;
+let currentSizeLabel = 'medium';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -826,6 +827,12 @@ if (window.moltMascot?.onAlignment) {
   }));
 }
 
+if (window.moltMascot?.onSize) {
+  ipcUnsubs.push(window.moltMascot.onSize((size) => {
+    currentSizeLabel = size;
+  }));
+}
+
 // Double-click pill to copy current status text to clipboard
 pill.addEventListener('dblclick', () => {
   const text = pill.textContent || '';
@@ -890,7 +897,7 @@ pill.addEventListener('contextmenu', (e) => {
     { label: 'Snap to Position', hint: `${modKey}⇧S`, action: () => {
       if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition();
     }},
-    { label: 'Cycle Size', hint: `${modKey}⇧Z`, action: () => {
+    { label: `Cycle Size (${currentSizeLabel})`, hint: `${modKey}⇧Z`, action: () => {
       if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize();
     }},
     { label: 'Copy Status', action: () => {

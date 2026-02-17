@@ -211,10 +211,11 @@ app.whenReady().then(async () => {
 
   function actionCycleSize() {
     sizeIndex = (sizeIndex + 1) % sizeCycle.length;
-    const { width, height } = sizeCycle[sizeIndex];
+    const { label, width, height } = sizeCycle[sizeIndex];
     withMainWin((w) => {
       w.setSize(width, height, true);
       repositionMainWindow({ force: true });
+      w.webContents.send('molt-mascot:size', label);
     });
     rebuildTrayMenu();
   }
@@ -479,11 +480,13 @@ app.whenReady().then(async () => {
       const idx = sizeCycle.findIndex((s) => s.label === size);
       if (idx === -1) return;
       sizeIndex = idx;
-      const { width, height } = sizeCycle[idx];
+      const { label, width, height } = sizeCycle[idx];
       withMainWin((win) => {
         win.setSize(width, height, true);
         repositionMainWindow({ force: true });
+        win.webContents.send('molt-mascot:size', label);
       });
+      rebuildTrayMenu();
       return;
     }
     const w = Number(size?.width);
