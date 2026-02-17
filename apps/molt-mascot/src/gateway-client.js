@@ -8,7 +8,7 @@
 
 import { isMissingMethodResponse } from './utils.js';
 
-/** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'} Mode */
+/** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'|'disconnected'} Mode */
 
 /**
  * @typedef {Object} GatewayClientOptions
@@ -399,6 +399,13 @@ export class GatewayClient {
       this._ws = null;
     }
     if (cfg) this.connect(cfg);
+  }
+
+  /** Whether the client has an active, authenticated gateway connection. */
+  get isConnected() {
+    return this._ws !== null &&
+      this._ws.readyState === WebSocket.OPEN &&
+      this.connectedSince !== null;
   }
 
   /** Current reconnect attempt count (for tooltip display). */
