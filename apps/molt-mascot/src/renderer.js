@@ -336,7 +336,20 @@ function setMode(mode) {
  */
 function showError(rawMessage, fallback = 'error') {
   lastErrorMessage = truncate(cleanErrorString(rawMessage || fallback), 48);
-  setMode(Mode.error);
+  if (currentMode === Mode.error) {
+    // Already in error mode — setMode would early-return, so manually update
+    // the pill text and re-trigger the shake animation for the new error.
+    if (errorHoldTimer) clearTimeout(errorHoldTimer);
+    // Force CSS animation restart by briefly removing the class
+    pill.classList.remove('pill--error');
+    // Reading offsetWidth forces a reflow so the browser registers the class removal
+    // before re-adding it — necessary for animation restart.
+    void pill.offsetWidth;
+    pill.classList.add('pill--error');
+    syncPill();
+  } else {
+    setMode(Mode.error);
+  }
   if (errorHoldTimer) clearTimeout(errorHoldTimer);
   errorHoldTimer = setTimeout(() => {
     errorHoldTimer = null;
