@@ -83,6 +83,16 @@ const cfg: GatewayCfg = {
 let reqId = 0;
 const nextId = (p: string) => `${p}${++reqId}`;
 
+// Read version from root package.json so the handshake reflects the actual build.
+const APP_VERSION: string = (() => {
+  try {
+    const pkg = require("../apps/molt-mascot/package.json");
+    return pkg.version || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
+
 const ws = new WebSocket(cfg.url);
 
 ws.addEventListener("open", () => {
@@ -98,8 +108,8 @@ ws.addEventListener("open", () => {
         client: {
           id: "cli",
           displayName: "molt-mascot ws-dump",
-          version: "0.0.1",
-          platform: `node ${process.version}`,
+          version: APP_VERSION,
+          platform: `${process.release?.name ?? "bun"} ${process.version}`,
           mode: "cli",
           instanceId: `moltMascot-dump-${Math.random().toString(16).slice(2)}`,
         },
@@ -109,6 +119,11 @@ ws.addEventListener("open", () => {
       },
     }),
   );
+});
+
+ws.addEventListener("error", (ev) => {
+  const detail = (ev as any)?.message || "connection failed";
+  console.error(`ws-dump: ${detail} (${cfg.url})`);
 });
 
 let gotHello = false;
