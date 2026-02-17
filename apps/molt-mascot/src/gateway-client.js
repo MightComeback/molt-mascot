@@ -6,6 +6,8 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
+import { isMissingMethodResponse } from './utils.js';
+
 /** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'} Mode */
 
 /**
@@ -406,17 +408,6 @@ export class GatewayClient {
 
   /** @private */
   _isMissingMethod(msg) {
-    const ok = msg?.ok;
-    const payloadOk = msg?.payload?.ok;
-    const err = msg?.payload?.error || msg?.error || null;
-    const code = (err?.code || err?.name || '').toString().toLowerCase();
-    const message = (err?.message || err || '').toString().toLowerCase();
-
-    if (ok === true && payloadOk === true) return false;
-    if (code.includes('method') && code.includes('not') && code.includes('found')) return true;
-    if (message.includes('method not found')) return true;
-    if (message.includes('unknown method')) return true;
-    if (message.includes('unknown rpc method')) return true;
-    return false;
+    return isMissingMethodResponse(msg);
   }
 }
