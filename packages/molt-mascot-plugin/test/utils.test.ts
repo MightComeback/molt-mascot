@@ -509,6 +509,13 @@ describe("utils", () => {
 
     // undefined returns the string "undefined"
     expect(summarizeToolResultMessage(undefined)).toBe("undefined");
+
+    // Top-level arrays (e.g. memory_search, agents_list results)
+    expect(summarizeToolResultMessage(["foo", "bar"])).toBe("foo, bar");
+    expect(summarizeToolResultMessage([{ text: "a" }, { text: "b" }])).toBe("a, b");
+    expect(summarizeToolResultMessage([{ name: "agent1" }, { name: "agent2" }])).toBe("agent1, agent2");
+    expect(summarizeToolResultMessage([{ title: "Task A" }])).toBe("Task A");
+    expect(summarizeToolResultMessage([])).toBe("empty");
   });
 
   it("multi-session tools show the most recently active tool", async () => {

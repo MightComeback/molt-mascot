@@ -422,6 +422,27 @@ export function summarizeToolResultMessage(msg: any): string {
     return "undefined";
   }
 
+  // Top-level arrays: join text elements for a compact summary.
+  // Some tools (e.g. memory_search, agents_list) return arrays directly.
+  if (Array.isArray(msg)) {
+    const texts = msg
+      .map((item) =>
+        typeof item === "string"
+          ? item
+          : typeof item?.text === "string"
+          ? item.text
+          : typeof item?.name === "string"
+          ? item.name
+          : typeof item?.title === "string"
+          ? item.title
+          : null
+      )
+      .filter(Boolean);
+    if (texts.length > 0) return truncate(cleanErrorString(texts.join(", ")));
+    if (msg.length === 0) return "empty";
+    // Fall through to object inspection below
+  }
+
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
     const text = blocks
