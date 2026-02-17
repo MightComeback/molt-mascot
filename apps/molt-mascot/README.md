@@ -96,13 +96,14 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + V | Toggle **visibility** (hide/show the mascot window) |
 | ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
 | ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300) |
+| ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40%) |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
 | ⌘/Ctrl + ⇧ + D | Toggle detached **DevTools** (debug WS frames / UI state) |
 | ⌘/Ctrl + ⌥ + Q | **Quit** the mascot |
 
 ### Context Menu
 
-Right-click the status pill to access all actions: ghost mode, hide text, reset, alignment cycling, snap to position, size cycling, copy status, reconnect, change gateway, hide mascot, devtools, and quit.
+Right-click the status pill to access all actions: ghost mode, hide text, reset, alignment cycling, snap to position, size cycling, opacity cycling, copy status, copy debug info, reconnect, change gateway, hide mascot, devtools, and quit.
 
 ### Pill Interactions
 
