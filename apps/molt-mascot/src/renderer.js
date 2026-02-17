@@ -1037,6 +1037,7 @@ window.addEventListener('unhandledrejection', (ev) => {
 });
 
 let lastPillSec = -1;
+let lastPillMin = -1;
 let animFrameId = null;
 let lastFrameAt = 0;
 
@@ -1060,12 +1061,27 @@ function frame(t) {
   lastFrameAt = t;
 
   const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
+  const isSleeping = currentMode === Mode.idle && idleDur > SLEEP_THRESHOLD_MS;
   drawLobster(currentMode, manualTime !== null ? manualTime : t, idleDur);
-  // Update tooltip duration every second (frame-rate independent)
-  const sec = Math.floor(t / 1000);
-  if (sec !== lastPillSec) {
-    lastPillSec = sec;
-    syncPill();
+
+  // Update pill text at an appropriate cadence:
+  // - Sleeping: once per minute (text shows "Sleeping Xm", minute-level granularity)
+  // - Active modes: once per second (shows seconds-level counters)
+  // This avoids ~60 redundant syncPill() calls per minute while sleeping.
+  if (isSleeping) {
+    const min = Math.floor(t / 60000);
+    if (min !== lastPillMin) {
+      lastPillMin = min;
+      lastPillSec = -1; // reset so waking up refreshes immediately
+      syncPill();
+    }
+  } else {
+    const sec = Math.floor(t / 1000);
+    if (sec !== lastPillSec) {
+      lastPillSec = sec;
+      lastPillMin = -1; // reset so entering sleep refreshes immediately
+      syncPill();
+    }
   }
   animFrameId = requestAnimationFrame(frame);
 }
