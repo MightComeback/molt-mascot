@@ -564,6 +564,18 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on('molt-mascot:set-size', (event, size) => {
+    // Accept preset name (string) or explicit { width, height } object.
+    if (typeof size === 'string') {
+      const idx = sizeCycle.findIndex((s) => s.label === size);
+      if (idx === -1) return;
+      sizeIndex = idx;
+      const { width, height } = sizeCycle[idx];
+      withMainWin((win) => {
+        win.setSize(width, height, true);
+        repositionMainWindow({ force: true });
+      });
+      return;
+    }
     const w = Number(size?.width);
     const h = Number(size?.height);
     if (!Number.isFinite(w) || !Number.isFinite(h) || w < 80 || h < 80) return;

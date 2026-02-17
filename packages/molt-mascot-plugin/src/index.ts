@@ -7,6 +7,8 @@ export const version = pkg.version;
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 
+export type Size = "small" | "medium" | "large";
+
 export type PluginConfig = {
   idleDelayMs?: number;
   errorHoldMs?: number;
@@ -24,6 +26,7 @@ export type PluginConfig = {
   hideText?: boolean;
   padding?: number;
   opacity?: number;
+  size?: Size;
 };
 
 export type State = {
@@ -35,6 +38,7 @@ export type State = {
   hideText?: boolean;
   padding?: number;
   opacity?: number;
+  size?: Size;
   currentTool?: string;
 };
 
@@ -93,6 +97,15 @@ const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center-right",
   "center",
 ];
+
+const allowedSizes: Size[] = ["small", "medium", "large"];
+
+function coerceSize(v: unknown, fallback: Size): Size {
+  if (typeof v === "string" && (allowedSizes as string[]).includes(v)) {
+    return v as Size;
+  }
+  return fallback;
+}
 
 function coerceAlignment(
   v: unknown,
@@ -519,6 +532,8 @@ export default function register(api: PluginApi) {
   const opacityNum = coerceNumber(cfg.opacity, 1);
   const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
 
+  const size = coerceSize(cfg.size, "medium");
+
   const state: State = {
     mode: "idle",
     since: Date.now(),
@@ -527,6 +542,7 @@ export default function register(api: PluginApi) {
     hideText,
     padding,
     opacity,
+    size,
   };
 
   let idleTimer: any = null;

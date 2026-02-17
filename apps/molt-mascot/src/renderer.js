@@ -176,6 +176,7 @@ let lastPluginAlignment = null;
 let lastPluginHideText = null;
 let lastPluginOpacity = null;
 let lastPluginPadding = null;
+let lastPluginSize = null;
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -587,6 +588,15 @@ function connect(cfg) {
         }
       }
 
+      // Sync size
+      if (typeof msg.payload.state.size === 'string' && msg.payload.state.size) {
+        const nextSize = msg.payload.state.size;
+        if (nextSize !== lastPluginSize && window.moltMascot?.setSize) {
+          lastPluginSize = nextSize;
+          window.moltMascot.setSize(nextSize);
+        }
+      }
+
       // Sync hideText
       if (typeof msg.payload.state.hideText === 'boolean') {
         const nextHideText = msg.payload.state.hideText;
@@ -685,6 +695,7 @@ function connect(cfg) {
     lastPluginHideText = null;
     lastPluginOpacity = null;
     lastPluginPadding = null;
+    lastPluginSize = null;
     stopStaleCheck();
     pill.textContent = 'disconnected';
     pill.className = 'pill--connecting';

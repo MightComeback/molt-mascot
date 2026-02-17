@@ -257,6 +257,48 @@ describe("utils", () => {
     expect(payload?.state?.alignment).toBe("bottom-right");
   });
 
+  it("defaults size to medium and accepts valid presets", async () => {
+    const handlers = new Map<string, any>();
+
+    // Default
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: {},
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) { handlers.set(name, fn); },
+    });
+
+    const fn = handlers.get("@molt/mascot-plugin.state");
+    let payload: any;
+    await fn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.size).toBe("medium");
+
+    // Explicit small
+    const handlers2 = new Map<string, any>();
+    register({
+      id: "@molt/mascot-plugin",
+      pluginConfig: { size: "small" },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) { handlers2.set(name, fn); },
+    });
+    const fn2 = handlers2.get("@molt/mascot-plugin.state");
+    await fn2({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.size).toBe("small");
+
+    // Invalid falls back to medium
+    const handlers3 = new Map<string, any>();
+    register({
+      id: "@molt/mascot-plugin",
+      // @ts-expect-error - intentionally invalid for test
+      pluginConfig: { size: "huge" },
+      logger: { info() {}, warn() {} },
+      registerGatewayMethod(name: string, fn: any) { handlers3.set(name, fn); },
+    });
+    const fn3 = handlers3.get("@molt/mascot-plugin.state");
+    await fn3({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.size).toBe("medium");
+  });
+
   it("clamps padding >= 0 and opacity to [0,1]", async () => {
     const handlers = new Map<string, any>();
 

@@ -58,6 +58,12 @@
         "minimum": 0,
         "maximum": 1,
         "description": "Window opacity (0.0 - 1.0)"
+      },
+      "size": {
+        "type": "string",
+        "default": "medium",
+        "description": "Mascot window size preset",
+        "enum": ["small", "medium", "large"]
       }
     }
   }
