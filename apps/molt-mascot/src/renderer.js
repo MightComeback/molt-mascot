@@ -81,11 +81,17 @@ function drawSprite(sprite, { x = 0, y = 0, scale = 3 } = {}) {
   }
 }
 
+// Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
+const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+let reducedMotion = motionQuery?.matches ?? false;
+motionQuery?.addEventListener?.('change', (e) => { reducedMotion = e.matches; });
+
 // Blink state: the lobster blinks every 3-6 seconds for ~150ms
 let nextBlinkAt = 2000 + Math.random() * 4000;
 const BLINK_DURATION_MS = 150;
 
 function isBlinking(t) {
+  if (reducedMotion) return false;
   if (t >= nextBlinkAt) {
     if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
     // Schedule next blink 3-6s from now
@@ -103,8 +109,8 @@ function drawLobster(mode, t, idleDurationMs = 0) {
   ctx.ellipse(48, 78, 26, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  const frame = Math.floor(t / 260) % 2;
-  const bob = Math.sin(t / 260) * 2;
+  const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
+  const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
 
   // main sprite
   const bobY = Math.round(bob);
