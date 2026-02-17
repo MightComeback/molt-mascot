@@ -468,6 +468,27 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("destroy prevents reconnect after disconnect", async () => {
+    const client = new GatewayClient({ reconnectBaseMs: 30 });
+    let connectCount = 0;
+    client.onConnectionStateChange = () => { connectCount++; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Destroy before any disconnect
+    client.destroy();
+    connectCount = 0;
+
+    // Wait longer than reconnectBaseMs to ensure no reconnect fires
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(connectCount).toBe(0);
+  });
+
   it("detects stale connection and closes socket", async () => {
     const client = new GatewayClient({
       staleConnectionMs: 50,
