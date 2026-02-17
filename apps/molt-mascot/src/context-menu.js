@@ -49,7 +49,11 @@ export function show(items, { x, y }) {
       continue;
     }
     const row = document.createElement('div');
-    row.setAttribute('role', 'menuitem');
+    // Use 'menuitemcheckbox' role for toggle items (indicated by ✓ prefix)
+    // so screen readers announce the checked/unchecked state.
+    const isToggle = item.label?.startsWith('✓ ');
+    row.setAttribute('role', isToggle ? 'menuitemcheckbox' : 'menuitem');
+    if (isToggle) row.setAttribute('aria-checked', 'true');
     row.tabIndex = -1;
     if (item.disabled) {
       row.setAttribute('aria-disabled', 'true');

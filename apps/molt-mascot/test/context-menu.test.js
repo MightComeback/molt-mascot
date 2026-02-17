@@ -477,6 +477,20 @@ describe("context-menu", () => {
     expect(menu._children[1]._attrs["aria-disabled"]).toBe("true");
   });
 
+  it("toggle items use menuitemcheckbox role with aria-checked", () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "✓ Ghost Mode", action: () => {} },
+        { label: "Normal Item", action: () => {} },
+      ],
+      { x: 0, y: 0 }
+    );
+    expect(menu._children[0]._attrs["role"]).toBe("menuitemcheckbox");
+    expect(menu._children[0]._attrs["aria-checked"]).toBe("true");
+    expect(menu._children[1]._attrs["role"]).toBe("menuitem");
+    expect(menu._children[1]._attrs["aria-checked"]).toBeUndefined();
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [
