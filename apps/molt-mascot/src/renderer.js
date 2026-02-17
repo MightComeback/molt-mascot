@@ -226,6 +226,7 @@ let lastPluginOpacity = null;
 let lastPluginPadding = null;
 let lastPluginSize = null;
 let currentSizeLabel = 'medium';
+let pluginVersion = '';
 
 function syncPill() {
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -283,9 +284,12 @@ function syncPill() {
   if (reconnectAttempt > 0 && !connectedSince) {
     tip += ` · retry #${reconnectAttempt}`;
   }
-  const ver = window.moltMascot?.version ? ` (v${window.moltMascot.version})` : '';
+  const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : '';
+  const plugVer = pluginVersion ? `plugin v${pluginVersion}` : '';
+  const verParts = [appVer, plugVer].filter(Boolean).join(', ');
+  const ver = verParts ? ` (${verParts})` : '';
   pill.title = tip + ver;
-  // Mirror tooltip on the canvas so hovering the lobster sprite also shows status.
+  // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
   canvas.title = tip + ver;
   updateHudVisibility();
 }
@@ -660,6 +664,11 @@ function connect(cfg) {
           currentSizeLabel = nextSize;
           window.moltMascot.setSize(nextSize);
         }
+      }
+
+      // Sync plugin version (static metadata for tooltip/debugging)
+      if (typeof msg.payload.state.version === 'string' && msg.payload.state.version) {
+        pluginVersion = msg.payload.state.version;
       }
 
       // Sync hideText

@@ -40,6 +40,7 @@ export type State = {
   opacity?: number;
   size?: Size;
   currentTool?: string;
+  version?: string;
 };
 
 // Plugin API contract definition for better type safety
@@ -584,6 +585,7 @@ export default function register(api: PluginApi) {
     padding,
     opacity,
     size,
+    version,
   };
 
   let idleTimer: any = null;
@@ -806,6 +808,7 @@ export default function register(api: PluginApi) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
+    // Preserve version through resets (it's static metadata, not runtime state).
     agentToolStacks.clear();
     agentLastToolTs.clear();
     activeAgents.clear();

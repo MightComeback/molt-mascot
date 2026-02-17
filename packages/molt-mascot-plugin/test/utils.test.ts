@@ -584,6 +584,23 @@ describe("utils", () => {
     expect(payload?.state?.mode).toBe("thinking"); // still not error
   });
 
+  it("exposes plugin version in state response", async () => {
+    const api = createMockApi();
+    register(api);
+
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    expect(typeof stateFn).toBe("function");
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(payload?.ok).toBe(true);
+    // Version should be a non-empty semver-like string from package.json
+    expect(typeof payload?.state?.version).toBe("string");
+    expect(payload.state.version.length).toBeGreaterThan(0);
+    expect(payload.state.version).toMatch(/^\d+\.\d+/);
+  });
+
   it("nested tools maintain correct depth and show most recent tool", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);
