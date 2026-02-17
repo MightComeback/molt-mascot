@@ -110,6 +110,13 @@ describe("utils", () => {
     // New channels
     expect(cleanErrorString("DiscordError: API unavailable")).toBe("API unavailable");
     expect(cleanErrorString("SlackError: channel_not_found")).toBe("channel_not_found");
+    // Python built-in exceptions
+    expect(cleanErrorString("FileNotFoundError: [Errno 2] No such file")).toBe("[Errno 2] No such file");
+    expect(cleanErrorString("ConnectionRefusedError: [Errno 111] Connection refused")).toBe("[Errno 111] Connection refused");
+    expect(cleanErrorString("BrokenPipeError: [Errno 32] Broken pipe")).toBe("[Errno 32] Broken pipe");
+    expect(cleanErrorString("RecursionError: maximum recursion depth exceeded")).toBe("maximum recursion depth exceeded");
+    expect(cleanErrorString("NotImplementedError: abstract method")).toBe("abstract method");
+    expect(cleanErrorString("OSError: [Errno 28] No space left on device")).toBe("[Errno 28] No space left on device");
   });
 
   it("summarizeToolResultMessage", () => {
