@@ -355,6 +355,106 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("refreshPluginState triggers an immediate state poll", async () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Respond to the initial state request to clear pending flag
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Wait past the 150ms rate-limit window
+    await new Promise((r) => setTimeout(r, 200));
+
+    const countBefore = ws._sent.length;
+    client.refreshPluginState();
+    expect(ws._sent.length).toBe(countBefore + 1);
+
+    client.destroy();
+  });
+
+  it("rate-limits plugin state requests within 150ms window", async () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Respond to the initial state request to clear pending flag
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Wait past the rate-limit window so the first refresh goes through
+    await new Promise((r) => setTimeout(r, 200));
+
+    const countBefore = ws._sent.length;
+    client.refreshPluginState(); // goes through (past rate-limit + not pending)
+
+    // Respond to clear pending flag
+    const reqId2 = ws._sent[ws._sent.length - 1].id;
+    ws._emitMessage({
+      type: "res", id: reqId2, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Immediately try again — should be throttled by the 150ms time window
+    client.refreshPluginState();
+
+    // Only one additional request since countBefore (the rate-limited one is skipped)
+    expect(ws._sent.length).toBe(countBefore + 1);
+
+    client.destroy();
+  });
+
+  it("plugin reset fallback succeeds on second method", () => {
+    const client = new GatewayClient();
+    let pluginState = null;
+    client.onPluginState = (s) => { pluginState = s; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Respond to plugin state to mark hasPlugin=true
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Send reset — first method fails
+    client.sendPluginReset();
+    const resetReqId1 = ws._sent[ws._sent.length - 1].id;
+    expect(ws._sent[ws._sent.length - 1].method).toBe("@molt/mascot-plugin.reset");
+
+    ws._emitMessage({
+      type: "res", id: resetReqId1, ok: false,
+      payload: { error: { message: "method not found" } },
+    });
+
+    // Should have retried with the next method
+    const resetReqId2 = ws._sent[ws._sent.length - 1].id;
+    expect(ws._sent[ws._sent.length - 1].method).toBe("molt-mascot.reset");
+    expect(resetReqId2).not.toBe(resetReqId1);
+
+    client.destroy();
+  });
+
   it("fires onError when WebSocket emits error", () => {
     const client = new GatewayClient();
     let errorMsg = "";

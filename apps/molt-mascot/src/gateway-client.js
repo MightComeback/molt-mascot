@@ -356,6 +356,15 @@ export class GatewayClient {
   }
 
   /**
+   * Request an immediate plugin state refresh.
+   * Useful after actions that change state (e.g., reset, config change)
+   * so the UI updates without waiting for the next 1s poll cycle.
+   */
+  refreshPluginState() {
+    this._sendPluginStateReq('r');
+  }
+
+  /**
    * Send a plugin reset request over the current connection.
    */
   sendPluginReset() {
