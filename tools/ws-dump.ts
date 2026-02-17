@@ -16,6 +16,9 @@ Options:
   --timeout-ms=<ms>       Timeout for --once mode (default: 5000)
   --min-protocol=<n>      Minimum protocol version (default: 3)
   --max-protocol=<n>      Maximum protocol version (default: 3)
+  --filter=<type>         Only print events matching this type/event name
+                          (e.g. --filter=agent, --filter=tool). Repeatable.
+  --compact               Print JSON on a single line instead of pretty-printed
   -h, --help              Show this help
 
 Environment:
@@ -56,6 +59,14 @@ if (minProtocol > maxProtocol) {
   console.error("Invalid protocol range: --min-protocol cannot be greater than --max-protocol");
   process.exit(2);
 }
+
+// --filter: only print frames matching these event/type names (empty = print all)
+const filters: string[] = argv
+  .filter((a) => a.startsWith("--filter="))
+  .map((a) => a.split("=").slice(1).join("=").toLowerCase())
+  .filter(Boolean);
+
+const compact = args.has("--compact");
 
 const rawGatewayUrl = process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
 const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
@@ -106,7 +117,27 @@ ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
   try {
     const msg = JSON.parse(raw);
-    console.log(JSON.stringify(msg, null, 2));
+
+    // Apply filter: match against msg.type, msg.event, or msg.payload?.phase
+    if (filters.length > 0) {
+      const candidates = [msg.type, msg.event, msg.payload?.phase].map((v) =>
+        typeof v === "string" ? v.toLowerCase() : ""
+      );
+      if (!filters.some((f) => candidates.includes(f))) {
+        // Still check for hello-ok even when filtering (needed for --once)
+        if (msg.type === "res" && msg.payload?.type === "hello-ok") {
+          gotHello = true;
+          if (once) {
+            try { ws.close(); } catch {}
+            return;
+          }
+          ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
+        }
+        return;
+      }
+    }
+
+    console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
 
     if (msg.type === "res" && msg.payload?.type === "hello-ok") {
       gotHello = true;
