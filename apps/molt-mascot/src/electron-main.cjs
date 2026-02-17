@@ -198,6 +198,11 @@ app.whenReady().then(async () => {
     alignmentOverride = savedPrefs.alignment;
   }
 
+  // Restore saved padding if no env override
+  if (paddingOverride === null && typeof savedPrefs.padding === 'number' && savedPrefs.padding >= 0) {
+    paddingOverride = savedPrefs.padding;
+  }
+
   // --- Core action helpers ---
   // Deduplicated logic used by keyboard shortcuts, tray menu, IPC, and context menu.
   // Each action is defined once to prevent drift between the three trigger paths.
@@ -613,6 +618,7 @@ app.whenReady().then(async () => {
     if (!Number.isFinite(v) || v < 0) return;
     paddingOverride = v;
     repositionMainWindow({ force: true });
+    savePrefs({ padding: v });
   });
 
   // Keep the mascot pinned when display workArea changes (monitor attach/detach,
