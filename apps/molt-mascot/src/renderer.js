@@ -404,7 +404,15 @@ function connect(cfg) {
     ws = null;
   }
 
-  ws = new WebSocket(cfg.url);
+  try {
+    ws = new WebSocket(cfg.url);
+  } catch (err) {
+    // Invalid URL (e.g. empty string, missing protocol) throws synchronously.
+    // Surface the error instead of crashing the renderer.
+    showError(err?.message || 'Invalid WebSocket URL');
+    showSetup(cfg);
+    return;
+  }
 
   ws.addEventListener('open', () => {
     // NOTE: Don't reset reconnectAttempt here — only after hello-ok.
