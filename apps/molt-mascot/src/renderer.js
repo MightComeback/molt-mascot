@@ -252,7 +252,25 @@ let pluginVersion = '';
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 
+// Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
+let copiedUntil = 0;
+
+/**
+ * Show "Copied!" in the pill for a brief period, suppressing syncPill() updates.
+ * This prevents the 1-second pill refresh from immediately overwriting the feedback.
+ */
+function showCopiedFeedback() {
+  pill.textContent = 'Copied ✓';
+  pill.className = 'pill--idle';
+  copiedUntil = Date.now() + 700;
+}
+
 function syncPill() {
+  // Don't overwrite "Copied!" feedback while it's showing
+  if (copiedUntil > 0) {
+    if (Date.now() < copiedUntil) return;
+    copiedUntil = 0;
+  }
   // Dynamically adjust aria-live so error announcements are immediate (assertive)
   // while routine status updates remain polite and non-intrusive.
   const ariaLive = currentMode === Mode.error ? 'assertive' : 'polite';
@@ -1005,9 +1023,7 @@ pill.addEventListener('dblclick', () => {
   const text = pill.textContent || '';
   if (!text || text === 'Initializing...') return;
   navigator.clipboard.writeText(text).then(() => {
-    const prev = pill.textContent;
-    pill.textContent = 'Copied!';
-    setTimeout(() => { pill.textContent = prev; }, 800);
+    showCopiedFeedback();
   }).catch(() => {});
 });
 
@@ -1127,17 +1143,13 @@ function showContextMenu(e) {
     { label: 'Copy Status', action: () => {
       const text = pill.textContent || '';
       if (text) navigator.clipboard.writeText(text).then(() => {
-        const prev = pill.textContent;
-        pill.textContent = 'Copied!';
-        setTimeout(() => { pill.textContent = prev; }, 800);
+        showCopiedFeedback();
       }).catch(() => {});
     }},
     { label: 'Copy Debug Info', action: () => {
       const text = buildDebugInfo();
       navigator.clipboard.writeText(text).then(() => {
-        const prev = pill.textContent;
-        pill.textContent = 'Copied!';
-        setTimeout(() => { pill.textContent = prev; }, 800);
+        showCopiedFeedback();
       }).catch(() => {});
     }},
     { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', action: () => {
