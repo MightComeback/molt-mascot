@@ -325,6 +325,7 @@ app.whenReady().then(async () => {
           alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
           alignmentOverride = alignmentCycle[alignmentIndex];
           repositionMainWindow({ force: true });
+          withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
           rebuildTrayMenu();
         },
       },
@@ -412,6 +413,7 @@ app.whenReady().then(async () => {
       alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
       alignmentOverride = alignmentCycle[alignmentIndex];
       repositionMainWindow({ force: true });
+      withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
       rebuildTrayMenu();
       // eslint-disable-next-line no-console
       console.log(`molt-mascot: alignment → ${alignmentOverride}`);
@@ -477,6 +479,7 @@ app.whenReady().then(async () => {
     alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
     alignmentOverride = alignmentCycle[alignmentIndex];
     repositionMainWindow({ force: true });
+    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
     rebuildTrayMenu();
     // eslint-disable-next-line no-console
     console.log(`molt-mascot: alignment → ${alignmentOverride}`);
@@ -548,6 +551,8 @@ app.whenReady().then(async () => {
     if (idx >= 0) alignmentIndex = idx;
 
     repositionMainWindow({ force: true });
+    // Notify renderer so the context menu label updates immediately
+    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
     rebuildTrayMenu();
   });
 

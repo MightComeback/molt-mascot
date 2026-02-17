@@ -785,6 +785,13 @@ if (window.moltMascot?.onHideText) {
   }));
 }
 
+if (window.moltMascot?.onAlignment) {
+  ipcUnsubs.push(window.moltMascot.onAlignment((alignment) => {
+    lastPluginAlignment = alignment;
+    syncPill();
+  }));
+}
+
 // Double-click pill to copy current status text to clipboard
 pill.addEventListener('dblclick', () => {
   const text = pill.textContent || '';

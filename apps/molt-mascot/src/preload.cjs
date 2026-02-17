@@ -29,6 +29,11 @@ contextBridge.exposeInMainWorld('moltMascot', {
     ipcRenderer.on('molt-mascot:reset', handler);
     return () => ipcRenderer.removeListener('molt-mascot:reset', handler);
   },
+  onAlignment: (callback) => {
+    const handler = (_event, alignment) => callback(alignment);
+    ipcRenderer.on('molt-mascot:alignment', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:alignment', handler);
+  },
   platform: process.platform,
   version: pkg.version,
   env: {
