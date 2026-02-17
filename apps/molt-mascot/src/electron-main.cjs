@@ -24,8 +24,13 @@ function savePrefs(patch) {
   try {
     const current = loadPrefs();
     const merged = { ...current, ...patch };
-    fs.mkdirSync(path.dirname(PREFS_FILE), { recursive: true });
-    fs.writeFileSync(PREFS_FILE, JSON.stringify(merged, null, 2));
+    const dir = path.dirname(PREFS_FILE);
+    fs.mkdirSync(dir, { recursive: true });
+    // Atomic write: write to a temp file then rename, so a crash mid-write
+    // doesn't corrupt the preferences file.
+    const tmp = path.join(dir, `.preferences.${process.pid}.tmp`);
+    fs.writeFileSync(tmp, JSON.stringify(merged, null, 2));
+    fs.renameSync(tmp, PREFS_FILE);
   } catch {
     // Best-effort; don't crash if disk is full or permissions are wrong.
   }
