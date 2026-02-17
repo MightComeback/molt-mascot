@@ -89,12 +89,14 @@ function getPosition(display, width, height, alignOverride, paddingOvr) {
   return _getPosition(display, width, height, resolvedAlign, resolvedPadding);
 }
 
-function createWindow({ capture = false } = {}) {
+function createWindow({ capture = false, initWidth, initHeight } = {}) {
   const display = screen.getPrimaryDisplay();
   const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
-  const width = Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240;
-  const height = Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200;
+  const width = (Number.isFinite(initWidth) && initWidth > 0) ? initWidth
+    : (Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240);
+  const height = (Number.isFinite(initHeight) && initHeight > 0) ? initHeight
+    : (Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200);
   const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
 
   const win = new BrowserWindow({
@@ -305,7 +307,19 @@ app.whenReady().then(async () => {
     });
   }
 
-  _mainWin = createWindow();
+  // Size presets for Cmd+Shift+Z cycling (label, width, height).
+  // Declared before window creation so the initial window can use the saved size.
+  const sizeCycle = [
+    { label: 'small', width: 160, height: 140 },
+    { label: 'medium', width: 240, height: 200 },
+    { label: 'large', width: 360, height: 300 },
+  ];
+  let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
+    ? savedPrefs.sizeIndex : 1;
+
+  // Pass saved size into createWindow to avoid a visible flash-resize on launch.
+  const initSize = sizeCycle[sizeIndex];
+  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height });
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
@@ -378,16 +392,6 @@ app.whenReady().then(async () => {
   tray.on('click', trayToggle);
 
   // Alignment cycling order for Cmd+Shift+A shortcut
-  // Size presets for Cmd+Shift+Z cycling (label, width, height)
-  const sizeCycle = [
-    { label: 'small', width: 160, height: 140 },
-    { label: 'medium', width: 240, height: 200 },
-    { label: 'large', width: 360, height: 300 },
-  ];
-  // Start at saved size or default to medium
-  let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
-    ? savedPrefs.sizeIndex : 1;
-
   const alignmentCycle = [
     'bottom-right', 'bottom-left', 'top-right', 'top-left',
     'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
@@ -405,14 +409,11 @@ app.whenReady().then(async () => {
     }
   }
 
-  // Apply restored size preference to the initial window (if different from default medium).
+  // Notify renderer of the initial size label so context menu is correct on launch.
   if (sizeIndex !== 1) {
-    const { label, width, height } = sizeCycle[sizeIndex];
     withMainWin((w) => {
-      w.setSize(width, height, true);
-      repositionMainWindow({ force: true });
       w.webContents.once('did-finish-load', () => {
-        w.webContents.send('molt-mascot:size', label);
+        w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
       });
     });
   }
@@ -628,7 +629,8 @@ app.whenReady().then(async () => {
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      _mainWin = createWindow();
+      const sz = sizeCycle[sizeIndex];
+      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height });
       wireMainWindow(_mainWin);
     }
   });
