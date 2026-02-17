@@ -195,7 +195,16 @@ export class GatewayClient {
       this._ws = null;
     }
 
-    const ws = new WebSocket(cfg.url);
+    let ws;
+    try {
+      ws = new WebSocket(cfg.url);
+    } catch (err) {
+      // Invalid URL (empty string, missing protocol, etc.) throws synchronously.
+      // Surface the error via callback instead of crashing the consumer.
+      this.onError?.(err?.message || 'Invalid WebSocket URL');
+      this.onHandshakeFailure?.(err?.message || 'Invalid WebSocket URL');
+      return;
+    }
     this._ws = ws;
 
     ws.addEventListener('open', () => {
