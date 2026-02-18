@@ -303,6 +303,8 @@ function syncPill() {
     pluginToolCalls,
     pluginToolErrors,
     currentTool: currentMode === Mode.tool ? currentTool : undefined,
+    sizeLabel: currentSizeLabel,
+    opacity: currentOpacity,
     appVersion: window.moltMascot?.version,
     pluginVersion,
   });

@@ -369,4 +369,24 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 5, currentTool: "web_search" });
     expect(tip).not.toContain("web_search");
   });
+
+  it("includes size label when non-default", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sizeLabel: "large" });
+    expect(tip).toContain("large");
+  });
+
+  it("omits size label when medium (default)", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sizeLabel: "medium" });
+    expect(tip).not.toContain("medium");
+  });
+
+  it("includes opacity when below 100%", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, opacity: 0.6 });
+    expect(tip).toContain("60%");
+  });
+
+  it("omits opacity when at 100%", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, opacity: 1 });
+    expect(tip).not.toContain("%");
+  });
 });

@@ -106,6 +106,8 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.pluginToolCalls] - Plugin tool call count
  * @param {number} [params.pluginToolErrors] - Plugin tool error count
  * @param {string} [params.currentTool] - Currently active tool name
+ * @param {string} [params.sizeLabel] - Current size preset label (e.g. 'medium')
+ * @param {number} [params.opacity] - Current window opacity (0-1)
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
  * @returns {string}
@@ -122,6 +124,8 @@ export function buildTooltip(params) {
     pluginToolCalls = 0,
     pluginToolErrors = 0,
     currentTool,
+    sizeLabel,
+    opacity,
     appVersion,
     pluginVersion,
   } = params;
@@ -143,6 +147,9 @@ export function buildTooltip(params) {
       tip += `, ${pluginToolErrors} errors (${successRate}% ok)`;
     }
   }
+  // Show size/opacity when non-default (medium/100% are defaults, no need to clutter)
+  if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
+  if (typeof opacity === 'number' && opacity < 1) tip += ` · ${Math.round(opacity * 100)}%`;
   const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
   if (verParts) tip += ` (${verParts})`;
   return tip;
