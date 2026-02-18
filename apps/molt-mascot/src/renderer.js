@@ -971,6 +971,21 @@ function forceReconnectNow() {
     try { ws.close(); } catch {}
     ws = null;
   }
+  // Reset plugin state so change-detection works correctly after reconnect.
+  // Without this, the cached values from the previous connection suppress
+  // identical plugin config from a fresh handshake (e.g. alignment, opacity).
+  hasPlugin = false;
+  pluginPollerStarted = false;
+  pluginStatePending = false;
+  pluginStateLastSentAt = 0;
+  connectedSince = null;
+  connectedUrl = '';
+  _pluginSync.reset();
+  stopStaleCheck();
+  if (window._pollInterval) {
+    clearInterval(window._pollInterval);
+    window._pollInterval = null;
+  }
   const cfg = loadCfg();
   if (cfg?.url) connect(cfg);
   else showSetup({ url: 'ws://127.0.0.1:18789', token: '' });
