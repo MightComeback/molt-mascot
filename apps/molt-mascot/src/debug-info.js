@@ -109,6 +109,11 @@ export function buildDebugInfo(params) {
     if (lastDisconnectedAt) {
       lines.push(`Last disconnect: ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
     }
+    // Show last close reason when connected but flappy (sessionConnectCount > 1)
+    // to help diagnose why the previous disconnect happened without opening DevTools.
+    if (lastCloseDetail && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+      lines.push(`Last close reason: ${lastCloseDetail}`);
+    }
   } else {
     if (lastDisconnectedAt) {
       lines.push(`Gateway: disconnected ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);

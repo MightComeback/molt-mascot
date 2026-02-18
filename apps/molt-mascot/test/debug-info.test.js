@@ -266,16 +266,28 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Close reason");
   });
 
-  it("omits close reason when connected (even if previously set)", () => {
+  it("omits close reason when connected and stable (sessionConnectCount <= 1)", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
       connectedSince: NOW - 60000,
       connectedUrl: "ws://localhost:18789",
       wsReadyState: 1,
       lastCloseDetail: "abnormal closure",
+      sessionConnectCount: 1,
     });
-    // Close reason is in the disconnected block which is skipped when connected
-    expect(info).not.toContain("Close reason");
+    expect(info).not.toContain("close reason");
+  });
+
+  it("shows last close reason when connected but flappy (sessionConnectCount > 1)", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      lastCloseDetail: "abnormal closure",
+      sessionConnectCount: 3,
+    });
+    expect(info).toContain("Last close reason: abnormal closure");
   });
 
   it("computes exact durations from now parameter", () => {
