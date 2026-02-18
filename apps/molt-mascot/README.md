@@ -99,12 +99,20 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300) |
 | ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40%) |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
+| ⌘/Ctrl + ⇧ + C | Force **reconnect** to the Gateway (bypass backoff) |
+| ⌘/Ctrl + ⇧ + I | **Copy debug info** to clipboard (diagnostics snapshot) |
 | ⌘/Ctrl + ⇧ + D | Toggle detached **DevTools** (debug WS frames / UI state) |
 | ⌘/Ctrl + ⌥ + Q | **Quit** the mascot |
 
 ### Context Menu
 
 Right-click the status pill to access all actions: ghost mode, hide text, reset, alignment cycling, snap to position, size cycling, opacity cycling, copy status, copy debug info, reconnect, change gateway, hide mascot, devtools, and quit.
+
+### Lobster Sprite Interactions
+
+- **Double-click** the lobster to toggle **ghost mode** (click-through).
+- **Scroll wheel** over the lobster to adjust **opacity** in 10% steps.
+- **Right-click** the lobster to open the context menu.
 
 ### Pill Interactions
 
