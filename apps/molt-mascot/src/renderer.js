@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 
 const pill = document.getElementById('pill');
@@ -1068,8 +1068,7 @@ function buildDebugInfo() {
     const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
     lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
     lines.push(`Gateway: ${connectedUrl}`);
-    const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
-    lines.push(`WebSocket: ${wsState}`);
+    lines.push(`WebSocket: ${wsReadyStateLabel(ws?.readyState)}`);
   } else {
     if (lastDisconnectedAt) {
       const disconnectedAgo = formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)));
@@ -1077,7 +1076,7 @@ function buildDebugInfo() {
     } else {
       lines.push(`Gateway: disconnected`);
     }
-    const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
+    const wsState = wsReadyStateLabel(ws?.readyState);
     lines.push(`WebSocket: ${wsState}`);
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
     // Show saved config URL when disconnected for easier debugging

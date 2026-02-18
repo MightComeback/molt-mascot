@@ -36,6 +36,16 @@ export function isMissingMethodResponse(msg) {
   return false;
 }
 
+/**
+ * Convert a WebSocket readyState number to a human-readable label.
+ * Avoids inline magic-array indexing scattered through rendering/debug code.
+ */
+const WS_STATE_LABELS = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+export function wsReadyStateLabel(readyState) {
+  if (readyState === null || readyState === undefined) return 'null';
+  return WS_STATE_LABELS[readyState] ?? String(readyState);
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';

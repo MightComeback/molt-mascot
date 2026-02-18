@@ -6,6 +6,7 @@ import {
   isMissingMethodResponse,
   formatDuration,
   isTruthyEnv,
+  wsReadyStateLabel,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -200,5 +201,23 @@ describe("isTruthyEnv", () => {
   it("returns false for null/undefined", () => {
     expect(isTruthyEnv(null)).toBe(false);
     expect(isTruthyEnv(undefined)).toBe(false);
+  });
+});
+
+describe("wsReadyStateLabel", () => {
+  it("maps standard WebSocket readyState values", () => {
+    expect(wsReadyStateLabel(0)).toBe("CONNECTING");
+    expect(wsReadyStateLabel(1)).toBe("OPEN");
+    expect(wsReadyStateLabel(2)).toBe("CLOSING");
+    expect(wsReadyStateLabel(3)).toBe("CLOSED");
+  });
+
+  it("returns 'null' for null/undefined", () => {
+    expect(wsReadyStateLabel(null)).toBe("null");
+    expect(wsReadyStateLabel(undefined)).toBe("null");
+  });
+
+  it("returns stringified value for unknown states", () => {
+    expect(wsReadyStateLabel(99)).toBe("99");
   });
 });
