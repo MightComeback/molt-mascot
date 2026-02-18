@@ -8,10 +8,14 @@ Molt Mascot sits on your screen (usually bottom-right) and visually communicates
 
 ## States
 
-- **Idle**: The lobster chills (or dances slightly).
-- **Thinking**: Shows an animation when the agent is reasoning/planning.
-- **Tool Use**: Turns into a tool icon (hammer/wrench) when executing commands.
-- **Error**: Flashes red/alert icon when a task or tool fails.
+- **Idle**: The lobster chills (gentle bob animation).
+- **Sleeping**: After 2 minutes idle, shows ZZZ overlay (configurable via `MOLT_MASCOT_SLEEP_THRESHOLD_S`).
+- **Thinking**: Animated overlay when the agent is reasoning/planning.
+- **Tool Use**: Tool icon overlay when executing commands.
+- **Error**: Red flash with shake animation when a task or tool fails.
+- **Connecting**: Yellow pulse while establishing the Gateway WebSocket handshake.
+- **Connected**: Brief green sparkle after a successful handshake, then reverts to idle.
+- **Disconnected**: Red indicator with reconnect countdown and exponential backoff.
 
 ## Development
 
@@ -97,7 +101,7 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + V | Toggle **visibility** (hide/show the mascot window) |
 | ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
 | ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300) |
-| ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40%) |
+| ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40% → 20%) |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
 | ⌘/Ctrl + ⇧ + C | Force **reconnect** to the Gateway (bypass backoff) |
 | ⌘/Ctrl + ⇧ + I | **Copy debug info** to clipboard (diagnostics snapshot) |
