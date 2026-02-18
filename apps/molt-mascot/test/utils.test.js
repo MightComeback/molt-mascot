@@ -339,6 +339,14 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 42, pluginToolErrors: 3 });
     expect(tip).toContain("42 calls");
     expect(tip).toContain("3 errors");
+    expect(tip).toContain("93% ok");
+  });
+
+  it("omits success rate when no tool errors", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 10, pluginToolErrors: 0 });
+    expect(tip).toContain("10 calls");
+    expect(tip).not.toContain("errors");
+    expect(tip).not.toContain("% ok");
   });
 
   it("includes version info", () => {

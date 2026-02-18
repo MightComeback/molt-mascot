@@ -138,7 +138,10 @@ export function buildTooltip(params) {
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
   if (pluginToolCalls > 0) {
     tip += ` · ${pluginToolCalls} calls`;
-    if (pluginToolErrors > 0) tip += `, ${pluginToolErrors} errors`;
+    if (pluginToolErrors > 0) {
+      const successRate = Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100);
+      tip += `, ${pluginToolErrors} errors (${successRate}% ok)`;
+    }
   }
   const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
   if (verParts) tip += ` (${verParts})`;
