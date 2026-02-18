@@ -85,6 +85,7 @@ export function buildDebugInfo(params) {
   const lines = [];
   const appVer = appVersion ? `v${appVersion}` : 'dev';
   lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
+  lines.push(`Captured: ${new Date(now).toISOString()}`);
   lines.push(`Mode: ${currentMode}`);
   const dur = Math.max(0, Math.round((now - modeSince) / 1000));
   lines.push(`Mode duration: ${formatDuration(dur)}`);

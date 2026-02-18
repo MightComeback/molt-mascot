@@ -40,9 +40,10 @@ const BASE_PARAMS = {
 };
 
 describe("buildDebugInfo", () => {
-  it("includes app version and mode", () => {
+  it("includes app version, capture timestamp, and mode", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).toContain("Molt Mascot v0.1.44");
+    expect(info).toContain("Captured: 2023-11-14T22:13:20.000Z");
     expect(info).toContain("Mode: idle");
   });
 
