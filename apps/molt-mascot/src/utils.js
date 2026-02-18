@@ -69,6 +69,9 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
     return idleDurationMs > sleepThresholdMs ? 250 : 66;
   }
   if (mode === 'disconnected' || mode === 'error') return 100;
+  // Connecting/connected animations use slow intervals (500ms/300ms sprites),
+  // so ~15fps (66ms) is more than enough without wasting CPU at full 60fps.
+  if (mode === 'connecting' || mode === 'connected') return 66;
   return 0;
 }
 

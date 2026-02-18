@@ -226,11 +226,14 @@ describe("wsReadyStateLabel", () => {
 describe("getFrameIntervalMs", () => {
   const SLEEP_MS = 120000;
 
-  it("returns 0 (full fps) for active modes", () => {
+  it("returns 0 (full fps) for active animation modes", () => {
     expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, false)).toBe(0);
     expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(0);
-    expect(getFrameIntervalMs("connecting", 0, SLEEP_MS, false)).toBe(0);
-    expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(0);
+  });
+
+  it("returns ~15fps (66ms) for connecting/connected modes", () => {
+    expect(getFrameIntervalMs("connecting", 0, SLEEP_MS, false)).toBe(66);
+    expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(66);
   });
 
   it("returns ~15fps (66ms) for idle below sleep threshold", () => {
