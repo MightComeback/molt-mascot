@@ -774,6 +774,113 @@ describe("utils", () => {
     expect(coerceAlignment(undefined, "center-left")).toBe("center-left");
   });
 
+  it("infrastructure error on tool end enters error mode with tool name prefix", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // Start a tool, then end it with an infrastructure error (e.g. timeout, not found)
+    toolListener({ phase: "start", sessionKey: "s1", tool: "web_fetch" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "web_fetch",
+      error: "request timed out",
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("web_fetch");
+    expect(payload?.state?.lastError?.message).toContain("request timed out");
+  });
+
+  it("infrastructure error object with .message is displayed correctly", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      error: { message: "spawn ENOENT" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("spawn ENOENT");
+  });
+
+  it("agent end with error code (no message) still enters error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    agentListener({ phase: "start", sessionKey: "s1" });
+    agentListener({
+      phase: "end",
+      sessionKey: "s1",
+      error: { code: "ECONNRESET" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("ECONNRESET");
+  });
+
+  it("non-zero exitCode on content tool triggers error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      result: { exitCode: 1, stderr: "permission denied" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("permission denied");
+  });
+
+  it("zero exitCode on content tool does not trigger error mode", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    agentListener({ phase: "start", sessionKey: "s1" });
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      result: { exitCode: 0, stdout: "ok" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("thinking");
+  });
+
   it("allowedAlignments and allowedSizes are complete", () => {
     expect(allowedAlignments).toContain("top-left");
     expect(allowedAlignments).toContain("bottom-right");
