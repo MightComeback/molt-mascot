@@ -69,6 +69,10 @@ export class GatewayClient {
     this.connectedUrl = '';
     /** @type {number|null} Timestamp of last disconnect (for tooltip "disconnected X ago") */
     this.lastDisconnectedAt = null;
+    /** @type {number|null} WebSocket close code from the last disconnect */
+    this.lastCloseCode = null;
+    /** @type {string|null} WebSocket close reason from the last disconnect */
+    this.lastCloseReason = null;
 
     // Stale connection detection
     this._lastMessageAt = 0;
@@ -355,12 +359,14 @@ export class GatewayClient {
       this._pluginStatePending = false;
       this._pluginStateLastSentAt = 0;
       this.lastDisconnectedAt = Date.now();
+      this.lastCloseCode = ev?.code ?? null;
+      this.lastCloseReason = (ev?.reason || '').trim() || null;
       this.connectedSince = null;
       this.connectedUrl = '';
       this._stopStaleCheck();
 
       this.onPluginStateReset?.();
-      this.onDisconnect?.({ code: ev?.code, reason: (ev?.reason || '').trim() || undefined });
+      this.onDisconnect?.({ code: ev?.code, reason: this.lastCloseReason || undefined });
 
       const delay = this._getReconnectDelay();
       const reconnectAt = Date.now() + delay;
@@ -506,6 +512,20 @@ export class GatewayClient {
   get uptimeSeconds() {
     if (this.connectedSince === null) return null;
     return Math.max(0, Math.round((Date.now() - this.connectedSince) / 1000));
+  }
+
+  /**
+   * Human-readable close detail string (e.g. "1006 (abnormal)" or "going away").
+   * Returns null if no disconnect has occurred yet.
+   * Consumers can use this directly in tooltips/debug info instead of
+   * manually formatting from the onDisconnect callback.
+   */
+  get lastCloseDetail() {
+    if (this.lastCloseCode === null && !this.lastCloseReason) return null;
+    const parts = [];
+    if (this.lastCloseCode !== null) parts.push(String(this.lastCloseCode));
+    if (this.lastCloseReason) parts.push(this.lastCloseReason);
+    return parts.join(' ') || null;
   }
 
   /**

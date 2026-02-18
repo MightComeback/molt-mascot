@@ -865,6 +865,47 @@ describe("pausePolling / resumePolling", () => {
     client.destroy();
   });
 
+  it("stores lastCloseCode and lastCloseReason on disconnect", () => {
+    const client = new GatewayClient();
+    const ws = connectAndHandshake(client);
+
+    expect(client.lastCloseCode).toBeNull();
+    expect(client.lastCloseReason).toBeNull();
+    expect(client.lastCloseDetail).toBeNull();
+
+    // Simulate a close event with code and reason
+    ws.onclose({ code: 1006, reason: 'abnormal closure' });
+
+    expect(client.lastCloseCode).toBe(1006);
+    expect(client.lastCloseReason).toBe('abnormal closure');
+    expect(client.lastCloseDetail).toBe('1006 abnormal closure');
+    expect(client.lastDisconnectedAt).toBeGreaterThan(0);
+
+    client.destroy();
+  });
+
+  it("lastCloseDetail handles code-only and reason-only cases", () => {
+    const client = new GatewayClient();
+    const ws = connectAndHandshake(client);
+
+    // Code only (empty reason)
+    ws.onclose({ code: 1000, reason: '' });
+    expect(client.lastCloseDetail).toBe('1000');
+
+    client.destroy();
+  });
+
+  it("lastCloseDetail trims whitespace from reason", () => {
+    const client = new GatewayClient();
+    const ws = connectAndHandshake(client);
+
+    ws.onclose({ code: 1001, reason: '  going away  ' });
+    expect(client.lastCloseReason).toBe('going away');
+    expect(client.lastCloseDetail).toBe('1001 going away');
+
+    client.destroy();
+  });
+
   it("forceReconnect resets plugin state and fires onPluginStateReset", () => {
     const client = new GatewayClient({ pollIntervalMs: 50 });
     const ws = connectAndHandshake(client);
