@@ -96,6 +96,8 @@ bun run mascot
 | Cmd/Ctrl+Shift+S | Snap to position (reset manual drag) |
 | Cmd/Ctrl+Shift+Z | Cycle window size (small → medium → large) |
 | Cmd/Ctrl+Shift+O | Cycle opacity (100% → 80% → 60% → 40%) |
+| Cmd/Ctrl+Shift+C | Force reconnect to Gateway |
+| Cmd/Ctrl+Shift+I | Copy debug info to clipboard |
 | Cmd/Ctrl+Shift+D | Toggle DevTools |
 | Cmd/Ctrl+Alt+Q | Quit application |
 
