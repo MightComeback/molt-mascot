@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { GatewayClient } from "../src/gateway-client.js";
+import { GatewayClient, normalizeWsUrl } from "../src/gateway-client.js";
 
 // Minimal WebSocket mock
 class MockWebSocket {
@@ -764,5 +764,41 @@ describe("GatewayClient", () => {
     expect(ws._sent.length).toBe(countBefore + 1);
 
     client.destroy();
+  });
+});
+
+describe("normalizeWsUrl", () => {
+  it("converts http:// to ws://", () => {
+    expect(normalizeWsUrl("http://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+  });
+
+  it("converts https:// to wss://", () => {
+    expect(normalizeWsUrl("https://gateway.example.com/ws")).toBe("wss://gateway.example.com/ws");
+  });
+
+  it("leaves ws:// unchanged", () => {
+    expect(normalizeWsUrl("ws://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+  });
+
+  it("leaves wss:// unchanged", () => {
+    expect(normalizeWsUrl("wss://gateway.example.com")).toBe("wss://gateway.example.com");
+  });
+
+  it("is case-insensitive for scheme", () => {
+    expect(normalizeWsUrl("HTTP://localhost:8080")).toBe("ws://localhost:8080");
+    expect(normalizeWsUrl("HTTPS://localhost")).toBe("wss://localhost");
+  });
+
+  it("trims whitespace", () => {
+    expect(normalizeWsUrl("  http://localhost:18789  ")).toBe("ws://localhost:18789");
+  });
+
+  it("passes through non-string values", () => {
+    expect(normalizeWsUrl(null)).toBe(null);
+    expect(normalizeWsUrl(undefined)).toBe(undefined);
+  });
+
+  it("passes through URLs without a recognized scheme", () => {
+    expect(normalizeWsUrl("127.0.0.1:18789")).toBe("127.0.0.1:18789");
   });
 });

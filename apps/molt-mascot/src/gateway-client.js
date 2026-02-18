@@ -11,6 +11,22 @@ import { isMissingMethodResponse, getReconnectDelayMs } from './utils.js';
 /** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'|'disconnected'} Mode */
 
 /**
+ * Normalize a URL to use the WebSocket scheme.
+ * Common user mistake: entering http:// or https:// instead of ws:// or wss://.
+ * This auto-corrects the scheme while preserving the rest of the URL.
+ *
+ * @param {string} url
+ * @returns {string} URL with ws:// or wss:// scheme
+ */
+export function normalizeWsUrl(url) {
+  if (typeof url !== 'string') return url;
+  const trimmed = url.trim();
+  if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
+  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
+  return trimmed;
+}
+
+/**
  * @typedef {Object} GatewayClientOptions
  * @property {number} [reconnectBaseMs=1500]
  * @property {number} [reconnectMaxMs=30000]
@@ -203,9 +219,12 @@ export class GatewayClient {
       this._ws = null;
     }
 
+    // Auto-correct common URL scheme mistakes: http(s) → ws(s)
+    const url = normalizeWsUrl(cfg.url);
+
     let ws;
     try {
-      ws = new WebSocket(cfg.url);
+      ws = new WebSocket(url);
     } catch (err) {
       // Invalid URL (empty string, missing protocol, etc.) throws synchronously.
       // Surface the error via callback instead of crashing the consumer.
