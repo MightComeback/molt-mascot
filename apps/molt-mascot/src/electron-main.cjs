@@ -364,6 +364,9 @@ app.whenReady().then(async () => {
     if (info) {
       const { clipboard } = require('electron');
       clipboard.writeText(info);
+      // Notify the renderer so it can show "Copied ✓" feedback in the pill,
+      // matching the behavior when copy is triggered from the context menu.
+      withMainWin((w) => w.webContents.send('molt-mascot:copied'));
     }
   }
 

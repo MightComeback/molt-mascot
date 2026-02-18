@@ -1018,6 +1018,12 @@ if (window.moltMascot?.onForceReconnect) {
   ipcUnsubs.push(window.moltMascot.onForceReconnect(() => {
     forceReconnectNow();
   }));
+
+  if (window.moltMascot.onCopied) {
+    ipcUnsubs.push(window.moltMascot.onCopied(() => {
+      showCopiedFeedback();
+    }));
+  }
 }
 
 // Double-click pill to copy current status text to clipboard

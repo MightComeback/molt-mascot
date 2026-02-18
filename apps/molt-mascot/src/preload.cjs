@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   onSize: (cb) => onIpc('molt-mascot:size', cb),
   onOpacity: (cb) => onIpc('molt-mascot:opacity', cb),
   onForceReconnect: (cb) => onIpc('molt-mascot:force-reconnect', cb),
+  onCopied: (cb) => onIpc('molt-mascot:copied', cb),
   processUptimeS: () => process.uptime(),
   platform: process.platform,
   version: pkg.version,
