@@ -328,6 +328,8 @@ function setMode(mode) {
   // Clear stale tool name when leaving tool mode so it doesn't linger
   // if the plugin connection drops and native events take over.
   if (mode !== Mode.tool) currentTool = '';
+  // Notify main process so the tray tooltip reflects the current state
+  if (window.moltMascot?.updateMode) window.moltMascot.updateMode(mode);
   syncPill();
 }
 

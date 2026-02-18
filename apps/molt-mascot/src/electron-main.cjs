@@ -461,6 +461,10 @@ app.whenReady().then(async () => {
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
     const tooltipParts = [`Molt Mascot v${APP_VERSION}`];
+    // Show live gateway mode so users can check state by hovering the tray icon
+    const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
+    const modeLabel = currentRendererMode || 'idle';
+    if (modeLabel !== 'idle') tooltipParts.push(`${modeEmoji[modeLabel] || '●'} ${modeLabel}`);
     if (clickThrough) tooltipParts.push('👻 Ghost');
     if (hideText) tooltipParts.push('🙈 Text hidden');
     const currentAlign = (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
@@ -582,6 +586,17 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
   ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
+
+  // Live mode updates from the renderer — used to enrich the tray tooltip
+  // so hovering the system tray shows the current gateway state even when
+  // the mascot window is hidden.
+  let currentRendererMode = 'idle';
+  ipcMain.on('molt-mascot:mode-update', (_event, mode) => {
+    if (typeof mode === 'string' && mode !== currentRendererMode) {
+      currentRendererMode = mode;
+      rebuildTrayMenu();
+    }
+  });
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {

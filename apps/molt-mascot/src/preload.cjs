@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   forceReconnect: send('molt-mascot:force-reconnect'),
   cycleOpacity: send('molt-mascot:cycle-opacity'),
   copyDebugInfo: send('molt-mascot:copy-debug-info'),
+  updateMode: send('molt-mascot:mode-update'),
   onClickThrough: (cb) => onIpc('molt-mascot:click-through', cb),
   onHideText: (cb) => onIpc('molt-mascot:hide-text', cb),
   onReset: (cb) => onIpc('molt-mascot:reset', cb),
