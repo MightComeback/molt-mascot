@@ -519,6 +519,11 @@ export function summarizeToolResultMessage(msg: any): string {
       .filter(Boolean)
       .join("\n");
     if (text.trim()) return truncate(cleanErrorString(text));
+    // Non-text content blocks (e.g. image, audio) — describe by type rather than "tool error"
+    if (blocks.length > 0) {
+      const types = [...new Set(blocks.map((b) => b?.type).filter(Boolean))];
+      if (types.length > 0) return truncate(types.join(", "));
+    }
   } else if (typeof blocks === "string" && blocks.trim()) {
     return truncate(cleanErrorString(blocks));
   }

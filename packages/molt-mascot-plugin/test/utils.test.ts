@@ -571,6 +571,12 @@ describe("utils", () => {
     expect(summarizeToolResultMessage([{ title: "Task A" }])).toBe("Task A");
     expect(summarizeToolResultMessage([])).toBe("empty");
 
+    // Non-text content blocks (e.g. image results from vision tools)
+    expect(summarizeToolResultMessage({ content: [{ type: "image", source: { data: "..." } }] })).toBe("image");
+    expect(summarizeToolResultMessage({ content: [{ type: "image" }, { type: "audio" }] })).toBe("image, audio");
+    // Mixed text + non-text: text wins
+    expect(summarizeToolResultMessage({ content: [{ type: "text", text: "ok" }, { type: "image" }] })).toBe("ok");
+
     // REST API error fields: detail and description
     expect(summarizeToolResultMessage({ detail: "rate limit exceeded" })).toBe("rate limit exceeded");
     expect(summarizeToolResultMessage({ description: "invalid API key" })).toBe("invalid API key");
