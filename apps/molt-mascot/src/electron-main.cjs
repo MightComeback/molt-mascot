@@ -324,6 +324,16 @@ app.whenReady().then(async () => {
     });
   }
 
+  async function actionCopyDebugInfo() {
+    const info = await withMainWin((w) =>
+      w.webContents.executeJavaScript('window.__moltMascotBuildDebugInfo ? window.__moltMascotBuildDebugInfo() : "debug info unavailable"')
+    );
+    if (info) {
+      const { clipboard } = require('electron');
+      clipboard.writeText(info);
+    }
+  }
+
   /**
    * Wire up common event listeners on a freshly created main window.
    * Shared between initial creation and macOS `activate` re-creation
@@ -471,6 +481,10 @@ app.whenReady().then(async () => {
         label: 'Reset State',
         accelerator: 'CommandOrControl+Shift+R',
         click: actionResetState,
+      },
+      {
+        label: 'Copy Debug Info',
+        click: actionCopyDebugInfo,
       },
       {
         label: 'DevTools',
