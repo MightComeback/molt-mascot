@@ -45,19 +45,10 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, wsReadyStateLabel } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel } from './utils.js';
 
-/**
- * Format the elapsed time since a past timestamp as a human-readable duration.
- * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern.
- *
- * @param {number} since - Past timestamp (ms)
- * @param {number} now - Current timestamp (ms)
- * @returns {string} Formatted duration string (e.g. "5m 30s")
- */
-export function formatElapsed(since, now) {
-  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
-}
+// Re-export formatElapsed so existing consumers of debug-info.js don't break.
+export { formatElapsed };
 
 export function buildDebugInfo(params) {
   const {

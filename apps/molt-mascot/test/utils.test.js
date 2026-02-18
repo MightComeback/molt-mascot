@@ -5,6 +5,7 @@ import {
   cleanErrorString,
   isMissingMethodResponse,
   formatDuration,
+  formatElapsed,
   isTruthyEnv,
   wsReadyStateLabel,
   getFrameIntervalMs,
@@ -173,6 +174,24 @@ describe("formatDuration", () => {
 
   it("handles negative values", () => {
     expect(formatDuration(-5)).toBe("0s");
+  });
+});
+
+describe("formatElapsed", () => {
+  it("formats elapsed time from timestamp to now", () => {
+    const now = 1000000;
+    expect(formatElapsed(now - 45000, now)).toBe("45s");
+    expect(formatElapsed(now - 90000, now)).toBe("1m 30s");
+    expect(formatElapsed(now - 3600000, now)).toBe("1h");
+  });
+
+  it("clamps negative elapsed to 0s", () => {
+    // since is in the future relative to now
+    expect(formatElapsed(2000, 1000)).toBe("0s");
+  });
+
+  it("handles zero elapsed", () => {
+    expect(formatElapsed(5000, 5000)).toBe("0s");
   });
 });
 

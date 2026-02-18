@@ -157,13 +157,11 @@ export function buildTooltip(params) {
   if (isClickThrough) tip += ' (ghost mode)';
   if (isTextHidden) tip += ' (text hidden)';
   if (connectedSince) {
-    const uptime = formatDuration(Math.max(0, Math.round((now - connectedSince) / 1000)));
-    tip += ` · connected ${uptime}`;
+    tip += ` · connected ${formatElapsed(connectedSince, now)}`;
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;
   if (!connectedSince && typeof lastDisconnectedAt === 'number' && lastDisconnectedAt > 0) {
-    const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
-    tip += ` · disconnected ${disconnectedAgo} ago`;
+    tip += ` · disconnected ${formatElapsed(lastDisconnectedAt, now)} ago`;
   }
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
   // Show close reason when disconnected, or when connected but the connection has flapped
@@ -172,8 +170,7 @@ export function buildTooltip(params) {
     tip += ` · last close: ${lastCloseDetail}`;
   }
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
-    const pluginUptime = formatDuration(Math.max(0, Math.round((now - pluginStartedAt) / 1000)));
-    tip += ` · plugin up ${pluginUptime}`;
+    tip += ` · plugin up ${formatElapsed(pluginStartedAt, now)}`;
   }
   if (pluginToolCalls > 0) {
     tip += ` · ${pluginToolCalls} calls`;
@@ -262,6 +259,19 @@ export function formatCloseDetail(code, reason) {
     return `code ${code}`;
   }
   return '';
+}
+
+/**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
+ * used across buildTooltip, buildDebugInfo, and other time-since calculations.
+ *
+ * @param {number} since - Past timestamp (ms)
+ * @param {number} now - Current timestamp (ms)
+ * @returns {string} Formatted duration string (e.g. "5m 30s")
+ */
+export function formatElapsed(since, now) {
+  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
 }
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
