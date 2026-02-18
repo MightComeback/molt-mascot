@@ -289,3 +289,15 @@ if (once || stateMode || resetMode) {
 ws.addEventListener("close", () => {
   process.exit(0);
 });
+
+// Graceful shutdown on SIGINT/SIGTERM: close the WebSocket cleanly so the
+// gateway sees a normal close frame instead of a TCP reset.
+function gracefulShutdown() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    try { ws.close(); } catch {}
+  } else {
+    process.exit(0);
+  }
+}
+process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
