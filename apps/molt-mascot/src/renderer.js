@@ -991,6 +991,22 @@ canvas.addEventListener('dblclick', () => {
   }
 });
 
+// Mouse wheel on the lobster sprite adjusts opacity in 10% steps.
+// Complements the keyboard shortcut (⌘⇧O) with a more tactile, discoverable
+// interaction — scrolling over the mascot to fade it in/out feels natural.
+canvas.addEventListener('wheel', (e) => {
+  if (!window.moltMascot?.setOpacity) return;
+  e.preventDefault();
+  // deltaY > 0 = scroll down = decrease opacity; deltaY < 0 = scroll up = increase
+  const step = 0.1;
+  const direction = e.deltaY > 0 ? -step : step;
+  const next = Math.round(Math.min(1, Math.max(0.1, currentOpacity + direction)) * 10) / 10;
+  if (next === currentOpacity) return;
+  currentOpacity = next;
+  window.moltMascot.setOpacity(currentOpacity);
+  syncPill();
+}, { passive: false });
+
 // Keyboard: Enter or Space on the pill opens the context menu (a11y)
 pill.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') {
