@@ -928,6 +928,36 @@ if (window.moltMascot?.onOpacity) {
   }));
 }
 
+/**
+ * Force an immediate reconnect, bypassing the exponential backoff timer.
+ * Works even when connected (useful for config changes or stale connections).
+ */
+function forceReconnectNow() {
+  reconnectAttempt = 0;
+  if (reconnectCountdownTimer) {
+    clearInterval(reconnectCountdownTimer);
+    reconnectCountdownTimer = null;
+  }
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  if (ws) {
+    ws.onclose = null;
+    try { ws.close(); } catch {}
+    ws = null;
+  }
+  const cfg = loadCfg();
+  if (cfg?.url) connect(cfg);
+  else showSetup({ url: 'ws://127.0.0.1:18789', token: '' });
+}
+
+if (window.moltMascot?.onForceReconnect) {
+  ipcUnsubs.push(window.moltMascot.onForceReconnect(() => {
+    forceReconnectNow();
+  }));
+}
+
 // Double-click pill to copy current status text to clipboard
 pill.addEventListener('dblclick', () => {
   const text = pill.textContent || '';
@@ -1064,27 +1094,7 @@ function showContextMenu(e) {
         showCopiedFeedback();
       }).catch(() => {});
     }},
-    { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', action: () => {
-      // Force an immediate reconnect, bypassing the exponential backoff timer.
-      // Works even when connected (useful for config changes or stale connections).
-      reconnectAttempt = 0; // reset backoff
-      if (reconnectCountdownTimer) {
-        clearInterval(reconnectCountdownTimer);
-        reconnectCountdownTimer = null;
-      }
-      if (reconnectTimer) {
-        clearTimeout(reconnectTimer);
-        reconnectTimer = null;
-      }
-      if (ws) {
-        ws.onclose = null;
-        try { ws.close(); } catch {}
-        ws = null;
-      }
-      const cfg = loadCfg();
-      if (cfg?.url) connect(cfg);
-      else showSetup({ url: 'ws://127.0.0.1:18789', token: '' });
-    }},
+    { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}⇧C`, action: forceReconnectNow },
     { label: 'Change Gateway…', action: () => {
       const cfg = loadCfg();
       showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' });

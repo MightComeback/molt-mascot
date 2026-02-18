@@ -317,6 +317,10 @@ app.whenReady().then(async () => {
     rebuildTrayMenu();
   }
 
+  function actionForceReconnect() {
+    withMainWin((w) => w.webContents.send('molt-mascot:force-reconnect'));
+  }
+
   function actionToggleDevTools() {
     withMainWin((w) => {
       if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
@@ -478,6 +482,11 @@ app.whenReady().then(async () => {
       },
       { type: 'separator' },
       {
+        label: 'Force Reconnect',
+        accelerator: 'CommandOrControl+Shift+C',
+        click: actionForceReconnect,
+      },
+      {
         label: 'Reset State',
         accelerator: 'CommandOrControl+Shift+R',
         click: actionResetState,
@@ -515,6 +524,7 @@ app.whenReady().then(async () => {
     register('CommandOrControl+Shift+S', actionSnapToPosition);
     register('CommandOrControl+Shift+Z', actionCycleSize);
     register('CommandOrControl+Shift+O', actionCycleOpacity);
+    register('CommandOrControl+Shift+C', actionForceReconnect);
     register('CommandOrControl+Shift+D', actionToggleDevTools);
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
@@ -535,6 +545,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-click-through', (_event, enabled) => actionToggleGhostMode(enabled));
   ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
+  ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {

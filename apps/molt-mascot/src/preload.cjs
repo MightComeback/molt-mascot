@@ -45,6 +45,12 @@ contextBridge.exposeInMainWorld('moltMascot', {
     ipcRenderer.on('molt-mascot:opacity', handler);
     return () => ipcRenderer.removeListener('molt-mascot:opacity', handler);
   },
+  forceReconnect: () => ipcRenderer.send('molt-mascot:force-reconnect'),
+  onForceReconnect: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('molt-mascot:force-reconnect', handler);
+    return () => ipcRenderer.removeListener('molt-mascot:force-reconnect', handler);
+  },
   cycleOpacity: () => ipcRenderer.send('molt-mascot:cycle-opacity'),
   processUptimeS: () => process.uptime(),
   platform: process.platform,
