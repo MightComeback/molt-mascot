@@ -234,6 +234,17 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Last disconnect:");
   });
 
+  it("shows canvas pixel dimensions when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, canvasWidth: 96, canvasHeight: 96 });
+    expect(info).toContain("canvas scale: 3, 96×96px");
+  });
+
+  it("omits canvas pixel dimensions when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).toContain("canvas scale: 3)");
+    expect(info).not.toContain("×");
+  });
+
   it("computes exact durations from now parameter", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

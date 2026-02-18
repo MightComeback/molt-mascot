@@ -35,6 +35,8 @@
  * @param {number} [params.devicePixelRatio] - window.devicePixelRatio
  * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} [params.memory] - performance.memory
  * @param {{ electron?: string, chrome?: string, node?: string }} [params.versions] - Runtime versions
+ * @param {number} [params.canvasWidth] - Canvas element width in pixels
+ * @param {number} [params.canvasHeight] - Canvas element height in pixels
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
@@ -76,6 +78,8 @@ export function buildDebugInfo(params) {
     devicePixelRatio,
     memory,
     versions,
+    canvasWidth,
+    canvasHeight,
     processUptimeS,
     now: nowOverride,
   } = params;
@@ -135,7 +139,10 @@ export function buildDebugInfo(params) {
   lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${platform || 'unknown'}`);
   const dpr = devicePixelRatio ?? 1;
-  lines.push(`Display scale: ${dpr}x (canvas scale: ${canvasScale})`);
+  const canvasDims = (typeof canvasWidth === 'number' && typeof canvasHeight === 'number')
+    ? `, ${canvasWidth}×${canvasHeight}px`
+    : '';
+  lines.push(`Display scale: ${dpr}x (canvas scale: ${canvasScale}${canvasDims})`);
   if (memory && typeof memory.usedJSHeapSize === 'number') {
     const used = (memory.usedJSHeapSize / 1048576).toFixed(1);
     const total = (memory.totalJSHeapSize / 1048576).toFixed(1);

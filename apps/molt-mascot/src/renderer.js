@@ -1072,6 +1072,8 @@ function buildDebugInfo() {
     frameIntervalMs: getFrameIntervalMs(),
     reconnectAttempt,
     canvasScale: currentScale,
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
     appVersion: window.moltMascot?.version,
     pluginVersion,
     wsReadyState: ws?.readyState,
