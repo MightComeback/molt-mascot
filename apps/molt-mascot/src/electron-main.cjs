@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition } = require('./get-position.cjs');
-const { renderTraySprite } = require('./tray-icon.cjs');
+const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
 
 const APP_VERSION = require('../package.json').version;
 
@@ -470,18 +470,15 @@ app.whenReady().then(async () => {
 
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
-    const tooltipParts = [`Molt Mascot v${APP_VERSION}`];
-    // Show live gateway mode so users can check state by hovering the tray icon
-    const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
-    const modeLabel = currentRendererMode || 'idle';
-    if (modeLabel !== 'idle') tooltipParts.push(`${modeEmoji[modeLabel] || '●'} ${modeLabel}`);
-    if (clickThrough) tooltipParts.push('👻 Ghost');
-    if (hideText) tooltipParts.push('🙈 Text hidden');
-    const currentAlign = (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
-    tooltipParts.push(`📍 ${currentAlign}`);
-    tooltipParts.push(`📐 ${sizeCycle[sizeIndex].label}`);
-    if (opacityIndex !== 0) tooltipParts.push(`🔅 ${Math.round(opacityCycle[opacityIndex] * 100)}%`);
-    tray.setToolTip(tooltipParts.join(' · '));
+    tray.setToolTip(buildTrayTooltip({
+      appVersion: APP_VERSION,
+      mode: currentRendererMode || 'idle',
+      clickThrough,
+      hideText,
+      alignment: (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase(),
+      sizeLabel: sizeCycle[sizeIndex].label,
+      opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
+    }));
 
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${APP_VERSION}`, enabled: false },

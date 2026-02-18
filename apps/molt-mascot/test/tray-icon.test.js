@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { renderTraySprite, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
+import { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
 
 describe('tray-icon', () => {
   describe('TRAY_SPRITE', () => {
@@ -191,6 +191,64 @@ describe('tray-icon', () => {
       for (const mode of modes) {
         expect(STATUS_DOT_COLORS[mode]).toBeDefined();
       }
+    });
+  });
+
+  describe('buildTrayTooltip', () => {
+    const base = {
+      appVersion: '1.2.3',
+      mode: 'idle',
+      clickThrough: false,
+      hideText: false,
+      alignment: 'bottom-right',
+      sizeLabel: 'medium',
+      opacityPercent: 100,
+    };
+
+    it('shows version and defaults for idle mode', () => {
+      const tip = buildTrayTooltip(base);
+      expect(tip).toContain('Molt Mascot v1.2.3');
+      expect(tip).toContain('📍 bottom-right');
+      expect(tip).toContain('📐 medium');
+      // Idle mode should not show mode emoji
+      expect(tip).not.toContain('🧠');
+      // Full opacity should not show opacity indicator
+      expect(tip).not.toContain('🔅');
+    });
+
+    it('shows mode emoji for non-idle modes', () => {
+      expect(buildTrayTooltip({ ...base, mode: 'thinking' })).toContain('🧠 thinking');
+      expect(buildTrayTooltip({ ...base, mode: 'tool' })).toContain('🔧 tool');
+      expect(buildTrayTooltip({ ...base, mode: 'error' })).toContain('❌ error');
+      expect(buildTrayTooltip({ ...base, mode: 'sleeping' })).toContain('💤 sleeping');
+      expect(buildTrayTooltip({ ...base, mode: 'disconnected' })).toContain('⚡ disconnected');
+    });
+
+    it('shows ghost mode indicator', () => {
+      const tip = buildTrayTooltip({ ...base, clickThrough: true });
+      expect(tip).toContain('👻 Ghost');
+    });
+
+    it('shows text hidden indicator', () => {
+      const tip = buildTrayTooltip({ ...base, hideText: true });
+      expect(tip).toContain('🙈 Text hidden');
+    });
+
+    it('shows opacity when below 100%', () => {
+      const tip = buildTrayTooltip({ ...base, opacityPercent: 60 });
+      expect(tip).toContain('🔅 60%');
+    });
+
+    it('reflects custom alignment and size', () => {
+      const tip = buildTrayTooltip({ ...base, alignment: 'top-left', sizeLabel: 'large' });
+      expect(tip).toContain('📍 top-left');
+      expect(tip).toContain('📐 large');
+    });
+
+    it('joins all parts with " · "', () => {
+      const tip = buildTrayTooltip({ ...base, clickThrough: true, hideText: true, opacityPercent: 40 });
+      const parts = tip.split(' · ');
+      expect(parts.length).toBeGreaterThanOrEqual(6);
     });
   });
 });

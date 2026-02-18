@@ -135,4 +135,32 @@ function renderTraySprite(scale, opts) {
   return buf;
 }
 
-module.exports = { renderTraySprite, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
+/**
+ * Build the tray tooltip string from current mascot state.
+ * Extracted as a pure function for testability (no Electron dependency).
+ *
+ * @param {object} params
+ * @param {string} params.appVersion - App version string
+ * @param {string} params.mode - Current renderer mode (idle/thinking/tool/error/connecting/connected/disconnected/sleeping)
+ * @param {boolean} params.clickThrough - Ghost mode active
+ * @param {boolean} params.hideText - Text hidden
+ * @param {string} params.alignment - Current alignment label
+ * @param {string} params.sizeLabel - Current size preset label
+ * @param {number} params.opacityPercent - Current opacity as integer percentage (0-100)
+ * @returns {string} Tooltip string with parts joined by " · "
+ */
+function buildTrayTooltip(params) {
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent } = params;
+  const parts = [`Molt Mascot v${appVersion}`];
+  const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
+  const modeLabel = mode || 'idle';
+  if (modeLabel !== 'idle') parts.push(`${modeEmoji[modeLabel] || '●'} ${modeLabel}`);
+  if (clickThrough) parts.push('👻 Ghost');
+  if (hideText) parts.push('🙈 Text hidden');
+  parts.push(`📍 ${alignment || 'bottom-right'}`);
+  parts.push(`📐 ${sizeLabel || 'medium'}`);
+  if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
+  return parts.join(' · ');
+}
+
+module.exports = { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
