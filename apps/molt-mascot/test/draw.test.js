@@ -18,6 +18,7 @@ function mockCtx() {
     fillStyle: "",
     clearRect(...args) { calls.push({ fn: "clearRect", args }); },
     fillRect(...args) { calls.push({ fn: "fillRect", args, fillStyle: this.fillStyle }); },
+    drawImage(...args) { calls.push({ fn: "drawImage", args }); },
     beginPath() { calls.push({ fn: "beginPath" }); },
     ellipse(...args) { calls.push({ fn: "ellipse", args }); },
     fill() { calls.push({ fn: "fill" }); },
@@ -206,6 +207,35 @@ describe("drawLobster", () => {
     const thinkFills = thinkCtx.calls.filter((c) => c.fn === "fillRect").length;
     // Thinking overlay adds extra pixels
     expect(thinkFills).toBeGreaterThan(idleFills);
+  });
+
+  it("draws overlay for connecting, connected, and disconnected modes", () => {
+    const baseCtx = mockCtx();
+    drawLobster(baseCtx, {
+      mode: "idle",
+      t: 0,
+      scale: 3,
+      spriteSize: 32,
+      reducedMotion: true,
+      blinking: false,
+      canvas: { width: 96, height: 96 },
+    });
+    const baseFills = baseCtx.calls.filter((c) => c.fn === "fillRect").length;
+
+    for (const mode of ["connecting", "connected", "disconnected"]) {
+      const ctx = mockCtx();
+      drawLobster(ctx, {
+        mode,
+        t: 0,
+        scale: 3,
+        spriteSize: 32,
+        reducedMotion: true,
+        blinking: false,
+        canvas: { width: 96, height: 96 },
+      });
+      const fills = ctx.calls.filter((c) => c.fn === "fillRect").length;
+      expect(fills).toBeGreaterThan(baseFills);
+    }
   });
 
   it("draws sleep overlay when idle exceeds sleep threshold", () => {
