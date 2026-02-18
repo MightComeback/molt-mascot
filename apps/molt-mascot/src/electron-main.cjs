@@ -8,6 +8,10 @@ const { renderTraySprite } = require('./tray-icon.cjs');
 
 const APP_VERSION = require('../package.json').version;
 
+// Opacity presets cycled by the keyboard shortcut / context menu.
+// Defined once so _resolveInitialOpacity and the runtime cycle stay in sync.
+const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4];
+
 // --- User preference persistence ---
 // Save runtime preferences (alignment, size, ghost mode, hide-text) to a JSON file
 // so they survive app restarts without requiring env vars.
@@ -133,9 +137,8 @@ function _resolveInitialOpacity(savedOpacityIndex) {
   if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
   // Fall back to saved preference (opacityCycle is defined later, but this function
   // is only called after app.whenReady, so that's fine — we use a local cycle copy).
-  const cycle = [1.0, 0.8, 0.6, 0.4];
-  if (typeof savedOpacityIndex === 'number' && savedOpacityIndex >= 0 && savedOpacityIndex < cycle.length) {
-    return cycle[savedOpacityIndex];
+  if (typeof savedOpacityIndex === 'number' && savedOpacityIndex >= 0 && savedOpacityIndex < OPACITY_CYCLE.length) {
+    return OPACITY_CYCLE[savedOpacityIndex];
   }
   return 1.0;
 }
@@ -317,7 +320,7 @@ app.whenReady().then(async () => {
   }
 
   // Opacity presets for cycling (Cmd+Shift+O)
-  const opacityCycle = [1.0, 0.8, 0.6, 0.4];
+  const opacityCycle = OPACITY_CYCLE;
   let opacityIndex = 0;
 
   function actionCycleOpacity() {
