@@ -1,9 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import { buildDebugInfo } from "../src/debug-info.js";
 
+const NOW = 1700000000000; // Fixed timestamp for deterministic tests
+
 const BASE_PARAMS = {
+  now: NOW,
   currentMode: "idle",
-  modeSince: Date.now() - 5000,
+  modeSince: NOW - 5000,
   connectedSince: null,
   connectedUrl: "",
   lastDisconnectedAt: null,
@@ -56,7 +59,7 @@ describe("buildDebugInfo", () => {
   it("shows uptime and gateway URL when connected", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
-      connectedSince: Date.now() - 60000,
+      connectedSince: NOW - 60000,
       connectedUrl: "ws://127.0.0.1:18789",
       wsReadyState: 1,
     });
@@ -68,7 +71,7 @@ describe("buildDebugInfo", () => {
   it("shows disconnected state with last disconnect time", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
-      lastDisconnectedAt: Date.now() - 30000,
+      lastDisconnectedAt: NOW - 30000,
     });
     expect(info).toContain("Gateway: disconnected");
     expect(info).toContain("ago");
@@ -94,7 +97,7 @@ describe("buildDebugInfo", () => {
       ...BASE_PARAMS,
       hasPlugin: true,
       pluginStateMethod: "@molt/mascot-plugin.state",
-      pluginStartedAt: Date.now() - 120000,
+      pluginStartedAt: NOW - 120000,
     });
     expect(info).toContain("Plugin: active");
     expect(info).toContain("Plugin method: @molt/mascot-plugin.state");
@@ -199,5 +202,17 @@ describe("buildDebugInfo", () => {
   it("omits process uptime when not provided", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Process uptime:");
+  });
+
+  it("computes exact durations from now parameter", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      modeSince: NOW - 65000, // 65 seconds
+      connectedSince: NOW - 3661000, // 1h 1m 1s
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+    });
+    expect(info).toContain("Mode duration: 1m 5s");
+    expect(info).toContain("Uptime: 1h 1m");
   });
 });

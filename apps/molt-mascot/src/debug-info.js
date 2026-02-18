@@ -36,6 +36,7 @@
  * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} [params.memory] - performance.memory
  * @param {{ electron?: string, chrome?: string, node?: string }} [params.versions] - Runtime versions
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
+ * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
 
@@ -76,22 +77,25 @@ export function buildDebugInfo(params) {
     memory,
     versions,
     processUptimeS,
+    now: nowOverride,
   } = params;
+
+  const now = nowOverride ?? Date.now();
 
   const lines = [];
   const appVer = appVersion ? `v${appVersion}` : 'dev';
   lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
   lines.push(`Mode: ${currentMode}`);
-  const dur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
+  const dur = Math.max(0, Math.round((now - modeSince) / 1000));
   lines.push(`Mode duration: ${formatDuration(dur)}`);
   if (connectedSince) {
-    const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
+    const up = Math.max(0, Math.round((now - connectedSince) / 1000));
     lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
   } else {
     if (lastDisconnectedAt) {
-      const disconnectedAgo = formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)));
+      const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
       lines.push(`Gateway: disconnected ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
     } else {
       lines.push(`Gateway: disconnected`);
@@ -104,7 +108,7 @@ export function buildDebugInfo(params) {
   if (hasPlugin) {
     if (pluginStateMethod) lines.push(`Plugin method: ${pluginStateMethod}`);
     if (pluginStartedAt) {
-      const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
+      const pluginUp = Math.max(0, Math.round((now - pluginStartedAt) / 1000));
       lines.push(`Plugin uptime: ${formatDuration(pluginUp)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
   }
