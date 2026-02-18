@@ -582,6 +582,29 @@ describe("utils", () => {
     expect(summarizeToolResultMessage({ description: "invalid API key" })).toBe("invalid API key");
     // detail/description are lower priority than stderr/error
     expect(summarizeToolResultMessage({ error: "auth failed", detail: "see docs" })).toBe("auth failed");
+
+    // error as object with .text field
+    expect(summarizeToolResultMessage({ error: { text: "socket hangup" } })).toBe("socket hangup");
+    // error as object with .message takes priority over .text
+    expect(summarizeToolResultMessage({ error: { message: "timeout", text: "fallback" } })).toBe("timeout");
+
+    // data.message and data.error paths
+    expect(summarizeToolResultMessage({ data: { message: "rate limited" } })).toBe("rate limited");
+    expect(summarizeToolResultMessage({ data: { error: "quota exceeded" } })).toBe("quota exceeded");
+
+    // Structured error fallback via JSON.stringify when no stable .message exists
+    expect(summarizeToolResultMessage({ error: { code: 503, status: "unavailable" } })).toBe('{"code":503,"status":"unavailable"}');
+
+    // errorMessage and error_message fields (common in REST APIs)
+    expect(summarizeToolResultMessage({ errorMessage: "not found" })).toBe("not found");
+    expect(summarizeToolResultMessage({ error_message: "bad request" })).toBe("bad request");
+
+    // failure field
+    expect(summarizeToolResultMessage({ failure: "disk full" })).toBe("disk full");
+
+    // NaN and Infinity are not finite, should fall through
+    expect(summarizeToolResultMessage(NaN)).toBe("tool error");
+    expect(summarizeToolResultMessage(Infinity)).toBe("tool error");
   });
 
   it("multi-session tools show the most recently active tool", async () => {
