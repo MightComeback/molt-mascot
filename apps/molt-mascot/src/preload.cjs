@@ -1,58 +1,42 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const pkg = require('../package.json');
 
+// Helper: create a send function for a given IPC channel.
+const send = (ch) => (...args) => ipcRenderer.send(ch, ...args);
+
+// Helper: subscribe to an IPC channel, returning an unsubscribe function.
+// For channels with a payload arg, the callback receives the payload directly.
+// For channels without a payload (e.g. reset, force-reconnect), callback is called with no args.
+function onIpc(channel, callback) {
+  const handler = (_event, ...args) => callback(...args);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
+
 contextBridge.exposeInMainWorld('moltMascot', {
-  setClickThrough: (enabled) => ipcRenderer.send('molt-mascot:set-click-through', enabled),
-  setHideText: (hidden) => ipcRenderer.send('molt-mascot:set-hide-text', hidden),
-  setAlignment: (align) => ipcRenderer.send('molt-mascot:set-alignment', align),
-  setOpacity: (opacity) => ipcRenderer.send('molt-mascot:set-opacity', opacity),
-  setPadding: (padding) => ipcRenderer.send('molt-mascot:set-padding', padding),
-  setSize: (size) => ipcRenderer.send('molt-mascot:set-size', size),
-  cycleAlignment: () => ipcRenderer.send('molt-mascot:cycle-alignment'),
-  snapToPosition: () => ipcRenderer.send('molt-mascot:snap-to-position'),
-  cycleSize: () => ipcRenderer.send('molt-mascot:cycle-size'),
-  hide: () => ipcRenderer.send('molt-mascot:hide'),
-  toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
-  quit: () => ipcRenderer.send('molt-mascot:quit'),
-  showAbout: () => ipcRenderer.send('molt-mascot:show-about'),
-  onClickThrough: (callback) => {
-    const handler = (_event, enabled) => callback(enabled);
-    ipcRenderer.on('molt-mascot:click-through', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:click-through', handler);
-  },
-  onHideText: (callback) => {
-    const handler = (_event, hidden) => callback(hidden);
-    ipcRenderer.on('molt-mascot:hide-text', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:hide-text', handler);
-  },
-  onReset: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('molt-mascot:reset', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:reset', handler);
-  },
-  onAlignment: (callback) => {
-    const handler = (_event, alignment) => callback(alignment);
-    ipcRenderer.on('molt-mascot:alignment', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:alignment', handler);
-  },
-  onSize: (callback) => {
-    const handler = (_event, size) => callback(size);
-    ipcRenderer.on('molt-mascot:size', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:size', handler);
-  },
-  onOpacity: (callback) => {
-    const handler = (_event, opacity) => callback(opacity);
-    ipcRenderer.on('molt-mascot:opacity', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:opacity', handler);
-  },
-  forceReconnect: () => ipcRenderer.send('molt-mascot:force-reconnect'),
-  onForceReconnect: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('molt-mascot:force-reconnect', handler);
-    return () => ipcRenderer.removeListener('molt-mascot:force-reconnect', handler);
-  },
-  cycleOpacity: () => ipcRenderer.send('molt-mascot:cycle-opacity'),
-  copyDebugInfo: () => ipcRenderer.send('molt-mascot:copy-debug-info'),
+  setClickThrough: send('molt-mascot:set-click-through'),
+  setHideText: send('molt-mascot:set-hide-text'),
+  setAlignment: send('molt-mascot:set-alignment'),
+  setOpacity: send('molt-mascot:set-opacity'),
+  setPadding: send('molt-mascot:set-padding'),
+  setSize: send('molt-mascot:set-size'),
+  cycleAlignment: send('molt-mascot:cycle-alignment'),
+  snapToPosition: send('molt-mascot:snap-to-position'),
+  cycleSize: send('molt-mascot:cycle-size'),
+  hide: send('molt-mascot:hide'),
+  toggleDevTools: send('molt-mascot:toggle-devtools'),
+  quit: send('molt-mascot:quit'),
+  showAbout: send('molt-mascot:show-about'),
+  forceReconnect: send('molt-mascot:force-reconnect'),
+  cycleOpacity: send('molt-mascot:cycle-opacity'),
+  copyDebugInfo: send('molt-mascot:copy-debug-info'),
+  onClickThrough: (cb) => onIpc('molt-mascot:click-through', cb),
+  onHideText: (cb) => onIpc('molt-mascot:hide-text', cb),
+  onReset: (cb) => onIpc('molt-mascot:reset', cb),
+  onAlignment: (cb) => onIpc('molt-mascot:alignment', cb),
+  onSize: (cb) => onIpc('molt-mascot:size', cb),
+  onOpacity: (cb) => onIpc('molt-mascot:opacity', cb),
+  onForceReconnect: (cb) => onIpc('molt-mascot:force-reconnect', cb),
   processUptimeS: () => process.uptime(),
   platform: process.platform,
   version: pkg.version,
