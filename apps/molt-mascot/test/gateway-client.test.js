@@ -864,4 +864,26 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("forceReconnect resets plugin state and fires onPluginStateReset", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    expect(client.hasPlugin).toBe(true);
+    expect(client.connectedSince).not.toBeNull();
+
+    let resetFired = false;
+    client.onPluginStateReset = () => { resetFired = true; };
+
+    // Force reconnect without providing cfg (just tear down)
+    client.forceReconnect();
+
+    expect(client.hasPlugin).toBe(false);
+    expect(client.connectedSince).toBeNull();
+    expect(client.connectedUrl).toBe('');
+    expect(resetFired).toBe(true);
+
+    client.destroy();
+  });
 });

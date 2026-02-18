@@ -457,6 +457,18 @@ export class GatewayClient {
       try { this._ws.close(); } catch {}
       this._ws = null;
     }
+    // Reset all connection state so stale timers and plugin config don't leak
+    // across reconnect cycles. Without this, the stale-check timer and plugin
+    // poller from the previous connection keep running, and change-detection
+    // in consumers misses updates because cached values are never cleared.
+    this._stopStaleCheck();
+    this._stopPluginPoller();
+    this.hasPlugin = false;
+    this._pluginStatePending = false;
+    this._pluginStateLastSentAt = 0;
+    this.connectedSince = null;
+    this.connectedUrl = '';
+    this.onPluginStateReset?.();
     if (cfg) this.connect(cfg);
   }
 
