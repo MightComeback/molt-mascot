@@ -222,6 +222,10 @@ const _pluginSync = createPluginSync({
   onStartedAt(v) { pluginStartedAt = v; },
 });
 
+// Track the last mode reported to the main process (including 'sleeping') to avoid
+// redundant IPC and to enable sleeping-state tray icon dot.
+let _lastReportedMode = 'idle';
+
 // Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
 let copiedUntil = 0;
 
@@ -318,6 +322,14 @@ function syncPill() {
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
   canvas.title = tip;
   updateHudVisibility();
+
+  // Notify main process of the effective display mode (including 'sleeping')
+  // so the tray icon status dot and tooltip reflect the visual state.
+  const effectiveMode = isSleeping ? 'sleeping' : currentMode;
+  if (effectiveMode !== _lastReportedMode) {
+    _lastReportedMode = effectiveMode;
+    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode);
+  }
 }
 
 function setMode(mode) {
@@ -334,8 +346,6 @@ function setMode(mode) {
   // Clear stale tool name when leaving tool mode so it doesn't linger
   // if the plugin connection drops and native events take over.
   if (mode !== Mode.tool) currentTool = '';
-  // Notify main process so the tray tooltip reflects the current state
-  if (window.moltMascot?.updateMode) window.moltMascot.updateMode(mode);
   syncPill();
 }
 
