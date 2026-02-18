@@ -445,6 +445,13 @@ export class GatewayClient {
       try { this._ws.close(); } catch {}
       this._ws = null;
     }
+    // Clear connection state so stale values don't leak into tooltips/status
+    // if the instance is inspected after destruction.
+    this.connectedSince = null;
+    this.connectedUrl = '';
+    this.hasPlugin = false;
+    this._pluginStatePending = false;
+    this._pluginStateLastSentAt = 0;
   }
 
   /** @private */

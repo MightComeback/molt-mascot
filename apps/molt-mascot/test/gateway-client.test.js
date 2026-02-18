@@ -618,6 +618,27 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("destroy() clears connection state to prevent stale tooltips", () => {
+    const client = new GatewayClient({ reconnectBaseMs: 50000 });
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Verify connected state is set
+    expect(client.connectedSince).not.toBeNull();
+    expect(client.connectedUrl).toBe("ws://localhost:18789");
+
+    client.destroy();
+
+    // After destroy, all connection state should be cleared
+    expect(client.connectedSince).toBeNull();
+    expect(client.connectedUrl).toBe('');
+    expect(client.hasPlugin).toBe(false);
+    expect(client.isConnected).toBe(false);
+  });
+
   it("fires onPluginStateReset on disconnect so consumers clear cached config", async () => {
     const client = new GatewayClient({ reconnectBaseMs: 50000 });
     let resetFired = false;
