@@ -295,10 +295,15 @@ export function cleanErrorString(s: string): string {
     .replace(/\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
     .trim();
 
-  // Rust panics: extract the message from `thread 'main' panicked at 'msg', file:line:col`
-  // The useful payload is the quoted message after "panicked at".
+  // Rust panics: extract the message from panic output.
+  // Old format (pre-1.73): thread 'main' panicked at 'msg', file:line:col
+  // New format (1.73+):    thread 'main' panicked at src/main.rs:42:5:\nmsg
   str = str
     .replace(/^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i, "$1")
+    .trim();
+  // New Rust format: "thread '...' panicked at <path>:<line>:<col>:\n<message>"
+  str = str
+    .replace(/^thread\s+'[^']*'\s+panicked\s+at\s+\S+:\d+(?::\d+)?:\s*/i, "")
     .trim();
 
   // Clean POSIX signal descriptions: strip the trailing signal number for brevity.
