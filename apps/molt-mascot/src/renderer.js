@@ -421,6 +421,7 @@ let reconnectCountdownTimer = null;
 let reconnectTimer = null;    // setTimeout id for the reconnect attempt itself
 let connectedSince = null;   // Date.now() when gateway handshake succeeded
 let connectedUrl = '';        // URL of the current gateway connection
+let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -842,6 +843,7 @@ function connect(cfg) {
     pluginPollerStarted = false;
     pluginStatePending = false;
     pluginStateLastSentAt = 0;
+    lastDisconnectedAt = Date.now();
     connectedSince = null;
     connectedUrl = '';
     // Reset cached plugin state so re-syncing works after reconnect.
@@ -1069,7 +1071,12 @@ function buildDebugInfo() {
     const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
     lines.push(`WebSocket: ${wsState}`);
   } else {
-    lines.push('Gateway: disconnected');
+    const disconnectedFor = lastDisconnectedAt
+      ? ` (${formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)))} ago)`
+      : '';
+    lines.push(`Gateway: disconnected${disconnectedFor}`);
+    const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
+    lines.push(`WebSocket: ${wsState}`);
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
