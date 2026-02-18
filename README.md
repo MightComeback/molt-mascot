@@ -12,6 +12,7 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **O
 | **error** | Something went wrong (shows error message in HUD) |
 | **connecting** | Establishing WebSocket connection to Gateway |
 | **connected** | Handshake succeeded (brief sparkle animation, then idle) |
+| **sleeping** | Idle for >2 minutes; ZZZ overlay (configurable via `MOLT_MASCOT_SLEEP_THRESHOLD_S`) |
 | **disconnected** | Lost connection; shows reconnect countdown with exponential backoff |
 
 ## Screenshots

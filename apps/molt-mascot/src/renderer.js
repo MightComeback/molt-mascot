@@ -1124,6 +1124,9 @@ function showContextMenu(e) {
     const upSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
     statusParts.push(`↑ ${formatDuration(upSec)}`);
   }
+  if (!connectedSince && reconnectAttempt > 0) {
+    statusParts.push(`retry #${reconnectAttempt}`);
+  }
   if (pluginToolCalls > 0) {
     const statsStr = pluginToolErrors > 0
       ? `${pluginToolCalls} calls, ${pluginToolErrors} err`
