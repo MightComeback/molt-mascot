@@ -465,14 +465,42 @@ describe("buildTooltip", () => {
     expect(tip2).not.toContain("reconnected");
   });
 
-  it("includes lastCloseDetail when provided", () => {
+  it("includes lastCloseDetail when disconnected", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastCloseDetail: "code 1006" });
-    expect(tip).toContain("code 1006");
+    expect(tip).toContain("last close: code 1006");
   });
 
   it("omits lastCloseDetail when not provided", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5 });
-    expect(tip).not.toContain("code");
+    expect(tip).not.toContain("last close");
+  });
+
+  it("shows lastCloseDetail when connected + flappy (sessionConnectCount > 1)", () => {
+    const now = Date.now();
+    const tip = buildTooltip({
+      displayMode: "thinking",
+      durationSec: 10,
+      connectedSince: now - 60000,
+      connectedUrl: "ws://localhost:18789",
+      lastCloseDetail: "abnormal closure",
+      sessionConnectCount: 3,
+      now,
+    });
+    expect(tip).toContain("last close: abnormal closure");
+  });
+
+  it("omits lastCloseDetail when connected + stable (sessionConnectCount <= 1)", () => {
+    const now = Date.now();
+    const tip = buildTooltip({
+      displayMode: "thinking",
+      durationSec: 10,
+      connectedSince: now - 60000,
+      connectedUrl: "ws://localhost:18789",
+      lastCloseDetail: "normal",
+      sessionConnectCount: 1,
+      now,
+    });
+    expect(tip).not.toContain("last close");
   });
 });
 

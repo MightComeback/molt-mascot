@@ -164,7 +164,11 @@ export function buildTooltip(params) {
     tip += ` · disconnected ${disconnectedAgo} ago`;
   }
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
-  if (lastCloseDetail) tip += ` · ${lastCloseDetail}`;
+  // Show close reason when disconnected, or when connected but the connection has flapped
+  // (helps diagnose why the last disconnect happened without opening debug info).
+  if (lastCloseDetail && (!connectedSince || (typeof sessionConnectCount === 'number' && sessionConnectCount > 1))) {
+    tip += ` · last close: ${lastCloseDetail}`;
+  }
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
     const pluginUptime = formatDuration(Math.max(0, Math.round((now - pluginStartedAt) / 1000)));
     tip += ` · plugin up ${pluginUptime}`;
