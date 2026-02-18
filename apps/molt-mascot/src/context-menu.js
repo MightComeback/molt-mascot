@@ -169,8 +169,11 @@ export function show(items, { x, y }) {
 
   activeCleanup = cleanup;
 
-  // Defer listener registration so the triggering click doesn't immediately dismiss
+  // Defer listener registration so the triggering click doesn't immediately dismiss.
+  // Guard: if dismiss() was called before the timeout fires, skip registration
+  // to avoid orphaned listeners that reference a removed menu element.
   setTimeout(() => {
+    if (activeCleanup !== cleanup) return;
     document.addEventListener('click', onOutsideClick, true);
     document.addEventListener('keydown', onKey, true);
     window.addEventListener('blur', cleanup);

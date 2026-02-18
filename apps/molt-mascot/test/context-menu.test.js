@@ -507,6 +507,18 @@ describe("context-menu", () => {
     expect(ctxMenu.isVisible()).toBe(false);
   });
 
+  it("dismiss() before deferred timeout prevents orphaned listeners", async () => {
+    ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    // Dismiss immediately — before the deferred setTimeout(…, 0) fires
+    ctxMenu.dismiss();
+    expect(document.body._children.length).toBe(0);
+    // Let the deferred timeout fire
+    await new Promise((r) => setTimeout(r, 5));
+    // No document keydown listeners should have been registered
+    // (if they were, pressing Escape would throw since the menu element is gone)
+    expect((document._listeners["keydown"] || []).length).toBe(0);
+  });
+
   it("isVisible() returns true after show() and false after dismiss()", () => {
     ctxMenu.show([{ label: "Test", action: () => {} }], { x: 0, y: 0 });
     expect(ctxMenu.isVisible()).toBe(true);
