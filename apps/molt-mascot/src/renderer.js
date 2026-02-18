@@ -466,7 +466,13 @@ function sendPluginStateReq(prefix = 'p') {
   pluginStateReqId = id;
   pluginStatePending = true;
   pluginStateLastSentAt = now;
-  ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+  try {
+    ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+  } catch {
+    // Socket closed between readyState check and send — clear pending flag
+    // so the next poll can retry instead of permanently stalling.
+    pluginStatePending = false;
+  }
 }
 
 function startPluginPoller() {
@@ -552,7 +558,13 @@ function connect(cfg) {
         auth: cfg.token ? { token: cfg.token } : undefined,
       },
     };
-    ws.send(JSON.stringify(connectFrame));
+    try {
+      ws.send(JSON.stringify(connectFrame));
+    } catch (err) {
+      // Socket may have transitioned to CLOSING/CLOSED between the 'open' event
+      // and the send call. Surface the error instead of crashing the renderer.
+      showError(err?.message || 'Failed to send connect frame');
+    }
   });
 
   ws.addEventListener('message', (ev) => {
@@ -685,7 +697,11 @@ function connect(cfg) {
         pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
         const id = nextId('reset');
         pluginResetReqId = id;
-        ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+        try {
+          ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+        } catch {
+          // Socket closed between readyState check and send — best-effort.
+        }
         return;
       }
     }
@@ -860,7 +876,11 @@ function resetState() {
     pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
     const id = nextId('reset');
     pluginResetReqId = id;
-    ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+    try {
+      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+    } catch {
+      // Socket closed between readyState check and send — best-effort.
+    }
   }
 }
 
