@@ -1071,13 +1071,18 @@ function buildDebugInfo() {
     const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
     lines.push(`WebSocket: ${wsState}`);
   } else {
-    const disconnectedFor = lastDisconnectedAt
-      ? ` (${formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)))} ago)`
-      : '';
-    lines.push(`Gateway: disconnected${disconnectedFor}`);
+    if (lastDisconnectedAt) {
+      const disconnectedAgo = formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)));
+      lines.push(`Gateway: disconnected ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+    } else {
+      lines.push(`Gateway: disconnected`);
+    }
     const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
     lines.push(`WebSocket: ${wsState}`);
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
+    // Show saved config URL when disconnected for easier debugging
+    const savedCfg = loadCfg();
+    if (savedCfg?.url) lines.push(`Saved URL: ${savedCfg.url}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
   if (hasPlugin) {
