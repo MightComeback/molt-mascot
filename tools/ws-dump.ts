@@ -27,6 +27,7 @@ Options:
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
   --compact               Print JSON on a single line instead of pretty-printed
+  -q, --quiet             Suppress stderr diagnostics (for scripting)
   -V, --version           Show version and exit
   -h, --help              Show this help
 
@@ -41,6 +42,7 @@ Environment:
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 const stateMode = args.has("--state");
 const resetMode = args.has("--reset");
+const quiet = args.has("--quiet") || args.has("-q");
 
 const getArg = (name: string): string | undefined => {
   const i = argv.findIndex((a) => a === name || a.startsWith(`${name}=`));
@@ -78,6 +80,9 @@ const filters: string[] = argv
   .filter(Boolean);
 
 const compact = args.has("--compact");
+
+/** Log to stderr unless --quiet is active. */
+const info = (...a: unknown[]) => { if (!quiet) console.error(...a); };
 
 const rawGatewayUrl = process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
 const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
@@ -134,7 +139,7 @@ ws.addEventListener("open", () => {
 
 ws.addEventListener("error", (ev) => {
   const detail = (ev as any)?.message || "connection failed";
-  console.error(`ws-dump: ${detail} (${cfg.url})`);
+  info(`ws-dump: ${detail} (${cfg.url})`);
 });
 
 let gotHello = false;
@@ -186,7 +191,7 @@ ws.addEventListener("message", (ev) => {
       const parts: string[] = ["ws-dump: connected"];
       if (proto != null) parts.push(`protocol=${proto}`);
       if (gwVer) parts.push(`gateway=${gwVer}`);
-      console.error(parts.join(" "));
+      info(parts.join(" "));
       if (resetMode) {
         resetReqId = nextId("r");
         ws.send(JSON.stringify({
@@ -226,7 +231,7 @@ ws.addEventListener("message", (ev) => {
     // --reset mode: handle plugin reset response
     if (resetMode && msg.type === "res" && msg.id === resetReqId) {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
-        console.error("ws-dump: plugin state reset");
+        info("ws-dump: plugin state reset");
         console.log(compact ? JSON.stringify(msg.payload.state) : JSON.stringify(msg.payload.state, null, 2));
         try { ws.close(); } catch {}
         return;
