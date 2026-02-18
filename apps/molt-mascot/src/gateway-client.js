@@ -267,7 +267,7 @@ export class GatewayClient {
         this._reconnectAttempt = 0;
         this.sessionConnectCount += 1;
         this.connectedSince = Date.now();
-        this.connectedUrl = cfg.url || '';
+        this.connectedUrl = url || '';
         this._startStaleCheck();
 
         // Reset plugin method probing

@@ -335,6 +335,20 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("connectedUrl stores the normalized ws:// URL, not the original http:// input", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "http://localhost:18789", token: "t" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    expect(client.connectedUrl).toBe("ws://localhost:18789");
+
+    client.destroy();
+  });
+
   it("omits auth param when no token provided", () => {
     const client = new GatewayClient();
     client.connect({ url: "ws://localhost:18789" });
