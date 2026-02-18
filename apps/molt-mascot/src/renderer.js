@@ -398,6 +398,34 @@ window.__moltMascotSetTime = (t) => {
   manualTime = t;
 };
 
+/**
+ * Read-only snapshot of the renderer state for external tooling, automation,
+ * and test assertions. Returns a plain object (no live references).
+ */
+window.__moltMascotGetState = () => ({
+  mode: currentMode,
+  modeSince,
+  currentTool,
+  lastErrorMessage,
+  isClickThrough,
+  isTextHidden,
+  alignment: lastPluginAlignment,
+  sizeLabel: currentSizeLabel,
+  opacity: currentOpacity,
+  connectedSince,
+  connectedUrl,
+  hasPlugin,
+  reconnectAttempt,
+  lastCloseDetail,
+  pluginVersion,
+  pluginToolCalls,
+  pluginToolErrors,
+  pluginStartedAt,
+  sessionConnectCount,
+  sleepThresholdMs: SLEEP_THRESHOLD_MS,
+  isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
+});
+
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
 window.__moltMascotSetModeSince = (t) => {
   if (typeof t === 'number' && Number.isFinite(t)) modeSince = t;
