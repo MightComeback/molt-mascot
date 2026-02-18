@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { renderTraySprite, TRAY_SPRITE, TRAY_COLORS } from '../src/tray-icon.cjs';
+import { renderTraySprite, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
 
 describe('tray-icon', () => {
   describe('TRAY_SPRITE', () => {
@@ -110,6 +110,63 @@ describe('tray-icon', () => {
       expect(() => renderTraySprite(0)).toThrow(RangeError);
       expect(() => renderTraySprite(-1)).toThrow(RangeError);
       expect(() => renderTraySprite(1.5)).toThrow(RangeError);
+    });
+
+    it('without mode option produces same output as no opts', () => {
+      const a = renderTraySprite(1);
+      const b = renderTraySprite(1, {});
+      expect(a).toEqual(b);
+    });
+
+    it('with mode draws a status dot that differs from no-mode output', () => {
+      const plain = renderTraySprite(1);
+      const withDot = renderTraySprite(1, { mode: 'thinking' });
+      expect(plain.length).toBe(withDot.length);
+      // The buffers should differ in the bottom-right region where the dot is drawn
+      let differs = false;
+      for (let i = 0; i < plain.length; i++) {
+        if (plain[i] !== withDot[i]) { differs = true; break; }
+      }
+      expect(differs).toBe(true);
+    });
+
+    it('status dot pixels use the correct color for each mode', () => {
+      // Check the center pixel of the 3×3 dot (row 14, col 14) at scale 1
+      const dotRow = 14, dotCol = 14;
+      const off = (dotRow * 16 + dotCol) * 4;
+      for (const [mode, expected] of Object.entries(STATUS_DOT_COLORS)) {
+        const buf = renderTraySprite(1, { mode });
+        expect(buf[off]).toBe(expected[0]);
+        expect(buf[off + 1]).toBe(expected[1]);
+        expect(buf[off + 2]).toBe(expected[2]);
+        expect(buf[off + 3]).toBe(expected[3]);
+      }
+    });
+
+    it('unknown mode produces no dot (same as plain)', () => {
+      const plain = renderTraySprite(1);
+      const unknown = renderTraySprite(1, { mode: 'nonexistent' });
+      expect(plain).toEqual(unknown);
+    });
+  });
+
+  describe('STATUS_DOT_COLORS', () => {
+    it('all entries are [r, g, b, a] arrays with values 0-255', () => {
+      for (const [_key, rgba] of Object.entries(STATUS_DOT_COLORS)) {
+        expect(rgba).toHaveLength(4);
+        for (const v of rgba) {
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThanOrEqual(255);
+          expect(Number.isInteger(v)).toBe(true);
+        }
+      }
+    });
+
+    it('covers all expected modes', () => {
+      const modes = ['idle', 'thinking', 'tool', 'error', 'connecting', 'connected', 'disconnected', 'sleeping'];
+      for (const mode of modes) {
+        expect(STATUS_DOT_COLORS[mode]).toBeDefined();
+      }
     });
   });
 });

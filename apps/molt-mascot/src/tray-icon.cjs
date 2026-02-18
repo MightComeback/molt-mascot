@@ -36,12 +36,27 @@ const TRAY_COLORS = {
   b: [0x10, 0x10, 0x14, 0xff],
 };
 
+// Status dot colors for each mascot mode.
+// The dot is a 3×3 pixel indicator in the bottom-right corner of the tray icon,
+// giving at-a-glance status feedback (common macOS menu bar pattern).
+const STATUS_DOT_COLORS = {
+  idle:         [0x8e, 0x8e, 0x93, 0xff], // gray
+  thinking:     [0x0a, 0x84, 0xff, 0xff], // blue
+  tool:         [0x34, 0xc7, 0x59, 0xff], // green
+  error:        [0xff, 0x3b, 0x30, 0xff], // red
+  connecting:   [0xff, 0xd6, 0x0a, 0xff], // yellow
+  connected:    [0x34, 0xc7, 0x59, 0xff], // green
+  disconnected: [0xff, 0x3b, 0x30, 0xff], // red
+  sleeping:     [0x58, 0x56, 0xd6, 0xff], // indigo
+};
+
 /**
  * Render the tray sprite at the given integer scale.
  * @param {number} scale - Integer multiplier (1 = 16px, 2 = 32px, etc.)
+ * @param {{ mode?: string }} [opts] - Optional mode for status dot overlay
  * @returns {Buffer} Raw RGBA pixel buffer (size × size × 4 bytes)
  */
-function renderTraySprite(scale) {
+function renderTraySprite(scale, opts) {
   if (!Number.isInteger(scale) || scale < 1) {
     throw new RangeError(`scale must be a positive integer, got ${scale}`);
   }
@@ -62,7 +77,35 @@ function renderTraySprite(scale) {
       }
     }
   }
+
+  // Draw a status dot in the bottom-right corner (3×3 sprite pixels).
+  const mode = opts?.mode;
+  const dotColor = mode ? STATUS_DOT_COLORS[mode] : null;
+  if (dotColor) {
+    // Dot position: bottom-right 3×3 at sprite coords (13,13)–(15,15)
+    const dotStartRow = 13;
+    const dotStartCol = 13;
+    const dotSize = 3;
+    for (let dr = 0; dr < dotSize; dr++) {
+      for (let dc = 0; dc < dotSize; dc++) {
+        // Skip corner pixels for a rounded look (makes a + shape → circle-ish)
+        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) continue;
+        const spriteRow = dotStartRow + dr;
+        const spriteCol = dotStartCol + dc;
+        for (let dy = 0; dy < scale; dy++) {
+          for (let dx = 0; dx < scale; dx++) {
+            const off = ((spriteRow * scale + dy) * size + (spriteCol * scale + dx)) * 4;
+            buf[off] = dotColor[0];
+            buf[off + 1] = dotColor[1];
+            buf[off + 2] = dotColor[2];
+            buf[off + 3] = dotColor[3];
+          }
+        }
+      }
+    }
+  }
+
   return buf;
 }
 
-module.exports = { renderTraySprite, TRAY_SPRITE, TRAY_COLORS };
+module.exports = { renderTraySprite, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };

@@ -591,9 +591,35 @@ app.whenReady().then(async () => {
   // so hovering the system tray shows the current gateway state even when
   // the mascot window is hidden.
   let currentRendererMode = 'idle';
+
+  /**
+   * Rebuild the tray icon with a status dot reflecting the current mode.
+   * Called when the renderer reports a mode change so the menu bar icon
+   * gives at-a-glance feedback without hovering for the tooltip.
+   */
+  function updateTrayIcon(mode) {
+    if (!tray) return;
+    try {
+      const icon = nativeImage.createFromBuffer(
+        renderTraySprite(1, { mode }), { width: 16, height: 16 }
+      );
+      icon.addRepresentation({
+        buffer: renderTraySprite(2, { mode }), width: 32, height: 32, scaleFactor: 2.0,
+      });
+      icon.addRepresentation({
+        buffer: renderTraySprite(3, { mode }), width: 48, height: 48, scaleFactor: 3.0,
+      });
+      if (process.platform === 'darwin') icon.setTemplateImage(true);
+      tray.setImage(icon);
+    } catch {
+      // Best-effort — don't crash if image creation fails
+    }
+  }
+
   ipcMain.on('molt-mascot:mode-update', (_event, mode) => {
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;
+      updateTrayIcon(mode);
       rebuildTrayMenu();
     }
   });
