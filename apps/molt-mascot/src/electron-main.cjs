@@ -198,8 +198,15 @@ async function captureScreenshots() {
     fs.writeFileSync(path.join(CAPTURE_DIR, `${mode}.png`), img.toPNG());
   }
 
-  // Note: sleeping state requires backdating modeSince inside the renderer scope;
-  // use __moltMascotSetMode('idle') + manual wait > sleep threshold for manual captures.
+  // Capture the sleeping state by setting idle mode and backdating modeSince
+  // past the sleep threshold so the ZZZ overlay renders.
+  await win.webContents.executeJavaScript(`
+    window.__moltMascotSetMode && window.__moltMascotSetMode('idle');
+    window.__moltMascotSetModeSince && window.__moltMascotSetModeSince(Date.now() - 300000);
+  `);
+  await new Promise((r) => setTimeout(r, 120));
+  const sleepImg = await win.webContents.capturePage();
+  fs.writeFileSync(path.join(CAPTURE_DIR, 'sleeping.png'), sleepImg.toPNG());
 
   try { win.close(); } catch {}
 }

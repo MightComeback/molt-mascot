@@ -381,6 +381,11 @@ window.__moltMascotSetTime = (t) => {
   manualTime = t;
 };
 
+// Allow capture scripts to backdate modeSince for sleeping-state screenshots.
+window.__moltMascotSetModeSince = (t) => {
+  if (typeof t === 'number' && Number.isFinite(t)) modeSince = t;
+};
+
 function scheduleIdle(delayMs = idleDelayMs) {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => setMode(Mode.idle), delayMs);
