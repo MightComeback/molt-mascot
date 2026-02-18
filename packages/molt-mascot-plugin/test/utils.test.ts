@@ -165,6 +165,12 @@ describe("utils", () => {
     expect(cleanErrorString("Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'foo'")).toBe("Cannot find package 'foo'");
     expect(cleanErrorString("TypeError [ERR_INVALID_ARG_TYPE]: The argument must be string")).toBe("The argument must be string");
     expect(cleanErrorString("[ERR_REQUIRE_ESM]: require() of ES Module not supported")).toBe("require() of ES Module not supported");
+    // Rust panic messages
+    expect(cleanErrorString("thread 'main' panicked at 'index out of bounds', src/main.rs:42:5")).toBe("index out of bounds");
+    expect(cleanErrorString("thread 'tokio-runtime-worker' panicked at 'connection refused', src/net.rs:10")).toBe("connection refused");
+    // Go runtime errors
+    expect(cleanErrorString("runtime: out of memory")).toBe("out of memory");
+    expect(cleanErrorString("fatal error: runtime: out of memory")).toBe("out of memory");
   });
 
   it("summarizeToolResultMessage", () => {

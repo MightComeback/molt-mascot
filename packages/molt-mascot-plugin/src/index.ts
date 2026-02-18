@@ -404,6 +404,12 @@ export function cleanErrorString(s: string): string {
     .replace(/\s+at\s+(?:[\w.<>\[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
     .trim();
 
+  // Rust panics: extract the message from `thread 'main' panicked at 'msg', file:line:col`
+  // The useful payload is the quoted message after "panicked at".
+  str = str
+    .replace(/^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i, "$1")
+    .trim();
+
   // Clean POSIX signal descriptions: strip the trailing signal number for brevity.
   // e.g. "Killed: 9" → "Killed", "Segmentation fault: 11" → "Segmentation fault"
   // These are common on macOS/Linux when processes are killed by signals.
@@ -417,12 +423,15 @@ export function cleanErrorString(s: string): string {
   const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
   // Node.js bracketed error codes: [ERR_MODULE_NOT_FOUND]:, [ERR_INVALID_ARG_TYPE]:, etc.
   const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
+  // Go runtime prefixes: "runtime: out of memory", "runtime/cgo: ..."
+  const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
   let prev = "";
   while (str !== prev) {
     prev = str;
     str = str.replace(ERROR_PREFIX_REGEX, "").trim();
     str = str.replace(ERRNO_REGEX, "").trim();
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
+    str = str.replace(GO_RUNTIME_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
