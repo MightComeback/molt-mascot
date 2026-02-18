@@ -10,7 +10,7 @@ const APP_VERSION = require('../package.json').version;
 
 // Opacity presets cycled by the keyboard shortcut / context menu.
 // Defined once so _resolveInitialOpacity and the runtime cycle stay in sync.
-const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4];
+const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4, 0.2];
 
 // --- User preference persistence ---
 // Save runtime preferences (alignment, size, ghost mode, hide-text) to a JSON file
