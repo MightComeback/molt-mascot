@@ -1004,7 +1004,10 @@ function showContextMenu(e) {
   const modKey = isMac ? '⌘' : 'Ctrl';
 
   // Build a status summary line for the context menu header
-  const statusParts = [currentMode.charAt(0).toUpperCase() + currentMode.slice(1)];
+  let modeLabel = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  if (currentMode === Mode.tool && currentTool) modeLabel = truncate(currentTool, 20);
+  if (currentMode === Mode.error && lastErrorMessage) modeLabel = truncate(lastErrorMessage, 28);
+  const statusParts = [modeLabel];
   const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
   if (connectedSince) {
