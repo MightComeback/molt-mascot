@@ -24,6 +24,7 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **O
 ![connecting](assets/screenshots/connecting.png)
 ![connected](assets/screenshots/connected.png)
 ![disconnected](assets/screenshots/disconnected.png)
+![sleeping](assets/screenshots/sleeping.png)
 
 ## Quickstart
 

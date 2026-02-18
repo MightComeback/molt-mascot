@@ -13,7 +13,7 @@ molt-mascot/
 │   │   ├── draw.js            # Sprite drawing + cache + blink state
 │   │   ├── sprites.js         # Pixel art data (32×32 grids)
 │   │   ├── context-menu.js    # Right-click menu (a11y, keyboard nav)
-│   │   ├── gateway-client.js  # Extracted WS client class (not yet wired to renderer)
+│   │   ├── gateway-client.js  # Extracted WS client class (reconnect, stale detection, plugin polling)
 │   │   ├── plugin-sync.js     # Change-detection for plugin state → IPC dispatch
 │   │   ├── debug-info.js      # Multi-line diagnostic string builder
 │   │   ├── utils.js           # Shared utilities (re-exports from plugin)
@@ -42,7 +42,7 @@ molt-mascot/
 # Install dependencies (bun only, no npm)
 bun install
 
-# Run tests (337 tests across 11 files)
+# Run tests
 bun test
 
 # Run the Electron app
