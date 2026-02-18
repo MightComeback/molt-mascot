@@ -472,6 +472,7 @@ function resetConnectionState() {
   pluginStateLastSentAt = 0;
   connectedSince = null;
   connectedUrl = '';
+  lastCloseDetail = '';
   _pluginSync.reset();
   stopStaleCheck();
   if (window._pollInterval) {
