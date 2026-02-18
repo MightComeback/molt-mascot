@@ -302,6 +302,7 @@ function syncPill() {
     reconnectAttempt,
     pluginToolCalls,
     pluginToolErrors,
+    currentTool: currentMode === Mode.tool ? currentTool : undefined,
     appVersion: window.moltMascot?.version,
     pluginVersion,
   });

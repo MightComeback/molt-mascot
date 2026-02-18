@@ -351,4 +351,14 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip).not.toContain("(");
   });
+
+  it("includes current tool name when in tool mode", () => {
+    const tip = buildTooltip({ displayMode: "tool", durationSec: 5, currentTool: "web_search" });
+    expect(tip).toContain("(web_search)");
+  });
+
+  it("omits tool name when not in tool mode", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 5, currentTool: "web_search" });
+    expect(tip).not.toContain("web_search");
+  });
 });

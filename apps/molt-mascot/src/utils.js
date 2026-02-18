@@ -105,6 +105,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt
  * @param {number} [params.pluginToolCalls] - Plugin tool call count
  * @param {number} [params.pluginToolErrors] - Plugin tool error count
+ * @param {string} [params.currentTool] - Currently active tool name
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
  * @returns {string}
@@ -120,11 +121,13 @@ export function buildTooltip(params) {
     reconnectAttempt = 0,
     pluginToolCalls = 0,
     pluginToolErrors = 0,
+    currentTool,
     appVersion,
     pluginVersion,
   } = params;
 
   let tip = `${displayMode} for ${formatDuration(durationSec)}`;
+  if (displayMode === 'tool' && currentTool) tip += ` (${currentTool})`;
   if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
   if (isClickThrough) tip += ' (ghost mode active)';
   if (connectedSince) {
