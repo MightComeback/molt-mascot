@@ -502,4 +502,15 @@ describe("context-menu", () => {
     expect(menu._children[0]._attrs["aria-keyshortcuts"]).toBe("⌘⇧M");
     expect(menu._children[1]._attrs["aria-keyshortcuts"]).toBeUndefined();
   });
+
+  it("isVisible() returns false when no menu is open", () => {
+    expect(ctxMenu.isVisible()).toBe(false);
+  });
+
+  it("isVisible() returns true after show() and false after dismiss()", () => {
+    ctxMenu.show([{ label: "Test", action: () => {} }], { x: 0, y: 0 });
+    expect(ctxMenu.isVisible()).toBe(true);
+    ctxMenu.dismiss();
+    expect(ctxMenu.isVisible()).toBe(false);
+  });
 });

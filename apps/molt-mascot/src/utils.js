@@ -109,6 +109,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.alignment] - Current alignment (e.g. 'bottom-right')
  * @param {string} [params.sizeLabel] - Current size preset label (e.g. 'medium')
  * @param {number} [params.opacity] - Current window opacity (0-1)
+ * @param {boolean} [params.isTextHidden] - Whether the HUD text pill is hidden
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
  * @param {number|null} [params.pluginStartedAt] - Plugin start timestamp (for uptime display)
@@ -130,6 +131,7 @@ export function buildTooltip(params) {
     alignment,
     sizeLabel,
     opacity,
+    isTextHidden,
     appVersion,
     pluginVersion,
     pluginStartedAt,
@@ -141,7 +143,8 @@ export function buildTooltip(params) {
   let tip = `${displayMode} for ${formatDuration(durationSec)}`;
   if (displayMode === 'tool' && currentTool) tip += ` (${currentTool})`;
   if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
-  if (isClickThrough) tip += ' (ghost mode active)';
+  if (isClickThrough) tip += ' (ghost mode)';
+  if (isTextHidden) tip += ' (text hidden)';
   if (connectedSince) {
     const uptime = formatDuration(Math.max(0, Math.round((now - connectedSince) / 1000)));
     tip += ` · connected ${uptime}`;

@@ -303,6 +303,7 @@ function syncPill() {
     pluginToolCalls,
     pluginToolErrors,
     currentTool: currentMode === Mode.tool ? currentTool : undefined,
+    isTextHidden,
     alignment: lastPluginAlignment,
     sizeLabel: currentSizeLabel,
     opacity: currentOpacity,

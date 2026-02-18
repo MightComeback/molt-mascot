@@ -15,6 +15,14 @@
 let activeCleanup = null;
 
 /**
+ * Whether a context menu is currently visible.
+ * @returns {boolean}
+ */
+export function isVisible() {
+  return activeCleanup !== null;
+}
+
+/**
  * Dismiss any currently open context menu.
  */
 export function dismiss() {

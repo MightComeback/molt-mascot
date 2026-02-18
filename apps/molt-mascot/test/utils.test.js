@@ -317,7 +317,7 @@ describe("buildTooltip", () => {
 
   it("includes ghost mode indicator", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isClickThrough: true });
-    expect(tip).toContain("ghost mode active");
+    expect(tip).toContain("ghost mode");
   });
 
   it("includes connected URL", () => {
@@ -414,5 +414,15 @@ describe("buildTooltip", () => {
   it("omits plugin uptime when pluginStartedAt is null", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginStartedAt: null });
     expect(tip).not.toContain("plugin up");
+  });
+
+  it("shows text hidden indicator when isTextHidden is true", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: true });
+    expect(tip).toContain("text hidden");
+  });
+
+  it("omits text hidden indicator when isTextHidden is false", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: false });
+    expect(tip).not.toContain("text hidden");
   });
 });
