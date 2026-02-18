@@ -1066,14 +1066,19 @@ function buildDebugInfo() {
     const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
     lines.push(`Uptime: ${formatDuration(up)}`);
     lines.push(`Gateway: ${connectedUrl}`);
+    const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
+    lines.push(`WebSocket: ${wsState}`);
   } else {
     lines.push('Gateway: disconnected');
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
-  if (hasPlugin && pluginStartedAt) {
-    const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
-    lines.push(`Plugin uptime: ${formatDuration(pluginUp)}`);
+  if (hasPlugin) {
+    lines.push(`Plugin method: ${pluginStateMethod}`);
+    if (pluginStartedAt) {
+      const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
+      lines.push(`Plugin uptime: ${formatDuration(pluginUp)}`);
+    }
   }
   if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
