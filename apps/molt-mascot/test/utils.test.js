@@ -229,9 +229,11 @@ describe("wsReadyStateLabel", () => {
 describe("getFrameIntervalMs", () => {
   const SLEEP_MS = 120000;
 
-  it("returns 0 (full fps) for active animation modes", () => {
-    expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, false)).toBe(0);
-    expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(0);
+  it("returns ~15fps (66ms) for thinking/tool modes", () => {
+    // Thinking overlay alternates every 600ms, tool overlay is static —
+    // neither needs 60fps. ~15fps is plenty for smooth bob animation.
+    expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, false)).toBe(66);
+    expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(66);
   });
 
   it("returns ~15fps (66ms) for connecting/connected modes", () => {

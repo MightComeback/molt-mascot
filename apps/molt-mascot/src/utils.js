@@ -72,6 +72,9 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
   // Connecting/connected animations use slow intervals (500ms/300ms sprites),
   // so ~15fps (66ms) is more than enough without wasting CPU at full 60fps.
   if (mode === 'connecting' || mode === 'connected') return 66;
+  // Thinking overlay alternates every 600ms, tool overlay is static — neither
+  // needs 60fps. ~15fps (66ms) gives smooth bob animation without waste.
+  if (mode === 'thinking' || mode === 'tool') return 66;
   return 0;
 }
 
