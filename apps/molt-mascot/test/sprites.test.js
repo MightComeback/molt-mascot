@@ -49,6 +49,19 @@ describe("sprites", () => {
     it("frame 1 is a valid 32x32 sprite", () => {
       validateFrame(lobsterIdle[1], "lobsterIdle[1]");
     });
+
+    it("idle frames differ (animation would be static otherwise)", () => {
+      // At least one row must differ between the two frames for visible animation.
+      const hasDiff = lobsterIdle[0].some((row, i) => row !== lobsterIdle[1][i]);
+      expect(hasDiff).toBe(true);
+    });
+
+    it("both frames use the same set of palette characters", () => {
+      const charsOf = (frame) => new Set(frame.flatMap((row) => [...row]));
+      const chars0 = charsOf(lobsterIdle[0]);
+      const chars1 = charsOf(lobsterIdle[1]);
+      expect([...chars0].sort()).toEqual([...chars1].sort());
+    });
   });
 
   describe("overlay.sleep", () => {
@@ -60,6 +73,11 @@ describe("sprites", () => {
       validateFrame(overlay.sleep[0], "sleep[0]");
       validateFrame(overlay.sleep[1], "sleep[1]");
     });
+
+    it("sleep frames differ (animation would be static otherwise)", () => {
+      const hasDiff = overlay.sleep[0].some((row, i) => row !== overlay.sleep[1][i]);
+      expect(hasDiff).toBe(true);
+    });
   });
 
   describe("overlay.thinking", () => {
@@ -70,6 +88,11 @@ describe("sprites", () => {
     it("frames are valid 32x32 sprites", () => {
       validateFrame(overlay.thinking[0], "thinking[0]");
       validateFrame(overlay.thinking[1], "thinking[1]");
+    });
+
+    it("thinking frames differ (animation would be static otherwise)", () => {
+      const hasDiff = overlay.thinking[0].some((row, i) => row !== overlay.thinking[1][i]);
+      expect(hasDiff).toBe(true);
     });
   });
 
@@ -100,6 +123,11 @@ describe("sprites", () => {
       validateFrame(overlay.connecting[0], "connecting[0]");
       validateFrame(overlay.connecting[1], "connecting[1]");
     });
+
+    it("connecting frames differ (animation would be static otherwise)", () => {
+      const hasDiff = overlay.connecting[0].some((row, i) => row !== overlay.connecting[1][i]);
+      expect(hasDiff).toBe(true);
+    });
   });
 
   describe("overlay.connected", () => {
@@ -110,6 +138,11 @@ describe("sprites", () => {
     it("frames are valid 32x32 sprites", () => {
       validateFrame(overlay.connected[0], "connected[0]");
       validateFrame(overlay.connected[1], "connected[1]");
+    });
+
+    it("connected frames differ (animation would be static otherwise)", () => {
+      const hasDiff = overlay.connected[0].some((row, i) => row !== overlay.connected[1][i]);
+      expect(hasDiff).toBe(true);
     });
   });
 });
