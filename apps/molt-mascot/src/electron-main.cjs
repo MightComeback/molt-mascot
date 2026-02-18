@@ -635,7 +635,25 @@ app.whenReady().then(async () => {
     withMainWin((w) => {
       // If the user dragged the window manually, don't snap it back
       // unless this is an explicit alignment/padding change (force=true).
-      if (userDragged && !force) return;
+      // However, always recover if the window ended up off-screen (e.g. after
+      // a display was removed or resolution changed).
+      if (userDragged && !force) {
+        // Off-screen recovery: clamp the user-dragged position to the nearest
+        // visible work area so the mascot is never stranded on a phantom display.
+        const [wx, wy] = w.getPosition();
+        const [ww, wh] = w.getSize();
+        const display = screen.getDisplayNearestPoint({ x: wx, y: wy });
+        const { x: ax, y: ay, width: aw, height: ah } = display.workArea;
+        const clampedX = Math.max(ax, Math.min(wx, ax + aw - ww));
+        const clampedY = Math.max(ay, Math.min(wy, ay + ah - wh));
+        if (clampedX !== wx || clampedY !== wy) {
+          repositioning = true;
+          w.setPosition(Math.round(clampedX), Math.round(clampedY), true);
+          savePrefs({ draggedPosition: { x: Math.round(clampedX), y: Math.round(clampedY) } });
+          setTimeout(() => { repositioning = false; }, 100);
+        }
+        return;
+      }
       const display = screen.getPrimaryDisplay();
       const [width, height] = w.getSize();
       const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
