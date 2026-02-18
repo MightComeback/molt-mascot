@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildDebugInfo } from "../src/debug-info.js";
+import { buildDebugInfo, formatElapsed } from "../src/debug-info.js";
 
 const NOW = 1700000000000; // Fixed timestamp for deterministic tests
 
@@ -291,5 +291,19 @@ describe("buildDebugInfo", () => {
 
   it("omits session connect count when undefined", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Session connects");
+  });
+});
+
+describe("formatElapsed", () => {
+  it("returns human-readable duration between two timestamps", () => {
+    const now = 1700000000000;
+    expect(formatElapsed(now - 5000, now)).toBe("5s");
+    expect(formatElapsed(now - 65000, now)).toBe("1m 5s");
+    expect(formatElapsed(now - 3600000, now)).toBe("1h");
+  });
+
+  it("clamps negative durations to 0s", () => {
+    const now = 1700000000000;
+    expect(formatElapsed(now + 5000, now)).toBe("0s");
   });
 });

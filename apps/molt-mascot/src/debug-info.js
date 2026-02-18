@@ -46,6 +46,18 @@
 
 import { formatDuration, wsReadyStateLabel } from './utils.js';
 
+/**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern.
+ *
+ * @param {number} since - Past timestamp (ms)
+ * @param {number} now - Current timestamp (ms)
+ * @returns {string} Formatted duration string (e.g. "5m 30s")
+ */
+export function formatElapsed(since, now) {
+  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
+}
+
 export function buildDebugInfo(params) {
   const {
     currentMode,
@@ -95,22 +107,18 @@ export function buildDebugInfo(params) {
   lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
   lines.push(`Captured: ${new Date(now).toISOString()}`);
   lines.push(`Mode: ${currentMode}`);
-  const dur = Math.max(0, Math.round((now - modeSince) / 1000));
-  lines.push(`Mode duration: ${formatDuration(dur)}`);
+  lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
   if (connectedSince) {
-    const up = Math.max(0, Math.round((now - connectedSince) / 1000));
-    lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
+    lines.push(`Uptime: ${formatElapsed(connectedSince, now)} (since ${new Date(connectedSince).toISOString()})`);
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     // Show last disconnect even when connected — helps debug flaky connections
     if (lastDisconnectedAt) {
-      const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
-      lines.push(`Last disconnect: ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+      lines.push(`Last disconnect: ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
     }
   } else {
     if (lastDisconnectedAt) {
-      const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
-      lines.push(`Gateway: disconnected ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+      lines.push(`Gateway: disconnected ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
     } else {
       lines.push(`Gateway: disconnected`);
     }
@@ -123,8 +131,7 @@ export function buildDebugInfo(params) {
   if (hasPlugin) {
     if (pluginStateMethod) lines.push(`Plugin method: ${pluginStateMethod}`);
     if (pluginStartedAt) {
-      const pluginUp = Math.max(0, Math.round((now - pluginStartedAt) / 1000));
-      lines.push(`Plugin uptime: ${formatDuration(pluginUp)} (since ${new Date(pluginStartedAt).toISOString()})`);
+      lines.push(`Plugin uptime: ${formatElapsed(pluginStartedAt, now)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
   }
   if (pluginToolCalls > 0) {
