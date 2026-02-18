@@ -286,8 +286,9 @@ function syncPill() {
   const isSleeping = currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S;
   pill.className = isSleeping ? 'pill--sleeping' : `pill--${currentMode}`;
 
-  // Update canvas aria-label for screen readers
-  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${currentMode}`);
+  // Update canvas aria-label for screen readers (use display mode, not raw mode)
+  const ariaMode = isSleeping ? 'sleeping' : currentMode;
+  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${ariaMode}`);
 
   const displayMode = currentMode === Mode.connected ? 'connected'
     : (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) ? 'sleeping' : currentMode;
