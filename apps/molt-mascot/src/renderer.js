@@ -827,10 +827,6 @@ function connect(cfg) {
     resetConnectionState();
     // Preserve close code/reason for display in the disconnected pill and tooltip.
     lastCloseDetail = formatCloseDetail(ev?.code, ev?.reason);
-    if (window._pollInterval) {
-      clearInterval(window._pollInterval);
-      window._pollInterval = null;
-    }
     if (reconnectCountdownTimer) {
       clearInterval(reconnectCountdownTimer);
       reconnectCountdownTimer = null;
