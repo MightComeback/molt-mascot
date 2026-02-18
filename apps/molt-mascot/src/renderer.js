@@ -837,7 +837,7 @@ function connect(cfg) {
     }
   });
 
-  ws.onclose = () => {
+  ws.onclose = (ev) => {
     hasPlugin = false;
     pluginPollerStarted = false;
     pluginStatePending = false;
@@ -855,7 +855,13 @@ function connect(cfg) {
     lastPluginSize = null;
     pluginStartedAt = null;
     stopStaleCheck();
-    pill.textContent = 'disconnected';
+    // Surface close code for debugging (1006 = abnormal, 1000 = normal, etc.)
+    const closeCode = ev?.code;
+    const closeReason = (ev?.reason || '').trim();
+    const disconnectLabel = closeReason
+      ? `disconnected: ${truncate(closeReason, 32)}`
+      : (closeCode && closeCode !== 1000 ? `disconnected (${closeCode})` : 'disconnected');
+    pill.textContent = disconnectLabel;
     pill.className = 'pill--disconnected';
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
