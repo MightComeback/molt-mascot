@@ -78,7 +78,8 @@ function renderTraySprite(scale, opts) {
     }
   }
 
-  // Draw a status dot in the bottom-right corner (3×3 sprite pixels).
+  // Draw a status dot in the bottom-right corner (3×3 sprite pixels)
+  // with a 1px dark outline ring for contrast against any background.
   const mode = opts?.mode;
   const dotColor = mode ? STATUS_DOT_COLORS[mode] : null;
   if (dotColor) {
@@ -86,21 +87,47 @@ function renderTraySprite(scale, opts) {
     const dotStartRow = 13;
     const dotStartCol = 13;
     const dotSize = 3;
+    const outlineColor = [0x00, 0x00, 0x00, 0xcc]; // semi-transparent black
+
+    // Helper to paint a scaled sprite pixel
+    const paintPixel = (spriteRow, spriteCol, color) => {
+      for (let dy = 0; dy < scale; dy++) {
+        for (let dx = 0; dx < scale; dx++) {
+          const off = ((spriteRow * scale + dy) * size + (spriteCol * scale + dx)) * 4;
+          buf[off] = color[0];
+          buf[off + 1] = color[1];
+          buf[off + 2] = color[2];
+          buf[off + 3] = color[3];
+        }
+      }
+    };
+
+    // 1) Outline ring: the 4 corner pixels of the 3×3 area (not drawn as dot)
+    //    plus the row/col just outside the dot area (forming a dark halo).
+    //    We paint corners of the 3×3 as outline to complete the ring.
     for (let dr = 0; dr < dotSize; dr++) {
       for (let dc = 0; dc < dotSize; dc++) {
-        // Skip corner pixels for a rounded look (makes a + shape → circle-ish)
-        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) continue;
-        const spriteRow = dotStartRow + dr;
-        const spriteCol = dotStartCol + dc;
-        for (let dy = 0; dy < scale; dy++) {
-          for (let dx = 0; dx < scale; dx++) {
-            const off = ((spriteRow * scale + dy) * size + (spriteCol * scale + dx)) * 4;
-            buf[off] = dotColor[0];
-            buf[off + 1] = dotColor[1];
-            buf[off + 2] = dotColor[2];
-            buf[off + 3] = dotColor[3];
-          }
+        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) {
+          paintPixel(dotStartRow + dr, dotStartCol + dc, outlineColor);
         }
+      }
+    }
+    // Outer ring: 1px border around the 3×3 area (only pixels within bounds)
+    for (let dr = -1; dr <= dotSize; dr++) {
+      for (let dc = -1; dc <= dotSize; dc++) {
+        if (dr >= 0 && dr < dotSize && dc >= 0 && dc < dotSize) continue; // inside
+        const sr = dotStartRow + dr;
+        const sc = dotStartCol + dc;
+        if (sr < 0 || sr >= 16 || sc < 0 || sc >= 16) continue; // out of bounds
+        paintPixel(sr, sc, outlineColor);
+      }
+    }
+
+    // 2) Dot fill: the + shape (skip corners for rounded look)
+    for (let dr = 0; dr < dotSize; dr++) {
+      for (let dc = 0; dc < dotSize; dc++) {
+        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) continue;
+        paintPixel(dotStartRow + dr, dotStartCol + dc, dotColor);
       }
     }
   }

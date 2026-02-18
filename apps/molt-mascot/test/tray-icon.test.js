@@ -143,6 +143,30 @@ describe('tray-icon', () => {
       }
     });
 
+    it('status dot has dark outline on corner pixels', () => {
+      // Corner pixels of the 3×3 dot (e.g. row 13, col 13) should be the outline color
+      const buf = renderTraySprite(1, { mode: 'thinking' });
+      const corners = [[13, 13], [13, 15], [15, 13], [15, 15]];
+      for (const [r, c] of corners) {
+        const off = (r * 16 + c) * 4;
+        // Outline is semi-transparent black [0,0,0,0xcc]
+        expect(buf[off]).toBe(0);
+        expect(buf[off + 1]).toBe(0);
+        expect(buf[off + 2]).toBe(0);
+        expect(buf[off + 3]).toBe(0xcc);
+      }
+    });
+
+    it('status dot has outer ring outline pixels', () => {
+      // Pixel just above the dot center (row 12, col 14) should be outline
+      const buf = renderTraySprite(1, { mode: 'idle' });
+      const off = (12 * 16 + 14) * 4;
+      expect(buf[off]).toBe(0);
+      expect(buf[off + 1]).toBe(0);
+      expect(buf[off + 2]).toBe(0);
+      expect(buf[off + 3]).toBe(0xcc);
+    });
+
     it('unknown mode produces no dot (same as plain)', () => {
       const plain = renderTraySprite(1);
       const unknown = renderTraySprite(1, { mode: 'nonexistent' });
