@@ -496,6 +496,11 @@ function startPluginPoller() {
   // Poll status to keep in sync with plugin-side logic (timers, error holding, etc)
   if (window._pollInterval) clearInterval(window._pollInterval);
   window._pollInterval = setInterval(() => {
+    // Skip polling when the window is hidden (minimized, occluded, etc.)
+    // to avoid unnecessary WebSocket traffic. The poller resumes automatically
+    // when the window becomes visible again, and the visibilitychange handler
+    // triggers an immediate refresh so the UI catches up instantly.
+    if (document.hidden) return;
     sendPluginStateReq('p');
   }, 1000);
 }
@@ -1283,6 +1288,10 @@ document.addEventListener('visibilitychange', () => {
     ctxMenu.dismiss();
   } else {
     startAnimation();
+    // Immediately refresh plugin state so the UI catches up after being hidden.
+    // The 1s poller skips ticks while hidden, so without this the pill would
+    // show stale info for up to 1s after the window reappears.
+    if (hasPlugin) sendPluginStateReq('v');
   }
 });
 
