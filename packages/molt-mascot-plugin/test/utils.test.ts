@@ -171,6 +171,18 @@ describe("utils", () => {
     // Go runtime errors
     expect(cleanErrorString("runtime: out of memory")).toBe("out of memory");
     expect(cleanErrorString("fatal error: runtime: out of memory")).toBe("out of memory");
+    // Bracketed log-level prefixes (Java/Rust/Go structured loggers)
+    expect(cleanErrorString("[ERROR] connection refused")).toBe("connection refused");
+    expect(cleanErrorString("[WARN] deprecated API")).toBe("deprecated API");
+    expect(cleanErrorString("[WARNING] slow query")).toBe("slow query");
+    expect(cleanErrorString("[INFO] starting up")).toBe("starting up");
+    expect(cleanErrorString("[FATAL] out of memory")).toBe("out of memory");
+    expect(cleanErrorString("[CRITICAL] disk full")).toBe("disk full");
+    expect(cleanErrorString("[PANIC] stack overflow")).toBe("stack overflow");
+    // With timestamp prefix inside brackets
+    expect(cleanErrorString("[2026-02-18 12:00:00 ERROR] connection refused")).toBe("connection refused");
+    // With colon after bracket
+    expect(cleanErrorString("[ERROR]: connection refused")).toBe("connection refused");
   });
 
   it("summarizeToolResultMessage", () => {

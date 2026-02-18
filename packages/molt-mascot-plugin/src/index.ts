@@ -417,6 +417,13 @@ export function cleanErrorString(s: string): string {
     .replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1")
     .trim();
 
+  // Strip bracketed log-level prefixes common in structured loggers.
+  // e.g. "[ERROR] connection refused" → "connection refused"
+  // Also handles residual "ERROR] ..." left after ISO timestamp stripping.
+  str = str
+    .replace(/^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i, "")
+    .trim();
+
   // Iteratively strip error prefixes and POSIX errno codes.
   // Handles nested prefixes like "Error: Tool failed: ENOENT: no such file"
   // Errno codes: ENOENT, EACCES, EPERM, ECONNREFUSED, etc.
