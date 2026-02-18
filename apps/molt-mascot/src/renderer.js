@@ -1271,17 +1271,30 @@ let lastPillMin = -1;
 let animFrameId = null;
 let lastFrameAt = 0;
 
-// Actual FPS measurement: track frame timestamps over a rolling 1-second window.
-// Exposed via __moltMascotActualFps for debug info without adding overhead to the hot path.
-const _frameTimes = [];
+// Actual FPS measurement: ring buffer over a rolling 1-second window.
+// Uses a fixed-size circular buffer instead of Array.shift() to avoid O(n)
+// per-frame overhead in the render loop hot path.
+const _FPS_BUF_SIZE = 120; // enough for 2× 60fps
+const _fpsRing = new Float64Array(_FPS_BUF_SIZE);
+let _fpsHead = 0;   // next write index
+let _fpsCount = 0;  // total entries in the ring
 let _actualFps = 0;
 
 function _updateActualFps(t) {
-  _frameTimes.push(t);
-  // Trim timestamps older than 1 second
+  _fpsRing[_fpsHead] = t;
+  _fpsHead = (_fpsHead + 1) % _FPS_BUF_SIZE;
+  if (_fpsCount < _FPS_BUF_SIZE) _fpsCount++;
+
+  // Count how many timestamps fall within the last 1 second.
+  // Scan backwards from the most recent entry.
   const cutoff = t - 1000;
-  while (_frameTimes.length > 0 && _frameTimes[0] < cutoff) _frameTimes.shift();
-  _actualFps = _frameTimes.length;
+  let count = 0;
+  for (let i = 0; i < _fpsCount; i++) {
+    const idx = (_fpsHead - 1 - i + _FPS_BUF_SIZE) % _FPS_BUF_SIZE;
+    if (_fpsRing[idx] < cutoff) break;
+    count++;
+  }
+  _actualFps = count;
 }
 
 window.__moltMascotActualFps = () => _actualFps;
