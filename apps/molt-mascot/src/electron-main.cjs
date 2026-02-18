@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition } = require('./get-position.cjs');
+const { renderTraySprite } = require('./tray-icon.cjs');
 
 const APP_VERSION = require('../package.json').version;
 
@@ -347,56 +348,6 @@ app.whenReady().then(async () => {
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
-  // 16x16 pixel-art lobster icon for the tray (matches the mascot sprite style).
-  // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a, h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
-  const traySprite = [
-    '......kkkk......',
-    '.....krrrrk.....',
-    '....krhhhhrkk...',
-    '....krhwrhwrrk..',
-    '....krhbrhbrrk..',
-    '.....krhhrrkk...',
-    '......krrrkk....',
-    '....kkrrkrrkk...',
-    '...krrk...krrk..',
-    '..krrk.....krrk.',
-    '..krk.......krk.',
-    '..krrk.....krrk.',
-    '...krrk...krrk..',
-    '....kkrrkrrkk...',
-    '......krrrkk....',
-    '.......kkk......',
-  ];
-  const trayColors = {
-    '.': [0, 0, 0, 0],
-    k: [0x4a, 0x0f, 0x14, 0xff],
-    r: [0xe0, 0x43, 0x3a, 0xff],
-    h: [0xff, 0x8b, 0x7f, 0xff],
-    w: [0xf8, 0xf7, 0xff, 0xff],
-    b: [0x10, 0x10, 0x14, 0xff],
-  };
-  // Render the tray sprite at a given scale (1x = 16px, 2x = 32px for Retina).
-  function renderTraySprite(scale) {
-    const size = 16 * scale;
-    const buf = Buffer.alloc(size * size * 4);
-    for (let row = 0; row < 16; row++) {
-      for (let col = 0; col < 16; col++) {
-        const ch = traySprite[row][col] || '.';
-        const [r, g, b, a] = trayColors[ch] || trayColors['.'];
-        for (let dy = 0; dy < scale; dy++) {
-          for (let dx = 0; dx < scale; dx++) {
-            const off = ((row * scale + dy) * size + (col * scale + dx)) * 4;
-            buf[off] = r;
-            buf[off + 1] = g;
-            buf[off + 2] = b;
-            buf[off + 3] = a;
-          }
-        }
-      }
-    }
-    return buf;
-  }
-
   // Build a multi-resolution tray icon: 16px @1x + 32px @2x + 48px @3x for crisp rendering on all DPIs.
   const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
   trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });

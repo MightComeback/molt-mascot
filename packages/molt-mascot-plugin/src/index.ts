@@ -401,7 +401,7 @@ export function cleanErrorString(s: string): string {
   // Strip trailing " at <path>:<line>:<col>" suffixes from flattened stack traces.
   // e.g. "Cannot find module 'foo' at /app/index.js:10:5" → "Cannot find module 'foo'"
   str = str
-    .replace(/\s+at\s+(?:[\w.<>\[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
+    .replace(/\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
     .trim();
 
   // Rust panics: extract the message from `thread 'main' panicked at 'msg', file:line:col`

@@ -1,0 +1,115 @@
+import { describe, it, expect } from 'bun:test';
+import { renderTraySprite, TRAY_SPRITE, TRAY_COLORS } from '../src/tray-icon.cjs';
+
+describe('tray-icon', () => {
+  describe('TRAY_SPRITE', () => {
+    it('is a 16-row sprite', () => {
+      expect(TRAY_SPRITE).toHaveLength(16);
+    });
+
+    it('each row is 16 characters', () => {
+      for (const row of TRAY_SPRITE) {
+        expect(row).toHaveLength(16);
+      }
+    });
+
+    it('uses only known palette characters', () => {
+      const knownChars = new Set(Object.keys(TRAY_COLORS));
+      for (const row of TRAY_SPRITE) {
+        for (const ch of row) {
+          expect(knownChars.has(ch)).toBe(true);
+        }
+      }
+    });
+
+    it('contains at least one non-transparent pixel', () => {
+      const hasColor = TRAY_SPRITE.some(row => [...row].some(ch => ch !== '.'));
+      expect(hasColor).toBe(true);
+    });
+  });
+
+  describe('TRAY_COLORS', () => {
+    it('all entries are [r, g, b, a] arrays with values 0-255', () => {
+      for (const [_key, rgba] of Object.entries(TRAY_COLORS)) {
+        expect(rgba).toHaveLength(4);
+        for (const v of rgba) {
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThanOrEqual(255);
+          expect(Number.isInteger(v)).toBe(true);
+        }
+      }
+    });
+
+    it('transparent pixel has alpha 0', () => {
+      expect(TRAY_COLORS['.'][3]).toBe(0);
+    });
+
+    it('non-transparent pixels have alpha 255', () => {
+      for (const [key, rgba] of Object.entries(TRAY_COLORS)) {
+        if (key !== '.') expect(rgba[3]).toBe(255);
+      }
+    });
+  });
+
+  describe('renderTraySprite', () => {
+    it('returns a buffer of correct size at scale 1', () => {
+      const buf = renderTraySprite(1);
+      expect(buf).toBeInstanceOf(Buffer);
+      expect(buf.length).toBe(16 * 16 * 4);
+    });
+
+    it('returns a buffer of correct size at scale 2', () => {
+      const buf = renderTraySprite(2);
+      expect(buf.length).toBe(32 * 32 * 4);
+    });
+
+    it('returns a buffer of correct size at scale 3', () => {
+      const buf = renderTraySprite(3);
+      expect(buf.length).toBe(48 * 48 * 4);
+    });
+
+    it('top-left pixel is transparent (matches sprite)', () => {
+      const buf = renderTraySprite(1);
+      // First pixel should be '.' which is [0,0,0,0]
+      expect(buf[0]).toBe(0);
+      expect(buf[1]).toBe(0);
+      expect(buf[2]).toBe(0);
+      expect(buf[3]).toBe(0);
+    });
+
+    it('contains non-zero alpha pixels (sprite is not all-transparent)', () => {
+      const buf = renderTraySprite(1);
+      let hasOpaque = false;
+      for (let i = 3; i < buf.length; i += 4) {
+        if (buf[i] > 0) { hasOpaque = true; break; }
+      }
+      expect(hasOpaque).toBe(true);
+    });
+
+    it('scale 2 replicates pixels correctly', () => {
+      const buf1 = renderTraySprite(1);
+      const buf2 = renderTraySprite(2);
+      // Check a known opaque pixel from the sprite
+      // Row 1, col 5 should be 'k' (outline)
+      const row = 1, col = 5;
+      const off1 = (row * 16 + col) * 4;
+      const r1 = buf1[off1], g1 = buf1[off1+1], b1 = buf1[off1+2], a1 = buf1[off1+3];
+      // At scale 2, this pixel is replicated to a 2x2 block
+      for (let dy = 0; dy < 2; dy++) {
+        for (let dx = 0; dx < 2; dx++) {
+          const off2 = ((row * 2 + dy) * 32 + (col * 2 + dx)) * 4;
+          expect(buf2[off2]).toBe(r1);
+          expect(buf2[off2+1]).toBe(g1);
+          expect(buf2[off2+2]).toBe(b1);
+          expect(buf2[off2+3]).toBe(a1);
+        }
+      }
+    });
+
+    it('throws on invalid scale', () => {
+      expect(() => renderTraySprite(0)).toThrow(RangeError);
+      expect(() => renderTraySprite(-1)).toThrow(RangeError);
+      expect(() => renderTraySprite(1.5)).toThrow(RangeError);
+    });
+  });
+});

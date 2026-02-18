@@ -361,16 +361,19 @@ function cleanErrorString(s) {
   let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
   str = str.replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "").trim();
   str = str.replace(/^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "").trim();
-  str = str.replace(/\s+at\s+(?:[\w.<>\[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "").trim();
+  str = str.replace(/\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "").trim();
+  str = str.replace(/^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i, "$1").trim();
   str = str.replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1").trim();
   const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
   const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
+  const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
   let prev = "";
   while (str !== prev) {
     prev = str;
     str = str.replace(ERROR_PREFIX_REGEX, "").trim();
     str = str.replace(ERRNO_REGEX, "").trim();
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
+    str = str.replace(GO_RUNTIME_REGEX, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
@@ -415,6 +418,10 @@ function summarizeToolResultMessage(msg) {
   if (Array.isArray(blocks)) {
     const text = blocks.map((b) => typeof b?.text === "string" ? b.text : "").filter(Boolean).join("\n");
     if (text.trim()) return truncate(cleanErrorString(text));
+    if (blocks.length > 0) {
+      const types = [...new Set(blocks.map((b) => b?.type).filter(Boolean))];
+      if (types.length > 0) return truncate(types.join(", "));
+    }
   } else if (typeof blocks === "string" && blocks.trim()) {
     return truncate(cleanErrorString(blocks));
   }
