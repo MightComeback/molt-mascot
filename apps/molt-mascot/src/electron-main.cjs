@@ -695,7 +695,11 @@ app.whenReady().then(async () => {
           if (d < bestDist) { bestDist = d; bestIdx = i; }
         }
         opacityIndex = bestIdx;
+        // Notify the renderer so the context menu and tooltip reflect the
+        // updated opacity immediately (without waiting for the next plugin poll).
+        w.webContents.send('molt-mascot:opacity', v);
         savePrefs({ opacityIndex });
+        rebuildTrayMenu();
       }
     });
   });
