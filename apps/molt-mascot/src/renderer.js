@@ -380,7 +380,9 @@ function showError(rawMessage, fallback = 'error') {
   if (errorHoldTimer) clearTimeout(errorHoldTimer);
   errorHoldTimer = setTimeout(() => {
     errorHoldTimer = null;
-    scheduleIdle(0);
+    // Only revert to idle if we're still in error mode. If ws.onclose already
+    // transitioned us to disconnected (or another mode), don't override it.
+    if (currentMode === Mode.error) scheduleIdle(0);
   }, errorHoldMs);
 }
 
