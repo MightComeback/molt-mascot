@@ -127,20 +127,7 @@ function showSetup(prefill) {
   }
 }
 
-import { palette, lobsterIdle, overlay } from './sprites.js';
-
-function drawSprite(sprite, { x = 0, y = 0, scale = currentScale } = {}) {
-  for (let py = 0; py < sprite.length; py += 1) {
-    const row = sprite[py];
-    for (let px = 0; px < row.length; px += 1) {
-      const ch = row[px];
-      const color = palette[ch];
-      if (!color) continue;
-      ctx.fillStyle = color;
-      ctx.fillRect(x + px * scale, y + py * scale, scale, scale);
-    }
-  }
-}
+import { drawLobster as _drawLobster, createBlinkState } from './draw.js';
 
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
 const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -148,76 +135,21 @@ let reducedMotion = motionQuery?.matches ?? false;
 const _onMotionChange = (e) => { reducedMotion = e.matches; };
 motionQuery?.addEventListener?.('change', _onMotionChange);
 
-// Blink state: the lobster blinks every 3-6 seconds for ~150ms
-let nextBlinkAt = 2000 + Math.random() * 4000;
-const BLINK_DURATION_MS = 150;
-
-function isBlinking(t) {
-  if (reducedMotion) return false;
-  if (t >= nextBlinkAt) {
-    if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
-    // Schedule next blink 3-6s from now
-    nextBlinkAt = t + 3000 + Math.random() * 3000;
-  }
-  return false;
-}
-
-// Eye geometry extracted from the sprite grid (row/col/size in sprite pixels).
-// Keeping these as named constants avoids magic numbers scattered through drawLobster.
-const EYE_LEFT_COL = 14;
-const EYE_RIGHT_COL = 18;
-const EYE_ROW = 8;
-const EYE_SIZE = 2; // 2×2 sprite pixels per eye
+// Blink state (delegated to extracted module for testability)
+const _blinkState = createBlinkState();
 
 function drawLobster(mode, t, idleDurationMs = 0) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
-  const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
-
-  const s = currentScale;
-
-  // subtle shadow (keeps it readable on transparent backgrounds)
-  // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
-  // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
-  const shadowCenterX = (SPRITE_SIZE * s) / 2;
-  const shadowCenterY = (SPRITE_SIZE * s) * 0.81;
-  const shadowScaleX = (26 * s / 3) - bob * 0.4;
-  const shadowScaleY = (10 * s / 3) - bob * 0.2;
-  const shadowAlpha = Math.max(0.15, 0.35 - bob * 0.02);
-  ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
-  ctx.beginPath();
-  ctx.ellipse(shadowCenterX, shadowCenterY, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // main sprite
-  const bobY = Math.round(bob);
-  drawSprite(lobsterIdle[frame], { x: 0, y: bobY, scale: s });
-
-  // Blink: paint over the white+pupil eye pixels with the body red color
-  if (isBlinking(t)) {
-    ctx.fillStyle = palette.r;
-    ctx.fillRect(EYE_LEFT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
-    ctx.fillRect(EYE_RIGHT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
-  }
-
-  // overlays (simple icons) - attached to bob; modes are mutually exclusive
-  const overlayOpts = { x: 0, y: bobY - 2, scale: s };
-  if (mode === 'thinking') {
-    drawSprite(overlay.thinking[Math.floor(t / 600) % 2], overlayOpts);
-  } else if (mode === 'tool') {
-    drawSprite(overlay.tool, overlayOpts);
-  } else if (mode === 'error') {
-    drawSprite(overlay.error, overlayOpts);
-  } else if (mode === 'idle' && idleDurationMs > SLEEP_THRESHOLD_MS) {
-    drawSprite(overlay.sleep[Math.floor(t / 800) % 2], overlayOpts);
-  } else if (mode === 'connecting') {
-    drawSprite(overlay.connecting[Math.floor(t / 500) % 2], overlayOpts);
-  } else if (mode === 'connected') {
-    drawSprite(overlay.connected[Math.floor(t / 300) % 2], overlayOpts);
-  } else if (mode === 'disconnected') {
-    drawSprite(overlay.disconnected, overlayOpts);
-  }
+  _drawLobster(ctx, {
+    mode,
+    t,
+    scale: currentScale,
+    spriteSize: SPRITE_SIZE,
+    reducedMotion,
+    blinking: _blinkState.isBlinking(t),
+    idleDurationMs,
+    sleepThresholdMs: SLEEP_THRESHOLD_MS,
+    canvas,
+  });
 }
 
 // --- State machine ---
