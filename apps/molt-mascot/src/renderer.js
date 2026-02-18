@@ -395,6 +395,7 @@ function scheduleIdle(delayMs = idleDelayMs) {
 }
 
 // --- Gateway WS ---
+let nativeToolBounceTimer = null;
 let ws = null;
 let reqId = 0;
 let reconnectAttempt = 0;
@@ -778,8 +779,12 @@ function connect(cfg) {
       if (stream === 'tool') {
         // Heuristic: any tool activity => tool
         setMode(Mode.tool);
-        // bounce back to thinking unless lifecycle ends
-        setTimeout(() => {
+        // bounce back to thinking unless lifecycle ends.
+        // Cancel previous bounce timer to avoid stale timeouts from rapid
+        // tool events fighting with fresh ones (each new tool restarts the clock).
+        if (nativeToolBounceTimer) clearTimeout(nativeToolBounceTimer);
+        nativeToolBounceTimer = setTimeout(() => {
+          nativeToolBounceTimer = null;
           if (currentMode === Mode.tool) setMode(Mode.thinking);
         }, 250);
       }
@@ -1334,6 +1339,10 @@ window.addEventListener('beforeunload', () => {
   if (errorHoldTimer) {
     clearTimeout(errorHoldTimer);
     errorHoldTimer = null;
+  }
+  if (nativeToolBounceTimer) {
+    clearTimeout(nativeToolBounceTimer);
+    nativeToolBounceTimer = null;
   }
   if (ws) {
     ws.onclose = null;
