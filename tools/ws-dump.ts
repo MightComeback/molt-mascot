@@ -159,6 +159,18 @@ const PLUGIN_RESET_METHODS = [
 ];
 let resetMethodIndex = 0;
 
+/**
+ * Check if a gateway response indicates the requested method doesn't exist.
+ * Mirrors the logic in utils.js isMissingMethodResponse but kept inline
+ * to avoid import complexity (this file is a standalone Bun CLI script).
+ */
+function isMissingMethod(msg: any): boolean {
+  const err = msg?.payload?.error || msg?.error;
+  const code = Number(err?.code);
+  const errMsg = (err?.message || err || "").toString().toLowerCase();
+  return code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method") || errMsg.includes("unknown rpc method");
+}
+
 ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
   try {
@@ -219,12 +231,7 @@ ws.addEventListener("message", (ev) => {
         try { ws.close(); } catch {}
         return;
       }
-      // Method not found — try next alias
-      const err = msg.payload?.error || msg.error;
-      const code = Number(err?.code);
-      const errMsg = (err?.message || err || "").toString().toLowerCase();
-      const isMissing = code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method");
-      if (isMissing && resetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
+      if (isMissingMethod(msg) && resetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
         resetMethodIndex++;
         resetReqId = nextId("r");
         ws.send(JSON.stringify({
@@ -245,12 +252,7 @@ ws.addEventListener("message", (ev) => {
         try { ws.close(); } catch {}
         return;
       }
-      // Method not found - try next alias
-      const err = msg.payload?.error || msg.error;
-      const code = Number(err?.code);
-      const errMsg = (err?.message || err || "").toString().toLowerCase();
-      const isMissing = code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method");
-      if (isMissing && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
         stateMethodIndex++;
         stateReqId = nextId("s");
         ws.send(JSON.stringify({
