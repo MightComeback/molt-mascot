@@ -21,10 +21,19 @@ function loadPrefs() {
   }
 }
 
-function savePrefs(patch) {
+// Debounced preference persistence.
+// Rapid actions (e.g. cycling alignment 5× quickly) batch into a single disk write
+// instead of 5 synchronous writeFileSync calls. The 500ms window is long enough to
+// coalesce bursts but short enough that prefs survive an unexpected quit.
+let _prefsPending = null;
+let _prefsTimer = null;
+
+function _flushPrefs() {
+  if (_prefsTimer) { clearTimeout(_prefsTimer); _prefsTimer = null; }
+  if (!_prefsPending) return;
+  const merged = _prefsPending;
+  _prefsPending = null;
   try {
-    const current = loadPrefs();
-    const merged = { ...current, ...patch };
     const dir = path.dirname(PREFS_FILE);
     fs.mkdirSync(dir, { recursive: true });
     // Atomic write: write to a temp file then rename, so a crash mid-write
@@ -41,6 +50,17 @@ function savePrefs(patch) {
     }
   } catch {
     // Best-effort; don't crash if disk is full or permissions are wrong.
+  }
+}
+
+function savePrefs(patch) {
+  try {
+    const current = _prefsPending || loadPrefs();
+    _prefsPending = { ...current, ...patch };
+    if (_prefsTimer) clearTimeout(_prefsTimer);
+    _prefsTimer = setTimeout(_flushPrefs, 500);
+  } catch {
+    // Best-effort
   }
 }
 
@@ -611,6 +631,8 @@ app.whenReady().then(async () => {
 
   app.on('will-quit', () => {
     try { globalShortcut.unregisterAll(); } catch {}
+    // Flush any pending preference writes before exit so the last action isn't lost.
+    _flushPrefs();
     // Destroy tray icon to prevent ghost icons on Windows/Linux after quit.
     try { if (tray) { tray.destroy(); tray = null; } } catch {}
     // Cancel any pending display-metrics debounce timer.
