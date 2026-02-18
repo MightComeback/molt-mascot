@@ -9,6 +9,7 @@ import {
   wsReadyStateLabel,
   getFrameIntervalMs,
   getReconnectDelayMs,
+  buildTooltip,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -299,5 +300,55 @@ describe("getReconnectDelayMs", () => {
     // Default baseMs=1500, jitterFraction=0.2 → [1500, 1800]
     expect(delay).toBeGreaterThanOrEqual(1500);
     expect(delay).toBeLessThanOrEqual(1800);
+  });
+});
+
+describe("buildTooltip", () => {
+  it("returns basic mode + duration", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 30 });
+    expect(tip).toContain("idle for");
+    expect(tip).toContain("30s");
+  });
+
+  it("includes error message when provided", () => {
+    const tip = buildTooltip({ displayMode: "error", durationSec: 5, lastErrorMessage: "timeout" });
+    expect(tip).toContain("— timeout");
+  });
+
+  it("includes ghost mode indicator", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isClickThrough: true });
+    expect(tip).toContain("ghost mode active");
+  });
+
+  it("includes connected URL", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectedUrl: "ws://localhost:18789" });
+    expect(tip).toContain("ws://localhost:18789");
+  });
+
+  it("includes retry count when disconnected", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, reconnectAttempt: 3, connectedSince: null });
+    expect(tip).toContain("retry #3");
+  });
+
+  it("omits retry count when connected", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, reconnectAttempt: 3, connectedSince: Date.now() });
+    expect(tip).not.toContain("retry");
+  });
+
+  it("includes tool call stats", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 42, pluginToolErrors: 3 });
+    expect(tip).toContain("42 calls");
+    expect(tip).toContain("3 errors");
+  });
+
+  it("includes version info", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, appVersion: "1.2.3", pluginVersion: "0.5.0" });
+    expect(tip).toContain("v1.2.3");
+    expect(tip).toContain("plugin v0.5.0");
+  });
+
+  it("omits version parentheses when no versions provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip).not.toContain("(");
   });
 });

@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -255,34 +255,22 @@ function syncPill() {
 
   const displayMode = currentMode === Mode.connected ? 'connected'
     : (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) ? 'sleeping' : currentMode;
-  let tip = `${displayMode} for ${formatDuration(duration)}`;
-  if (currentMode === Mode.error && lastErrorMessage) {
-    tip += ` — ${lastErrorMessage}`;
-  }
-  if (isClickThrough) {
-    tip += ' (ghost mode active)';
-  }
-  if (connectedSince) {
-    const uptime = formatDuration(Math.max(0, Math.round((Date.now() - connectedSince) / 1000)));
-    tip += ` · connected ${uptime}`;
-  }
-  if (connectedUrl) {
-    tip += ` · ${connectedUrl}`;
-  }
-  if (reconnectAttempt > 0 && !connectedSince) {
-    tip += ` · retry #${reconnectAttempt}`;
-  }
-  if (pluginToolCalls > 0) {
-    tip += ` · ${pluginToolCalls} calls`;
-    if (pluginToolErrors > 0) tip += `, ${pluginToolErrors} errors`;
-  }
-  const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : '';
-  const plugVer = pluginVersion ? `plugin v${pluginVersion}` : '';
-  const verParts = [appVer, plugVer].filter(Boolean).join(', ');
-  const ver = verParts ? ` (${verParts})` : '';
-  pill.title = tip + ver;
+  const tip = buildTooltip({
+    displayMode,
+    durationSec: duration,
+    lastErrorMessage: currentMode === Mode.error ? lastErrorMessage : undefined,
+    isClickThrough,
+    connectedSince,
+    connectedUrl,
+    reconnectAttempt,
+    pluginToolCalls,
+    pluginToolErrors,
+    appVersion: window.moltMascot?.version,
+    pluginVersion,
+  });
+  pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
-  canvas.title = tip + ver;
+  canvas.title = tip;
   updateHudVisibility();
 }
 

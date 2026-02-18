@@ -91,6 +91,57 @@ export function getReconnectDelayMs(attempt, opts = {}) {
   return Math.round(delay + jitter);
 }
 
+/**
+ * Build the tooltip text for the mascot pill/canvas.
+ * Extracted for testability — pure function, no DOM access.
+ *
+ * @param {object} params
+ * @param {string} params.displayMode - Current display mode label
+ * @param {number} params.durationSec - How long in current mode (seconds)
+ * @param {string} [params.lastErrorMessage] - Error message (if in error mode)
+ * @param {boolean} [params.isClickThrough] - Ghost mode active
+ * @param {number|null} [params.connectedSince] - Timestamp of gateway connection
+ * @param {string} [params.connectedUrl] - Gateway URL
+ * @param {number} [params.reconnectAttempt] - Current reconnect attempt
+ * @param {number} [params.pluginToolCalls] - Plugin tool call count
+ * @param {number} [params.pluginToolErrors] - Plugin tool error count
+ * @param {string} [params.appVersion] - App version string
+ * @param {string} [params.pluginVersion] - Plugin version string
+ * @returns {string}
+ */
+export function buildTooltip(params) {
+  const {
+    displayMode,
+    durationSec,
+    lastErrorMessage,
+    isClickThrough,
+    connectedSince,
+    connectedUrl,
+    reconnectAttempt = 0,
+    pluginToolCalls = 0,
+    pluginToolErrors = 0,
+    appVersion,
+    pluginVersion,
+  } = params;
+
+  let tip = `${displayMode} for ${formatDuration(durationSec)}`;
+  if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
+  if (isClickThrough) tip += ' (ghost mode active)';
+  if (connectedSince) {
+    const uptime = formatDuration(Math.max(0, Math.round((Date.now() - connectedSince) / 1000)));
+    tip += ` · connected ${uptime}`;
+  }
+  if (connectedUrl) tip += ` · ${connectedUrl}`;
+  if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
+  if (pluginToolCalls > 0) {
+    tip += ` · ${pluginToolCalls} calls`;
+    if (pluginToolErrors > 0) tip += `, ${pluginToolErrors} errors`;
+  }
+  const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
+  if (verParts) tip += ` (${verParts})`;
+  return tip;
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';
