@@ -73,6 +73,8 @@ export class GatewayClient {
     this.lastCloseCode = null;
     /** @type {string|null} WebSocket close reason from the last disconnect */
     this.lastCloseReason = null;
+    /** Total successful handshakes since client creation (diagnoses flappy connections). */
+    this.sessionConnectCount = 0;
 
     // Stale connection detection
     this._lastMessageAt = 0;
@@ -279,6 +281,7 @@ export class GatewayClient {
       // Handshake success
       if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
         this._reconnectAttempt = 0;
+        this.sessionConnectCount += 1;
         this.connectedSince = Date.now();
         this.connectedUrl = cfg.url || '';
         this._startStaleCheck();

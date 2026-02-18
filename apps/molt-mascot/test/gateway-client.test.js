@@ -472,6 +472,30 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("tracks sessionConnectCount across multiple handshakes", () => {
+    const client = new GatewayClient();
+    expect(client.sessionConnectCount).toBe(0);
+
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    expect(client.sessionConnectCount).toBe(1);
+
+    // Force reconnect and handshake again
+    client.forceReconnect({ url: "ws://localhost:18789" });
+    const ws2 = MockWebSocket._last;
+    ws2._emit("open", {});
+    const connectId2 = ws2._sent[0].id;
+    ws2._emitMessage({ type: "res", id: connectId2, payload: { type: "hello-ok" } });
+
+    expect(client.sessionConnectCount).toBe(2);
+
+    client.destroy();
+  });
+
   it("fires onError when WebSocket emits error", () => {
     const client = new GatewayClient();
     let errorMsg = "";
