@@ -155,6 +155,12 @@ describe("utils", () => {
     expect(cleanErrorString("/Users/foo/bar.js:42:10: TypeError: Cannot read properties")).toBe("Cannot read properties");
     expect(cleanErrorString("/app/src/index.ts:100: Error: connection failed")).toBe("connection failed");
     expect(cleanErrorString("C:\\Users\\dev\\app.js:15:3: RangeError: out of bounds")).toBe("out of bounds");
+    // file:// URL prefixes
+    expect(cleanErrorString("file:///Users/foo/bar.js:42:10: TypeError: oops")).toBe("oops");
+    // Trailing " at <path>:<line>:<col>" suffixes from flattened stack traces
+    expect(cleanErrorString("Cannot find module 'foo' at /app/index.js:10:5")).toBe("Cannot find module 'foo'");
+    expect(cleanErrorString("ENOENT at /app/src/main.ts:42")).toBe("ENOENT");
+    expect(cleanErrorString("Missing key at Object.<anonymous> (/app/index.js:10:5)")).toBe("Missing key");
   });
 
   it("summarizeToolResultMessage", () => {

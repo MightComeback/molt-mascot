@@ -393,8 +393,15 @@ export function cleanErrorString(s: string): string {
   // Strip leading file-path:line:col prefixes common in Node/Bun stack traces.
   // e.g. "/Users/foo/bar.js:42:10: TypeError: ..." → "TypeError: ..."
   // Also handles Windows paths: "C:\foo\bar.js:42: Error: ..." → "Error: ..."
+  // And file:// URLs: "file:///Users/foo/bar.js:42: Error: ..." → "Error: ..."
   str = str
-    .replace(/^(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "")
+    .replace(/^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "")
+    .trim();
+
+  // Strip trailing " at <path>:<line>:<col>" suffixes from flattened stack traces.
+  // e.g. "Cannot find module 'foo' at /app/index.js:10:5" → "Cannot find module 'foo'"
+  str = str
+    .replace(/\s+at\s+(?:[\w.<>\[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
     .trim();
 
   // Clean POSIX signal descriptions: strip the trailing signal number for brevity.
