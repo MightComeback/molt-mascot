@@ -471,6 +471,11 @@ app.whenReady().then(async () => {
     opacityIndex = savedPrefs.opacityIndex;
   }
 
+  // Track current renderer mode for tray tooltip/icon updates.
+  // Declared before rebuildTrayMenu() to avoid TDZ (temporal dead zone) errors
+  // since rebuildTrayMenu() reads this variable and is called immediately below.
+  let currentRendererMode = 'idle';
+
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
     tray.setToolTip(buildTrayTooltip({
@@ -600,7 +605,7 @@ app.whenReady().then(async () => {
   // Live mode updates from the renderer — used to enrich the tray tooltip
   // so hovering the system tray shows the current gateway state even when
   // the mascot window is hidden.
-  let currentRendererMode = 'idle';
+  // (currentRendererMode is declared above rebuildTrayMenu to avoid TDZ.)
 
   /**
    * Rebuild the tray icon with a status dot reflecting the current mode.
