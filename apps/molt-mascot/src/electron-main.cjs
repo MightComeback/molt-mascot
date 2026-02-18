@@ -493,6 +493,7 @@ app.whenReady().then(async () => {
       },
       {
         label: 'Copy Debug Info',
+        accelerator: 'CommandOrControl+Shift+I',
         click: actionCopyDebugInfo,
       },
       {
@@ -526,6 +527,7 @@ app.whenReady().then(async () => {
     register('CommandOrControl+Shift+O', actionCycleOpacity);
     register('CommandOrControl+Shift+C', actionForceReconnect);
     register('CommandOrControl+Shift+D', actionToggleDevTools);
+    register('CommandOrControl+Shift+I', actionCopyDebugInfo);
   } catch (err) {
     console.error('molt-mascot: failed to register shortcuts', err);
   }
@@ -546,6 +548,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
+  ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {

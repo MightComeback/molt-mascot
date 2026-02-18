@@ -1,6 +1,6 @@
 {
   "name": "@molt/mascot",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "private": true,
   "description": "A tiny always-on-top desktop mascot (pixel lobster) that reflects your local OpenClaw Gateway state.",
   "author": "Ivan Kuznetsov <kuznetsovivan496@gmail.com>",

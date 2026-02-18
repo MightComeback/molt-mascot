@@ -1088,11 +1088,16 @@ function showContextMenu(e) {
         showCopiedFeedback();
       }).catch(() => {});
     }},
-    { label: 'Copy Debug Info', action: () => {
-      const text = buildDebugInfo();
-      navigator.clipboard.writeText(text).then(() => {
+    { label: 'Copy Debug Info', hint: `${modKey}⇧I`, action: () => {
+      if (window.moltMascot?.copyDebugInfo) {
+        window.moltMascot.copyDebugInfo();
         showCopiedFeedback();
-      }).catch(() => {});
+      } else {
+        const text = buildDebugInfo();
+        navigator.clipboard.writeText(text).then(() => {
+          showCopiedFeedback();
+        }).catch(() => {});
+      }
     }},
     { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}⇧C`, action: forceReconnectNow },
     { label: 'Change Gateway…', action: () => {
