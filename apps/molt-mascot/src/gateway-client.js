@@ -426,6 +426,20 @@ export class GatewayClient {
     return this.hasPlugin ? PLUGIN_RESET_METHODS[this._pluginResetMethodIndex] : null;
   }
 
+  /** Raw WebSocket readyState (0-3) or null if no socket exists. */
+  get wsReadyState() {
+    return this._ws?.readyState ?? null;
+  }
+
+  /**
+   * Connection uptime in seconds, or null if not connected.
+   * Avoids repeated `Math.round((Date.now() - connectedSince) / 1000)` in consumers.
+   */
+  get uptimeSeconds() {
+    if (this.connectedSince === null) return null;
+    return Math.max(0, Math.round((Date.now() - this.connectedSince) / 1000));
+  }
+
   /**
    * Tear down all timers and close the socket.
    */

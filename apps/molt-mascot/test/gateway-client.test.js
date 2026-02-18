@@ -667,4 +667,60 @@ describe("GatewayClient", () => {
 
     client.destroy();
   });
+
+  it("wsReadyState returns null when no socket exists", () => {
+    const client = new GatewayClient();
+    expect(client.wsReadyState).toBeNull();
+    client.destroy();
+  });
+
+  it("wsReadyState reflects the underlying socket state", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    expect(client.wsReadyState).toBe(MockWebSocket.OPEN);
+    ws.readyState = MockWebSocket.CLOSED;
+    expect(client.wsReadyState).toBe(MockWebSocket.CLOSED);
+    client.destroy();
+  });
+
+  it("wsReadyState returns null after destroy", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+    client.destroy();
+    expect(client.wsReadyState).toBeNull();
+  });
+
+  it("uptimeSeconds returns null when not connected", () => {
+    const client = new GatewayClient();
+    expect(client.uptimeSeconds).toBeNull();
+    client.destroy();
+  });
+
+  it("uptimeSeconds returns seconds since connection", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // connectedSince is set to Date.now() on handshake success
+    expect(client.uptimeSeconds).toBeGreaterThanOrEqual(0);
+    expect(client.uptimeSeconds).toBeLessThanOrEqual(1);
+    client.destroy();
+  });
+
+  it("uptimeSeconds returns null after disconnect", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+    expect(client.uptimeSeconds).not.toBeNull();
+
+    client.destroy();
+    expect(client.uptimeSeconds).toBeNull();
+  });
 });
