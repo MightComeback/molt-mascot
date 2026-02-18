@@ -128,6 +128,7 @@ function showSetup(prefill) {
 }
 
 import { drawLobster as _drawLobster, createBlinkState } from './draw.js';
+import { createPluginSync } from './plugin-sync.js';
 
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
 const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -174,17 +175,52 @@ let lastErrorMessage = '';
 const envClickThrough = window.moltMascot?.env?.clickThrough;
 isClickThrough = isTruthyEnv(envClickThrough);
 
-let lastPluginClickThrough = null;
+// Track alignment from IPC (keyboard shortcut cycling) — separate from plugin sync.
 let lastPluginAlignment = null;
-let lastPluginHideText = null;
-let lastPluginOpacity = null;
-let lastPluginPadding = null;
-let lastPluginSize = null;
 let currentSizeLabel = 'medium';
 let pluginVersion = '';
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 let pluginStartedAt = null;
+
+// Centralized plugin state synchronizer (change-detection + dispatch).
+const _pluginSync = createPluginSync({
+  onClickThrough(v) {
+    if (window.moltMascot?.setClickThrough) {
+      isClickThrough = v;
+      window.moltMascot.setClickThrough(v);
+      syncPill();
+    }
+  },
+  onAlignment(v) {
+    lastPluginAlignment = v;
+    if (window.moltMascot?.setAlignment) window.moltMascot.setAlignment(v);
+  },
+  onOpacity(v) {
+    if (window.moltMascot?.setOpacity) {
+      currentOpacity = v;
+      window.moltMascot.setOpacity(v);
+    }
+  },
+  onPadding(v) {
+    if (window.moltMascot?.setPadding) window.moltMascot.setPadding(v);
+  },
+  onSize(v) {
+    if (window.moltMascot?.setSize) {
+      currentSizeLabel = v;
+      window.moltMascot.setSize(v);
+    }
+  },
+  onHideText(v) {
+    isTextHidden = v;
+    updateHudVisibility();
+    if (window.moltMascot?.setHideText) window.moltMascot.setHideText(v);
+  },
+  onVersion(v) { pluginVersion = v; },
+  onToolCalls(v) { pluginToolCalls = v; },
+  onToolErrors(v) { pluginToolErrors = v; },
+  onStartedAt(v) { pluginStartedAt = v; },
+});
 
 // Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
 let copiedUntil = 0;
@@ -611,85 +647,8 @@ function connect(cfg) {
         if (currentMode === Mode.tool) syncPill();
       }
 
-      // Sync clickThrough from plugin config/state
-      if (typeof msg.payload.state.clickThrough === 'boolean') {
-        const nextClickThrough = msg.payload.state.clickThrough;
-        // Only apply if the server value actually changed (local overrides static config)
-        if (nextClickThrough !== lastPluginClickThrough && window.moltMascot?.setClickThrough) {
-          lastPluginClickThrough = nextClickThrough;
-          isClickThrough = nextClickThrough;
-          window.moltMascot.setClickThrough(nextClickThrough);
-          syncPill();
-        }
-      }
-
-      // Sync alignment
-      if (typeof msg.payload.state.alignment === 'string' && msg.payload.state.alignment) {
-        const nextAlign = msg.payload.state.alignment;
-        if (nextAlign !== lastPluginAlignment && window.moltMascot?.setAlignment) {
-          lastPluginAlignment = nextAlign;
-          window.moltMascot.setAlignment(nextAlign);
-        }
-      }
-
-      // Sync opacity
-      if (typeof msg.payload.state.opacity === 'number') {
-        const nextOpacity = msg.payload.state.opacity;
-        if (nextOpacity !== lastPluginOpacity && window.moltMascot?.setOpacity) {
-          lastPluginOpacity = nextOpacity;
-          currentOpacity = nextOpacity;
-          window.moltMascot.setOpacity(nextOpacity);
-        }
-      }
-
-      // Sync padding (affects window position)
-      if (typeof msg.payload.state.padding === 'number') {
-        const nextPadding = msg.payload.state.padding;
-        if (nextPadding !== lastPluginPadding && window.moltMascot?.setPadding) {
-          lastPluginPadding = nextPadding;
-          window.moltMascot.setPadding(nextPadding);
-        }
-      }
-
-      // Sync size
-      if (typeof msg.payload.state.size === 'string' && msg.payload.state.size) {
-        const nextSize = msg.payload.state.size;
-        if (nextSize !== lastPluginSize && window.moltMascot?.setSize) {
-          lastPluginSize = nextSize;
-          currentSizeLabel = nextSize;
-          window.moltMascot.setSize(nextSize);
-        }
-      }
-
-      // Sync plugin version (static metadata for tooltip/debugging)
-      if (typeof msg.payload.state.version === 'string' && msg.payload.state.version) {
-        pluginVersion = msg.payload.state.version;
-      }
-
-      // Sync activity counters for tooltip display
-      if (typeof msg.payload.state.toolCalls === 'number') {
-        pluginToolCalls = msg.payload.state.toolCalls;
-      }
-      if (typeof msg.payload.state.toolErrors === 'number') {
-        pluginToolErrors = msg.payload.state.toolErrors;
-      }
-      if (typeof msg.payload.state.startedAt === 'number') {
-        pluginStartedAt = msg.payload.state.startedAt;
-      }
-
-      // Sync hideText
-      if (typeof msg.payload.state.hideText === 'boolean') {
-        const nextHideText = msg.payload.state.hideText;
-        if (nextHideText !== lastPluginHideText) {
-          lastPluginHideText = nextHideText;
-          isTextHidden = nextHideText;
-          updateHudVisibility();
-          // Notify main process so the keyboard toggle stays in sync
-          if (window.moltMascot?.setHideText) {
-            window.moltMascot.setHideText(nextHideText);
-          }
-        }
-      }
+      // Sync all plugin config properties via centralized change-detection.
+      _pluginSync.sync(msg.payload.state);
 
       const nextErr = msg.payload?.state?.lastError?.message;
       if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
@@ -771,13 +730,7 @@ function connect(cfg) {
     // Reset cached plugin state so re-syncing works after reconnect.
     // Without this, change-detection guards suppress identical values
     // from a fresh plugin handshake, leaving stale local config.
-    lastPluginClickThrough = null;
-    lastPluginAlignment = null;
-    lastPluginHideText = null;
-    lastPluginOpacity = null;
-    lastPluginPadding = null;
-    lastPluginSize = null;
-    pluginStartedAt = null;
+    _pluginSync.reset();
     stopStaleCheck();
     // Surface close code for debugging (1006 = abnormal, 1000 = normal, etc.)
     const closeCode = ev?.code;
