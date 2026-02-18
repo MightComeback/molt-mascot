@@ -1007,6 +1007,9 @@ function forceReconnectNow() {
     try { ws.close(); } catch {}
     ws = null;
   }
+  // Record disconnect timestamp before resetting (onclose is nulled above,
+  // so the normal ws.onclose path won't fire to set this).
+  lastDisconnectedAt = Date.now();
   // Reset all connection state so change-detection works correctly after reconnect.
   resetConnectionState();
   const cfg = loadCfg();
