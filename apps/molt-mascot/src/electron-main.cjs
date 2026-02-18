@@ -30,7 +30,14 @@ function savePrefs(patch) {
     // doesn't corrupt the preferences file.
     const tmp = path.join(dir, `.preferences.${process.pid}.tmp`);
     fs.writeFileSync(tmp, JSON.stringify(merged, null, 2));
-    fs.renameSync(tmp, PREFS_FILE);
+    try {
+      fs.renameSync(tmp, PREFS_FILE);
+    } catch {
+      // On Windows, renameSync can fail with EPERM/EACCES when overwriting.
+      // Fall back to copy + unlink which is less atomic but more portable.
+      fs.copyFileSync(tmp, PREFS_FILE);
+      try { fs.unlinkSync(tmp); } catch {}
+    }
   } catch {
     // Best-effort; don't crash if disk is full or permissions are wrong.
   }
