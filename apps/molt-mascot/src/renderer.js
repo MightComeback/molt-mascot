@@ -1,5 +1,6 @@
 import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel, getFrameIntervalMs as _getFrameIntervalMs } from './utils.js';
 import * as ctxMenu from './context-menu.js';
+import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -1055,75 +1056,43 @@ pill.addEventListener('keydown', (e) => {
 
 /**
  * Build a multi-line debug info string for diagnostics.
- * Extracted so it can be tested and reused (context menu, IPC export, etc.).
+ * Delegates to the extracted debug-info module, passing current renderer state.
  */
 function buildDebugInfo() {
-  const lines = [];
-  const appVer = window.moltMascot?.version ? `v${window.moltMascot.version}` : 'dev';
-  lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
-  lines.push(`Mode: ${currentMode}`);
-  const dur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  lines.push(`Mode duration: ${formatDuration(dur)}`);
-  if (connectedSince) {
-    const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-    lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
-    lines.push(`Gateway: ${connectedUrl}`);
-    lines.push(`WebSocket: ${wsReadyStateLabel(ws?.readyState)}`);
-  } else {
-    if (lastDisconnectedAt) {
-      const disconnectedAgo = formatDuration(Math.max(0, Math.round((Date.now() - lastDisconnectedAt) / 1000)));
-      lines.push(`Gateway: disconnected ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
-    } else {
-      lines.push(`Gateway: disconnected`);
-    }
-    const wsState = wsReadyStateLabel(ws?.readyState);
-    lines.push(`WebSocket: ${wsState}`);
-    if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
-    // Show saved config URL when disconnected for easier debugging
-    const savedCfg = loadCfg();
-    if (savedCfg?.url) lines.push(`Saved URL: ${savedCfg.url}`);
-  }
-  lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
-  if (hasPlugin) {
-    lines.push(`Plugin method: ${pluginStateMethod}`);
-    if (pluginStartedAt) {
-      const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
-      lines.push(`Plugin uptime: ${formatDuration(pluginUp)} (since ${new Date(pluginStartedAt).toISOString()})`);
-    }
-  }
-  if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
-  if (currentTool) lines.push(`Current tool: ${currentTool}`);
-  if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
-  lines.push(`Alignment: ${lastPluginAlignment || 'bottom-right'}`);
-  lines.push(`Size: ${currentSizeLabel}, Opacity: ${Math.round(currentOpacity * 100)}%`);
-  lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
-  lines.push(`Sleep threshold: ${SLEEP_THRESHOLD_S}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
-  lines.push(`Reduced motion: ${reducedMotion}`);
-  const fpsInterval = getFrameIntervalMs();
-  const fpsLabel = fpsInterval === 0 ? '~60fps' : `~${Math.round(1000 / fpsInterval)}fps`;
-  lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
-  lines.push(`Platform: ${navigator.platform || 'unknown'}`);
-  const dpr = window.devicePixelRatio ?? 1;
-  lines.push(`Display scale: ${dpr}x (canvas scale: ${currentScale})`);
-  // Memory usage (Chrome/Electron only — useful for diagnosing leaks in long-running sessions)
-  const mem = performance?.memory;
-  if (mem && typeof mem.usedJSHeapSize === 'number') {
-    const used = (mem.usedJSHeapSize / 1048576).toFixed(1);
-    const total = (mem.totalJSHeapSize / 1048576).toFixed(1);
-    const limit = (mem.jsHeapSizeLimit / 1048576).toFixed(0);
-    lines.push(`Memory: ${used}MB used / ${total}MB total (limit ${limit}MB)`);
-  }
-
-  // Include Electron/Chrome/Node versions for bug reports
-  // Use preload-exposed versions (process.versions is unavailable in isolated renderer)
-  const versions = window.moltMascot?.versions || {};
-  const runtimeParts = [
-    versions.electron ? `Electron ${versions.electron}` : null,
-    versions.chrome ? `Chrome ${versions.chrome}` : null,
-    versions.node ? `Node ${versions.node}` : null,
-  ].filter(Boolean);
-  if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
-  return lines.join('\n');
+  return _buildDebugInfo({
+    currentMode,
+    modeSince,
+    connectedSince,
+    connectedUrl,
+    lastDisconnectedAt,
+    hasPlugin,
+    pluginStateMethod,
+    pluginStartedAt,
+    pluginToolCalls,
+    pluginToolErrors,
+    currentTool,
+    lastErrorMessage,
+    alignmentLabel: lastPluginAlignment,
+    sizeLabel: currentSizeLabel,
+    opacity: currentOpacity,
+    isClickThrough,
+    isTextHidden,
+    sleepThresholdS: SLEEP_THRESHOLD_S,
+    idleDelayMs,
+    errorHoldMs,
+    reducedMotion,
+    frameIntervalMs: getFrameIntervalMs(),
+    reconnectAttempt,
+    canvasScale: currentScale,
+    appVersion: window.moltMascot?.version,
+    pluginVersion,
+    wsReadyState: ws?.readyState,
+    savedUrl: !connectedSince ? loadCfg()?.url : undefined,
+    platform: navigator.platform,
+    devicePixelRatio: window.devicePixelRatio,
+    memory: performance?.memory,
+    versions: window.moltMascot?.versions,
+  });
 }
 
 // Expose for testing
