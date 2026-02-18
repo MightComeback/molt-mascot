@@ -1064,7 +1064,7 @@ function buildDebugInfo() {
   lines.push(`Mode duration: ${formatDuration(dur)}`);
   if (connectedSince) {
     const up = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-    lines.push(`Uptime: ${formatDuration(up)}`);
+    lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
     lines.push(`Gateway: ${connectedUrl}`);
     const wsState = ws ? ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][ws.readyState] || ws.readyState : 'null';
     lines.push(`WebSocket: ${wsState}`);
@@ -1077,7 +1077,7 @@ function buildDebugInfo() {
     lines.push(`Plugin method: ${pluginStateMethod}`);
     if (pluginStartedAt) {
       const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
-      lines.push(`Plugin uptime: ${formatDuration(pluginUp)}`);
+      lines.push(`Plugin uptime: ${formatDuration(pluginUp)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
   }
   if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
