@@ -46,6 +46,32 @@ export function wsReadyStateLabel(readyState) {
   return WS_STATE_LABELS[readyState] ?? String(readyState);
 }
 
+/**
+ * Compute the render loop frame interval (ms) based on current mode and idle duration.
+ * Higher intervals = lower FPS = less CPU.
+ *
+ * Returns 0 for active modes (full rAF rate, ~60fps).
+ *
+ * @param {string} mode - Current mascot mode (idle, thinking, tool, error, etc.)
+ * @param {number} idleDurationMs - How long the mascot has been idle (0 if not idle)
+ * @param {number} sleepThresholdMs - Idle duration before entering sleep (ZZZ overlay)
+ * @param {boolean} reducedMotion - Whether prefers-reduced-motion is active
+ * @returns {number} Frame interval in milliseconds (0 = no throttle)
+ */
+export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reducedMotion) {
+  if (reducedMotion) {
+    if (mode === 'idle') {
+      return idleDurationMs > sleepThresholdMs ? 2000 : 1000;
+    }
+    return 500;
+  }
+  if (mode === 'idle') {
+    return idleDurationMs > sleepThresholdMs ? 250 : 66;
+  }
+  if (mode === 'disconnected' || mode === 'error') return 100;
+  return 0;
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';

@@ -7,6 +7,7 @@ import {
   formatDuration,
   isTruthyEnv,
   wsReadyStateLabel,
+  getFrameIntervalMs,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -219,5 +220,43 @@ describe("wsReadyStateLabel", () => {
 
   it("returns stringified value for unknown states", () => {
     expect(wsReadyStateLabel(99)).toBe("99");
+  });
+});
+
+describe("getFrameIntervalMs", () => {
+  const SLEEP_MS = 120000;
+
+  it("returns 0 (full fps) for active modes", () => {
+    expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, false)).toBe(0);
+    expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(0);
+    expect(getFrameIntervalMs("connecting", 0, SLEEP_MS, false)).toBe(0);
+    expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(0);
+  });
+
+  it("returns ~15fps (66ms) for idle below sleep threshold", () => {
+    expect(getFrameIntervalMs("idle", 5000, SLEEP_MS, false)).toBe(66);
+  });
+
+  it("returns ~4fps (250ms) for idle above sleep threshold", () => {
+    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, false)).toBe(250);
+  });
+
+  it("returns 100ms (~10fps) for disconnected and error modes", () => {
+    expect(getFrameIntervalMs("disconnected", 0, SLEEP_MS, false)).toBe(100);
+    expect(getFrameIntervalMs("error", 0, SLEEP_MS, false)).toBe(100);
+  });
+
+  it("throttles harder with reduced motion", () => {
+    // Active modes: 500ms (~2fps)
+    expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, true)).toBe(500);
+    // Idle: 1000ms (~1fps)
+    expect(getFrameIntervalMs("idle", 5000, SLEEP_MS, true)).toBe(1000);
+    // Sleeping: 2000ms (~0.5fps)
+    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, true)).toBe(2000);
+  });
+
+  it("treats exact sleep threshold as not sleeping", () => {
+    // idleDurationMs must be > sleepThresholdMs to sleep
+    expect(getFrameIntervalMs("idle", SLEEP_MS, SLEEP_MS, false)).toBe(66);
   });
 });

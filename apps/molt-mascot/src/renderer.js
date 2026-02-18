@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel, getFrameIntervalMs as _getFrameIntervalMs } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 
 const pill = document.getElementById('pill');
@@ -1281,27 +1281,10 @@ let animFrameId = null;
 let lastFrameAt = 0;
 
 // Throttle frame rate when idle/sleeping to save CPU.
-// Active modes (thinking, tool, connecting, connected) run at full 60fps for smooth animation.
-// Idle mode runs at ~15fps (enough for gentle bobbing), sleeping at ~4fps (minimal ZZZ animation).
-// When prefers-reduced-motion is active, all animations are static so we throttle harder
-// across the board — the sprite never bobs/blinks, only pill text changes matter.
+// Delegates to the pure utility function for testability.
 function getFrameIntervalMs() {
-  if (reducedMotion) {
-    // No bobbing/blinking, so we only need to update pill text (~1s granularity).
-    // Use ~2fps for active modes (snappy pill updates) and ~1fps for idle/sleeping.
-    if (currentMode === Mode.idle) {
-      const idleDur = Date.now() - modeSince;
-      return idleDur > SLEEP_THRESHOLD_MS ? 2000 : 1000;
-    }
-    return 500; // active modes with reduced motion: ~2fps
-  }
-  if (currentMode === Mode.idle) {
-    const idleDur = Date.now() - modeSince;
-    return idleDur > SLEEP_THRESHOLD_MS ? 250 : 66; // sleeping: ~4fps, idle: ~15fps
-  }
-  // Disconnected / error: gentle animation only, ~10fps saves CPU
-  if (currentMode === Mode.disconnected || currentMode === Mode.error) return 100;
-  return 0; // active modes: no throttle (full rAF rate)
+  const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
+  return _getFrameIntervalMs(currentMode, idleDur, SLEEP_THRESHOLD_MS, reducedMotion);
 }
 
 function frame(t) {
