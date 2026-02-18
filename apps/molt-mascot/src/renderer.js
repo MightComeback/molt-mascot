@@ -1094,6 +1094,15 @@ function buildDebugInfo() {
   lines.push(`Platform: ${navigator.platform || 'unknown'}`);
   const dpr = window.devicePixelRatio ?? 1;
   lines.push(`Display scale: ${dpr}x (canvas scale: ${currentScale})`);
+  // Memory usage (Chrome/Electron only — useful for diagnosing leaks in long-running sessions)
+  const mem = performance?.memory;
+  if (mem && typeof mem.usedJSHeapSize === 'number') {
+    const used = (mem.usedJSHeapSize / 1048576).toFixed(1);
+    const total = (mem.totalJSHeapSize / 1048576).toFixed(1);
+    const limit = (mem.jsHeapSizeLimit / 1048576).toFixed(0);
+    lines.push(`Memory: ${used}MB used / ${total}MB total (limit ${limit}MB)`);
+  }
+
   // Include Electron/Chrome/Node versions for bug reports
   // Use preload-exposed versions (process.versions is unavailable in isolated renderer)
   const versions = window.moltMascot?.versions || {};
