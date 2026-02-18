@@ -83,6 +83,8 @@ bun run mascot
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard
+- **Double-click lobster**: Toggles ghost mode (click-through)
+- **Mouse wheel on lobster**: Adjusts opacity in 10% steps (scroll up = more opaque, down = more transparent)
 
 ### Keyboard shortcuts summary
 
@@ -100,6 +102,16 @@ bun run mascot
 | Cmd/Ctrl+Shift+I | Copy debug info to clipboard |
 | Cmd/Ctrl+Shift+D | Toggle DevTools |
 | Cmd/Ctrl+Alt+Q | Quit application |
+
+### Mouse interactions
+
+| Interaction | Action |
+|---|---|
+| Double-click pill | Copy status text to clipboard |
+| Double-click lobster | Toggle ghost mode (click-through) |
+| Mouse wheel on lobster | Adjust opacity ±10% |
+| Right-click pill or lobster | Open context menu |
+| Drag window | Reposition (overrides alignment until Snap) |
 
 ## Project Structure
 
