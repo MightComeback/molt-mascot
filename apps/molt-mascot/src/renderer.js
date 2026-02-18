@@ -1087,6 +1087,7 @@ function buildDebugInfo() {
     errorHoldMs,
     reducedMotion,
     frameIntervalMs: getFrameIntervalMs(),
+    actualFps: _actualFps,
     reconnectAttempt,
     canvasScale: currentScale,
     canvasWidth: canvas.width,
@@ -1261,6 +1262,21 @@ let lastPillMin = -1;
 let animFrameId = null;
 let lastFrameAt = 0;
 
+// Actual FPS measurement: track frame timestamps over a rolling 1-second window.
+// Exposed via __moltMascotActualFps for debug info without adding overhead to the hot path.
+const _frameTimes = [];
+let _actualFps = 0;
+
+function _updateActualFps(t) {
+  _frameTimes.push(t);
+  // Trim timestamps older than 1 second
+  const cutoff = t - 1000;
+  while (_frameTimes.length > 0 && _frameTimes[0] < cutoff) _frameTimes.shift();
+  _actualFps = _frameTimes.length;
+}
+
+window.__moltMascotActualFps = () => _actualFps;
+
 // Throttle frame rate when idle/sleeping to save CPU.
 // Delegates to the pure utility function for testability.
 function getFrameIntervalMs() {
@@ -1275,6 +1291,7 @@ function frame(t) {
     return;
   }
   lastFrameAt = t;
+  _updateActualFps(t);
 
   const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
   const isSleeping = currentMode === Mode.idle && idleDur > SLEEP_THRESHOLD_MS;

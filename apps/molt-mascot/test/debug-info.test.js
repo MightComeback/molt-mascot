@@ -160,6 +160,17 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Frame rate: ~4fps");
   });
 
+  it("shows actual FPS when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, actualFps: 12 });
+    expect(info).toContain("Frame rate: ~15fps, actual 12fps");
+  });
+
+  it("omits actual FPS when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66 });
+    expect(info).toContain("Frame rate: ~15fps");
+    expect(info).not.toContain("actual");
+  });
+
   it("shows reduced motion suffix", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, reducedMotion: true, frameIntervalMs: 500 });
     expect(info).toContain("(reduced)");

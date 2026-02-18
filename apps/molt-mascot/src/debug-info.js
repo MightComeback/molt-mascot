@@ -25,6 +25,7 @@
  * @param {number} params.errorHoldMs - Error hold in ms
  * @param {boolean} params.reducedMotion - Prefers-reduced-motion
  * @param {number} params.frameIntervalMs - Current frame interval (0 = ~60fps)
+ * @param {number} [params.actualFps] - Measured frames per second (rolling 1s window)
  * @param {number} params.reconnectAttempt - Current reconnect attempt
  * @param {number} params.canvasScale - Pixel scale factor for canvas
  * @param {string} [params.appVersion] - App version string
@@ -82,6 +83,7 @@ export function buildDebugInfo(params) {
     errorHoldMs,
     reducedMotion,
     frameIntervalMs,
+    actualFps,
     reconnectAttempt,
     canvasScale,
     appVersion,
@@ -148,7 +150,8 @@ export function buildDebugInfo(params) {
   lines.push(`Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
   lines.push(`Reduced motion: ${reducedMotion}`);
   const fpsLabel = frameIntervalMs === 0 ? '~60fps' : `~${Math.round(1000 / frameIntervalMs)}fps`;
-  lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
+  const actualFpsLabel = typeof actualFps === 'number' ? `, actual ${actualFps}fps` : '';
+  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${platform || 'unknown'}`);
   const dpr = devicePixelRatio ?? 1;
   const canvasDims = (typeof canvasWidth === 'number' && typeof canvasHeight === 'number')
