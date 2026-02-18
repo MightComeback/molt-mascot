@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -1140,8 +1140,7 @@ function showContextMenu(e) {
   const statusParts = [modeLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
   if (connectedSince) {
-    const upSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-    statusParts.push(`↑ ${formatDuration(upSec)}`);
+    statusParts.push(`↑ ${formatElapsed(connectedSince, Date.now())}`);
   }
   if (!connectedSince && reconnectAttempt > 0) {
     statusParts.push(`retry #${reconnectAttempt}`);
