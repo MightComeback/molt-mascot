@@ -110,6 +110,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.opacity] - Current window opacity (0-1)
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
+ * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
 export function buildTooltip(params) {
@@ -128,14 +129,17 @@ export function buildTooltip(params) {
     opacity,
     appVersion,
     pluginVersion,
+    now: nowOverride,
   } = params;
+
+  const now = nowOverride ?? Date.now();
 
   let tip = `${displayMode} for ${formatDuration(durationSec)}`;
   if (displayMode === 'tool' && currentTool) tip += ` (${currentTool})`;
   if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
   if (isClickThrough) tip += ' (ghost mode active)';
   if (connectedSince) {
-    const uptime = formatDuration(Math.max(0, Math.round((Date.now() - connectedSince) / 1000)));
+    const uptime = formatDuration(Math.max(0, Math.round((now - connectedSince) / 1000)));
     tip += ` · connected ${uptime}`;
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;

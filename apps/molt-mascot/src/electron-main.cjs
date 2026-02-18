@@ -197,7 +197,7 @@ app.whenReady().then(async () => {
   app.setAboutPanelOptions({
     applicationName: 'Molt Mascot',
     applicationVersion: APP_VERSION,
-    copyright: '© 2025 MightComeback',
+    copyright: `© 2025–${new Date().getFullYear()} MightComeback`,
     website: 'https://github.com/MightComeback/molt-mascot',
   });
 
