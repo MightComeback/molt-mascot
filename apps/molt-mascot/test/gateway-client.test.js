@@ -802,3 +802,66 @@ describe("normalizeWsUrl", () => {
     expect(normalizeWsUrl("127.0.0.1:18789")).toBe("127.0.0.1:18789");
   });
 });
+
+describe("pausePolling / resumePolling", () => {
+  let origWS;
+  beforeEach(() => { origWS = globalThis.WebSocket; globalThis.WebSocket = MockWebSocket; });
+  afterEach(() => { globalThis.WebSocket = origWS; });
+
+  function connectAndHandshake(client) {
+    client.connect({ url: "ws://localhost:18789", token: "t" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+    return ws;
+  }
+
+  function activatePlugin(ws) {
+    const stateReqId = ws._sent.find(m => m.method?.includes("state"))?.id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle" } },
+    });
+  }
+
+  it("pauses polling so the pause flag is set", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    client.pausePolling();
+    expect(client._pollingPaused).toBe(true);
+
+    client.destroy();
+  });
+
+  it("resumePolling sends an immediate refresh and clears the pause flag", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    client.pausePolling();
+    expect(client._pollingPaused).toBe(true);
+
+    const countBefore = ws._sent.length;
+    client.resumePolling();
+    expect(client._pollingPaused).toBe(false);
+    // Should have sent an immediate refresh
+    expect(ws._sent.length).toBe(countBefore + 1);
+
+    client.destroy();
+  });
+
+  it("resumePolling is a no-op when not paused", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    const countBefore = ws._sent.length;
+    client.resumePolling(); // not paused, should be no-op
+    expect(ws._sent.length).toBe(countBefore);
+
+    client.destroy();
+  });
+});

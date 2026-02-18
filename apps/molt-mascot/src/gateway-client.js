@@ -87,6 +87,10 @@ export class GatewayClient {
     this._lastMessageAt = 0;
     this._staleCheckTimer = null;
 
+    // Visibility-aware polling: when paused, the plugin poller skips ticks
+    // to save bandwidth (e.g. when the window is hidden/minimized).
+    this._pollingPaused = false;
+
     // Plugin state polling
     this.hasPlugin = false;
     this._pluginPollerStarted = false;
@@ -185,6 +189,9 @@ export class GatewayClient {
     this._pluginPollerStarted = true;
     if (this._pollInterval) clearInterval(this._pollInterval);
     this._pollInterval = setInterval(() => {
+      // Skip polling when paused (e.g. window hidden/minimized) to avoid
+      // unnecessary WebSocket traffic. The consumer resumes via resumePolling().
+      if (this._pollingPaused) return;
       this._sendPluginStateReq('p');
     }, this._pollIntervalMs);
   }
@@ -391,6 +398,29 @@ export class GatewayClient {
     ws.addEventListener('error', () => {
       this.onError?.('WebSocket error');
     });
+  }
+
+  /**
+   * Pause plugin state polling (e.g. when the window is hidden/minimized).
+   * The poller interval keeps ticking but skips sending requests.
+   * Call resumePolling() to resume; it also triggers an immediate refresh.
+   */
+  pausePolling() {
+    this._pollingPaused = true;
+  }
+
+  /**
+   * Resume plugin state polling after a pause.
+   * Triggers an immediate state refresh so the UI catches up instantly.
+   */
+  resumePolling() {
+    if (!this._pollingPaused) return;
+    this._pollingPaused = false;
+    // Reset rate-limit so the refresh isn't suppressed by the 150ms guard.
+    // While paused no requests were sent, so the cached timestamp is stale.
+    this._pluginStateLastSentAt = 0;
+    // Immediate refresh so the UI doesn't show stale data for up to 1s
+    if (this.hasPlugin) this._sendPluginStateReq('v');
   }
 
   /**
