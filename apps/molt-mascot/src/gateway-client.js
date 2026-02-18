@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs } from './utils.js';
 
 /** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'|'disconnected'} Mode */
 
@@ -112,13 +112,13 @@ export class GatewayClient {
   }
 
   _getReconnectDelay() {
-    const delay = Math.min(
-      this._reconnectBaseMs * Math.pow(2, this._reconnectAttempt),
-      this._reconnectMaxMs
-    );
-    const jitter = delay * 0.2 * Math.random();
+    const delay = getReconnectDelayMs(this._reconnectAttempt, {
+      baseMs: this._reconnectBaseMs,
+      maxMs: this._reconnectMaxMs,
+      jitterFraction: 0.2,
+    });
     this._reconnectAttempt++;
-    return Math.round(delay + jitter);
+    return delay;
   }
 
   _startStaleCheck() {
