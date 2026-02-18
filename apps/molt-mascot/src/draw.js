@@ -147,6 +147,21 @@ export function createBlinkState(opts = {}) {
 }
 
 /**
+ * Overlay animation timing: maps mode → { sprites, frameDurationMs }.
+ * Static overlays use a single-element array with frameDurationMs=0.
+ * Exported for testing and external tooling.
+ */
+export const OVERLAY_TIMING = {
+  thinking:     { sprites: overlay.thinking,     frameDurationMs: 600 },
+  tool:         { sprites: [overlay.tool],       frameDurationMs: 0   },
+  error:        { sprites: [overlay.error],      frameDurationMs: 0   },
+  sleep:        { sprites: overlay.sleep,        frameDurationMs: 800 },
+  connecting:   { sprites: overlay.connecting,   frameDurationMs: 500 },
+  connected:    { sprites: overlay.connected,    frameDurationMs: 300 },
+  disconnected: { sprites: overlay.disconnected, frameDurationMs: 700 },
+};
+
+/**
  * Draw the full lobster scene: shadow, sprite, blink, and mode overlay.
  *
  * @param {CanvasRenderingContext2D} ctx
@@ -203,21 +218,14 @@ export function drawLobster(ctx, params) {
     ctx.fillRect(EYE_RIGHT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
   }
 
-  // Overlays (simple icons) — attached to bob; modes are mutually exclusive
+  // Overlays (simple icons) — attached to bob; modes are mutually exclusive.
+  // Resolved via the declarative OVERLAY_TIMING map for maintainability.
   const overlayOpts = { x: 0, y: bobY - 2, scale: s };
-  if (mode === 'thinking') {
-    drawSprite(ctx, overlay.thinking[Math.floor(t / 600) % 2], overlayOpts);
-  } else if (mode === 'tool') {
-    drawSprite(ctx, overlay.tool, overlayOpts);
-  } else if (mode === 'error') {
-    drawSprite(ctx, overlay.error, overlayOpts);
-  } else if (mode === 'idle' && idleDurationMs > sleepThresholdMs) {
-    drawSprite(ctx, overlay.sleep[Math.floor(t / 800) % 2], overlayOpts);
-  } else if (mode === 'connecting') {
-    drawSprite(ctx, overlay.connecting[Math.floor(t / 500) % 2], overlayOpts);
-  } else if (mode === 'connected') {
-    drawSprite(ctx, overlay.connected[Math.floor(t / 300) % 2], overlayOpts);
-  } else if (mode === 'disconnected') {
-    drawSprite(ctx, overlay.disconnected[Math.floor(t / 700) % 2], overlayOpts);
+  const effectiveMode = (mode === 'idle' && idleDurationMs > sleepThresholdMs) ? 'sleep' : mode;
+  const timing = OVERLAY_TIMING[effectiveMode];
+  if (timing) {
+    const { sprites, frameDurationMs } = timing;
+    const frameIdx = frameDurationMs > 0 ? Math.floor(t / frameDurationMs) % sprites.length : 0;
+    drawSprite(ctx, sprites[frameIdx], overlayOpts);
   }
 }

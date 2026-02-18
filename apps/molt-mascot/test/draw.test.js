@@ -4,6 +4,7 @@ import {
   drawLobster,
   createBlinkState,
   _spriteCache,
+  OVERLAY_TIMING,
   EYE_LEFT_COL,
   EYE_RIGHT_COL,
   EYE_ROW,
@@ -308,6 +309,29 @@ describe("_spriteCache", () => {
     // Key invariant: cache never grows beyond 1 entry for a single sprite after scale change.
     expect(sizeAfter).toBeLessThanOrEqual(1);
     expect(sizeAfter).toBeLessThanOrEqual(sizeBefore + 1);
+  });
+});
+
+describe("OVERLAY_TIMING", () => {
+  it("has entries for all overlay modes", () => {
+    const expected = ["thinking", "tool", "error", "sleep", "connecting", "connected", "disconnected"];
+    for (const mode of expected) {
+      expect(OVERLAY_TIMING[mode]).toBeDefined();
+      expect(Array.isArray(OVERLAY_TIMING[mode].sprites)).toBe(true);
+      expect(OVERLAY_TIMING[mode].sprites.length).toBeGreaterThan(0);
+      expect(typeof OVERLAY_TIMING[mode].frameDurationMs).toBe("number");
+    }
+  });
+
+  it("static overlays (tool, error) have frameDurationMs=0", () => {
+    expect(OVERLAY_TIMING.tool.frameDurationMs).toBe(0);
+    expect(OVERLAY_TIMING.error.frameDurationMs).toBe(0);
+  });
+
+  it("animated overlays have positive frameDurationMs", () => {
+    for (const mode of ["thinking", "sleep", "connecting", "connected", "disconnected"]) {
+      expect(OVERLAY_TIMING[mode].frameDurationMs).toBeGreaterThan(0);
+    }
   });
 });
 
