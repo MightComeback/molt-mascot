@@ -249,20 +249,37 @@ describe("GatewayClient", () => {
     expect(ws.readyState).toBe(MockWebSocket.CLOSED);
   });
 
-  it("fires onDisconnect and schedules reconnect on close", () => {
+  it("fires onDisconnect with close info and schedules reconnect on close", () => {
     const client = new GatewayClient({ reconnectBaseMs: 50, reconnectMaxMs: 100 });
-    let disconnected = false;
+    let disconnectInfo = null;
     let countdownFired = false;
-    client.onDisconnect = () => { disconnected = true; };
+    client.onDisconnect = (info) => { disconnectInfo = info; };
     client.onReconnectCountdown = () => { countdownFired = true; };
     client.connect({ url: "ws://localhost:18789" });
 
     const ws = MockWebSocket._last;
-    // Trigger onclose
-    if (ws.onclose) ws.onclose();
+    // Trigger onclose with code and reason
+    if (ws.onclose) ws.onclose({ code: 1006, reason: "abnormal closure" });
 
-    expect(disconnected).toBe(true);
+    expect(disconnectInfo).not.toBeNull();
+    expect(disconnectInfo.code).toBe(1006);
+    expect(disconnectInfo.reason).toBe("abnormal closure");
     expect(countdownFired).toBe(true);
+
+    client.destroy();
+  });
+
+  it("onDisconnect omits empty reason", () => {
+    const client = new GatewayClient({ reconnectBaseMs: 50000 });
+    let disconnectInfo = null;
+    client.onDisconnect = (info) => { disconnectInfo = info; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    if (ws.onclose) ws.onclose({ code: 1000, reason: "" });
+
+    expect(disconnectInfo.code).toBe(1000);
+    expect(disconnectInfo.reason).toBeUndefined();
 
     client.destroy();
   });

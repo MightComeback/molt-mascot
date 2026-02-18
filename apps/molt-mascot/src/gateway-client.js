@@ -98,7 +98,7 @@ export class GatewayClient {
     this.onPluginState = null;
     /** @type {((msg: object) => void)|null} */
     this.onAgentEvent = null;
-    /** @type {(() => void)|null} */
+    /** @type {((info: { code?: number, reason?: string }) => void)|null} */
     this.onDisconnect = null;
     /** @type {((error: string) => void)|null} */
     this.onError = null;
@@ -320,7 +320,7 @@ export class GatewayClient {
       }
     });
 
-    ws.onclose = () => {
+    ws.onclose = (ev) => {
       this.hasPlugin = false;
       this._stopPluginPoller();
       this._pluginStatePending = false;
@@ -331,7 +331,7 @@ export class GatewayClient {
       this._stopStaleCheck();
 
       this.onPluginStateReset?.();
-      this.onDisconnect?.();
+      this.onDisconnect?.({ code: ev?.code, reason: (ev?.reason || '').trim() || undefined });
 
       const delay = this._getReconnectDelay();
       const reconnectAt = Date.now() + delay;
