@@ -484,6 +484,7 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.on('molt-mascot:quit', () => app.quit());
+  ipcMain.on('molt-mascot:show-about', () => app.showAboutPanel());
   ipcMain.on('molt-mascot:toggle-devtools', actionToggleDevTools);
   ipcMain.on('molt-mascot:cycle-alignment', actionCycleAlignment);
   ipcMain.on('molt-mascot:snap-to-position', actionSnapToPosition);

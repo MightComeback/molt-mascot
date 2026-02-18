@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   hide: () => ipcRenderer.send('molt-mascot:hide'),
   toggleDevTools: () => ipcRenderer.send('molt-mascot:toggle-devtools'),
   quit: () => ipcRenderer.send('molt-mascot:quit'),
+  showAbout: () => ipcRenderer.send('molt-mascot:show-about'),
   onClickThrough: (callback) => {
     const handler = (_event, enabled) => callback(enabled);
     ipcRenderer.on('molt-mascot:click-through', handler);

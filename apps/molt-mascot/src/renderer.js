@@ -1125,6 +1125,9 @@ function showContextMenu(e) {
       if (window.moltMascot?.hide) window.moltMascot.hide();
     }},
     { separator: true },
+    { label: 'About Molt Mascot', action: () => {
+      if (window.moltMascot?.showAbout) window.moltMascot.showAbout();
+    }},
     { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
       if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
     }},
