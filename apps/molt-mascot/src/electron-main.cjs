@@ -122,7 +122,25 @@ function getPosition(display, width, height, alignOverride, paddingOvr) {
   return _getPosition(display, width, height, resolvedAlign, resolvedPadding);
 }
 
-function createWindow({ capture = false, initWidth, initHeight } = {}) {
+/**
+ * Resolve the initial window opacity.
+ * Priority: env var > saved preference > 1.0 (fully opaque).
+ * Extracted so createWindow() applies the correct opacity on first paint,
+ * avoiding a visible flash from 100% → saved value.
+ */
+function _resolveInitialOpacity(savedOpacityIndex) {
+  const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
+  if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
+  // Fall back to saved preference (opacityCycle is defined later, but this function
+  // is only called after app.whenReady, so that's fine — we use a local cycle copy).
+  const cycle = [1.0, 0.8, 0.6, 0.4];
+  if (typeof savedOpacityIndex === 'number' && savedOpacityIndex >= 0 && savedOpacityIndex < cycle.length) {
+    return cycle[savedOpacityIndex];
+  }
+  return 1.0;
+}
+
+function createWindow({ capture = false, initWidth, initHeight, initOpacity } = {}) {
   const display = screen.getPrimaryDisplay();
   const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
@@ -139,10 +157,7 @@ function createWindow({ capture = false, initWidth, initHeight } = {}) {
     y: Math.round(pos.y),
     transparent: capture ? false : true,
     backgroundColor: capture ? '#111827' : '#00000000',
-    opacity: capture ? 1.0 : (function() {
-      const v = Number(process.env.MOLT_MASCOT_OPACITY);
-      return (Number.isFinite(v) && v >= 0 && v <= 1) ? v : 1.0;
-    })(),
+    opacity: capture ? 1.0 : (typeof initOpacity === 'number' ? initOpacity : 1.0),
     show: capture ? false : true,
     frame: false,
     resizable: false,
@@ -379,9 +394,10 @@ app.whenReady().then(async () => {
   let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
     ? savedPrefs.sizeIndex : 1;
 
-  // Pass saved size into createWindow to avoid a visible flash-resize on launch.
+  // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
-  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height });
+  const initOpacity = _resolveInitialOpacity(savedPrefs.opacityIndex);
+  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height, initOpacity });
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
@@ -419,12 +435,12 @@ app.whenReady().then(async () => {
   );
   if (alignmentIndex < 0) alignmentIndex = 0;
 
-  // Restore saved opacity preference
+  // Restore saved opacity preference.
+  // Note: the initial window opacity is already applied during createWindow() via
+  // _resolveInitialOpacity(), so we only need to sync the opacityIndex here for
+  // keyboard shortcut cycling to continue from the correct position.
   if (typeof savedPrefs.opacityIndex === 'number' && savedPrefs.opacityIndex >= 0 && savedPrefs.opacityIndex < opacityCycle.length) {
     opacityIndex = savedPrefs.opacityIndex;
-    if (opacityIndex !== 0) {
-      withMainWin((w) => w.setOpacity(opacityCycle[opacityIndex]));
-    }
   }
 
   function rebuildTrayMenu() {
@@ -657,7 +673,7 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       const sz = sizeCycle[sizeIndex];
-      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height });
+      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height, initOpacity: opacityCycle[opacityIndex] });
       wireMainWindow(_mainWin);
     }
   });
