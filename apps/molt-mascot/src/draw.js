@@ -218,6 +218,6 @@ export function drawLobster(ctx, params) {
   } else if (mode === 'connected') {
     drawSprite(ctx, overlay.connected[Math.floor(t / 300) % 2], overlayOpts);
   } else if (mode === 'disconnected') {
-    drawSprite(ctx, overlay.disconnected, overlayOpts);
+    drawSprite(ctx, overlay.disconnected[Math.floor(t / 700) % 2], overlayOpts);
   }
 }

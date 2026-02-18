@@ -109,8 +109,18 @@ describe("sprites", () => {
   });
 
   describe("overlay.disconnected", () => {
-    it("is a valid 32x32 sprite", () => {
-      validateFrame(overlay.disconnected, "disconnected");
+    it("has 2 frames", () => {
+      expect(overlay.disconnected.length).toBe(2);
+    });
+
+    it("frames are valid 32x32 sprites", () => {
+      validateFrame(overlay.disconnected[0], "disconnected[0]");
+      validateFrame(overlay.disconnected[1], "disconnected[1]");
+    });
+
+    it("disconnected frames differ (animation would be static otherwise)", () => {
+      const hasDiff = overlay.disconnected[0].some((row, i) => row !== overlay.disconnected[1][i]);
+      expect(hasDiff).toBe(true);
     });
   });
 
