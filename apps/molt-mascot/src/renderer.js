@@ -251,6 +251,7 @@ let currentSizeLabel = 'medium';
 let pluginVersion = '';
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
+let pluginStartedAt = null;
 
 // Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
 let copiedUntil = 0;
@@ -749,6 +750,9 @@ function connect(cfg) {
       if (typeof msg.payload.state.toolErrors === 'number') {
         pluginToolErrors = msg.payload.state.toolErrors;
       }
+      if (typeof msg.payload.state.startedAt === 'number') {
+        pluginStartedAt = msg.payload.state.startedAt;
+      }
 
       // Sync hideText
       if (typeof msg.payload.state.hideText === 'boolean') {
@@ -849,6 +853,7 @@ function connect(cfg) {
     lastPluginOpacity = null;
     lastPluginPadding = null;
     lastPluginSize = null;
+    pluginStartedAt = null;
     stopStaleCheck();
     pill.textContent = 'disconnected';
     pill.className = 'pill--disconnected';
@@ -1060,6 +1065,10 @@ function buildDebugInfo() {
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
+  if (hasPlugin && pluginStartedAt) {
+    const pluginUp = Math.max(0, Math.round((Date.now() - pluginStartedAt) / 1000));
+    lines.push(`Plugin uptime: ${formatDuration(pluginUp)}`);
+  }
   if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);

@@ -45,6 +45,8 @@ export type State = {
   toolCalls?: number;
   /** Cumulative count of tool errors since plugin start. */
   toolErrors?: number;
+  /** Epoch ms when the plugin was registered (for uptime calculation). */
+  startedAt?: number;
 };
 
 // Plugin API contract definition for better type safety
@@ -623,9 +625,11 @@ export default function register(api: PluginApi) {
 
   const size = coerceSize(cfg.size, "medium");
 
+  const startedAt = Date.now();
+
   const state: State = {
     mode: "idle",
-    since: Date.now(),
+    since: startedAt,
     alignment,
     clickThrough,
     hideText,
@@ -635,6 +639,7 @@ export default function register(api: PluginApi) {
     version,
     toolCalls: 0,
     toolErrors: 0,
+    startedAt,
   };
 
   let idleTimer: any = null;
@@ -858,7 +863,7 @@ export default function register(api: PluginApi) {
     state.since = Date.now();
     delete state.lastError;
     delete state.currentTool;
-    // Preserve version through resets (it's static metadata, not runtime state).
+    // Preserve version and startedAt through resets (static metadata, not runtime state).
     state.toolCalls = 0;
     state.toolErrors = 0;
     agentToolStacks.clear();

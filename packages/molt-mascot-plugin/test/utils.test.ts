@@ -622,6 +622,29 @@ describe("utils", () => {
     expect(payload?.state?.mode).toBe("thinking"); // still not error
   });
 
+  it("exposes startedAt timestamp in state response and preserves it across resets", async () => {
+    const api = createMockApi();
+    const before = Date.now();
+    register(api);
+    const after = Date.now();
+
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+
+    expect(typeof payload?.state?.startedAt).toBe("number");
+    expect(payload.state.startedAt).toBeGreaterThanOrEqual(before);
+    expect(payload.state.startedAt).toBeLessThanOrEqual(after);
+
+    const originalStartedAt = payload.state.startedAt;
+
+    // Reset should preserve startedAt (it's static metadata)
+    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.startedAt).toBe(originalStartedAt);
+  });
+
   it("exposes plugin version in state response", async () => {
     const api = createMockApi();
     register(api);
