@@ -979,6 +979,17 @@ pill.addEventListener('dblclick', () => {
   }).catch(() => {});
 });
 
+// Double-click lobster sprite to toggle ghost mode (most common toggle action).
+// This complements the pill double-click (copy) with a sprite-specific shortcut,
+// since users instinctively interact with the lobster rather than the tiny pill.
+canvas.addEventListener('dblclick', () => {
+  if (window.moltMascot?.setClickThrough) {
+    isClickThrough = !isClickThrough;
+    window.moltMascot.setClickThrough(isClickThrough);
+    syncPill();
+  }
+});
+
 // Keyboard: Enter or Space on the pill opens the context menu (a11y)
 pill.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') {
