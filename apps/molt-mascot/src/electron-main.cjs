@@ -434,6 +434,8 @@ app.whenReady().then(async () => {
     if (hideText) tooltipParts.push('🙈 Text hidden');
     const currentAlign = (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase();
     tooltipParts.push(`📍 ${currentAlign}`);
+    tooltipParts.push(`📐 ${sizeCycle[sizeIndex].label}`);
+    if (opacityIndex !== 0) tooltipParts.push(`🔅 ${Math.round(opacityCycle[opacityIndex] * 100)}%`);
     tray.setToolTip(tooltipParts.join(' · '));
 
     const menu = Menu.buildFromTemplate([
