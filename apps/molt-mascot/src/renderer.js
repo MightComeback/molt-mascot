@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -870,12 +870,7 @@ const saveBtn = document.getElementById('save');
 
 setup.addEventListener('submit', (e) => {
   e.preventDefault();
-  let url = urlInput.value.trim();
-
-  // Auto-normalize http(s) URLs to ws(s) so users can paste Gateway URLs directly.
-  // Matches the same normalization in tools/ws-dump.ts for consistency.
-  if (/^https:\/\//i.test(url)) url = url.replace(/^https:\/\//i, 'wss://');
-  else if (/^http:\/\//i.test(url)) url = url.replace(/^http:\/\//i, 'ws://');
+  let url = normalizeWsUrl(urlInput.value);
 
   // Validate WebSocket URL before attempting connection
   if (url && !/^wss?:\/\/.+/i.test(url)) {
@@ -1205,10 +1200,7 @@ if (isCapture) {
   pill.textContent = 'demo';
 } else {
   const cfg = loadCfg();
-  let envUrl = (window.moltMascot?.env?.gatewayUrl || '').trim();
-  // Normalize http(s) to ws(s) for env-seeded URLs too
-  if (/^https:\/\//i.test(envUrl)) envUrl = envUrl.replace(/^https:\/\//i, 'wss://');
-  else if (/^http:\/\//i.test(envUrl)) envUrl = envUrl.replace(/^http:\/\//i, 'ws://');
+  const envUrl = normalizeWsUrl(window.moltMascot?.env?.gatewayUrl || '');
   const envToken = (window.moltMascot?.env?.gatewayToken || '').trim();
 
   // If environment provides credentials at runtime, they take precedence.

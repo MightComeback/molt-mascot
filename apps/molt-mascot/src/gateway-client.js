@@ -6,25 +6,12 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl } from './utils.js';
+
+// Re-export so existing consumers of gateway-client.js don't break.
+export { normalizeWsUrl };
 
 /** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'|'disconnected'} Mode */
-
-/**
- * Normalize a URL to use the WebSocket scheme.
- * Common user mistake: entering http:// or https:// instead of ws:// or wss://.
- * This auto-corrects the scheme while preserving the rest of the URL.
- *
- * @param {string} url
- * @returns {string} URL with ws:// or wss:// scheme
- */
-export function normalizeWsUrl(url) {
-  if (typeof url !== 'string') return url;
-  const trimmed = url.trim();
-  if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
-  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
-  return trimmed;
-}
 
 /**
  * @typedef {Object} GatewayClientOptions

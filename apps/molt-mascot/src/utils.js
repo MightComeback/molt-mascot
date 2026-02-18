@@ -171,6 +171,24 @@ export function buildTooltip(params) {
   return tip;
 }
 
+/**
+ * Normalize a URL to use the WebSocket scheme.
+ * Common user mistake: entering http:// or https:// instead of ws:// or wss://.
+ * This auto-corrects the scheme while preserving the rest of the URL.
+ *
+ * Shared between renderer.js (form submit + boot) and gateway-client.js.
+ *
+ * @param {string} url
+ * @returns {string} URL with ws:// or wss:// scheme
+ */
+export function normalizeWsUrl(url) {
+  if (typeof url !== 'string') return url;
+  const trimmed = url.trim();
+  if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
+  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
+  return trimmed;
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';

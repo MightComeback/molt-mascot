@@ -10,6 +10,7 @@ import {
   getFrameIntervalMs,
   getReconnectDelayMs,
   buildTooltip,
+  normalizeWsUrl,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -424,5 +425,45 @@ describe("buildTooltip", () => {
   it("omits text hidden indicator when isTextHidden is false", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: false });
     expect(tip).not.toContain("text hidden");
+  });
+});
+
+describe("normalizeWsUrl", () => {
+  it("converts http:// to ws://", () => {
+    expect(normalizeWsUrl("http://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+  });
+
+  it("converts https:// to wss://", () => {
+    expect(normalizeWsUrl("https://gateway.example.com/ws")).toBe("wss://gateway.example.com/ws");
+  });
+
+  it("leaves ws:// unchanged", () => {
+    expect(normalizeWsUrl("ws://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+  });
+
+  it("leaves wss:// unchanged", () => {
+    expect(normalizeWsUrl("wss://gateway.example.com")).toBe("wss://gateway.example.com");
+  });
+
+  it("is case-insensitive for scheme", () => {
+    expect(normalizeWsUrl("HTTP://localhost:8080")).toBe("ws://localhost:8080");
+    expect(normalizeWsUrl("HTTPS://localhost")).toBe("wss://localhost");
+  });
+
+  it("trims whitespace", () => {
+    expect(normalizeWsUrl("  http://localhost:18789  ")).toBe("ws://localhost:18789");
+  });
+
+  it("passes through non-string values", () => {
+    expect(normalizeWsUrl(null)).toBe(null);
+    expect(normalizeWsUrl(undefined)).toBe(undefined);
+  });
+
+  it("passes through URLs without a recognized scheme", () => {
+    expect(normalizeWsUrl("127.0.0.1:18789")).toBe("127.0.0.1:18789");
+  });
+
+  it("handles empty string", () => {
+    expect(normalizeWsUrl("")).toBe("");
   });
 });
