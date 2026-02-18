@@ -35,6 +35,7 @@
  * @param {number} [params.devicePixelRatio] - window.devicePixelRatio
  * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} [params.memory] - performance.memory
  * @param {{ electron?: string, chrome?: string, node?: string }} [params.versions] - Runtime versions
+ * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @returns {string} Multi-line debug info
  */
 
@@ -74,6 +75,7 @@ export function buildDebugInfo(params) {
     devicePixelRatio,
     memory,
     versions,
+    processUptimeS,
   } = params;
 
   const lines = [];
@@ -131,5 +133,8 @@ export function buildDebugInfo(params) {
     versions?.node ? `Node ${versions.node}` : null,
   ].filter(Boolean);
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
+  if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
+    lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}`);
+  }
   return lines.join('\n');
 }

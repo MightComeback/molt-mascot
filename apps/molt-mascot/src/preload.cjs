@@ -46,6 +46,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
     return () => ipcRenderer.removeListener('molt-mascot:opacity', handler);
   },
   cycleOpacity: () => ipcRenderer.send('molt-mascot:cycle-opacity'),
+  processUptimeS: () => process.uptime(),
   platform: process.platform,
   version: pkg.version,
   versions: {

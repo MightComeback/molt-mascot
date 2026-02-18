@@ -966,6 +966,7 @@ function buildDebugInfo() {
     devicePixelRatio: window.devicePixelRatio,
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
+    processUptimeS: window.moltMascot?.processUptimeS?.(),
   });
 }
 

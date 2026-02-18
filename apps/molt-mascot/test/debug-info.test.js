@@ -190,4 +190,14 @@ describe("buildDebugInfo", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, alignmentLabel: "" });
     expect(info).toContain("Alignment: bottom-right");
   });
+
+  it("shows process uptime when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, processUptimeS: 3661 });
+    expect(info).toContain("Process uptime: 1h 1m");
+  });
+
+  it("omits process uptime when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Process uptime:");
+  });
 });
