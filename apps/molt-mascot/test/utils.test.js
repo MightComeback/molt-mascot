@@ -8,6 +8,7 @@ import {
   isTruthyEnv,
   wsReadyStateLabel,
   getFrameIntervalMs,
+  getReconnectDelayMs,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -261,5 +262,42 @@ describe("getFrameIntervalMs", () => {
   it("treats exact sleep threshold as not sleeping", () => {
     // idleDurationMs must be > sleepThresholdMs to sleep
     expect(getFrameIntervalMs("idle", SLEEP_MS, SLEEP_MS, false)).toBe(66);
+  });
+});
+
+describe("getReconnectDelayMs", () => {
+  it("returns base delay for attempt 0", () => {
+    const delay = getReconnectDelayMs(0, { baseMs: 1500, maxMs: 30000, jitterFraction: 0 });
+    expect(delay).toBe(1500);
+  });
+
+  it("doubles delay with each attempt", () => {
+    const d0 = getReconnectDelayMs(0, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
+    const d1 = getReconnectDelayMs(1, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
+    const d2 = getReconnectDelayMs(2, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
+    expect(d0).toBe(1000);
+    expect(d1).toBe(2000);
+    expect(d2).toBe(4000);
+  });
+
+  it("caps at maxMs", () => {
+    const delay = getReconnectDelayMs(20, { baseMs: 1500, maxMs: 30000, jitterFraction: 0 });
+    expect(delay).toBe(30000);
+  });
+
+  it("adds jitter within expected range", () => {
+    // With jitterFraction=0.2, delay should be in [base, base * 1.2]
+    for (let i = 0; i < 20; i++) {
+      const delay = getReconnectDelayMs(0, { baseMs: 1000, maxMs: 30000, jitterFraction: 0.2 });
+      expect(delay).toBeGreaterThanOrEqual(1000);
+      expect(delay).toBeLessThanOrEqual(1200);
+    }
+  });
+
+  it("uses sensible defaults", () => {
+    const delay = getReconnectDelayMs(0);
+    // Default baseMs=1500, jitterFraction=0.2 → [1500, 1800]
+    expect(delay).toBeGreaterThanOrEqual(1500);
+    expect(delay).toBeLessThanOrEqual(1800);
   });
 });

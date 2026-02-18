@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel, getFrameIntervalMs as _getFrameIntervalMs } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, wsReadyStateLabel, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -390,11 +390,12 @@ function stopStaleCheck() {
 }
 
 function getReconnectDelay() {
-  // Exponential backoff with jitter: 1.5s, 3s, 6s, 12s... capped at 30s
-  const delay = Math.min(RECONNECT_BASE_MS * Math.pow(2, reconnectAttempt), RECONNECT_MAX_MS);
-  const jitter = delay * 0.2 * Math.random();
+  const delay = getReconnectDelayMs(reconnectAttempt, {
+    baseMs: RECONNECT_BASE_MS,
+    maxMs: RECONNECT_MAX_MS,
+  });
   reconnectAttempt++;
-  return Math.round(delay + jitter);
+  return delay;
 }
 
 let connectReqId = null;

@@ -75,6 +75,22 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
   return 0;
 }
 
+/**
+ * Compute the next reconnect delay using exponential backoff with jitter.
+ *
+ * @param {number} attempt - Current reconnect attempt (0-based)
+ * @param {{ baseMs?: number, maxMs?: number, jitterFraction?: number }} [opts]
+ * @returns {number} Delay in milliseconds
+ */
+export function getReconnectDelayMs(attempt, opts = {}) {
+  const baseMs = opts.baseMs ?? 1500;
+  const maxMs = opts.maxMs ?? 30000;
+  const jitterFraction = opts.jitterFraction ?? 0.2;
+  const delay = Math.min(baseMs * Math.pow(2, attempt), maxMs);
+  const jitter = delay * jitterFraction * Math.random();
+  return Math.round(delay + jitter);
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';
