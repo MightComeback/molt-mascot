@@ -173,6 +173,9 @@ export const ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
   "[a-zA-Z0-9_]*Error",
+  // Java/JVM-style: java.lang.NullPointerException, kotlin.KotlinNullPointerException, etc.
+  // Also handles .NET: System.InvalidOperationException, System.IO.FileNotFoundException, etc.
+  "(?:[a-zA-Z_][a-zA-Z0-9_]*\\.)+[a-zA-Z_][a-zA-Z0-9_]*(?:Error|Exception|Fault)",
   // Generic non-Error prefixes
   "Tool failed",
   "Command failed",
@@ -191,6 +194,8 @@ export const ERROR_PREFIXES = [
   // Python non-Error exceptions (not matched by *Error pattern)
   "KeyError",
   "StopIteration",
+  // Java/JVM "Caused by:" chained exception prefix
+  "Caused by",
   // Environment/Tool colon-prefixes
   "node:",
   "fs:",

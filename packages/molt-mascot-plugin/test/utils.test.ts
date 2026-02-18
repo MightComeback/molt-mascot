@@ -183,6 +183,15 @@ describe("utils", () => {
     expect(cleanErrorString("[2026-02-18 12:00:00 ERROR] connection refused")).toBe("connection refused");
     // With colon after bracket
     expect(cleanErrorString("[ERROR]: connection refused")).toBe("connection refused");
+    // Java/JVM-style fully-qualified exception class prefixes
+    expect(cleanErrorString("java.lang.NullPointerException: Cannot invoke method on null")).toBe("Cannot invoke method on null");
+    expect(cleanErrorString("java.io.FileNotFoundException: /tmp/missing.txt (No such file)")).toBe("/tmp/missing.txt (No such file)");
+    expect(cleanErrorString("kotlin.KotlinNullPointerException: parameter must not be null")).toBe("parameter must not be null");
+    // .NET/C# exceptions
+    expect(cleanErrorString("System.InvalidOperationException: Sequence contains no elements")).toBe("Sequence contains no elements");
+    expect(cleanErrorString("System.IO.FileNotFoundException: Could not find file")).toBe("Could not find file");
+    // Java "Caused by:" chained exception prefix
+    expect(cleanErrorString("Caused by: java.net.ConnectException: Connection refused")).toBe("Connection refused");
   });
 
   it("summarizeToolResultMessage", () => {
