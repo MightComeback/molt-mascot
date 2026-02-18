@@ -140,7 +140,7 @@ function _resolveInitialOpacity(savedOpacityIndex) {
   return 1.0;
 }
 
-function createWindow({ capture = false, initWidth, initHeight, initOpacity } = {}) {
+function createWindow({ capture = false, initWidth, initHeight, initOpacity, initPosition } = {}) {
   const display = screen.getPrimaryDisplay();
   const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
@@ -148,7 +148,10 @@ function createWindow({ capture = false, initWidth, initHeight, initOpacity } = 
     : (Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240);
   const height = (Number.isFinite(initHeight) && initHeight > 0) ? initHeight
     : (Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200);
-  const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
+  // Use saved drag position if provided and valid; otherwise compute from alignment.
+  const pos = (initPosition && Number.isFinite(initPosition.x) && Number.isFinite(initPosition.y))
+    ? initPosition
+    : getPosition(display, width, height, alignmentOverride, paddingOverride);
 
   const win = new BrowserWindow({
     width,
@@ -288,7 +291,7 @@ app.whenReady().then(async () => {
     alignmentOverride = alignmentCycle[alignmentIndex];
     repositionMainWindow({ force: true });
     withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
-    savePrefs({ alignment: alignmentOverride });
+    savePrefs({ alignment: alignmentOverride, draggedPosition: null });
     rebuildTrayMenu();
   }
 
@@ -302,6 +305,7 @@ app.whenReady().then(async () => {
 
   function actionSnapToPosition() {
     userDragged = false;
+    savePrefs({ draggedPosition: null });
     repositionMainWindow({ force: true });
   }
 
@@ -363,7 +367,13 @@ app.whenReady().then(async () => {
       if (_mainWin === win) _mainWin = null;
     });
     win.on('moved', () => {
-      if (!repositioning) userDragged = true;
+      if (!repositioning) {
+        userDragged = true;
+        // Persist dragged position so it survives app restarts.
+        // Debounced via savePrefs() so rapid drag events don't hammer disk.
+        const [px, py] = win.getPosition();
+        savePrefs({ draggedPosition: { x: px, y: py } });
+      }
     });
     applyClickThrough(win, clickThrough);
     win.webContents.once('did-finish-load', () => {
@@ -397,7 +407,12 @@ app.whenReady().then(async () => {
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
   const initOpacity = _resolveInitialOpacity(savedPrefs.opacityIndex);
-  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height, initOpacity });
+  // Restore drag position if the user previously dragged the window manually.
+  const savedDragPos = savedPrefs.draggedPosition;
+  const initPosition = (savedDragPos && Number.isFinite(savedDragPos.x) && Number.isFinite(savedDragPos.y))
+    ? savedDragPos : undefined;
+  if (initPosition) userDragged = true; // Prevent auto-reposition from overriding on first display-metrics event
+  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height, initOpacity, initPosition });
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
@@ -596,7 +611,7 @@ app.whenReady().then(async () => {
     repositionMainWindow({ force: true });
     // Notify renderer so the context menu label updates immediately
     withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
-    savePrefs({ alignment: alignmentOverride });
+    savePrefs({ alignment: alignmentOverride, draggedPosition: null });
     rebuildTrayMenu();
   });
 
@@ -673,7 +688,8 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       const sz = sizeCycle[sizeIndex];
-      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height, initOpacity: opacityCycle[opacityIndex] });
+      const reactivatePos = (savedPrefs.draggedPosition && userDragged) ? savedPrefs.draggedPosition : undefined;
+      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height, initOpacity: opacityCycle[opacityIndex], initPosition: reactivatePos });
       wireMainWindow(_mainWin);
     }
   });
