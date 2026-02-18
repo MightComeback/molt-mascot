@@ -168,7 +168,7 @@ async function captureScreenshots() {
   const win = createWindow({ capture: true });
   await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
 
-  const modes = ['idle', 'thinking', 'tool', 'error'];
+  const modes = ['idle', 'thinking', 'tool', 'error', 'connecting', 'connected', 'disconnected'];
   
   // Freeze time at 0 for deterministic bobbing (frame 0)
   await win.webContents.executeJavaScript(`window.__moltMascotSetTime && window.__moltMascotSetTime(0)`);
@@ -179,6 +179,9 @@ async function captureScreenshots() {
     const img = await win.webContents.capturePage();
     fs.writeFileSync(path.join(CAPTURE_DIR, `${mode}.png`), img.toPNG());
   }
+
+  // Note: sleeping state requires backdating modeSince inside the renderer scope;
+  // use __moltMascotSetMode('idle') + manual wait > sleep threshold for manual captures.
 
   try { win.close(); } catch {}
 }

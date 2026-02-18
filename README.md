@@ -1,6 +1,18 @@
 # MightComeback/molt-mascot
 
-A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **OpenClaw** Gateway state: `idle` / `thinking` / `tool` / `error`.
+A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **OpenClaw** Gateway state in real time.
+
+## States
+
+| State | Description |
+|-------|-------------|
+| **idle** | Agent is idle; after 2 minutes transitions to **sleeping** (ZZZ overlay) |
+| **thinking** | Agent is generating a response |
+| **tool** | Agent is executing a tool call (shows tool name in HUD) |
+| **error** | Something went wrong (shows error message in HUD) |
+| **connecting** | Establishing WebSocket connection to Gateway |
+| **connected** | Handshake succeeded (brief sparkle animation, then idle) |
+| **disconnected** | Lost connection; shows reconnect countdown with exponential backoff |
 
 ## Screenshots
 
@@ -8,12 +20,15 @@ A tiny always-on-top desktop mascot (pixel lobster) that reflects your local **O
 ![thinking](assets/screenshots/thinking.png)
 ![tool](assets/screenshots/tool.png)
 ![error](assets/screenshots/error.png)
+![connecting](assets/screenshots/connecting.png)
+![connected](assets/screenshots/connected.png)
+![disconnected](assets/screenshots/disconnected.png)
 
 ## Quickstart
 
 ### 1. Install Plugin (optional, recommended)
 
-The mascot can run **without** the plugin by mapping native Gateway `agent` events to `idle/thinking/tool/error`.
+The mascot can run **without** the plugin by mapping native Gateway `agent` events to modes. Connection states (`connecting`/`connected`/`disconnected`) work without the plugin.
 
 Installing the companion plugin improves correctness (nested tools, error details, server-side timers) and lets you sync UX knobs like `clickThrough`/`alignment` from Gateway config.
 
