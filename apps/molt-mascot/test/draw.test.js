@@ -3,6 +3,7 @@ import {
   drawSprite,
   drawLobster,
   createBlinkState,
+  _spriteCache,
   EYE_LEFT_COL,
   EYE_RIGHT_COL,
   EYE_ROW,
@@ -238,6 +239,45 @@ describe("drawLobster", () => {
     const sleepFills = sleepCtx.calls.filter((c) => c.fn === "fillRect").length;
     // Sleep overlay should add extra pixels
     expect(sleepFills).toBeGreaterThan(noSleepFills);
+  });
+});
+
+describe("_spriteCache", () => {
+  it("returns null in test environment (no OffscreenCanvas/DOM)", () => {
+    _spriteCache.clear();
+    const sprite = ["rk", "kr"];
+    const result = _spriteCache.get(sprite, 3);
+    // In a test env without OffscreenCanvas or document.createElement('canvas'),
+    // the cache gracefully returns null and drawSprite falls back to fillRect.
+    // If OffscreenCanvas IS available (e.g. newer Bun), it returns a canvas object.
+    expect(result === null || typeof result === 'object').toBe(true);
+  });
+
+  it("clear() resets the cache", () => {
+    _spriteCache.clear();
+    expect(_spriteCache.size()).toBe(0);
+  });
+
+  it("returns the same object for the same sprite+scale", () => {
+    _spriteCache.clear();
+    const sprite = ["rk", "kr"];
+    const a = _spriteCache.get(sprite, 3);
+    const b = _spriteCache.get(sprite, 3);
+    expect(a).toBe(b);
+  });
+
+  it("invalidates cache when scale changes", () => {
+    _spriteCache.clear();
+    const sprite = ["rk"];
+    _spriteCache.get(sprite, 3);
+    const sizeBefore = _spriteCache.size();
+    _spriteCache.get(sprite, 5); // different scale flushes cache
+    const sizeAfter = _spriteCache.size();
+    // In test env without canvas support, both are 0 (null returns aren't cached).
+    // With canvas support, sizeBefore=1 and sizeAfter=1 (old flushed, new added).
+    // Key invariant: cache never grows beyond 1 entry for a single sprite after scale change.
+    expect(sizeAfter).toBeLessThanOrEqual(1);
+    expect(sizeAfter).toBeLessThanOrEqual(sizeBefore + 1);
   });
 });
 

@@ -22,6 +22,12 @@ export const EYE_SIZE = 2; // 2×2 sprite pixels per eye
  * @param {{ x?: number, y?: number, scale?: number }} [opts]
  */
 export function drawSprite(ctx, sprite, { x = 0, y = 0, scale = 3 } = {}) {
+  // Try the pre-rendered cache first (avoids per-pixel fillRect on every frame).
+  const cached = _spriteCache.get(sprite, scale);
+  if (cached) {
+    ctx.drawImage(cached, x, y);
+    return;
+  }
   for (let py = 0; py < sprite.length; py += 1) {
     const row = sprite[py];
     for (let px = 0; px < row.length; px += 1) {
@@ -33,6 +39,85 @@ export function drawSprite(ctx, sprite, { x = 0, y = 0, scale = 3 } = {}) {
     }
   }
 }
+
+/**
+ * Off-screen sprite cache. Pre-renders sprites at a given scale onto
+ * OffscreenCanvas (or regular canvas fallback) so the hot path in
+ * drawLobster() is a single drawImage() call instead of hundreds of
+ * fillRect() calls per sprite per frame.
+ *
+ * Cache is keyed by (sprite reference, scale) and lazily populated on
+ * first access. Invalidated when scale changes (rare — only on window resize).
+ */
+export const _spriteCache = (() => {
+  /** @type {Map<string, { canvas: OffscreenCanvas|HTMLCanvasElement, scale: number }>} */
+  const cache = new Map();
+  let lastScale = -1;
+
+  // Stable identity key for a sprite array. We use a WeakMap to assign
+  // incrementing IDs so we never stringify the full sprite data.
+  const idMap = new WeakMap();
+  let nextSpriteId = 0;
+  function spriteKey(sprite) {
+    let id = idMap.get(sprite);
+    if (id === undefined) { id = nextSpriteId++; idMap.set(sprite, id); }
+    return id;
+  }
+
+  /**
+   * Get a pre-rendered canvas for the given sprite at the given scale.
+   * Returns null if OffscreenCanvas/Canvas is unavailable (e.g. in tests).
+   */
+  function get(sprite, scale) {
+    // Scale changed — flush the whole cache (happens on window resize).
+    if (scale !== lastScale) {
+      cache.clear();
+      lastScale = scale;
+    }
+    const key = spriteKey(sprite);
+    const entry = cache.get(key);
+    if (entry) return entry;
+
+    // Pre-render
+    const w = sprite[0].length * scale;
+    const h = sprite.length * scale;
+    let offscreen;
+    try {
+      // Prefer OffscreenCanvas (no DOM attachment needed, better perf).
+      offscreen = typeof OffscreenCanvas !== 'undefined'
+        ? new OffscreenCanvas(w, h)
+        : document.createElement('canvas');
+      if (!(offscreen instanceof OffscreenCanvas)) {
+        offscreen.width = w;
+        offscreen.height = h;
+      }
+    } catch {
+      return null; // Test environment without canvas support
+    }
+    const offCtx = offscreen.getContext('2d');
+    if (!offCtx) return null;
+
+    for (let py = 0; py < sprite.length; py += 1) {
+      const row = sprite[py];
+      for (let px = 0; px < row.length; px += 1) {
+        const color = palette[row[px]];
+        if (!color) continue;
+        offCtx.fillStyle = color;
+        offCtx.fillRect(px * scale, py * scale, scale, scale);
+      }
+    }
+    cache.set(key, offscreen);
+    return offscreen;
+  }
+
+  /** Flush the cache (useful for tests). */
+  function clear() { cache.clear(); lastScale = -1; }
+
+  /** Number of cached entries. */
+  function size() { return cache.size; }
+
+  return { get, clear, size };
+})();
 
 /**
  * Blink state manager.
