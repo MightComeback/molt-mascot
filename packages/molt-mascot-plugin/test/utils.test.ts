@@ -941,4 +941,25 @@ describe("utils", () => {
     expect(allowedAlignments).toHaveLength(9);
     expect(allowedSizes).toEqual(["small", "medium", "large"]);
   });
+
+  it("success: false on tool result triggers error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    toolListener({ phase: "start", sessionKey: "s1", tool: "web_fetch" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "web_fetch",
+      result: { success: false, error: "DNS resolution failed" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("DNS resolution failed");
+  });
 });

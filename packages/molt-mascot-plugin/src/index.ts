@@ -928,6 +928,7 @@ export default function register(api: PluginApi) {
 
       const isExplicitError =
         msg?.isError === true ||
+        msg?.success === false ||
         msg?.status === "error" ||
         msg?.status === "failed" ||
         (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
