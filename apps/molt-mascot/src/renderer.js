@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -796,11 +796,7 @@ function connect(cfg) {
     // Reset all connection state (plugin, poller, stale check, etc.)
     resetConnectionState();
     // Preserve close code/reason for display in the disconnected pill and tooltip.
-    const closeCode = ev?.code;
-    const closeReason = (ev?.reason || '').trim();
-    lastCloseDetail = closeReason
-      ? closeReason
-      : (closeCode && closeCode !== 1000 ? `code ${closeCode}` : '');
+    lastCloseDetail = formatCloseDetail(ev?.code, ev?.reason);
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
       window._pollInterval = null;

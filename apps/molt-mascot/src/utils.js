@@ -195,6 +195,56 @@ export function normalizeWsUrl(url) {
   return trimmed;
 }
 
+/**
+ * Human-readable labels for well-known WebSocket close codes.
+ * Turns cryptic "code 1006" into "abnormal closure" for user-facing display.
+ *
+ * @see https://www.iana.org/assignments/websocket/websocket.xhtml#close-code-number
+ */
+export const WS_CLOSE_CODE_LABELS = {
+  1000: 'normal',
+  1001: 'going away',
+  1002: 'protocol error',
+  1003: 'unsupported data',
+  1005: 'no status',
+  1006: 'abnormal closure',
+  1007: 'invalid payload',
+  1008: 'policy violation',
+  1009: 'message too big',
+  1010: 'missing extension',
+  1011: 'internal error',
+  1012: 'service restart',
+  1013: 'try again later',
+  1014: 'bad gateway',
+  1015: 'TLS handshake failed',
+};
+
+/**
+ * Format a WebSocket close code + reason into a compact human-readable string.
+ *
+ * @param {number|null|undefined} code - WebSocket close code
+ * @param {string|null|undefined} reason - WebSocket close reason
+ * @returns {string} Formatted detail (e.g. "abnormal closure", "1008: policy violation", "going away")
+ */
+export function formatCloseDetail(code, reason) {
+  const trimmedReason = (reason || '').trim();
+  const label = (code != null) ? WS_CLOSE_CODE_LABELS[code] : undefined;
+
+  // If we have a human reason string, prefer it (possibly with the friendly label)
+  if (trimmedReason) {
+    return trimmedReason;
+  }
+  // No reason — use the friendly label if available
+  if (label) {
+    return label;
+  }
+  // Unknown code, no reason — show the raw code
+  if (code != null) {
+    return `code ${code}`;
+  }
+  return '';
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';

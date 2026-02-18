@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail } from './utils.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -522,10 +522,7 @@ export class GatewayClient {
    */
   get lastCloseDetail() {
     if (this.lastCloseCode === null && !this.lastCloseReason) return null;
-    const parts = [];
-    if (this.lastCloseCode !== null) parts.push(String(this.lastCloseCode));
-    if (this.lastCloseReason) parts.push(this.lastCloseReason);
-    return parts.join(' ') || null;
+    return formatCloseDetail(this.lastCloseCode, this.lastCloseReason) || null;
   }
 
   /**

@@ -878,7 +878,7 @@ describe("pausePolling / resumePolling", () => {
 
     expect(client.lastCloseCode).toBe(1006);
     expect(client.lastCloseReason).toBe('abnormal closure');
-    expect(client.lastCloseDetail).toBe('1006 abnormal closure');
+    expect(client.lastCloseDetail).toBe('abnormal closure');
     expect(client.lastDisconnectedAt).toBeGreaterThan(0);
 
     client.destroy();
@@ -888,9 +888,9 @@ describe("pausePolling / resumePolling", () => {
     const client = new GatewayClient();
     const ws = connectAndHandshake(client);
 
-    // Code only (empty reason)
+    // Code only (empty reason) — 1000 gets friendly label "normal"
     ws.onclose({ code: 1000, reason: '' });
-    expect(client.lastCloseDetail).toBe('1000');
+    expect(client.lastCloseDetail).toBe('normal');
 
     client.destroy();
   });
@@ -901,7 +901,7 @@ describe("pausePolling / resumePolling", () => {
 
     ws.onclose({ code: 1001, reason: '  going away  ' });
     expect(client.lastCloseReason).toBe('going away');
-    expect(client.lastCloseDetail).toBe('1001 going away');
+    expect(client.lastCloseDetail).toBe('going away');
 
     client.destroy();
   });

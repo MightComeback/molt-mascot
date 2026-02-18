@@ -11,6 +11,8 @@ import {
   getReconnectDelayMs,
   buildTooltip,
   normalizeWsUrl,
+  formatCloseDetail,
+  WS_CLOSE_CODE_LABELS,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -477,5 +479,41 @@ describe("normalizeWsUrl", () => {
 
   it("handles empty string", () => {
     expect(normalizeWsUrl("")).toBe("");
+  });
+});
+
+describe("formatCloseDetail", () => {
+  it("returns friendly label for well-known codes", () => {
+    expect(formatCloseDetail(1006, null)).toBe("abnormal closure");
+    expect(formatCloseDetail(1001, "")).toBe("going away");
+    expect(formatCloseDetail(1011, undefined)).toBe("internal error");
+    expect(formatCloseDetail(1012, "")).toBe("service restart");
+    expect(formatCloseDetail(1013, null)).toBe("try again later");
+  });
+
+  it("prefers reason string over code label", () => {
+    expect(formatCloseDetail(1006, "server restarting")).toBe("server restarting");
+    expect(formatCloseDetail(1001, "shutting down")).toBe("shutting down");
+  });
+
+  it("returns raw code for unknown codes without reason", () => {
+    expect(formatCloseDetail(4000, "")).toBe("code 4000");
+    expect(formatCloseDetail(4999, null)).toBe("code 4999");
+  });
+
+  it("returns friendly label for normal close (1000) with no reason", () => {
+    expect(formatCloseDetail(1000, "")).toBe("normal");
+    expect(formatCloseDetail(1000, null)).toBe("normal");
+  });
+
+  it("returns empty string when both null", () => {
+    expect(formatCloseDetail(null, null)).toBe("");
+    expect(formatCloseDetail(undefined, undefined)).toBe("");
+  });
+
+  it("WS_CLOSE_CODE_LABELS covers common codes", () => {
+    expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
+    expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");
+    expect(WS_CLOSE_CODE_LABELS[1015]).toBe("TLS handshake failed");
   });
 });
