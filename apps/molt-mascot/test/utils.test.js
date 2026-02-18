@@ -389,4 +389,19 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, opacity: 1 });
     expect(tip).not.toContain("%");
   });
+
+  it("includes alignment when non-default", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: "top-left" });
+    expect(tip).toContain("top-left");
+  });
+
+  it("omits alignment when bottom-right (default)", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: "bottom-right" });
+    expect(tip).not.toContain("bottom-right");
+  });
+
+  it("omits alignment when null/undefined", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: null });
+    expect(tip).not.toContain("null");
+  });
 });
