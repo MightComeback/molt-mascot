@@ -426,6 +426,16 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: false });
     expect(tip).not.toContain("text hidden");
   });
+
+  it("includes lastCloseDetail when provided", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastCloseDetail: "code 1006" });
+    expect(tip).toContain("code 1006");
+  });
+
+  it("omits lastCloseDetail when not provided", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5 });
+    expect(tip).not.toContain("code");
+  });
 });
 
 describe("normalizeWsUrl", () => {

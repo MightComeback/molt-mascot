@@ -261,7 +261,9 @@ function syncPill() {
     label = `Connecting… ${formatDuration(duration)}`;
   }
   if (currentMode === Mode.disconnected) {
-    label = `Disconnected ${formatDuration(duration)}`;
+    label = lastCloseDetail
+      ? truncate(`Disconnected: ${lastCloseDetail}`, 40)
+      : `Disconnected ${formatDuration(duration)}`;
   }
   if (currentMode === Mode.thinking && duration > 2) {
     label = `Thinking ${formatDuration(duration)}`;
@@ -300,6 +302,7 @@ function syncPill() {
     connectedSince,
     connectedUrl,
     reconnectAttempt,
+    lastCloseDetail: currentMode === Mode.disconnected ? lastCloseDetail : undefined,
     pluginToolCalls,
     pluginToolErrors,
     currentTool: currentMode === Mode.tool ? currentTool : undefined,
@@ -400,6 +403,7 @@ let reconnectTimer = null;    // setTimeout id for the reconnect attempt itself
 let connectedSince = null;   // Date.now() when gateway handshake succeeded
 let connectedUrl = '';        // URL of the current gateway connection
 let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
+let lastCloseDetail = '';      // Close reason/code from the last WebSocket disconnect
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -635,6 +639,7 @@ function connect(cfg) {
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       connectedSince = Date.now();
+      lastCloseDetail = '';
       connectedUrl = cfg.url || '';
       startStaleCheck();
       // Brief "Connected ✓" flash with sparkle animation so the user sees
@@ -785,14 +790,12 @@ function connect(cfg) {
     lastDisconnectedAt = Date.now();
     // Reset all connection state (plugin, poller, stale check, etc.)
     resetConnectionState();
-    // Surface close code for debugging (1006 = abnormal, 1000 = normal, etc.)
+    // Preserve close code/reason for display in the disconnected pill and tooltip.
     const closeCode = ev?.code;
     const closeReason = (ev?.reason || '').trim();
-    const disconnectLabel = closeReason
-      ? `disconnected: ${truncate(closeReason, 32)}`
-      : (closeCode && closeCode !== 1000 ? `disconnected (${closeCode})` : 'disconnected');
-    pill.textContent = disconnectLabel;
-    pill.className = 'pill--disconnected';
+    lastCloseDetail = closeReason
+      ? closeReason
+      : (closeCode && closeCode !== 1000 ? `code ${closeCode}` : '');
     if (window._pollInterval) {
       clearInterval(window._pollInterval);
       window._pollInterval = null;
