@@ -118,7 +118,12 @@ export function buildDebugInfo(params) {
       lines.push(`Plugin uptime: ${formatDuration(pluginUp)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
   }
-  if (pluginToolCalls > 0) lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}`);
+  if (pluginToolCalls > 0) {
+    const successRate = pluginToolErrors > 0
+      ? ` (${Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100)}% ok)`
+      : '';
+    lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${successRate}`);
+  }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
   lines.push(`Alignment: ${alignmentLabel || 'bottom-right'}`);

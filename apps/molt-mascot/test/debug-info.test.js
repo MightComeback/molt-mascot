@@ -107,7 +107,13 @@ describe("buildDebugInfo", () => {
 
   it("shows tool call stats when > 0", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, pluginToolCalls: 42, pluginToolErrors: 3 });
-    expect(info).toContain("Tool calls: 42, errors: 3");
+    expect(info).toContain("Tool calls: 42, errors: 3 (93% ok)");
+  });
+
+  it("shows tool call stats without percentage when zero errors", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, pluginToolCalls: 10, pluginToolErrors: 0 });
+    expect(info).toContain("Tool calls: 10, errors: 0");
+    expect(info).not.toContain("% ok");
   });
 
   it("does not show tool stats when 0", () => {

@@ -1059,11 +1059,12 @@ function showContextMenu(e) {
   const modKey = isMac ? '⌘' : 'Ctrl';
 
   // Build a status summary line for the context menu header
-  let modeLabel = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
+  const isSleepingCtx = currentMode === Mode.idle && modeDur > SLEEP_THRESHOLD_S;
+  let modeLabel = isSleepingCtx ? 'Sleeping' : currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   if (currentMode === Mode.tool && currentTool) modeLabel = truncate(currentTool, 20);
   if (currentMode === Mode.error && lastErrorMessage) modeLabel = truncate(lastErrorMessage, 28);
   const statusParts = [modeLabel];
-  const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
   if (connectedSince) {
     const upSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
