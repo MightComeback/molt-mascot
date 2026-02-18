@@ -554,6 +554,12 @@ describe("utils", () => {
     expect(summarizeToolResultMessage([{ name: "agent1" }, { name: "agent2" }])).toBe("agent1, agent2");
     expect(summarizeToolResultMessage([{ title: "Task A" }])).toBe("Task A");
     expect(summarizeToolResultMessage([])).toBe("empty");
+
+    // REST API error fields: detail and description
+    expect(summarizeToolResultMessage({ detail: "rate limit exceeded" })).toBe("rate limit exceeded");
+    expect(summarizeToolResultMessage({ description: "invalid API key" })).toBe("invalid API key");
+    // detail/description are lower priority than stderr/error
+    expect(summarizeToolResultMessage({ error: "auth failed", detail: "see docs" })).toBe("auth failed");
   });
 
   it("multi-session tools show the most recently active tool", async () => {

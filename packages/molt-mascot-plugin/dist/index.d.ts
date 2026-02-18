@@ -31,6 +31,8 @@ type State = {
     toolCalls?: number;
     /** Cumulative count of tool errors since plugin start. */
     toolErrors?: number;
+    /** Epoch ms when the plugin was registered (for uptime calculation). */
+    startedAt?: number;
 };
 interface PluginApi {
     id?: string;
@@ -58,6 +60,10 @@ interface PluginApi {
 }
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
+declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
+declare const allowedSizes: Size[];
+declare function coerceSize(v: unknown, fallback: Size): Size;
+declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
 declare function truncate(str: string, limit?: number): string;
 /**
  * Format a duration in seconds into a compact human-readable string.
@@ -96,4 +102,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, cleanErrorString, coerceBoolean, coerceNumber, register as default, formatDuration, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatDuration, id, summarizeToolResultMessage, truncate, version };

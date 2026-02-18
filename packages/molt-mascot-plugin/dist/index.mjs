@@ -6,7 +6,7 @@ var package_default = {
   publishConfig: {
     access: "public"
   },
-  author: "Might",
+  author: "Ivan Kuznetsov <kuznetsovivan496@gmail.com>",
   license: "MIT",
   homepage: "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
   repository: {
@@ -385,6 +385,8 @@ function summarizeToolResultMessage(msg) {
     // Handle string error or object error with message
     typeof msg?.error === "string" ? msg.error : msg?.error?.message,
     typeof msg?.error === "object" ? msg?.error?.text : void 0,
+    msg?.detail,
+    msg?.description,
     msg?.message,
     msg?.text,
     msg?.result,
@@ -457,9 +459,10 @@ function register(api) {
   const opacityNum = coerceNumber(cfg.opacity, 1);
   const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
   const size = coerceSize(cfg.size, "medium");
+  const startedAt = Date.now();
   const state = {
     mode: "idle",
-    since: Date.now(),
+    since: startedAt,
     alignment,
     clickThrough,
     hideText,
@@ -468,7 +471,8 @@ function register(api) {
     size,
     version,
     toolCalls: 0,
-    toolErrors: 0
+    toolErrors: 0,
+    startedAt
   };
   let idleTimer = null;
   let errorTimer = null;
@@ -808,9 +812,13 @@ function register(api) {
 export {
   ERROR_PREFIXES,
   ERROR_PREFIX_REGEX,
+  allowedAlignments,
+  allowedSizes,
   cleanErrorString,
+  coerceAlignment,
   coerceBoolean,
   coerceNumber,
+  coerceSize,
   register as default,
   formatDuration,
   id,

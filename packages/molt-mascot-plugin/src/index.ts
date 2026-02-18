@@ -516,6 +516,8 @@ export function summarizeToolResultMessage(msg: any): string {
     // Handle string error or object error with message
     typeof msg?.error === "string" ? msg.error : msg?.error?.message,
     typeof msg?.error === "object" ? msg?.error?.text : undefined,
+    msg?.detail,
+    msg?.description,
     msg?.message,
     msg?.text,
     msg?.result,
