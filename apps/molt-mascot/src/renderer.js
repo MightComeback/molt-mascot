@@ -1081,6 +1081,7 @@ function buildDebugInfo() {
   lines.push(`Alignment: ${lastPluginAlignment || 'bottom-right'}`);
   lines.push(`Size: ${currentSizeLabel}, Opacity: ${Math.round(currentOpacity * 100)}%`);
   lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
+  lines.push(`Sleep threshold: ${SLEEP_THRESHOLD_S}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
   lines.push(`Reduced motion: ${reducedMotion}`);
   const fpsInterval = getFrameIntervalMs();
   const fpsLabel = fpsInterval === 0 ? '~60fps' : `~${Math.round(1000 / fpsInterval)}fps`;
