@@ -64,6 +64,8 @@ export class GatewayClient {
     /** @type {number|null} */
     this.connectedSince = null;
     this.connectedUrl = '';
+    /** @type {number|null} Timestamp of last disconnect (for tooltip "disconnected X ago") */
+    this.lastDisconnectedAt = null;
 
     // Stale connection detection
     this._lastMessageAt = 0;
@@ -323,6 +325,7 @@ export class GatewayClient {
       this._stopPluginPoller();
       this._pluginStatePending = false;
       this._pluginStateLastSentAt = 0;
+      this.lastDisconnectedAt = Date.now();
       this.connectedSince = null;
       this.connectedUrl = '';
       this._stopStaleCheck();
