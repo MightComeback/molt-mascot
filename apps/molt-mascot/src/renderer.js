@@ -1109,7 +1109,7 @@ function buildDebugInfo() {
     appVersion: window.moltMascot?.version,
     pluginVersion,
     wsReadyState: ws?.readyState,
-    lastCloseDetail: !connectedSince ? lastCloseDetail : undefined,
+    lastCloseDetail: lastCloseDetail || undefined,
     savedUrl: !connectedSince ? loadCfg()?.url : undefined,
     platform: navigator.platform,
     devicePixelRatio: window.devicePixelRatio,
