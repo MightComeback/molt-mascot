@@ -448,6 +448,23 @@ describe("buildTooltip", () => {
     expect(tip).not.toContain("text hidden");
   });
 
+  it("shows reconnect count when sessionConnectCount > 1", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 4 });
+    expect(tip).toContain("reconnected 3×");
+  });
+
+  it("omits reconnect count when sessionConnectCount is 1 (no flaps)", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 1 });
+    expect(tip).not.toContain("reconnected");
+  });
+
+  it("omits reconnect count when sessionConnectCount is 0 or not provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 0 });
+    expect(tip).not.toContain("reconnected");
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip2).not.toContain("reconnected");
+  });
+
   it("includes lastCloseDetail when provided", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastCloseDetail: "code 1006" });
     expect(tip).toContain("code 1006");

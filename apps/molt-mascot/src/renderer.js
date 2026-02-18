@@ -318,6 +318,7 @@ function syncPill() {
     appVersion: window.moltMascot?.version,
     pluginVersion,
     pluginStartedAt,
+    sessionConnectCount,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status

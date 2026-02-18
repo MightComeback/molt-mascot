@@ -118,6 +118,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
  * @param {number|null} [params.pluginStartedAt] - Plugin start timestamp (for uptime display)
+ * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -142,6 +143,7 @@ export function buildTooltip(params) {
     appVersion,
     pluginVersion,
     pluginStartedAt,
+    sessionConnectCount = 0,
     now: nowOverride,
   } = params;
 
@@ -178,6 +180,11 @@ export function buildTooltip(params) {
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
   if (typeof opacity === 'number' && opacity < 1) tip += ` · ${Math.round(opacity * 100)}%`;
+  // Show reconnect count when the connection has flapped (>1 handshake since launch).
+  // Helps users diagnose flaky gateway connections without opening debug info.
+  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+    tip += ` · reconnected ${sessionConnectCount - 1}×`;
+  }
   const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
   if (verParts) tip += ` (${verParts})`;
   return tip;
