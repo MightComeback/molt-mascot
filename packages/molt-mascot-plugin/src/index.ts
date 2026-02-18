@@ -244,6 +244,12 @@ export const ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
+  // Cloud CLIs
+  "aws:",
+  "gcloud:",
+  "az:",
+  "gsutil:",
+  "pip:",
   // OpenClaw specific
   "cron:",
   "nodes:",
@@ -360,6 +366,13 @@ export function cleanErrorString(s: string): string {
     const tracebackLine = lines.find((l) => /^traceback\b/i.test(l));
     if (tracebackLine && lines[lines.length - 1] !== tracebackLine) {
       return cleanErrorString(lines[lines.length - 1]);
+    }
+
+    // Go goroutine stack traces: skip "goroutine N [running]:" headers
+    // and extract the panic message from the preceding or following line.
+    if (/^goroutine\s+\d+\s+\[/i.test(lines[0])) {
+      // The useful message is typically further down; recurse on remaining lines
+      return cleanErrorString(lines.slice(1).join("\n"));
     }
   }
 

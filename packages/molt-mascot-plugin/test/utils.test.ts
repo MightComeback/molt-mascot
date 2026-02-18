@@ -195,6 +195,13 @@ describe("utils", () => {
     expect(cleanErrorString("System.IO.FileNotFoundException: Could not find file")).toBe("Could not find file");
     // Java "Caused by:" chained exception prefix
     expect(cleanErrorString("Caused by: java.net.ConnectException: Connection refused")).toBe("Connection refused");
+    // Cloud CLI prefixes
+    expect(cleanErrorString("aws: error: no such command")).toBe("no such command");
+    expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");
+    expect(cleanErrorString("az: command not found")).toBe("command not found");
+    expect(cleanErrorString("pip: No matching distribution found")).toBe("No matching distribution found");
+    // Go goroutine stack trace headers
+    expect(cleanErrorString("goroutine 1 [running]:\npanic: runtime error: index out of range")).toBe("runtime error: index out of range");
   });
 
   it("summarizeToolResultMessage", () => {
