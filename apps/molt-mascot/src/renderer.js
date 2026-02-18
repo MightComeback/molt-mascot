@@ -1165,6 +1165,16 @@ function showContextMenu(e) {
 pill.addEventListener('contextmenu', showContextMenu);
 canvas.addEventListener('contextmenu', showContextMenu);
 
+// Keyboard accessibility: open context menu via Shift+F10 or the Menu key
+// when the pill has focus. Mirrors native OS behavior for keyboard users.
+pill.addEventListener('keydown', (e) => {
+  if ((e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu') {
+    e.preventDefault();
+    const rect = pill.getBoundingClientRect();
+    showContextMenu({ clientX: rect.left + rect.width / 2, clientY: rect.bottom + 4, preventDefault() {} });
+  }
+});
+
 // boot
 if (isCapture) {
   setup.hidden = true;
