@@ -274,6 +274,29 @@ export function formatElapsed(since, now) {
   return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
 }
 
+/**
+ * Plugin RPC method names for state and reset, ordered by preference.
+ * The canonical name uses the scoped package id; the rest are back-compat aliases
+ * for older plugins/configs. Probed in order until one succeeds.
+ *
+ * Shared across renderer.js, gateway-client.js, and ws-dump.ts to avoid drift.
+ */
+export const PLUGIN_STATE_METHODS = [
+  '@molt/mascot-plugin.state',
+  'molt-mascot.state',
+  'molt-mascot-plugin.state',
+  'moltMascot.state',
+  'moltMascotPlugin.state',
+];
+
+export const PLUGIN_RESET_METHODS = [
+  '@molt/mascot-plugin.reset',
+  'molt-mascot.reset',
+  'molt-mascot-plugin.reset',
+  'moltMascot.reset',
+  'moltMascotPlugin.reset',
+];
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';

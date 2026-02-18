@@ -14,6 +14,8 @@ import {
   normalizeWsUrl,
   formatCloseDetail,
   WS_CLOSE_CODE_LABELS,
+  PLUGIN_STATE_METHODS,
+  PLUGIN_RESET_METHODS,
 } from "../src/utils.js";
 
 describe("coerceDelayMs", () => {
@@ -598,5 +600,31 @@ describe("formatCloseDetail", () => {
     expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
     expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");
     expect(WS_CLOSE_CODE_LABELS[1015]).toBe("TLS handshake failed");
+  });
+});
+
+describe("PLUGIN_STATE_METHODS / PLUGIN_RESET_METHODS", () => {
+  it("are non-empty arrays of strings", () => {
+    expect(Array.isArray(PLUGIN_STATE_METHODS)).toBe(true);
+    expect(Array.isArray(PLUGIN_RESET_METHODS)).toBe(true);
+    expect(PLUGIN_STATE_METHODS.length).toBeGreaterThan(0);
+    expect(PLUGIN_RESET_METHODS.length).toBeGreaterThan(0);
+    for (const m of PLUGIN_STATE_METHODS) expect(typeof m).toBe("string");
+    for (const m of PLUGIN_RESET_METHODS) expect(typeof m).toBe("string");
+  });
+
+  it("canonical names use the scoped package id first", () => {
+    expect(PLUGIN_STATE_METHODS[0]).toBe("@molt/mascot-plugin.state");
+    expect(PLUGIN_RESET_METHODS[0]).toBe("@molt/mascot-plugin.reset");
+  });
+
+  it("state and reset arrays have matching length and parallel aliases", () => {
+    expect(PLUGIN_STATE_METHODS.length).toBe(PLUGIN_RESET_METHODS.length);
+    // Each state method should have a corresponding reset method with same prefix
+    for (let i = 0; i < PLUGIN_STATE_METHODS.length; i++) {
+      const stateBase = PLUGIN_STATE_METHODS[i].replace(/\.state$/, "");
+      const resetBase = PLUGIN_RESET_METHODS[i].replace(/\.reset$/, "");
+      expect(stateBase).toBe(resetBase);
+    }
   });
 });

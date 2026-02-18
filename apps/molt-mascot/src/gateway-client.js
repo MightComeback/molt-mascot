@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -25,22 +25,6 @@ export { normalizeWsUrl };
  * @property {string} [clientVersion]
  * @property {string} [clientPlatform]
  */
-
-const PLUGIN_STATE_METHODS = [
-  '@molt/mascot-plugin.state',
-  'molt-mascot.state',
-  'molt-mascot-plugin.state',
-  'moltMascot.state',
-  'moltMascotPlugin.state',
-];
-
-const PLUGIN_RESET_METHODS = [
-  '@molt/mascot-plugin.reset',
-  'molt-mascot.reset',
-  'molt-mascot-plugin.reset',
-  'moltMascot.reset',
-  'moltMascotPlugin.reset',
-];
 
 export class GatewayClient {
   /**

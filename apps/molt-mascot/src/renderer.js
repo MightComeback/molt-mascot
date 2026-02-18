@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -514,28 +514,13 @@ function getReconnectDelay() {
 let connectReqId = null;
 
 let pluginStateReqId = null;
-const pluginStateMethods = [
-  '@molt/mascot-plugin.state',
-  // Back-compat aliases (older plugin / older configs)
-  'molt-mascot.state',
-  'molt-mascot-plugin.state',
-  'moltMascot.state',
-  'moltMascotPlugin.state',
-];
+// Plugin RPC method arrays imported from utils.js (single source of truth).
 let pluginStateMethodIndex = 0;
-let pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
+let pluginStateMethod = PLUGIN_STATE_METHODS[pluginStateMethodIndex];
 
 let pluginResetReqId = null;
-const pluginResetMethods = [
-  '@molt/mascot-plugin.reset',
-  // Back-compat aliases (older plugin / older configs)
-  'molt-mascot.reset',
-  'molt-mascot-plugin.reset',
-  'moltMascot.reset',
-  'moltMascotPlugin.reset',
-];
 let pluginResetMethodIndex = 0;
-let pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+let pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
 
 let hasPlugin = false;
 let pluginPollerStarted = false;
@@ -700,12 +685,12 @@ function connect(cfg) {
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // If missing, we'll fall back through back-compat aliases.
       pluginStateMethodIndex = 0;
-      pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
+      pluginStateMethod = PLUGIN_STATE_METHODS[pluginStateMethodIndex];
       pluginStatePending = false;
       pluginStateLastSentAt = 0;
 
       pluginResetMethodIndex = 0;
-      pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+      pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
       pluginResetReqId = null;
 
       sendPluginStateReq('s');
@@ -777,9 +762,9 @@ function connect(cfg) {
     // If the current plugin method isn't installed (older plugin), fall back through aliases.
     if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && isMissingMethodResponse(msg)) {
       pluginStatePending = false;
-      if (pluginStateMethodIndex < pluginStateMethods.length - 1) {
+      if (pluginStateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
         pluginStateMethodIndex += 1;
-        pluginStateMethod = pluginStateMethods[pluginStateMethodIndex];
+        pluginStateMethod = PLUGIN_STATE_METHODS[pluginStateMethodIndex];
         pluginStateLastSentAt = 0;
         sendPluginStateReq('s');
         return;
@@ -788,9 +773,9 @@ function connect(cfg) {
 
     // If the current plugin reset method isn't installed (older plugin), fall back through aliases.
     if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && isMissingMethodResponse(msg)) {
-      if (pluginResetMethodIndex < pluginResetMethods.length - 1) {
+      if (pluginResetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
         pluginResetMethodIndex += 1;
-        pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+        pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
         const id = nextId('reset');
         pluginResetReqId = id;
         try {
@@ -953,7 +938,7 @@ function resetState() {
   setMode(Mode.idle);
   if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
     pluginResetMethodIndex = 0;
-    pluginResetMethod = pluginResetMethods[pluginResetMethodIndex];
+    pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
     const id = nextId('reset');
     pluginResetReqId = id;
     try {
