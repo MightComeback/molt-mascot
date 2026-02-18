@@ -1087,6 +1087,8 @@ function buildDebugInfo() {
   const fpsLabel = fpsInterval === 0 ? '~60fps' : `~${Math.round(1000 / fpsInterval)}fps`;
   lines.push(`Frame rate: ${fpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
   lines.push(`Platform: ${navigator.platform || 'unknown'}`);
+  const dpr = window.devicePixelRatio ?? 1;
+  lines.push(`Display scale: ${dpr}x (canvas scale: ${currentScale})`);
   // Include Electron/Chrome/Node versions for bug reports
   // Use preload-exposed versions (process.versions is unavailable in isolated renderer)
   const versions = window.moltMascot?.versions || {};
