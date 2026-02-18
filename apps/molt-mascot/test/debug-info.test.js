@@ -315,6 +315,25 @@ describe("buildDebugInfo", () => {
   it("omits session connect count when undefined", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Session connects");
   });
+
+  it("shows 'idle (sleeping)' when idle duration exceeds sleep threshold", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      currentMode: "idle",
+      modeSince: NOW - 300000, // 5 minutes idle, threshold is 120s
+    });
+    expect(info).toContain("Mode: idle (sleeping)");
+  });
+
+  it("shows plain 'idle' when idle duration is below sleep threshold", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      currentMode: "idle",
+      modeSince: NOW - 5000, // 5 seconds idle, threshold is 120s
+    });
+    expect(info).toContain("Mode: idle");
+    expect(info).not.toContain("sleeping");
+  });
 });
 
 describe("formatElapsed", () => {

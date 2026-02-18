@@ -99,7 +99,10 @@ export function buildDebugInfo(params) {
   const appVer = appVersion ? `v${appVersion}` : 'dev';
   lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
   lines.push(`Captured: ${new Date(now).toISOString()}`);
-  lines.push(`Mode: ${currentMode}`);
+  const modeDurationMs = Math.max(0, now - modeSince);
+  const isSleeping = currentMode === 'idle' && modeDurationMs > sleepThresholdS * 1000;
+  const effectiveMode = isSleeping ? `idle (sleeping)` : currentMode;
+  lines.push(`Mode: ${effectiveMode}`);
   lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
   if (connectedSince) {
     lines.push(`Uptime: ${formatElapsed(connectedSince, now)} (since ${new Date(connectedSince).toISOString()})`);
