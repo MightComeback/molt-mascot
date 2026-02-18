@@ -726,8 +726,7 @@ describe("GatewayClient", () => {
 
   it("recovers from ws.send() race condition during plugin state poll", async () => {
     const client = new GatewayClient();
-    let pluginState = null;
-    client.onPluginState = (s) => { pluginState = s; };
+    client.onPluginState = () => {};
     client.connect({ url: "ws://localhost:18789" });
 
     const ws = MockWebSocket._last;
