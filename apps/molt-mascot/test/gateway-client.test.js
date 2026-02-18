@@ -723,4 +723,47 @@ describe("GatewayClient", () => {
     client.destroy();
     expect(client.uptimeSeconds).toBeNull();
   });
+
+  it("recovers from ws.send() race condition during plugin state poll", async () => {
+    const client = new GatewayClient();
+    let pluginState = null;
+    client.onPluginState = (s) => { pluginState = s; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Respond to initial state request
+    const stateReqId = ws._sent[1].id;
+    ws._emitMessage({
+      type: "res", id: stateReqId, ok: true,
+      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    });
+
+    // Wait past rate-limit window
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Make ws.send() throw (simulates race: readyState=OPEN but socket closing)
+    const origSend = ws.send.bind(ws);
+    let throwOnce = true;
+    ws.send = (data) => {
+      if (throwOnce) { throwOnce = false; throw new Error("WebSocket is already in CLOSING state"); }
+      origSend(data);
+    };
+
+    // This should NOT throw — the try/catch in _sendPluginStateReq handles it
+    client.refreshPluginState();
+
+    // The pending flag should be cleared so subsequent polls aren't permanently blocked
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Next poll should succeed (throwOnce is now false)
+    const countBefore = ws._sent.length;
+    client.refreshPluginState();
+    expect(ws._sent.length).toBe(countBefore + 1);
+
+    client.destroy();
+  });
 });

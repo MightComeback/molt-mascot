@@ -151,11 +151,17 @@ export class GatewayClient {
     this._pluginStateReqId = id;
     this._pluginStatePending = true;
     this._pluginStateLastSentAt = now;
-    this._ws.send(JSON.stringify({
-      type: 'req', id,
-      method: PLUGIN_STATE_METHODS[this._pluginStateMethodIndex],
-      params: {},
-    }));
+    try {
+      this._ws.send(JSON.stringify({
+        type: 'req', id,
+        method: PLUGIN_STATE_METHODS[this._pluginStateMethodIndex],
+        params: {},
+      }));
+    } catch {
+      // Socket closed between readyState check and send — clear pending flag
+      // so the next poll can retry instead of permanently stalling.
+      this._pluginStatePending = false;
+    }
   }
 
   _startPluginPoller() {
@@ -231,7 +237,13 @@ export class GatewayClient {
           auth: cfg.token ? { token: cfg.token } : undefined,
         },
       };
-      ws.send(JSON.stringify(connectFrame));
+      try {
+        ws.send(JSON.stringify(connectFrame));
+      } catch (err) {
+        // Socket may have transitioned to CLOSING/CLOSED between the 'open' event
+        // and the send call. Surface the error instead of crashing.
+        this.onError?.(err?.message || 'Failed to send connect frame');
+      }
     });
 
     ws.addEventListener('message', (ev) => {
@@ -309,7 +321,11 @@ export class GatewayClient {
           this._pluginResetMethodIndex += 1;
           const id = this._nextId('reset');
           this._pluginResetReqId = id;
-          ws.send(JSON.stringify({ type: 'req', id, method: PLUGIN_RESET_METHODS[this._pluginResetMethodIndex], params: {} }));
+          try {
+            ws.send(JSON.stringify({ type: 'req', id, method: PLUGIN_RESET_METHODS[this._pluginResetMethodIndex], params: {} }));
+          } catch {
+            // Socket closed between readyState check and send — best-effort.
+          }
           return;
         }
       }
@@ -375,11 +391,15 @@ export class GatewayClient {
     this._pluginResetMethodIndex = 0;
     const id = this._nextId('reset');
     this._pluginResetReqId = id;
-    this._ws.send(JSON.stringify({
-      type: 'req', id,
-      method: PLUGIN_RESET_METHODS[0],
-      params: {},
-    }));
+    try {
+      this._ws.send(JSON.stringify({
+        type: 'req', id,
+        method: PLUGIN_RESET_METHODS[0],
+        params: {},
+      }));
+    } catch {
+      // Socket closed between readyState check and send — best-effort.
+    }
   }
 
   /**
