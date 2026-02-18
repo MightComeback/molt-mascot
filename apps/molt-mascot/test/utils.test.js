@@ -292,6 +292,11 @@ describe("getFrameIntervalMs", () => {
     // idleDurationMs must be > sleepThresholdMs to sleep
     expect(getFrameIntervalMs("idle", SLEEP_MS, SLEEP_MS, false)).toBe(66);
   });
+
+  it("defaults to ~15fps for unknown/future modes instead of full 60fps", () => {
+    expect(getFrameIntervalMs("some-future-mode", 0, SLEEP_MS, false)).toBe(66);
+    expect(getFrameIntervalMs("", 0, SLEEP_MS, false)).toBe(66);
+  });
 });
 
 describe("getReconnectDelayMs", () => {

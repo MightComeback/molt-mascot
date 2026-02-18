@@ -77,7 +77,9 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
   // Tool overlay is static (single sprite) — only the bob animation matters,
   // so ~8fps (125ms) is plenty and halves the CPU cost vs thinking mode.
   if (mode === 'tool') return 125;
-  return 0;
+  // Unknown/future modes: default to ~15fps rather than full 60fps to avoid
+  // unnecessary CPU usage if new modes are added without updating this function.
+  return 66;
 }
 
 /**
