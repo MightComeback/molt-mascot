@@ -415,11 +415,14 @@ export function cleanErrorString(s: string): string {
   // Handles nested prefixes like "Error: Tool failed: ENOENT: no such file"
   // Errno codes: ENOENT, EACCES, EPERM, ECONNREFUSED, etc.
   const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
+  // Node.js bracketed error codes: [ERR_MODULE_NOT_FOUND]:, [ERR_INVALID_ARG_TYPE]:, etc.
+  const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
   let prev = "";
   while (str !== prev) {
     prev = str;
     str = str.replace(ERROR_PREFIX_REGEX, "").trim();
     str = str.replace(ERRNO_REGEX, "").trim();
+    str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);

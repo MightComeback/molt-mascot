@@ -161,6 +161,10 @@ describe("utils", () => {
     expect(cleanErrorString("Cannot find module 'foo' at /app/index.js:10:5")).toBe("Cannot find module 'foo'");
     expect(cleanErrorString("ENOENT at /app/src/main.ts:42")).toBe("ENOENT");
     expect(cleanErrorString("Missing key at Object.<anonymous> (/app/index.js:10:5)")).toBe("Missing key");
+    // Node.js bracketed error codes: [ERR_*]:
+    expect(cleanErrorString("Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'foo'")).toBe("Cannot find package 'foo'");
+    expect(cleanErrorString("TypeError [ERR_INVALID_ARG_TYPE]: The argument must be string")).toBe("The argument must be string");
+    expect(cleanErrorString("[ERR_REQUIRE_ESM]: require() of ES Module not supported")).toBe("require() of ES Module not supported");
   });
 
   it("summarizeToolResultMessage", () => {
