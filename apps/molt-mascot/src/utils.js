@@ -107,6 +107,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.connectedUrl] - Gateway URL
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt
  * @param {string} [params.lastCloseDetail] - WebSocket close reason/code (shown when disconnected)
+ * @param {number|null} [params.lastDisconnectedAt] - Timestamp of last disconnect (for "disconnected Xm ago")
  * @param {number} [params.pluginToolCalls] - Plugin tool call count
  * @param {number} [params.pluginToolErrors] - Plugin tool error count
  * @param {string} [params.currentTool] - Currently active tool name
@@ -130,6 +131,7 @@ export function buildTooltip(params) {
     connectedUrl,
     reconnectAttempt = 0,
     lastCloseDetail,
+    lastDisconnectedAt,
     pluginToolCalls = 0,
     pluginToolErrors = 0,
     currentTool,
@@ -155,6 +157,10 @@ export function buildTooltip(params) {
     tip += ` · connected ${uptime}`;
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;
+  if (!connectedSince && typeof lastDisconnectedAt === 'number' && lastDisconnectedAt > 0) {
+    const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
+    tip += ` · disconnected ${disconnectedAgo} ago`;
+  }
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
   if (lastCloseDetail) tip += ` · ${lastCloseDetail}`;
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {

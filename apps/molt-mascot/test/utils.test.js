@@ -335,6 +335,23 @@ describe("buildTooltip", () => {
     expect(tip).toContain("retry #3");
   });
 
+  it("shows disconnected duration when lastDisconnectedAt is provided and not connected", () => {
+    const now = Date.now();
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, lastDisconnectedAt: now - 120_000, connectedSince: null, now });
+    expect(tip).toContain("disconnected 2m ago");
+  });
+
+  it("omits disconnected duration when connected", () => {
+    const now = Date.now();
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, lastDisconnectedAt: now - 60_000, connectedSince: now - 30_000, now });
+    expect(tip).not.toContain("disconnected");
+  });
+
+  it("omits disconnected duration when lastDisconnectedAt is null", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastDisconnectedAt: null, connectedSince: null });
+    expect(tip).not.toContain("ago");
+  });
+
   it("omits retry count when connected", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, reconnectAttempt: 3, connectedSince: Date.now() });
     expect(tip).not.toContain("retry");
