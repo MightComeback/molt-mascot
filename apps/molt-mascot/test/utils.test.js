@@ -404,4 +404,15 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: null });
     expect(tip).not.toContain("null");
   });
+
+  it("shows plugin uptime when pluginStartedAt is provided", () => {
+    const now = Date.now();
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginStartedAt: now - 3600_000, now });
+    expect(tip).toContain("plugin up 1h");
+  });
+
+  it("omits plugin uptime when pluginStartedAt is null", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginStartedAt: null });
+    expect(tip).not.toContain("plugin up");
+  });
 });

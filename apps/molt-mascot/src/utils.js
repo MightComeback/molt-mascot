@@ -111,6 +111,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.opacity] - Current window opacity (0-1)
  * @param {string} [params.appVersion] - App version string
  * @param {string} [params.pluginVersion] - Plugin version string
+ * @param {number|null} [params.pluginStartedAt] - Plugin start timestamp (for uptime display)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -131,6 +132,7 @@ export function buildTooltip(params) {
     opacity,
     appVersion,
     pluginVersion,
+    pluginStartedAt,
     now: nowOverride,
   } = params;
 
@@ -146,6 +148,10 @@ export function buildTooltip(params) {
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
+  if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
+    const pluginUptime = formatDuration(Math.max(0, Math.round((now - pluginStartedAt) / 1000)));
+    tip += ` · plugin up ${pluginUptime}`;
+  }
   if (pluginToolCalls > 0) {
     tip += ` · ${pluginToolCalls} calls`;
     if (pluginToolErrors > 0) {
