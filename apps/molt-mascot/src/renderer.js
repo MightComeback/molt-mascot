@@ -307,6 +307,7 @@ function syncPill() {
     connectedUrl,
     reconnectAttempt,
     lastCloseDetail: currentMode === Mode.disconnected ? lastCloseDetail : undefined,
+    lastDisconnectedAt,
     pluginToolCalls,
     pluginToolErrors,
     currentTool: currentMode === Mode.tool ? currentTool : undefined,
