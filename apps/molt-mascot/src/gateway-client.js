@@ -432,11 +432,13 @@ export class GatewayClient {
   }
 
   /**
-   * Force an immediate reconnect, resetting backoff.
-   * @param {{ url: string, token?: string }} [cfg] - Config to use; if omitted, caller must call connect() manually.
+   * Tear down all timers, close the socket, and reset connection/plugin state.
+   * Shared by forceReconnect() and destroy() to avoid duplicated cleanup logic.
+   * @private
    */
-  forceReconnect(cfg) {
-    this._reconnectAttempt = 0;
+  _cleanup() {
+    this._stopStaleCheck();
+    this._stopPluginPoller();
     if (this._reconnectCountdownTimer) {
       clearInterval(this._reconnectCountdownTimer);
       this._reconnectCountdownTimer = null;
@@ -450,17 +452,20 @@ export class GatewayClient {
       try { this._ws.close(); } catch {}
       this._ws = null;
     }
-    // Reset all connection state so stale timers and plugin config don't leak
-    // across reconnect cycles. Without this, the stale-check timer and plugin
-    // poller from the previous connection keep running, and change-detection
-    // in consumers misses updates because cached values are never cleared.
-    this._stopStaleCheck();
-    this._stopPluginPoller();
+    this.connectedSince = null;
+    this.connectedUrl = '';
     this.hasPlugin = false;
     this._pluginStatePending = false;
     this._pluginStateLastSentAt = 0;
-    this.connectedSince = null;
-    this.connectedUrl = '';
+  }
+
+  /**
+   * Force an immediate reconnect, resetting backoff.
+   * @param {{ url: string, token?: string }} [cfg] - Config to use; if omitted, caller must call connect() manually.
+   */
+  forceReconnect(cfg) {
+    this._reconnectAttempt = 0;
+    this._cleanup();
     this.onPluginStateReset?.();
     if (cfg) this.connect(cfg);
   }
@@ -516,28 +521,7 @@ export class GatewayClient {
    * Tear down all timers and close the socket.
    */
   destroy() {
-    this._stopStaleCheck();
-    this._stopPluginPoller();
-    if (this._reconnectCountdownTimer) {
-      clearInterval(this._reconnectCountdownTimer);
-      this._reconnectCountdownTimer = null;
-    }
-    if (this._reconnectTimer) {
-      clearTimeout(this._reconnectTimer);
-      this._reconnectTimer = null;
-    }
-    if (this._ws) {
-      this._ws.onclose = null;
-      try { this._ws.close(); } catch {}
-      this._ws = null;
-    }
-    // Clear connection state so stale values don't leak into tooltips/status
-    // if the instance is inspected after destruction.
-    this.connectedSince = null;
-    this.connectedUrl = '';
-    this.hasPlugin = false;
-    this._pluginStatePending = false;
-    this._pluginStateLastSentAt = 0;
+    this._cleanup();
   }
 
   /** @private */
