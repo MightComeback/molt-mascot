@@ -205,6 +205,29 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Process uptime:");
   });
 
+  it("shows last disconnect time even when currently connected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      wsReadyState: 1,
+      lastDisconnectedAt: NOW - 300000, // 5 min ago
+    });
+    expect(info).toContain("Last disconnect: 5m ago");
+    expect(info).toContain(new Date(NOW - 300000).toISOString());
+  });
+
+  it("omits last disconnect when connected and never disconnected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      wsReadyState: 1,
+      lastDisconnectedAt: null,
+    });
+    expect(info).not.toContain("Last disconnect:");
+  });
+
   it("computes exact durations from now parameter", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

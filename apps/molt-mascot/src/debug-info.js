@@ -94,6 +94,11 @@ export function buildDebugInfo(params) {
     lines.push(`Uptime: ${formatDuration(up)} (since ${new Date(connectedSince).toISOString()})`);
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
+    // Show last disconnect even when connected — helps debug flaky connections
+    if (lastDisconnectedAt) {
+      const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
+      lines.push(`Last disconnect: ${disconnectedAgo} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+    }
   } else {
     if (lastDisconnectedAt) {
       const disconnectedAgo = formatDuration(Math.max(0, Math.round((now - lastDisconnectedAt) / 1000)));
