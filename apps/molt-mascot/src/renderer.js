@@ -418,6 +418,7 @@ let connectedSince = null;   // Date.now() when gateway handshake succeeded
 let connectedUrl = '';        // URL of the current gateway connection
 let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
 let lastCloseDetail = '';      // Close reason/code from the last WebSocket disconnect
+let sessionConnectCount = 0;   // Total successful handshakes since app launch (diagnoses flappy connections)
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -652,6 +653,7 @@ function connect(cfg) {
 
     if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
+      sessionConnectCount += 1;
       connectedSince = Date.now();
       lastCloseDetail = '';
       connectedUrl = cfg.url || '';
@@ -1098,6 +1100,7 @@ function buildDebugInfo() {
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
     processUptimeS: window.moltMascot?.processUptimeS?.(),
+    sessionConnectCount,
   });
 }
 

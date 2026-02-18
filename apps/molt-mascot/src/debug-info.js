@@ -39,6 +39,7 @@
  * @param {number} [params.canvasHeight] - Canvas element height in pixels
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure", "code 1006")
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
+ * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -83,6 +84,7 @@ export function buildDebugInfo(params) {
     canvasHeight,
     lastCloseDetail,
     processUptimeS,
+    sessionConnectCount,
     now: nowOverride,
   } = params;
 
@@ -160,6 +162,9 @@ export function buildDebugInfo(params) {
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}`);
+  }
+  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×)`);
   }
   return lines.join('\n');
 }

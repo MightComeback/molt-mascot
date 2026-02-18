@@ -278,4 +278,18 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Mode duration: 1m 5s");
     expect(info).toContain("Uptime: 1h 1m");
   });
+
+  it("shows session connect count when > 1 (flappy connection diagnostic)", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 5 });
+    expect(info).toContain("Session connects: 5 (reconnected 4×)");
+  });
+
+  it("omits session connect count when 0 or 1 (no reconnects)", () => {
+    expect(buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 0 })).not.toContain("Session connects");
+    expect(buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 1 })).not.toContain("Session connects");
+  });
+
+  it("omits session connect count when undefined", () => {
+    expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Session connects");
+  });
 });
