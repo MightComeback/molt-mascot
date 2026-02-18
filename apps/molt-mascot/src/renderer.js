@@ -1355,6 +1355,10 @@ document.addEventListener('visibilitychange', () => {
     // to prevent stale menus lingering when the window reappears.
     ctxMenu.dismiss();
   } else {
+    // Reset pill update guards so the first frame after resume refreshes immediately,
+    // rather than potentially skipping if the second/minute counter happens to match.
+    lastPillSec = -1;
+    lastPillMin = -1;
     startAnimation();
     // Immediately refresh plugin state so the UI catches up after being hidden.
     // The 1s poller skips ticks while hidden, so without this the pill would
