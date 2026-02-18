@@ -9,31 +9,11 @@ export function coerceDelayMs(v, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
-export function truncate(str, limit = 140) {
-  // Collapse whitespace/newlines to single spaces for cleaner pill display
-  const s = String(str).trim().replace(/\s+/g, ' ');
-  const chars = [...s];
-  if (limit <= 0) return "";
-  if (chars.length <= limit) return s;
-  // If limit is too small to fit ellipsis, just truncate hard
-  if (limit <= 1) return chars.slice(0, limit).join("");
-
-  // Basic truncate (leave room for 1 char ellipsis)
-  let cut = chars.slice(0, limit - 1).join("");
-  // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
-  const lastSpace = cut.lastIndexOf(" ");
-  if (lastSpace > -1 && cut.length - lastSpace < 20) {
-    cut = cut.slice(0, lastSpace);
-  }
-
-  return cut + "…";
-}
-
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { cleanErrorString, formatDuration } from '@molt/mascot-plugin';
-export { cleanErrorString, formatDuration };
+import { truncate, cleanErrorString, formatDuration } from '@molt/mascot-plugin';
+export { truncate, cleanErrorString, formatDuration };
 
 export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;
