@@ -245,6 +245,28 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("×");
   });
 
+  it("shows close reason when disconnected", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, lastCloseDetail: "abnormal closure" });
+    expect(info).toContain("Close reason: abnormal closure");
+  });
+
+  it("omits close reason when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Close reason");
+  });
+
+  it("omits close reason when connected (even if previously set)", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      lastCloseDetail: "abnormal closure",
+    });
+    // Close reason is in the disconnected block which is skipped when connected
+    expect(info).not.toContain("Close reason");
+  });
+
   it("computes exact durations from now parameter", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

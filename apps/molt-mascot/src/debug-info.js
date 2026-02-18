@@ -37,6 +37,7 @@
  * @param {{ electron?: string, chrome?: string, node?: string }} [params.versions] - Runtime versions
  * @param {number} [params.canvasWidth] - Canvas element width in pixels
  * @param {number} [params.canvasHeight] - Canvas element height in pixels
+ * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure", "code 1006")
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
@@ -80,6 +81,7 @@ export function buildDebugInfo(params) {
     versions,
     canvasWidth,
     canvasHeight,
+    lastCloseDetail,
     processUptimeS,
     now: nowOverride,
   } = params;
@@ -112,6 +114,7 @@ export function buildDebugInfo(params) {
     }
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
+    if (lastCloseDetail) lines.push(`Close reason: ${lastCloseDetail}`);
     if (savedUrl) lines.push(`Saved URL: ${savedUrl}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
