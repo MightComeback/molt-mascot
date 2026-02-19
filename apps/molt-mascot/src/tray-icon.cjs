@@ -157,10 +157,12 @@ function renderTraySprite(scale, opts) {
  * @param {number} [params.modeDurationSec] - How long in current mode (seconds); shown for non-idle modes
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (for app stability diagnostics)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
+ * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure (1006)")
+ * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown when disconnected)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -177,6 +179,8 @@ function buildTrayTooltip(params) {
   parts.push(`📐 ${sizeLabel || 'medium'}`);
   if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
+  if (typeof reconnectAttempt === 'number' && reconnectAttempt > 0 && !uptimeStr) parts.push(`retry #${reconnectAttempt}`);
+  if (typeof lastCloseDetail === 'string' && lastCloseDetail) parts.push(`⚡ ${lastCloseDetail}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
     parts.push(`⏱ ${formatLatency(latencyMs)}`);
   }

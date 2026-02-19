@@ -515,6 +515,8 @@ app.whenReady().then(async () => {
       sessionConnectCount,
       toolCalls: currentToolCalls,
       toolErrors: currentToolErrors,
+      lastCloseDetail: currentCloseDetail,
+      reconnectAttempt: currentReconnectAttempt,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -686,13 +688,20 @@ app.whenReady().then(async () => {
   let currentToolCalls = 0;
   let currentToolErrors = 0;
   let sessionConnectCount = 0;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors) => {
+  let currentCloseDetail = null;
+  let currentReconnectAttempt = 0;
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttemptVal) => {
     // Track tool call stats for tray tooltip diagnostics.
     if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
     if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;
+
+    // Track close detail and reconnect attempt for tray tooltip diagnostics.
+    if (typeof closeDetail === 'string' && closeDetail) currentCloseDetail = closeDetail;
+    else if (closeDetail === null) currentCloseDetail = null;
+    if (typeof reconnectAttemptVal === 'number' && reconnectAttemptVal >= 0) currentReconnectAttempt = reconnectAttemptVal;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;
@@ -718,6 +727,8 @@ app.whenReady().then(async () => {
       if (mode === 'connected') {
         connectedSinceMs = Date.now();
         sessionConnectCount += 1;
+        currentCloseDetail = null;
+        currentReconnectAttempt = 0;
       } else if (mode === 'disconnected' || mode === 'connecting') {
         connectedSinceMs = null;
         currentLatencyMs = null;

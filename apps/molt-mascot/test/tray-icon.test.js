@@ -353,6 +353,31 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, toolCalls: 0 })).not.toContain('🔨');
       expect(buildTrayTooltip({ ...base })).not.toContain('🔨');
     });
+
+    it('shows close detail when provided', () => {
+      const tip = buildTrayTooltip({ ...base, lastCloseDetail: 'abnormal closure (1006)' });
+      expect(tip).toContain('⚡ abnormal closure (1006)');
+    });
+
+    it('omits close detail when null or empty', () => {
+      expect(buildTrayTooltip({ ...base, lastCloseDetail: null })).not.toContain('⚡');
+      expect(buildTrayTooltip({ ...base, lastCloseDetail: '' })).not.toContain('⚡');
+      expect(buildTrayTooltip({ ...base })).not.toContain('⚡');
+    });
+
+    it('shows reconnect attempt when disconnected (no uptimeStr)', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'disconnected', reconnectAttempt: 3 });
+      expect(tip).toContain('retry #3');
+    });
+
+    it('omits reconnect attempt when connected (uptimeStr present)', () => {
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '5m', reconnectAttempt: 2 });
+      expect(tip).not.toContain('retry');
+    });
+
+    it('omits reconnect attempt when 0', () => {
+      expect(buildTrayTooltip({ ...base, reconnectAttempt: 0 })).not.toContain('retry');
+    });
   });
 
   describe('formatLatency', () => {
