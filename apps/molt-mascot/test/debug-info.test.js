@@ -222,6 +222,16 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Process uptime:");
   });
 
+  it("shows process RSS when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, processMemoryRssBytes: 104857600 }); // 100 MB
+    expect(info).toContain("Process RSS: 100.0 MB");
+  });
+
+  it("omits process RSS when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Process RSS:");
+  });
+
   it("shows last disconnect time even when currently connected", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

@@ -40,6 +40,7 @@
  * @param {number} [params.canvasHeight] - Canvas element height in pixels
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure", "code 1006")
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
+ * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (process.memoryUsage().rss)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
@@ -91,6 +92,7 @@ export function buildDebugInfo(params) {
     canvasHeight,
     lastCloseDetail,
     processUptimeS,
+    processMemoryRssBytes,
     sessionConnectCount,
     isPollingPaused,
     latencyMs,
@@ -168,6 +170,9 @@ export function buildDebugInfo(params) {
     const total = formatBytes(memory.totalJSHeapSize);
     const limit = formatBytes(memory.jsHeapSizeLimit);
     lines.push(`Memory: ${used} used / ${total} total (limit ${limit})`);
+  }
+  if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
+    lines.push(`Process RSS: ${formatBytes(processMemoryRssBytes)}`);
   }
   const runtimeParts = [
     versions?.electron ? `Electron ${versions.electron}` : null,

@@ -1178,6 +1178,7 @@ function buildDebugInfo() {
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
     processUptimeS: window.moltMascot?.processUptimeS?.(),
+    processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     sessionConnectCount,
     isPollingPaused: document.hidden,
     latencyMs,

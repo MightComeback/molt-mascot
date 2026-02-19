@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   onForceReconnect: (cb) => onIpc('molt-mascot:force-reconnect', cb),
   onCopied: (cb) => onIpc('molt-mascot:copied', cb),
   processUptimeS: () => process.uptime(),
+  processMemoryRssBytes: () => process.memoryUsage().rss,
   platform: process.platform,
   version: pkg.version,
   versions: {
