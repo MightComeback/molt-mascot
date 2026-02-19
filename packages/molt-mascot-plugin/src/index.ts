@@ -215,6 +215,7 @@ export const ERROR_PREFIXES = [
   "warn",
   // Python non-Error exceptions (not matched by *Error pattern)
   "StopIteration",
+  "StopAsyncIteration",
   "KeyboardInterrupt",
   "SystemExit",
   "GeneratorExit",

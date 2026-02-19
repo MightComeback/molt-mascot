@@ -220,6 +220,7 @@ describe("utils", () => {
     expect(cleanErrorString("KeyboardInterrupt: ")).toBe("");
     expect(cleanErrorString("SystemExit: 1")).toBe("1");
     expect(cleanErrorString("GeneratorExit: cleanup")).toBe("cleanup");
+    expect(cleanErrorString("StopAsyncIteration: exhausted")).toBe("exhausted");
     // Cloud CLI prefixes
     expect(cleanErrorString("aws: error: no such command")).toBe("no such command");
     expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");
