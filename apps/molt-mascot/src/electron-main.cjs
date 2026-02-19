@@ -95,6 +95,23 @@ if (cliAlign) process.env.MOLT_MASCOT_ALIGN = cliAlign;
 if (cliOpacity) process.env.MOLT_MASCOT_OPACITY = cliOpacity;
 if (cliPadding) process.env.MOLT_MASCOT_PADDING = cliPadding;
 
+// CLI flags: --reset-prefs clears saved preferences and starts fresh.
+// Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
+if (process.argv.includes('--reset-prefs')) {
+  try {
+    const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
+    if (fs.existsSync(prefsPath)) {
+      fs.unlinkSync(prefsPath);
+      process.stdout.write(`molt-mascot: preferences reset (deleted ${prefsPath})\n`);
+    } else {
+      process.stdout.write(`molt-mascot: no preferences file to reset\n`);
+    }
+  } catch (err) {
+    process.stderr.write(`molt-mascot: failed to reset preferences: ${err.message}\n`);
+  }
+  // Continue launching with defaults (don't exit) so the user sees the fresh state.
+}
+
 // CLI flags: --debug opens DevTools on launch for easier development.
 const cliDebug = process.argv.includes('--debug');
 
@@ -121,6 +138,7 @@ Options:
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
+  --reset-prefs          Clear saved preferences and start fresh
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
