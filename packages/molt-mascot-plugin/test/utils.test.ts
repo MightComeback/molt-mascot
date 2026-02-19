@@ -56,6 +56,11 @@ describe("utils", () => {
     expect(formatDuration(3661)).toBe("1h 1m");
     expect(formatDuration(86400)).toBe("1d");
     expect(formatDuration(90000)).toBe("1d 1h");
+    // Weeks
+    expect(formatDuration(604800)).toBe("1w");
+    expect(formatDuration(691200)).toBe("1w 1d");
+    expect(formatDuration(1209600)).toBe("2w");
+    expect(formatDuration(1296000)).toBe("2w 1d");
     // Negative clamps to 0
     expect(formatDuration(-5)).toBe("0s");
     // Fractional rounds

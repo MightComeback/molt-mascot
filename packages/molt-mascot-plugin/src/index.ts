@@ -180,7 +180,10 @@ export function formatDuration(seconds: number): string {
   if (h < 24) return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
   const d = Math.floor(h / 24);
   const remH = h % 24;
-  return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
+  if (d < 7) return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
+  const w = Math.floor(d / 7);
+  const remD = d % 7;
+  return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
 }
 
 /**
