@@ -1,3 +1,7 @@
+// Import shared utilities at the top so they're available for URL normalization
+// and protocol method probing below (single source of truth, no drift).
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl } from "../apps/molt-mascot/src/utils.js";
+
 type GatewayCfg = {
   url: string;
   token?: string;
@@ -85,11 +89,9 @@ const compact = args.has("--compact");
 const info = (...a: unknown[]) => { if (!quiet) console.error(...a); };
 
 const rawGatewayUrl = process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
-const normalizedGatewayUrl = rawGatewayUrl.startsWith("http://")
-  ? rawGatewayUrl.replace("http://", "ws://")
-  : rawGatewayUrl.startsWith("https://")
-    ? rawGatewayUrl.replace("https://", "wss://")
-    : rawGatewayUrl;
+// Use the shared normalizeWsUrl (handles http→ws, https→wss, bare host:port, etc.)
+// instead of duplicating the logic inline, avoiding drift with the renderer/gateway-client.
+const normalizedGatewayUrl = normalizeWsUrl(rawGatewayUrl);
 
 const cfg: GatewayCfg = {
   url: normalizedGatewayUrl,
@@ -146,9 +148,6 @@ let gotHello = false;
 let stateReqId: string | null = null;
 let resetReqId: string | null = null;
 
-// Import shared constants and helpers from utils.js (single source of truth)
-// to avoid drift between ws-dump and the renderer/gateway-client.
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse } from "../apps/molt-mascot/src/utils.js";
 let stateMethodIndex = 0;
 let resetMethodIndex = 0;
 
