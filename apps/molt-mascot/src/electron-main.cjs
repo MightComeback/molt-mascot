@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
-const { getPosition: _getPosition } = require('./get-position.cjs');
+const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
@@ -694,13 +694,11 @@ app.whenReady().then(async () => {
         const [wx, wy] = w.getPosition();
         const [ww, wh] = w.getSize();
         const display = screen.getDisplayNearestPoint({ x: wx, y: wy });
-        const { x: ax, y: ay, width: aw, height: ah } = display.workArea;
-        const clampedX = Math.max(ax, Math.min(wx, ax + aw - ww));
-        const clampedY = Math.max(ay, Math.min(wy, ay + ah - wh));
-        if (clampedX !== wx || clampedY !== wy) {
+        const clamped = clampToWorkArea({ x: wx, y: wy }, { width: ww, height: wh }, display.workArea);
+        if (clamped.changed) {
           repositioning = true;
-          w.setPosition(Math.round(clampedX), Math.round(clampedY), true);
-          savePrefs({ draggedPosition: { x: Math.round(clampedX), y: Math.round(clampedY) } });
+          w.setPosition(clamped.x, clamped.y, true);
+          savePrefs({ draggedPosition: { x: clamped.x, y: clamped.y } });
           setTimeout(() => { repositioning = false; }, 100);
         }
         return;

@@ -44,4 +44,24 @@ function getPosition(display, width, height, alignOverride, paddingOverride) {
   return { x: Math.round(px), y: Math.round(py) };
 }
 
-module.exports = { getPosition };
+/**
+ * Clamp a window position to the nearest visible work area so it's never
+ * stranded on a phantom display after monitor removal or resolution change.
+ *
+ * @param {{ x: number, y: number }} pos - Current window position
+ * @param {{ width: number, height: number }} size - Window dimensions
+ * @param {{ x: number, y: number, width: number, height: number }} workArea - Display work area
+ * @returns {{ x: number, y: number, changed: boolean }} Clamped position + whether it moved
+ */
+function clampToWorkArea(pos, size, workArea) {
+  const { x: ax, y: ay, width: aw, height: ah } = workArea;
+  const cx = Math.max(ax, Math.min(pos.x, ax + aw - size.width));
+  const cy = Math.max(ay, Math.min(pos.y, ay + ah - size.height));
+  return {
+    x: Math.round(cx),
+    y: Math.round(cy),
+    changed: Math.round(cx) !== Math.round(pos.x) || Math.round(cy) !== Math.round(pos.y),
+  };
+}
+
+module.exports = { getPosition, clampToWorkArea };

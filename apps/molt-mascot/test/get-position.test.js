@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea } = require("../src/get-position.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
@@ -119,5 +119,55 @@ describe("getPosition", () => {
     // Verify they're integers (no fractional pixels)
     expect(Number.isInteger(pos.x)).toBe(true);
     expect(Number.isInteger(pos.y)).toBe(true);
+  });
+});
+
+describe("clampToWorkArea", () => {
+  const workArea = { x: 0, y: 0, width: 1920, height: 1080 };
+  const size = { width: 240, height: 200 };
+
+  it("returns unchanged position when already inside", () => {
+    const result = clampToWorkArea({ x: 100, y: 100 }, size, workArea);
+    expect(result).toEqual({ x: 100, y: 100, changed: false });
+  });
+
+  it("clamps position that overflows right edge", () => {
+    const result = clampToWorkArea({ x: 1800, y: 100 }, size, workArea);
+    expect(result.x).toBe(1920 - 240);
+    expect(result.y).toBe(100);
+    expect(result.changed).toBe(true);
+  });
+
+  it("clamps position that overflows bottom edge", () => {
+    const result = clampToWorkArea({ x: 100, y: 1000 }, size, workArea);
+    expect(result.x).toBe(100);
+    expect(result.y).toBe(1080 - 200);
+    expect(result.changed).toBe(true);
+  });
+
+  it("clamps negative position to work area origin", () => {
+    const result = clampToWorkArea({ x: -50, y: -30 }, size, workArea);
+    expect(result.x).toBe(0);
+    expect(result.y).toBe(0);
+    expect(result.changed).toBe(true);
+  });
+
+  it("respects work area offset", () => {
+    const offset = { x: 200, y: 100, width: 1600, height: 900 };
+    const result = clampToWorkArea({ x: 100, y: 50 }, size, offset);
+    expect(result.x).toBe(200);
+    expect(result.y).toBe(100);
+    expect(result.changed).toBe(true);
+  });
+
+  it("rounds to integers", () => {
+    const result = clampToWorkArea({ x: 100.7, y: 200.3 }, size, workArea);
+    expect(Number.isInteger(result.x)).toBe(true);
+    expect(Number.isInteger(result.y)).toBe(true);
+  });
+
+  it("reports changed=false for already-rounded positions at edges", () => {
+    const result = clampToWorkArea({ x: 1680, y: 880 }, size, workArea);
+    expect(result).toEqual({ x: 1680, y: 880, changed: false });
   });
 });
