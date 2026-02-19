@@ -139,7 +139,9 @@ Options:
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
+  --list-prefs           Print saved preferences and exit
   --reset-prefs          Clear saved preferences and start fresh
+  --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
 ```
 
 ## Project Structure
