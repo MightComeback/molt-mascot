@@ -63,7 +63,7 @@
         "type": "string",
         "default": "medium",
         "description": "Mascot window size preset",
-        "enum": ["small", "medium", "large"]
+        "enum": ["small", "medium", "large", "xlarge"]
       }
     }
   }
