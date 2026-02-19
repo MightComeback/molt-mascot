@@ -1,4 +1,4 @@
-import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -1233,7 +1233,7 @@ function showContextMenu(e) {
     statusParts.push(statsStr);
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    statusParts.push(`${latencyMs}ms`);
+    statusParts.push(formatLatency(latencyMs));
   }
 
   ctxMenu.show([
