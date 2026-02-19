@@ -19,6 +19,7 @@ molt-mascot/
 │   │   ├── utils.js           # Shared utilities (re-exports from plugin)
 │   │   ├── tray-icon.cjs      # Pixel-art tray icon renderer with status dot
 │   │   ├── get-position.cjs   # Window positioning (alignment × padding)
+│   │   ├── format-latency.cjs # Shared latency formatter (CJS for tray + ESM re-export)
 │   │   └── is-truthy-env.cjs  # Boolean env var parser
 │   └── test/                  # Bun test files (mirrors src/)
 │

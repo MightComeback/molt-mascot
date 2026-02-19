@@ -442,6 +442,7 @@ window.__moltMascotGetState = () => ({
   hasPlugin,
   reconnectAttempt,
   lastCloseDetail,
+  lastDisconnectedAt,
   pluginVersion,
   pluginToolCalls,
   pluginToolErrors,
