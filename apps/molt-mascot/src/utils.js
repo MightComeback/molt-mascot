@@ -91,9 +91,9 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
   if (mode === 'connecting' || mode === 'connected') return 66;
   // Thinking overlay alternates every 600ms — ~15fps (66ms) gives smooth bob.
   if (mode === 'thinking') return 66;
-  // Tool overlay is static (single sprite) — only the bob animation matters,
-  // so ~8fps (125ms) is plenty and halves the CPU cost vs thinking mode.
-  if (mode === 'tool') return 125;
+  // Tool overlay has 2-frame animation (700ms per frame) + bob — match thinking's
+  // ~15fps (66ms) for consistent smooth motion across active modes.
+  if (mode === 'tool') return 66;
   // Unknown/future modes: default to ~15fps rather than full 60fps to avoid
   // unnecessary CPU usage if new modes are added without updating this function.
   return 66;

@@ -308,8 +308,8 @@ describe("getFrameIntervalMs", () => {
     expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, false)).toBe(66);
   });
 
-  it("returns ~8fps (125ms) for tool mode (static overlay, only bob animates)", () => {
-    expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(125);
+  it("returns ~15fps (66ms) for tool mode (2-frame animation + bob)", () => {
+    expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(66);
   });
 
   it("returns ~15fps (66ms) for connecting/connected modes", () => {
