@@ -373,6 +373,9 @@ export function cleanErrorString(s: string): string {
   const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
   // Go runtime prefixes: "runtime: out of memory", "runtime/cgo: ..."
   const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
+  // Unhandled rejection wrapper: "(in promise) TypeError: ..." → "TypeError: ..."
+  // Common in both Node.js and Deno unhandled promise rejection output.
+  const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -380,6 +383,7 @@ export function cleanErrorString(s: string): string {
     str = str.replace(ERRNO_REGEX, "").trim();
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
     str = str.replace(GO_RUNTIME_REGEX, "").trim();
+    str = str.replace(IN_PROMISE_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);

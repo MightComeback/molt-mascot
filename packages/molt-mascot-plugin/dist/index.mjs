@@ -250,6 +250,7 @@ function cleanErrorString(s) {
   const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
   const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
   const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
+  const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -257,6 +258,7 @@ function cleanErrorString(s) {
     str = str.replace(ERRNO_REGEX, "").trim();
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
     str = str.replace(GO_RUNTIME_REGEX, "").trim();
+    str = str.replace(IN_PROMISE_REGEX, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
@@ -362,6 +364,52 @@ function summarizeToolResultMessage(msg) {
   }
   return "tool error";
 }
+var CONTENT_TOOLS = /* @__PURE__ */ new Set([
+  "read",
+  "write",
+  "edit",
+  "exec",
+  "web_fetch",
+  "web_search",
+  "memory_get",
+  "memory_search",
+  "browser",
+  "canvas",
+  "sessions_history",
+  "sessions_list",
+  "agents_list",
+  "session_status",
+  "sessions_spawn",
+  "sessions_send",
+  "tts",
+  "cron",
+  "nodes",
+  "process",
+  "gateway",
+  "message",
+  "slack",
+  "gog",
+  "github",
+  "notion",
+  "gemini",
+  "bird",
+  "bluebubbles",
+  "clawdhub",
+  "peekaboo",
+  "summarize",
+  "video_frames",
+  "video-frames",
+  "weather",
+  "skill_creator",
+  "skill-creator",
+  "coding_agent",
+  "coding-agent",
+  "image",
+  // multi_tool_use.parallel becomes just "parallel" after prefix stripping
+  "parallel",
+  // Linear integration via hakky-tools
+  "hakky-tools"
+]);
 function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
   let cfg = api?.pluginConfig;
@@ -415,52 +463,7 @@ function register(api) {
   const activeAgents = /* @__PURE__ */ new Set();
   const agentToolStacks = /* @__PURE__ */ new Map();
   const agentLastToolTs = /* @__PURE__ */ new Map();
-  const contentTools = /* @__PURE__ */ new Set([
-    "read",
-    "write",
-    "edit",
-    "exec",
-    "web_fetch",
-    "web_search",
-    "memory_get",
-    "memory_search",
-    "browser",
-    "canvas",
-    "sessions_history",
-    "sessions_list",
-    "agents_list",
-    "session_status",
-    "sessions_spawn",
-    "sessions_send",
-    "tts",
-    "cron",
-    "nodes",
-    "process",
-    "gateway",
-    "message",
-    "slack",
-    "gog",
-    "github",
-    "notion",
-    "gemini",
-    "bird",
-    "bluebubbles",
-    "clawdhub",
-    "peekaboo",
-    "summarize",
-    "video_frames",
-    "video-frames",
-    "weather",
-    "skill_creator",
-    "skill-creator",
-    "coding_agent",
-    "coding-agent",
-    "image",
-    // multi_tool_use.parallel becomes just "parallel" after prefix stripping
-    "parallel",
-    // Linear integration via hakky-tools
-    "hakky-tools"
-  ]);
+  const contentTools = CONTENT_TOOLS;
   const getToolDepth = () => {
     let inputs = 0;
     for (const stack of agentToolStacks.values()) inputs += stack.length;
@@ -746,6 +749,7 @@ function register(api) {
   });
 }
 export {
+  CONTENT_TOOLS,
   ERROR_PREFIXES,
   ERROR_PREFIX_REGEX,
   allowedAlignments,

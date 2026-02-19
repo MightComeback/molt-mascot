@@ -111,10 +111,18 @@ declare function cleanErrorString(s: string): string;
  */
 declare function summarizeToolResultMessage(msg: any): string;
 /**
+ * Tools that return raw content (like 'read') can contain "error:" in the text
+ * without actually failing. For these tools we disable text-sniffing for errors
+ * and rely on explicit failure signals (status/exitCode/success/isError).
+ *
+ * Exported so consumers can check membership or extend the list.
+ */
+declare const CONTENT_TOOLS: ReadonlySet<string>;
+/**
  * Initialize the molt-mascot plugin.
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, successRate, summarizeToolResultMessage, truncate, version };

@@ -228,6 +228,10 @@ describe("utils", () => {
     expect(cleanErrorString("pip: No matching distribution found")).toBe("No matching distribution found");
     // Go goroutine stack trace headers
     expect(cleanErrorString("goroutine 1 [running]:\npanic: runtime error: index out of range")).toBe("runtime error: index out of range");
+    // Unhandled promise rejection wrapper (Node.js / Deno)
+    expect(cleanErrorString("Uncaught (in promise) TypeError: Failed to fetch")).toBe("Failed to fetch");
+    expect(cleanErrorString("(in promise) ReferenceError: x is not defined")).toBe("x is not defined");
+    expect(cleanErrorString("error: Uncaught (in promise) TypeError: Cannot read properties of null")).toBe("Cannot read properties of null");
   });
 
   it("summarizeToolResultMessage", () => {
