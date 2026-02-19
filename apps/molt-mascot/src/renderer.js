@@ -1351,13 +1351,16 @@ window.__moltMascotActualFps = () => _actualFps;
 
 // Throttle frame rate when idle/sleeping to save CPU.
 // Delegates to the pure utility function for testability.
-function getFrameIntervalMs() {
-  const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
+// Accepts an optional `now` timestamp to avoid redundant Date.now() calls
+// in the hot render loop (the caller already has a timestamp from rAF or Date.now()).
+function getFrameIntervalMs(now) {
+  const idleDur = currentMode === Mode.idle ? (now || Date.now()) - modeSince : 0;
   return _getFrameIntervalMs(currentMode, idleDur, SLEEP_THRESHOLD_MS, reducedMotion);
 }
 
 function frame(t) {
-  const interval = getFrameIntervalMs();
+  const now = Date.now();
+  const interval = getFrameIntervalMs(now);
   if (interval > 0 && t - lastFrameAt < interval) {
     animFrameId = requestAnimationFrame(frame);
     return;
@@ -1365,7 +1368,7 @@ function frame(t) {
   lastFrameAt = t;
   _updateActualFps(t);
 
-  const idleDur = currentMode === Mode.idle ? Date.now() - modeSince : 0;
+  const idleDur = currentMode === Mode.idle ? now - modeSince : 0;
   const isSleeping = currentMode === Mode.idle && idleDur > SLEEP_THRESHOLD_MS;
   drawLobster(currentMode, manualTime !== null ? manualTime : t, idleDur);
 
