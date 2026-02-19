@@ -54,6 +54,9 @@ function makeElement(tag) {
         el._listeners[type] = el._listeners[type].filter((f) => f !== fn);
       }
     },
+    focus(_opts) {
+      el._focused = true;
+    },
     click() {
       (el._listeners["click"] || []).forEach((fn) => fn({ target: el }));
     },
@@ -539,5 +542,25 @@ describe("context-menu", () => {
     expect(ctxMenu.isVisible()).toBe(true);
     ctxMenu.dismiss();
     expect(ctxMenu.isVisible()).toBe(false);
+  });
+
+  it("keyboard navigation moves DOM focus to the active item", async () => {
+    const menu = ctxMenu.show([
+      { label: "Alpha", action: () => {} },
+      { label: "Beta", action: () => {} },
+    ], { x: 10, y: 10 });
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Auto-focus should have called .focus() on the first item
+    const items = menu._children;
+    expect(items[0]._focused).toBe(true);
+
+    // Arrow down should move focus to the second item
+    const keydown = (document._listeners["keydown"] || [])[0];
+    keydown({ key: "ArrowDown", preventDefault() {} });
+    expect(items[1]._focused).toBe(true);
+    expect(items[1]._classes.has("ctx-focus")).toBe(true);
+
+    ctxMenu.dismiss();
   });
 });

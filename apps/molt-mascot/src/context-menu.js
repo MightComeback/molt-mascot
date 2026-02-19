@@ -109,6 +109,8 @@ export function show(items, { x, y }) {
     }
     focusIdx = idx;
     menuItems[focusIdx].classList.add('ctx-focus');
+    // Move DOM focus so screen readers track the active item.
+    menuItems[focusIdx].focus({ preventScroll: true });
   };
 
   const focusNext = () => {
