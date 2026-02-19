@@ -513,6 +513,8 @@ app.whenReady().then(async () => {
       modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
       processUptimeS: process.uptime(),
       sessionConnectCount,
+      toolCalls: currentToolCalls,
+      toolErrors: currentToolErrors,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -681,8 +683,13 @@ app.whenReady().then(async () => {
   let currentLatencyMs = null;
   let currentToolName = null;
   let currentErrorMessage = null;
+  let currentToolCalls = 0;
+  let currentToolErrors = 0;
   let sessionConnectCount = 0;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage) => {
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors) => {
+    // Track tool call stats for tray tooltip diagnostics.
+    if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
+    if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;

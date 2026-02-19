@@ -337,6 +337,22 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, sessionConnectCount: 1 })).not.toContain('↻');
       expect(buildTrayTooltip({ ...base })).not.toContain('↻');
     });
+
+    it('shows tool call stats when toolCalls > 0', () => {
+      const tip = buildTrayTooltip({ ...base, toolCalls: 42, toolErrors: 3 });
+      expect(tip).toContain('🔨 42 calls, 3 err');
+    });
+
+    it('shows tool calls without errors when toolErrors is 0', () => {
+      const tip = buildTrayTooltip({ ...base, toolCalls: 10, toolErrors: 0 });
+      expect(tip).toContain('🔨 10 calls');
+      expect(tip).not.toContain('err');
+    });
+
+    it('omits tool stats when toolCalls is 0 or not provided', () => {
+      expect(buildTrayTooltip({ ...base, toolCalls: 0 })).not.toContain('🔨');
+      expect(buildTrayTooltip({ ...base })).not.toContain('🔨');
+    });
   });
 
   describe('formatLatency', () => {

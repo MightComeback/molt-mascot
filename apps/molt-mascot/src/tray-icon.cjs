@@ -160,7 +160,7 @@ function renderTraySprite(scale, opts) {
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -179,6 +179,12 @@ function buildTrayTooltip(params) {
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
     parts.push(`⏱ ${formatLatency(latencyMs)}`);
+  }
+  if (typeof toolCalls === 'number' && toolCalls > 0) {
+    const statsStr = (typeof toolErrors === 'number' && toolErrors > 0)
+      ? `${toolCalls} calls, ${toolErrors} err`
+      : `${toolCalls} calls`;
+    parts.push(`🔨 ${statsStr}`);
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
