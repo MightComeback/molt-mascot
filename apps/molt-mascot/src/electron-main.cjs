@@ -499,6 +499,7 @@ app.whenReady().then(async () => {
       currentTool: currentToolName,
       lastErrorMessage: currentErrorMessage,
       modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
+      processUptimeS: process.uptime(),
     }));
 
     const menu = Menu.buildFromTemplate([

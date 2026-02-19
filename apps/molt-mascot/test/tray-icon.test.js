@@ -307,6 +307,19 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, mode: 'tool', modeDurationSec: 0 })).not.toContain('(0s)');
       expect(buildTrayTooltip({ ...base, mode: 'tool' })).not.toContain('(');
     });
+
+    it('shows process uptime when processUptimeS is provided', () => {
+      const tip = buildTrayTooltip({ ...base, processUptimeS: 3661 });
+      expect(tip).toContain('🕐 1h 1m');
+    });
+
+    it('omits process uptime when not provided', () => {
+      expect(buildTrayTooltip({ ...base })).not.toContain('🕐');
+    });
+
+    it('omits process uptime when negative', () => {
+      expect(buildTrayTooltip({ ...base, processUptimeS: -1 })).not.toContain('🕐');
+    });
   });
 
   describe('formatLatency', () => {

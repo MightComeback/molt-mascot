@@ -155,10 +155,11 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.currentTool] - Active tool name (shown in tooltip when mode is 'tool')
  * @param {string} [params.lastErrorMessage] - Error detail (shown in tooltip when mode is 'error')
  * @param {number} [params.modeDurationSec] - How long in current mode (seconds); shown for non-idle modes
+ * @param {number} [params.processUptimeS] - Electron process uptime in seconds (for app stability diagnostics)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -177,6 +178,9 @@ function buildTrayTooltip(params) {
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
     parts.push(`⏱ ${formatLatency(latencyMs)}`);
+  }
+  if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
+    parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
   }
   return parts.join(' · ');
 }
