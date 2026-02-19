@@ -97,8 +97,15 @@ describe("sprites", () => {
   });
 
   describe("overlay.tool", () => {
-    it("is a valid 32x32 sprite", () => {
-      validateFrame(overlay.tool, "tool");
+    it("has 2 frames", () => {
+      expect(overlay.tool.length).toBe(2);
+    });
+    it("each frame is a valid 32x32 sprite", () => {
+      for (const frame of overlay.tool) validateFrame(frame, "tool");
+    });
+    it("frames differ (animation)", () => {
+      const hasDiff = overlay.tool[0].some((row, i) => row !== overlay.tool[1][i]);
+      expect(hasDiff).toBe(true);
     });
   });
 
