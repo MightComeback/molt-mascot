@@ -69,6 +69,12 @@ function savePrefs(patch) {
   }
 }
 
+// CLI flags: --version prints version and exits (standard UX pattern).
+if (process.argv.includes('--version') || process.argv.includes('-v')) {
+  process.stdout.write(`molt-mascot ${APP_VERSION}\n`);
+  process.exit(0);
+}
+
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
