@@ -1124,4 +1124,24 @@ describe("pausePolling / resumePolling", () => {
     client.forceReconnect({ url: "ws://localhost:18789" });
     expect(client.isDestroyed).toBe(true);
   });
+
+  it("uses stable instanceId across reconnects to prevent session fragmentation", () => {
+    const client = new GatewayClient();
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws1 = MockWebSocket._last;
+    ws1._emit("open");
+    const frame1 = ws1._sent[0];
+    const instanceId1 = frame1.params.client.instanceId;
+    expect(instanceId1).toMatch(/^moltMascot-/);
+
+    // Force reconnect — instanceId should remain the same
+    client.forceReconnect({ url: "ws://localhost:18789" });
+    const ws2 = MockWebSocket._last;
+    ws2._emit("open");
+    const frame2 = ws2._sent[0];
+    expect(frame2.params.client.instanceId).toBe(instanceId1);
+
+    client.destroy();
+  });
 });

@@ -88,6 +88,10 @@ export class GatewayClient {
     this._pollInterval = null;
     this._connectReqId = null;
 
+    // Stable instance ID: generated once per client lifetime so reconnects
+    // don't create duplicate sessions on the gateway (session fragmentation).
+    this._instanceId = `moltMascot-${Math.random().toString(16).slice(2)}`;
+
     // Lifecycle flag: set to true after destroy() so consumers can guard
     // against accidental use of a torn-down client.
     this._destroyed = false;
@@ -251,7 +255,7 @@ export class GatewayClient {
             version: this._clientVersion,
             platform: this._clientPlatform,
             mode: 'gui',
-            instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
+            instanceId: this._instanceId,
           },
           role: 'operator',
           scopes: ['operator.read'],
