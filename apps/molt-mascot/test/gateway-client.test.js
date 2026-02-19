@@ -1042,7 +1042,7 @@ describe("pausePolling / resumePolling", () => {
 
   it("forceReconnect records lastDisconnectedAt so tooltip shows accurate disconnect time", () => {
     const client = new GatewayClient();
-    const ws = connectAndHandshake(client);
+    const _ws = connectAndHandshake(client);
 
     const before = Date.now();
     client.forceReconnect();
