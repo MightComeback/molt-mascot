@@ -230,6 +230,9 @@ describe("utils", () => {
     expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");
     expect(cleanErrorString("az: command not found")).toBe("command not found");
     expect(cleanErrorString("pip: No matching distribution found")).toBe("No matching distribution found");
+    // Cloudflare tooling
+    expect(cleanErrorString("wrangler: Error: No account id found")).toBe("No account id found");
+    expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe("fetch failed");
     // Go goroutine stack trace headers
     expect(cleanErrorString("goroutine 1 [running]:\npanic: runtime error: index out of range")).toBe("runtime error: index out of range");
     // Unhandled promise rejection wrapper (Node.js / Deno)
