@@ -5,6 +5,7 @@ const fs = require('fs');
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
+const { formatDuration } = require('@molt/mascot-plugin');
 
 const APP_VERSION = require('../package.json').version;
 
@@ -482,10 +483,7 @@ app.whenReady().then(async () => {
     // Compute connection uptime string for tray tooltip (if connected).
     let uptimeStr;
     if (connectedSinceMs) {
-      const sec = Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000));
-      if (sec < 60) uptimeStr = `${sec}s`;
-      else if (sec < 3600) uptimeStr = `${Math.floor(sec / 60)}m`;
-      else { const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); uptimeStr = m > 0 ? `${h}h ${m}m` : `${h}h`; }
+      uptimeStr = formatDuration(Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000)));
     }
     tray.setToolTip(buildTrayTooltip({
       appVersion: APP_VERSION,
