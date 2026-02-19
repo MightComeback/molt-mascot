@@ -17,6 +17,7 @@ import {
   WS_CLOSE_CODE_LABELS,
   PLUGIN_STATE_METHODS,
   PLUGIN_RESET_METHODS,
+  successRate,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -728,5 +729,31 @@ describe("PLUGIN_STATE_METHODS / PLUGIN_RESET_METHODS", () => {
       const resetBase = PLUGIN_RESET_METHODS[i].replace(/\.reset$/, "");
       expect(stateBase).toBe(resetBase);
     }
+  });
+});
+
+describe("successRate", () => {
+  it("computes correct percentage", () => {
+    expect(successRate(100, 5)).toBe(95);
+    expect(successRate(10, 3)).toBe(70);
+    expect(successRate(1, 1)).toBe(0);
+    expect(successRate(1, 0)).toBe(100);
+  });
+
+  it("returns null for zero or invalid total", () => {
+    expect(successRate(0, 0)).toBe(null);
+    expect(successRate(-1, 0)).toBe(null);
+    expect(successRate(null, 5)).toBe(null);
+    expect(successRate(undefined, 5)).toBe(null);
+  });
+
+  it("clamps errors to totalCalls", () => {
+    // More errors than calls shouldn't go negative
+    expect(successRate(5, 10)).toBe(0);
+  });
+
+  it("handles missing errorCount", () => {
+    expect(successRate(10, null)).toBe(100);
+    expect(successRate(10, undefined)).toBe(100);
   });
 });

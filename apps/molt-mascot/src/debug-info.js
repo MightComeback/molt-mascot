@@ -47,7 +47,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, successRate } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -142,10 +142,10 @@ export function buildDebugInfo(params) {
   if (isPollingPaused) lines.push('Polling: paused');
   if (typeof latencyMs === 'number' && latencyMs >= 0) lines.push(`Latency: ${latencyMs}ms`);
   if (pluginToolCalls > 0) {
-    const successRate = pluginToolErrors > 0
-      ? ` (${Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100)}% ok)`
+    const rateSuffix = pluginToolErrors > 0
+      ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
       : '';
-    lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${successRate}`);
+    lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`);
   }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);

@@ -191,8 +191,8 @@ export function buildTooltip(params) {
   if (pluginToolCalls > 0) {
     tip += ` · ${pluginToolCalls} calls`;
     if (pluginToolErrors > 0) {
-      const successRate = Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100);
-      tip += `, ${pluginToolErrors} errors (${successRate}% ok)`;
+      const rate = successRate(pluginToolCalls, pluginToolErrors);
+      tip += `, ${pluginToolErrors} errors (${rate}% ok)`;
     }
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${latencyMs}ms`;
@@ -345,6 +345,22 @@ export const PLUGIN_RESET_METHODS = [
   'moltMascot.reset',
   'moltMascotPlugin.reset',
 ];
+
+/**
+ * Compute a success-rate percentage from total calls and error count.
+ * Returns null if totalCalls is 0 (avoids division by zero).
+ * Used in buildTooltip, buildDebugInfo, and context menu to avoid
+ * repeating the same inline Math.round() calculation.
+ *
+ * @param {number} totalCalls
+ * @param {number} errorCount
+ * @returns {number|null} Integer percentage (0-100), or null if no calls
+ */
+export function successRate(totalCalls, errorCount) {
+  if (!totalCalls || totalCalls <= 0) return null;
+  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
+  return Math.round(((totalCalls - errors) / totalCalls) * 100);
+}
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
