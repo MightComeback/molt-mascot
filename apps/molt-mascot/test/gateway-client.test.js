@@ -1171,4 +1171,34 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("handshake failure closes socket and prevents reconnect loop", () => {
+    const client = new GatewayClient();
+    const failures = [];
+    client.onHandshakeFailure = (msg) => failures.push(msg);
+
+    client.connect({ url: "ws://gw:18789", token: "bad" });
+    const ws = MockWebSocket._last;
+
+    // Simulate open → send connect frame
+    ws._emit("open", {});
+
+    // Simulate auth rejection response
+    const connectReqId = ws._sent[0]?.id;
+    ws._emitMessage({
+      type: "res",
+      id: connectReqId,
+      payload: { error: "auth denied" },
+    });
+
+    expect(failures).toEqual(["auth denied"]);
+    // Socket should be closed and detached — onclose nulled so no reconnect
+    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
+    expect(ws.onclose).toBeNull();
+    expect(client._ws).toBeNull();
+    expect(client.connectedSince).toBeNull();
+    expect(client.hasPlugin).toBe(false);
+
+    client.destroy();
+  });
 });

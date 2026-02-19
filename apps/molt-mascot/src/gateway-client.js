@@ -309,11 +309,25 @@ export class GatewayClient {
         return;
       }
 
-      // Handshake failure
+      // Handshake failure — detach onclose before closing so the reconnect-on-close
+      // handler doesn't fire and start an infinite retry loop with bad credentials.
       if (msg.type === 'res' && msg.id && msg.id === this._connectReqId && !msg.payload?.type?.startsWith('hello')) {
         const err = msg.payload?.error || msg.error;
         const detail = typeof err === 'string' ? err
           : err?.message || err?.code || 'connection rejected';
+        // Prevent reconnect loop: null onclose before closing the socket
+        ws.onclose = null;
+        try { ws.close(); } catch {}
+        this._ws = null;
+        this.connectedSince = null;
+        this.connectedUrl = '';
+        this.hasPlugin = false;
+        this._stopPluginPoller();
+        this._stopStaleCheck();
+        this._pluginStatePending = false;
+        this._pluginStateLastSentAt = 0;
+        this._pluginStateSentAt = 0;
+        this.latencyMs = null;
         this.onHandshakeFailure?.(String(detail));
         return;
       }
