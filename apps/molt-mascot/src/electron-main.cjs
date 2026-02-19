@@ -495,6 +495,7 @@ app.whenReady().then(async () => {
       opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
       uptimeStr,
       latencyMs: currentLatencyMs,
+      currentTool: currentToolName,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -643,12 +644,21 @@ app.whenReady().then(async () => {
   // Track when the gateway connection was established (for tray tooltip uptime).
   let connectedSinceMs = null;
 
-  // Track latest plugin state poll latency for tray tooltip diagnostics.
+  // Track latest plugin state poll latency and active tool for tray tooltip.
   let currentLatencyMs = null;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency) => {
+  let currentToolName = null;
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool) => {
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;
+
+    // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
+    const nextTool = (typeof tool === 'string' && tool) ? tool : null;
+    if (nextTool !== currentToolName) {
+      currentToolName = nextTool;
+      // Rebuild even if mode didn't change — tool name alone is worth updating.
+      rebuildTrayMenu();
+    }
 
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;

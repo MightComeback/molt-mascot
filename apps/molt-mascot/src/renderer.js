@@ -229,6 +229,7 @@ const _pluginSync = createPluginSync({
 // Track the last mode reported to the main process (including 'sleeping') to avoid
 // redundant IPC and to enable sleeping-state tray icon dot.
 let _lastReportedMode = 'idle';
+let _lastReportedTool = '';
 
 // Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
 let copiedUntil = 0;
@@ -345,9 +346,11 @@ function syncPill() {
   // Notify main process of the effective display mode (including 'sleeping')
   // so the tray icon status dot and tooltip reflect the visual state.
   const effectiveMode = isSleeping ? 'sleeping' : currentMode;
-  if (effectiveMode !== _lastReportedMode) {
+  const effectiveTool = currentTool || '';
+  if (effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool) {
     _lastReportedMode = effectiveMode;
-    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode, latencyMs);
+    _lastReportedTool = effectiveTool;
+    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode, latencyMs, effectiveTool || null);
   }
 }
 
