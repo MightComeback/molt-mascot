@@ -1096,16 +1096,23 @@ canvas.addEventListener('wheel', (e) => {
   syncPill();
 }, { passive: false });
 
-// Keyboard: Enter or Space on the pill opens the context menu (a11y)
+// Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
+// all open the context menu. Combined into a single listener to avoid duplicate
+// event subscriptions on the same element.
 pill.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    const rect = pill.getBoundingClientRect();
+  const isActivate = e.key === 'Enter' || e.key === ' ';
+  const isContextKey = (e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu';
+  if (!isActivate && !isContextKey) return;
+  e.preventDefault();
+  const rect = pill.getBoundingClientRect();
+  if (isActivate) {
     pill.dispatchEvent(new MouseEvent('contextmenu', {
       bubbles: true,
       clientX: rect.left,
       clientY: rect.bottom + 4,
     }));
+  } else {
+    showContextMenu({ clientX: rect.left + rect.width / 2, clientY: rect.bottom + 4, preventDefault() {} });
   }
 });
 
@@ -1267,16 +1274,6 @@ function showContextMenu(e) {
 
 pill.addEventListener('contextmenu', showContextMenu);
 canvas.addEventListener('contextmenu', showContextMenu);
-
-// Keyboard accessibility: open context menu via Shift+F10 or the Menu key
-// when the pill has focus. Mirrors native OS behavior for keyboard users.
-pill.addEventListener('keydown', (e) => {
-  if ((e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu') {
-    e.preventDefault();
-    const rect = pill.getBoundingClientRect();
-    showContextMenu({ clientX: rect.left + rect.width / 2, clientY: rect.bottom + 4, preventDefault() {} });
-  }
-});
 
 // boot
 if (isCapture) {
