@@ -477,6 +477,7 @@ app.whenReady().then(async () => {
   // Declared before rebuildTrayMenu() to avoid TDZ (temporal dead zone) errors
   // since rebuildTrayMenu() reads this variable and is called immediately below.
   let currentRendererMode = 'idle';
+  let modeChangedAt = Date.now();
 
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
@@ -497,6 +498,7 @@ app.whenReady().then(async () => {
       latencyMs: currentLatencyMs,
       currentTool: currentToolName,
       lastErrorMessage: currentErrorMessage,
+      modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -687,6 +689,7 @@ app.whenReady().then(async () => {
 
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;
+      modeChangedAt = Date.now();
       // Track connection start for uptime display in tray tooltip.
       if (mode === 'connected') {
         connectedSinceMs = Date.now();

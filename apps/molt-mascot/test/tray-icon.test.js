@@ -292,6 +292,21 @@ describe('tray-icon', () => {
       const parts = tip.split(' · ');
       expect(parts.length).toBeGreaterThanOrEqual(6);
     });
+
+    it('shows mode duration for non-idle modes', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'thinking', modeDurationSec: 90 });
+      expect(tip).toContain('🧠 thinking (1m 30s)');
+    });
+
+    it('omits mode duration for idle mode', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'idle', modeDurationSec: 60 });
+      expect(tip).not.toContain('1m');
+    });
+
+    it('omits mode duration when zero or undefined', () => {
+      expect(buildTrayTooltip({ ...base, mode: 'tool', modeDurationSec: 0 })).not.toContain('(0s)');
+      expect(buildTrayTooltip({ ...base, mode: 'tool' })).not.toContain('(');
+    });
   });
 
   describe('formatLatency', () => {

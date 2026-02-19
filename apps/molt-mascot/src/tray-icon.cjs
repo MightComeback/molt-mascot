@@ -5,6 +5,8 @@
  * producing an RGBA buffer suitable for Electron's nativeImage.createFromBuffer().
  */
 
+const { formatDuration } = require('@molt/mascot-plugin');
+
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
 //         h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
@@ -166,10 +168,11 @@ function formatLatency(ms) {
  * @param {number|null} [params.latencyMs] - Plugin state poll round-trip latency in ms
  * @param {string} [params.currentTool] - Active tool name (shown in tooltip when mode is 'tool')
  * @param {string} [params.lastErrorMessage] - Error detail (shown in tooltip when mode is 'error')
+ * @param {number} [params.modeDurationSec] - How long in current mode (seconds); shown for non-idle modes
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -177,6 +180,7 @@ function buildTrayTooltip(params) {
     let modePart = `${modeEmoji[modeLabel] || '●'} ${modeLabel}`;
     if (modeLabel === 'tool' && currentTool) modePart = `${modeEmoji.tool} ${currentTool}`;
     if (modeLabel === 'error' && lastErrorMessage) modePart = `${modeEmoji.error} ${lastErrorMessage}`;
+    if (typeof modeDurationSec === 'number' && modeDurationSec > 0) modePart += ` (${formatDuration(modeDurationSec)})`;
     parts.push(modePart);
   }
   if (clickThrough) parts.push('👻 Ghost');
