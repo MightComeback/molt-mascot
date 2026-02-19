@@ -85,6 +85,7 @@ bun run mascot
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard
+- **Middle-click pill**: Toggles hide-text mode (pixel-only)
 - **Double-click lobster**: Toggles ghost mode (click-through)
 - **Mouse wheel on lobster**: Adjusts opacity in 10% steps (scroll up = more opaque, down = more transparent)
 
@@ -110,6 +111,7 @@ bun run mascot
 | Interaction | Action |
 |---|---|
 | Double-click pill | Copy status text to clipboard |
+| Middle-click pill | Toggle hide-text mode (pixel-only) |
 | Double-click lobster | Toggle ghost mode (click-through) |
 | Mouse wheel on lobster | Adjust opacity ±10% |
 | Right-click pill or lobster | Open context menu |

@@ -123,6 +123,7 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 ### Pill Interactions
 
 - **Double-click** the pill to copy the current status text to clipboard.
+- **Middle-click** the pill to toggle hide-text mode (pixel-only).
 - **Enter/Space** on the focused pill opens the context menu (keyboard accessibility).
 
 ## Screenshot Capture

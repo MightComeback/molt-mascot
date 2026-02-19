@@ -1090,6 +1090,19 @@ pill.addEventListener('dblclick', () => {
   }).catch(() => {});
 });
 
+// Middle-click the pill to toggle hide-text mode.
+// Completes the pill interaction trio: double-click=copy, middle-click=toggle text, right-click=menu.
+pill.addEventListener('mousedown', (e) => {
+  if (e.button !== 1) return; // 1 = middle button
+  e.preventDefault();
+  if (window.moltMascot?.setHideText) {
+    isTextHidden = !isTextHidden;
+    window.moltMascot.setHideText(isTextHidden);
+    updateHudVisibility();
+    showTransientFeedback(isTextHidden ? 'Text hidden' : 'Text shown');
+  }
+});
+
 // Double-click lobster sprite to toggle ghost mode (most common toggle action).
 // This complements the pill double-click (copy) with a sprite-specific shortcut,
 // since users instinctively interact with the lobster rather than the tiny pill.
