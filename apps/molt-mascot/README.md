@@ -117,6 +117,7 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 ### Lobster Sprite Interactions
 
 - **Double-click** the lobster to toggle **ghost mode** (click-through).
+- **Middle-click** the lobster to **force reconnect** to the Gateway.
 - **Scroll wheel** over the lobster to adjust **opacity** in 10% steps.
 - **Right-click** the lobster to open the context menu.
 
@@ -126,6 +127,12 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 - **Middle-click** the pill to toggle hide-text mode (pixel-only).
 - **Enter/Space** on the focused pill opens the context menu (keyboard accessibility).
 
+## CLI Flags
+
+| Flag | Description |
+|---|---|
+| `--version`, `-v` | Print the version number and exit |
+
 ## Screenshot Capture
 
-Set `MOLT_MASCOT_CAPTURE_DIR` to a directory path to capture deterministic screenshots of all modes (idle, thinking, tool, error) and exit. Useful for docs and CI.
+Set `MOLT_MASCOT_CAPTURE_DIR` to a directory path to capture deterministic screenshots of all modes (idle, thinking, tool, error, connecting, connected, disconnected, sleeping) and exit. Useful for docs and CI.
