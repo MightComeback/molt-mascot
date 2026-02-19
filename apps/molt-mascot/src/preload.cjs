@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   processUptimeS: () => process.uptime(),
   processMemoryRssBytes: () => process.memoryUsage().rss,
   platform: process.platform,
+  arch: process.arch,
   version: pkg.version,
   versions: {
     electron: process.versions.electron || '',

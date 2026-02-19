@@ -46,6 +46,7 @@
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
+ * @param {string} [params.arch] - CPU architecture (e.g. 'arm64', 'x64') — useful for diagnosing Electron compatibility issues
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -100,6 +101,7 @@ export function buildDebugInfo(params) {
     latencyMs,
     activeAgents,
     activeTools,
+    arch,
     now: nowOverride,
   } = params;
 
@@ -166,7 +168,8 @@ export function buildDebugInfo(params) {
   const fpsLabel = frameIntervalMs === 0 ? '~60fps' : `~${Math.round(1000 / frameIntervalMs)}fps`;
   const actualFpsLabel = typeof actualFps === 'number' ? `, actual ${actualFps}fps` : '';
   lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
-  lines.push(`Platform: ${platform || 'unknown'}`);
+  const platformStr = [platform || 'unknown', arch].filter(Boolean).join(' ');
+  lines.push(`Platform: ${platformStr}`);
   const dpr = devicePixelRatio ?? 1;
   const canvasDims = (typeof canvasWidth === 'number' && typeof canvasHeight === 'number')
     ? `, ${canvasWidth}×${canvasHeight}px`

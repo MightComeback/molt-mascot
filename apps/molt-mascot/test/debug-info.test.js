@@ -34,6 +34,7 @@ const BASE_PARAMS = {
   wsReadyState: null,
   savedUrl: undefined,
   platform: "MacIntel",
+  arch: "arm64",
   devicePixelRatio: 2,
   memory: undefined,
   versions: undefined,
@@ -388,6 +389,17 @@ describe("buildDebugInfo", () => {
   it("omits active line when counts are not provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS });
     expect(info).not.toContain("Active:");
+  });
+
+  it("includes arch in Platform line when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, arch: "arm64" });
+    expect(info).toContain("Platform: MacIntel arm64");
+  });
+
+  it("omits arch from Platform line when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, arch: undefined });
+    expect(info).toContain("Platform: MacIntel");
+    expect(info).not.toContain("Platform: MacIntel arm64");
   });
 });
 

@@ -1211,6 +1211,7 @@ function buildDebugInfo() {
     lastCloseDetail: lastCloseDetail || undefined,
     savedUrl: !connectedSince ? loadCfg()?.url : undefined,
     platform: navigator.platform,
+    arch: window.moltMascot?.arch,
     devicePixelRatio: window.devicePixelRatio,
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
