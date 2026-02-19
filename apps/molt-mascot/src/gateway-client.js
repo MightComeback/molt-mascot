@@ -271,8 +271,11 @@ export class GatewayClient {
         ws.send(JSON.stringify(connectFrame));
       } catch (err) {
         // Socket may have transitioned to CLOSING/CLOSED between the 'open' event
-        // and the send call. Surface the error instead of crashing.
+        // and the send call. Surface the error and close so the onclose handler
+        // triggers a reconnect (previously the socket would dangle until stale
+        // detection kicked in after ~15s).
         this.onError?.(err?.message || 'Failed to send connect frame');
+        try { ws.close(); } catch {}
       }
     });
 

@@ -1220,4 +1220,25 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("closes socket when send() throws during connect frame to trigger reconnect", () => {
+    const client = new GatewayClient();
+    const errors = [];
+    client.onError = (e) => errors.push(e);
+
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+
+    // Make send() throw (simulates socket transitioning to CLOSED mid-call)
+    ws.send = () => { throw new Error("WebSocket is already in CLOSING state"); };
+
+    ws._emit("open", {});
+
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain("CLOSING state");
+    // Socket should be closed so onclose handler fires and triggers reconnect
+    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
+
+    client.destroy();
+  });
 });
