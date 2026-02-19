@@ -54,6 +54,9 @@ bun install
 # Simplest: pass gateway URL directly
 bun run mascot -- --gateway ws://127.0.0.1:18789 --token YOUR_TOKEN
 
+# Debug mode (auto-opens DevTools on launch):
+bun run mascot -- --gateway ws://127.0.0.1:18789 --token YOUR_TOKEN --debug
+
 # Or via env vars:
 export GATEWAY_URL=ws://127.0.0.1:18789
 export GATEWAY_TOKEN=...

@@ -86,6 +86,9 @@ const cliGatewayToken = parseCliArg('--token');
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
 if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
 
+// CLI flags: --debug opens DevTools on launch for easier development.
+const cliDebug = process.argv.includes('--debug');
+
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   process.stdout.write(`molt-mascot ${APP_VERSION}
@@ -101,6 +104,7 @@ Options:
   -h, --help             Print this help and exit
   --gateway <url>        Gateway WebSocket URL (overrides env)
   --token <token>        Gateway auth token (overrides env)
+  --debug                Open DevTools on launch
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
@@ -481,6 +485,8 @@ app.whenReady().then(async () => {
         // saved preference. Previously this was only sent outside wireMainWindow,
         // so macOS `activate` re-creation would miss it.
         if (sizeIndex !== 1) w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
+        // Auto-open DevTools when --debug flag is passed (dev ergonomics).
+        if (cliDebug) w.webContents.openDevTools({ mode: 'detach' });
       });
     });
   }
