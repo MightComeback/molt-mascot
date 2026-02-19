@@ -154,7 +154,7 @@ function drawLobster(mode, t, idleDurationMs = 0) {
 }
 
 // --- State machine ---
-const Mode = {
+const Mode = Object.freeze({
   idle: 'idle',
   thinking: 'thinking',
   tool: 'tool',
@@ -162,7 +162,7 @@ const Mode = {
   connecting: 'connecting',
   connected: 'connected',
   disconnected: 'disconnected',
-};
+});
 
 let currentMode = Mode.idle;
 // Apply initial state now that Mode/currentMode exist
@@ -475,9 +475,9 @@ function resetConnectionState() {
   lastCloseDetail = '';
   _pluginSync.reset();
   stopStaleCheck();
-  if (window._pollInterval) {
-    clearInterval(window._pollInterval);
-    window._pollInterval = null;
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
   }
 }
 
@@ -527,6 +527,7 @@ let hasPlugin = false;
 let pluginPollerStarted = false;
 let pluginStatePending = false;
 let pluginStateLastSentAt = 0;
+let pollInterval = null;
 
 function sendPluginStateReq(prefix = 'p') {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -554,8 +555,8 @@ function startPluginPoller() {
   if (pluginPollerStarted) return;
   pluginPollerStarted = true;
   // Poll status to keep in sync with plugin-side logic (timers, error holding, etc)
-  if (window._pollInterval) clearInterval(window._pollInterval);
-  window._pollInterval = setInterval(() => {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
     // Skip polling when the window is hidden (minimized, occluded, etc.)
     // to avoid unnecessary WebSocket traffic. The poller resumes automatically
     // when the window becomes visible again, and the visibilitychange handler
@@ -1388,9 +1389,9 @@ document.addEventListener('visibilitychange', () => {
 // Cleanup on page unload (prevents leaked intervals/sockets during hot-reload or navigation)
 window.addEventListener('beforeunload', () => {
   stopAnimation();
-  if (window._pollInterval) {
-    clearInterval(window._pollInterval);
-    window._pollInterval = null;
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
   }
   if (reconnectCountdownTimer) {
     clearInterval(reconnectCountdownTimer);
