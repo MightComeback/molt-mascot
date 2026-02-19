@@ -552,6 +552,24 @@ describe("buildTooltip", () => {
     });
     expect(tip).not.toContain("last close");
   });
+
+  it("includes latencyMs when provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 42 });
+    expect(tip).toContain("42ms");
+  });
+
+  it("omits latencyMs when null or undefined", () => {
+    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: null });
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip1).not.toContain("ms");
+    // "ms" appears in formatDuration output for durations like "0s", so check no standalone ms
+    expect(tip2).not.toMatch(/\d+ms/);
+  });
+
+  it("includes latencyMs of 0", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 0 });
+    expect(tip).toContain("0ms");
+  });
 });
 
 describe("normalizeWsUrl", () => {

@@ -344,6 +344,21 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Mode: idle");
     expect(info).not.toContain("sleeping");
   });
+
+  it("includes latency line when latencyMs is provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 25 });
+    expect(info).toContain("Latency: 25ms");
+  });
+
+  it("includes latency line for 0ms", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 0 });
+    expect(info).toContain("Latency: 0ms");
+  });
+
+  it("omits latency line when latencyMs is null or undefined", () => {
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: null })).not.toContain("Latency:");
+    expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Latency:");
+  });
 });
 
 describe("formatElapsed", () => {
