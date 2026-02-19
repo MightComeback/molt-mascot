@@ -933,6 +933,24 @@ describe("pausePolling / resumePolling", () => {
     client.destroy();
   });
 
+  it("resumePolling clears stale pending flag so refresh is not blocked", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    // Simulate a plugin state request that was sent but never got a response
+    client._pluginStatePending = true;
+    client.pausePolling();
+
+    const countBefore = ws._sent.length;
+    client.resumePolling();
+    // The stale pending flag should have been cleared, allowing the refresh
+    expect(ws._sent.length).toBe(countBefore + 1);
+    expect(client._pluginStatePending).toBe(true); // now set by the new send
+
+    client.destroy();
+  });
+
   it("resumePolling is a no-op when not paused", () => {
     const client = new GatewayClient({ pollIntervalMs: 50 });
     const ws = connectAndHandshake(client);

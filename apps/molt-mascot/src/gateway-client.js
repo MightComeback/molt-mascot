@@ -416,9 +416,11 @@ export class GatewayClient {
   resumePolling() {
     if (!this._pollingPaused) return;
     this._pollingPaused = false;
-    // Reset rate-limit so the refresh isn't suppressed by the 150ms guard.
-    // While paused no requests were sent, so the cached timestamp is stale.
+    // Reset rate-limit and in-flight guard so the refresh isn't suppressed.
+    // While paused, no new responses arrive to clear a stale pending flag,
+    // so we must reset it here to avoid blocking the immediate refresh.
     this._pluginStateLastSentAt = 0;
+    this._pluginStatePending = false;
     // Immediate refresh so the UI doesn't show stale data for up to 1s
     if (this.hasPlugin) this._sendPluginStateReq('v');
   }
