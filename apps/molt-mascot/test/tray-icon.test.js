@@ -340,7 +340,7 @@ describe('tray-icon', () => {
 
     it('shows tool call stats when toolCalls > 0', () => {
       const tip = buildTrayTooltip({ ...base, toolCalls: 42, toolErrors: 3 });
-      expect(tip).toContain('🔨 42 calls, 3 err');
+      expect(tip).toContain('🔨 42 calls, 3 err (93% ok)');
     });
 
     it('shows tool calls without errors when toolErrors is 0', () => {

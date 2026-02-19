@@ -5,7 +5,7 @@
  * producing an RGBA buffer suitable for Electron's nativeImage.createFromBuffer().
  */
 
-const { formatDuration } = require('@molt/mascot-plugin');
+const { formatDuration, successRate } = require('@molt/mascot-plugin');
 const { formatLatency } = require('./format-latency.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -185,8 +185,11 @@ function buildTrayTooltip(params) {
     parts.push(`⏱ ${formatLatency(latencyMs)}`);
   }
   if (typeof toolCalls === 'number' && toolCalls > 0) {
-    const statsStr = (typeof toolErrors === 'number' && toolErrors > 0)
-      ? `${toolCalls} calls, ${toolErrors} err`
+    const rate = (typeof toolErrors === 'number' && toolErrors > 0)
+      ? successRate(toolCalls, toolErrors)
+      : null;
+    const statsStr = rate !== null
+      ? `${toolCalls} calls, ${toolErrors} err (${rate}% ok)`
       : `${toolCalls} calls`;
     parts.push(`🔨 ${statsStr}`);
   }
