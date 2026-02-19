@@ -378,6 +378,21 @@ describe('tray-icon', () => {
     it('omits reconnect attempt when 0', () => {
       expect(buildTrayTooltip({ ...base, reconnectAttempt: 0 })).not.toContain('retry');
     });
+
+    it('shows target URL when disconnected (no uptimeStr)', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'disconnected', targetUrl: 'ws://127.0.0.1:18789' });
+      expect(tip).toContain('→ ws://127.0.0.1:18789');
+    });
+
+    it('omits target URL when connected (uptimeStr present)', () => {
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '5m', targetUrl: 'ws://127.0.0.1:18789' });
+      expect(tip).not.toContain('→');
+    });
+
+    it('omits target URL when empty or not provided', () => {
+      expect(buildTrayTooltip({ ...base, targetUrl: '' })).not.toContain('→');
+      expect(buildTrayTooltip({ ...base })).not.toContain('→');
+    });
   });
 
   describe('formatLatency', () => {
