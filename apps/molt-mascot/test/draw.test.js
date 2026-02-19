@@ -158,6 +158,37 @@ describe("drawLobster", () => {
     expect(eyeFills.length).toBe(2);
   });
 
+  it("blink rectangles follow bob offset correctly", () => {
+    // Use a time value that produces a non-zero bob (sin(t/260)*2).
+    // At t=408 → sin(408/260)≈sin(1.569)≈1.0 → bob≈2 → bobY=2
+    const ctx = mockCtx();
+    drawLobster(ctx, {
+      mode: "idle",
+      t: 408,
+      scale: 3,
+      spriteSize: 32,
+      reducedMotion: false,
+      blinking: true,
+      canvas: { width: 96, height: 96 },
+    });
+
+    const bob = Math.sin(408 / 260) * 2;
+    const bobY = Math.round(bob);
+    // bobY should be non-zero for this test to be meaningful
+    expect(bobY).not.toBe(0);
+
+    const fills = ctx.calls.filter((c) => c.fn === "fillRect");
+    // Blink should be at EYE_ROW * scale + bobY (canvas pixels), not (EYE_ROW + bobY) * scale
+    const expectedY = EYE_ROW * 3 + bobY;
+    const eyeFills = fills.filter((c) =>
+      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+      c.args[1] === expectedY &&
+      c.args[2] === EYE_SIZE * 3 &&
+      c.args[3] === EYE_SIZE * 3
+    );
+    expect(eyeFills.length).toBe(2);
+  });
+
   it("does not draw blink rectangles when blinking=false", () => {
     const ctx = mockCtx();
     drawLobster(ctx, {

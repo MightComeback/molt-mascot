@@ -214,8 +214,10 @@ export function drawLobster(ctx, params) {
   // Blink: paint over the white+pupil eye pixels with the body red color
   if (blinking) {
     ctx.fillStyle = palette.r;
-    ctx.fillRect(EYE_LEFT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
-    ctx.fillRect(EYE_RIGHT_COL * s, (EYE_ROW + bobY) * s, EYE_SIZE * s, EYE_SIZE * s);
+    // bobY is in canvas pixels (not sprite pixels), so add it after scaling EYE_ROW.
+    const eyeY = EYE_ROW * s + bobY;
+    ctx.fillRect(EYE_LEFT_COL * s, eyeY, EYE_SIZE * s, EYE_SIZE * s);
+    ctx.fillRect(EYE_RIGHT_COL * s, eyeY, EYE_SIZE * s, EYE_SIZE * s);
   }
 
   // Overlays (simple icons) — attached to bob; modes are mutually exclusive.
