@@ -599,6 +599,27 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 0 });
     expect(tip).toContain("< 1ms");
   });
+
+  it("shows active agents and tools when non-zero", () => {
+    const tip = buildTooltip({ displayMode: "thinking", durationSec: 5, activeAgents: 2, activeTools: 3 });
+    expect(tip).toContain("2 agents, 3 tools");
+  });
+
+  it("uses singular form for 1 agent/tool", () => {
+    const tip = buildTooltip({ displayMode: "tool", durationSec: 1, activeAgents: 1, activeTools: 1 });
+    expect(tip).toContain("1 agent, 1 tool");
+  });
+
+  it("omits active agents/tools when both zero", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, activeAgents: 0, activeTools: 0 });
+    expect(tip).not.toContain("agent");
+    expect(tip).not.toContain("tool");
+  });
+
+  it("omits active agents/tools when not provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip).not.toMatch(/\d+ agents?/);
+  });
 });
 
 describe("normalizeWsUrl", () => {

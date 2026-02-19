@@ -346,6 +346,8 @@ function syncPill() {
     pluginStartedAt,
     sessionConnectCount,
     latencyMs,
+    activeAgents: pluginActiveAgents,
+    activeTools: pluginActiveTools,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status

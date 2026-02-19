@@ -141,6 +141,8 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number|null} [params.pluginStartedAt] - Plugin start timestamp (for uptime display)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
+ * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
+ * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -167,6 +169,8 @@ export function buildTooltip(params) {
     pluginStartedAt,
     sessionConnectCount = 0,
     latencyMs,
+    activeAgents = 0,
+    activeTools = 0,
     now: nowOverride,
   } = params;
 
@@ -199,6 +203,9 @@ export function buildTooltip(params) {
       const rate = successRate(pluginToolCalls, pluginToolErrors);
       tip += `, ${pluginToolErrors} errors (${rate}% ok)`;
     }
+  }
+  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+    tip += ` · ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`;
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${formatLatency(latencyMs)}`;
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
