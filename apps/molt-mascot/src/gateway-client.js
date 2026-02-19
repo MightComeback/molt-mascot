@@ -629,6 +629,7 @@ export class GatewayClient {
       lastCloseDetail: this.lastCloseDetail,
       isPollingPaused: this._pollingPaused,
       uptimeSeconds: this.uptimeSeconds,
+      pluginResetMethod: this.pluginResetMethod,
     };
   }
 

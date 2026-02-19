@@ -1263,6 +1263,7 @@ describe("pausePolling / resumePolling", () => {
     expect(status.lastCloseDetail).toBeNull();
     expect(status.isPollingPaused).toBe(false);
     expect(status.uptimeSeconds).toBeNull();
+    expect(status.pluginResetMethod).toBeNull();
 
     // Verify it's JSON-serializable (no circular refs, no functions)
     const json = JSON.stringify(status);
