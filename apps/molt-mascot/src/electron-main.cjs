@@ -556,7 +556,19 @@ app.whenReady().then(async () => {
   let currentRendererMode = 'idle';
   let modeChangedAt = Date.now();
 
+  // Debounced wrapper: coalesces rapid consecutive calls (e.g. mode-update
+  // fires every ~1s from plugin polling, tool/error changes trigger extra calls)
+  // into a single Menu.buildFromTemplate() + tray.setContextMenu() cycle.
+  // The 200ms window is short enough to feel instant on user actions but long
+  // enough to batch the 3-4 calls that often fire together on mode transitions.
+  let _trayRebuildTimer = null;
   function rebuildTrayMenu() {
+    if (_trayRebuildTimer) clearTimeout(_trayRebuildTimer);
+    _trayRebuildTimer = setTimeout(_rebuildTrayMenuNow, 200);
+  }
+
+  function _rebuildTrayMenuNow() {
+    _trayRebuildTimer = null;
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
     // Compute connection uptime string for tray tooltip (if connected).
     let uptimeStr;
@@ -968,6 +980,8 @@ app.whenReady().then(async () => {
     try { globalShortcut.unregisterAll(); } catch {}
     // Flush any pending preference writes before exit so the last action isn't lost.
     _flushPrefs();
+    // Cancel pending tray menu rebuild.
+    if (_trayRebuildTimer) { clearTimeout(_trayRebuildTimer); _trayRebuildTimer = null; }
     // Destroy tray icon to prevent ghost icons on Windows/Linux after quit.
     try { if (tray) { tray.destroy(); tray = null; } } catch {}
     // Cancel any pending display-metrics debounce timer.
