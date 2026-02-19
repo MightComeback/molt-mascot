@@ -51,10 +51,12 @@ clawdbot plugins install ./packages/molt-mascot-plugin
 ```bash
 bun install
 
-# optional, if your gateway requires token auth:
+# Simplest: pass gateway URL directly
+bun run mascot -- --gateway ws://127.0.0.1:18789 --token YOUR_TOKEN
+
+# Or via env vars:
 export GATEWAY_URL=ws://127.0.0.1:18789
 export GATEWAY_TOKEN=...
-
 bun run mascot
 ```
 

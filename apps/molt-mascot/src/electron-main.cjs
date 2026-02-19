@@ -75,6 +75,17 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
   process.exit(0);
 }
 
+// CLI flags: --gateway <url> and --token <token> override env vars.
+// Parsed early so they're available as env vars for the preload script.
+function parseCliArg(flag) {
+  const idx = process.argv.indexOf(flag);
+  return (idx !== -1 && idx + 1 < process.argv.length) ? process.argv[idx + 1] : null;
+}
+const cliGatewayUrl = parseCliArg('--gateway');
+const cliGatewayToken = parseCliArg('--token');
+if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
+if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
+
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   process.stdout.write(`molt-mascot ${APP_VERSION}
@@ -88,6 +99,8 @@ Usage:
 Options:
   -v, --version          Print version and exit
   -h, --help             Print this help and exit
+  --gateway <url>        Gateway WebSocket URL (overrides env)
+  --token <token>        Gateway auth token (overrides env)
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
