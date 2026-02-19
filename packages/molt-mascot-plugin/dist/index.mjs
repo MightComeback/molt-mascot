@@ -1,7 +1,7 @@
 // package.json
 var package_default = {
   name: "@molt/mascot-plugin",
-  version: "0.1.35",
+  version: "0.1.36",
   description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
