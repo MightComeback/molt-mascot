@@ -703,7 +703,11 @@ app.whenReady().then(async () => {
         }
         return;
       }
-      const display = screen.getPrimaryDisplay();
+      // Use the display the mascot is currently on (not always the primary).
+      // This prevents the mascot from jumping to the primary monitor when the
+      // user cycles alignment/size on a secondary display.
+      const [wx, wy] = w.getPosition();
+      const display = screen.getDisplayNearestPoint({ x: wx, y: wy });
       const [width, height] = w.getSize();
       const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
       // Guard flag so the 'moved' event doesn't mark this as a user drag.
