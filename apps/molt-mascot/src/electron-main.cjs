@@ -86,6 +86,15 @@ const cliGatewayToken = parseCliArg('--token');
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
 if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
 
+// CLI flags for appearance customization (override env vars).
+const cliAlign = parseCliArg('--align');
+const cliSize = parseCliArg('--size');
+const cliOpacity = parseCliArg('--opacity');
+const cliPadding = parseCliArg('--padding');
+if (cliAlign) process.env.MOLT_MASCOT_ALIGN = cliAlign;
+if (cliOpacity) process.env.MOLT_MASCOT_OPACITY = cliOpacity;
+if (cliPadding) process.env.MOLT_MASCOT_PADDING = cliPadding;
+
 // CLI flags: --debug opens DevTools on launch for easier development.
 const cliDebug = process.argv.includes('--debug');
 
@@ -104,6 +113,13 @@ Options:
   -h, --help             Print this help and exit
   --gateway <url>        Gateway WebSocket URL (overrides env)
   --token <token>        Gateway auth token (overrides env)
+  --align <position>     Window alignment (overrides env/saved prefs)
+                         Values: bottom-right, bottom-left, top-right, top-left,
+                         bottom-center, top-center, center-left, center-right, center
+  --size <preset>        Size preset (overrides env/saved prefs)
+                         Values: small, medium, large, xlarge
+  --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
+  --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
 
 Environment variables:
@@ -501,6 +517,11 @@ app.whenReady().then(async () => {
   ];
   let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
     ? savedPrefs.sizeIndex : 1;
+  // CLI --size overrides saved preference.
+  if (cliSize) {
+    const cliSizeIdx = sizeCycle.findIndex((s) => s.label === cliSize);
+    if (cliSizeIdx >= 0) sizeIndex = cliSizeIdx;
+  }
 
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
