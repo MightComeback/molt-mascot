@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
+import { renderTraySprite, buildTrayTooltip, formatLatency, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
 
 describe('tray-icon', () => {
   describe('TRAY_SPRITE', () => {
@@ -291,6 +291,41 @@ describe('tray-icon', () => {
       const tip = buildTrayTooltip({ ...base, clickThrough: true, hideText: true, opacityPercent: 40 });
       const parts = tip.split(' · ');
       expect(parts.length).toBeGreaterThanOrEqual(6);
+    });
+  });
+
+  describe('formatLatency', () => {
+    it('returns "< 1ms" for zero', () => {
+      expect(formatLatency(0)).toBe('< 1ms');
+    });
+
+    it('formats sub-second values as Xms', () => {
+      expect(formatLatency(42)).toBe('42ms');
+      expect(formatLatency(999)).toBe('999ms');
+    });
+
+    it('rounds fractional milliseconds', () => {
+      expect(formatLatency(3.7)).toBe('4ms');
+    });
+
+    it('formats 1000+ as X.Ys', () => {
+      expect(formatLatency(1200)).toBe('1.2s');
+      expect(formatLatency(1000)).toBe('1.0s');
+    });
+
+    it('returns dash for negative values', () => {
+      expect(formatLatency(-1)).toBe('–');
+    });
+
+    it('returns dash for NaN and Infinity', () => {
+      expect(formatLatency(NaN)).toBe('–');
+      expect(formatLatency(Infinity)).toBe('–');
+    });
+
+    it('returns dash for non-number types', () => {
+      expect(formatLatency(null)).toBe('–');
+      expect(formatLatency(undefined)).toBe('–');
+      expect(formatLatency('42')).toBe('–');
     });
   });
 });

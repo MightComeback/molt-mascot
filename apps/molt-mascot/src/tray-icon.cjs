@@ -136,6 +136,21 @@ function renderTraySprite(scale, opts) {
 }
 
 /**
+ * Format a latency value in milliseconds into a compact, human-readable string.
+ * Mirrors the renderer-side formatLatency (which lives in ESM utils.js and can't
+ * be imported from CJS). Kept in sync by shared test expectations.
+ *
+ * @param {number} ms - Latency in milliseconds
+ * @returns {string}
+ */
+function formatLatency(ms) {
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return '–';
+  if (ms === 0) return '< 1ms';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/**
  * Build the tray tooltip string from current mascot state.
  * Extracted as a pure function for testability (no Electron dependency).
  *
@@ -170,11 +185,10 @@ function buildTrayTooltip(params) {
   parts.push(`📐 ${sizeLabel || 'medium'}`);
   if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
-  if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    const latStr = latencyMs === 0 ? '< 1ms' : latencyMs < 1000 ? `${Math.round(latencyMs)}ms` : `${(latencyMs / 1000).toFixed(1)}s`;
-    parts.push(`⏱ ${latStr}`);
+  if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
+    parts.push(`⏱ ${formatLatency(latencyMs)}`);
   }
   return parts.join(' · ');
 }
 
-module.exports = { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
+module.exports = { renderTraySprite, buildTrayTooltip, formatLatency, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
