@@ -643,6 +643,18 @@ describe("formatCloseDetail", () => {
     expect(formatCloseDetail(undefined, undefined)).toBe("");
   });
 
+  it("truncates long reason strings to keep tooltips readable", () => {
+    const longReason = "a".repeat(120);
+    const result = formatCloseDetail(1006, longReason);
+    expect(result.length).toBeLessThanOrEqual(80);
+    expect(result.endsWith("…")).toBe(true);
+  });
+
+  it("preserves short reason strings unchanged", () => {
+    const shortReason = "server restarting gracefully";
+    expect(formatCloseDetail(1006, shortReason)).toBe(shortReason);
+  });
+
   it("WS_CLOSE_CODE_LABELS covers common codes", () => {
     expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
     expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");

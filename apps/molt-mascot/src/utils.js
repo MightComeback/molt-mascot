@@ -263,7 +263,13 @@ export const WS_CLOSE_CODE_LABELS = {
  * @returns {string} Formatted detail (e.g. "abnormal closure", "1008: policy violation", "going away")
  */
 export function formatCloseDetail(code, reason) {
-  const trimmedReason = (reason || '').trim();
+  // Truncate long close reasons (WS spec allows up to 123 bytes) to keep
+  // tooltips and debug info readable. 80 chars is plenty for diagnostics.
+  const MAX_REASON_LEN = 80;
+  const rawReason = (reason || '').trim();
+  const trimmedReason = rawReason.length > MAX_REASON_LEN
+    ? rawReason.slice(0, MAX_REASON_LEN - 1) + '…'
+    : rawReason;
   const label = (code != null) ? WS_CLOSE_CODE_LABELS[code] : undefined;
 
   // If we have a human reason string, prefer it (possibly with the friendly label)
