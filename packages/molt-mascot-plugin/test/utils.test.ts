@@ -195,6 +195,10 @@ describe("utils", () => {
     expect(cleanErrorString("System.IO.FileNotFoundException: Could not find file")).toBe("Could not find file");
     // Java "Caused by:" chained exception prefix
     expect(cleanErrorString("Caused by: java.net.ConnectException: Connection refused")).toBe("Connection refused");
+    // Python non-Error exceptions
+    expect(cleanErrorString("KeyboardInterrupt: ")).toBe("");
+    expect(cleanErrorString("SystemExit: 1")).toBe("1");
+    expect(cleanErrorString("GeneratorExit: cleanup")).toBe("cleanup");
     // Cloud CLI prefixes
     expect(cleanErrorString("aws: error: no such command")).toBe("no such command");
     expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");

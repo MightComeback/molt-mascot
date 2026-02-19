@@ -192,8 +192,10 @@ export const ERROR_PREFIXES = [
   "trace",
   "warn",
   // Python non-Error exceptions (not matched by *Error pattern)
-  "KeyError",
   "StopIteration",
+  "KeyboardInterrupt",
+  "SystemExit",
+  "GeneratorExit",
   // Java/JVM "Caused by:" chained exception prefix
   "Caused by",
   // Environment/Tool colon-prefixes
