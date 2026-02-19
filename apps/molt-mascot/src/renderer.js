@@ -1144,7 +1144,8 @@ function showContextMenu(e) {
   let modeLabel = isSleepingCtx ? 'Sleeping' : currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
   if (currentMode === Mode.tool && currentTool) modeLabel = truncate(currentTool, 20);
   if (currentMode === Mode.error && lastErrorMessage) modeLabel = truncate(lastErrorMessage, 28);
-  const statusParts = [modeLabel];
+  const appVer = window.moltMascot?.version;
+  const statusParts = [appVer ? `v${appVer} · ${modeLabel}` : modeLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
   if (connectedSince) {
     statusParts.push(`↑ ${formatElapsed(connectedSince, Date.now())}`);
