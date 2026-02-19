@@ -1427,7 +1427,8 @@ window.addEventListener('beforeunload', () => {
   }
   // Remove media-query listener to avoid leaks during hot-reload
   motionQuery?.removeEventListener?.('change', _onMotionChange);
-  // Cancel debounced resize timer
+  // Remove resize listener and cancel debounced timer to prevent leaked handlers
+  window.removeEventListener('resize', _debouncedRecalcScale);
   if (_resizeTimer) { clearTimeout(_resizeTimer); _resizeTimer = null; }
   // Unsubscribe IPC listeners to prevent leaked handlers during hot-reload
   for (const unsub of ipcUnsubs) {
