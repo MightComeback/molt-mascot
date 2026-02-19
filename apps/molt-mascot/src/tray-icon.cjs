@@ -156,10 +156,11 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.lastErrorMessage] - Error detail (shown in tooltip when mode is 'error')
  * @param {number} [params.modeDurationSec] - How long in current mode (seconds); shown for non-idle modes
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (for app stability diagnostics)
+ * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -181,6 +182,9 @@ function buildTrayTooltip(params) {
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
+  }
+  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+    parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}`);
   }
   return parts.join(' · ');
 }

@@ -320,6 +320,23 @@ describe('tray-icon', () => {
     it('omits process uptime when negative', () => {
       expect(buildTrayTooltip({ ...base, processUptimeS: -1 })).not.toContain('🕐');
     });
+
+    it('shows reconnect count when sessionConnectCount > 1', () => {
+      const tip = buildTrayTooltip({ ...base, sessionConnectCount: 4 });
+      expect(tip).toContain('↻3 reconnects');
+    });
+
+    it('uses singular "reconnect" when sessionConnectCount is 2', () => {
+      const tip = buildTrayTooltip({ ...base, sessionConnectCount: 2 });
+      expect(tip).toContain('↻1 reconnect');
+      expect(tip).not.toContain('reconnects');
+    });
+
+    it('omits reconnect count when sessionConnectCount is 0 or 1', () => {
+      expect(buildTrayTooltip({ ...base, sessionConnectCount: 0 })).not.toContain('↻');
+      expect(buildTrayTooltip({ ...base, sessionConnectCount: 1 })).not.toContain('↻');
+      expect(buildTrayTooltip({ ...base })).not.toContain('↻');
+    });
   });
 
   describe('formatLatency', () => {

@@ -226,7 +226,13 @@ app.whenReady().then(async () => {
   app.setAboutPanelOptions({
     applicationName: 'Molt Mascot',
     applicationVersion: APP_VERSION,
-    copyright: `© 2026–${new Date().getFullYear()} MightComeback`,
+    copyright: (() => {
+      const startYear = 2026;
+      const currentYear = new Date().getFullYear();
+      return currentYear > startYear
+        ? `© ${startYear}–${currentYear} MightComeback`
+        : `© ${startYear} MightComeback`;
+    })(),
     website: 'https://github.com/MightComeback/molt-mascot',
   });
 
@@ -500,6 +506,7 @@ app.whenReady().then(async () => {
       lastErrorMessage: currentErrorMessage,
       modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
       processUptimeS: process.uptime(),
+      sessionConnectCount,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -668,6 +675,7 @@ app.whenReady().then(async () => {
   let currentLatencyMs = null;
   let currentToolName = null;
   let currentErrorMessage = null;
+  let sessionConnectCount = 0;
   ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage) => {
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
@@ -694,6 +702,7 @@ app.whenReady().then(async () => {
       // Track connection start for uptime display in tray tooltip.
       if (mode === 'connected') {
         connectedSinceMs = Date.now();
+        sessionConnectCount += 1;
       } else if (mode === 'disconnected' || mode === 'connecting') {
         connectedSinceMs = null;
         currentLatencyMs = null;
