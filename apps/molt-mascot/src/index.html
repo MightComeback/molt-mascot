@@ -207,7 +207,7 @@
       <form id="setup" hidden aria-label="Gateway connection settings">
         <div><b>Connect to OpenClaw Gateway</b> <span id="setup-version" style="opacity:0.5;font-size:10px;"></span></div>
         <label for="url" class="sr-only">Gateway URL</label>
-        <input id="url" placeholder="ws://127.0.0.1:18789" aria-label="Gateway WebSocket URL" aria-describedby="setup-hint" spellcheck="false" autocomplete="off" autocapitalize="off" autofocus />
+        <input id="url" placeholder="ws://127.0.0.1:18789" aria-label="Gateway WebSocket URL" aria-describedby="setup-hint" spellcheck="false" autocomplete="off" autocapitalize="off" required autofocus />
         <label for="token" class="sr-only">Auth token</label>
         <input type="password" id="token" placeholder="token (optional)" aria-label="Gateway auth token" aria-describedby="setup-hint" spellcheck="false" autocomplete="off" />
         <div style="display:flex;gap:6px;margin-top:6px;">
@@ -221,6 +221,12 @@
         </small>
       </form>
     </div>
+    <noscript>
+      <style>
+        #wrap { color: rgba(255,255,255,0.8); font-size: 13px; text-align: center; padding: 20px; }
+      </style>
+      <p>Molt Mascot requires JavaScript to run.</p>
+    </noscript>
     <script type="module" src="./renderer.js"></script>
   </body>
 </html>
