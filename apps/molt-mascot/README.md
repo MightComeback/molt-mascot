@@ -100,7 +100,7 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + H | Toggle **hide text** (show only the pixel avatar) |
 | ⌘/Ctrl + ⇧ + V | Toggle **visibility** (hide/show the mascot window) |
 | ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
-| ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300) |
+| ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300 → xlarge 480×400) |
 | ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40% → 20%) |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
 | ⌘/Ctrl + ⇧ + C | Force **reconnect** to the Gateway (bypass backoff) |
