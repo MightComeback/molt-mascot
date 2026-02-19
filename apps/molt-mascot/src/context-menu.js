@@ -136,7 +136,7 @@ export function show(items, { x, y }) {
     if (ev.key === 'Tab') { cleanup(); return; }
     if (ev.key === 'Home') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[0]); return; }
     if (ev.key === 'End') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[interactiveIndices.length - 1]); return; }
-    if (ev.key === 'Enter' && focusIdx >= 0 && focusIdx < menuItems.length) {
+    if ((ev.key === 'Enter' || ev.key === ' ') && focusIdx >= 0 && focusIdx < menuItems.length) {
       ev.preventDefault();
       menuItems[focusIdx].click();
       return;

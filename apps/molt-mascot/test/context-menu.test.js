@@ -285,6 +285,21 @@ describe("context-menu", () => {
     expect(document.body._children.length).toBe(0);
   });
 
+  it("Space key activates focused item (WAI-ARIA menu pattern)", async () => {
+    let activated = false;
+    ctxMenu.show(
+      [{ label: "Go", action: () => { activated = true; } }],
+      { x: 0, y: 0 }
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    dispatch(" ");
+    expect(activated).toBe(true);
+    expect(document.body._children.length).toBe(0);
+  });
+
   it("ArrowUp wraps to last item from first", async () => {
     const menu = ctxMenu.show(
       [
