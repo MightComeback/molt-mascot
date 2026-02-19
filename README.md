@@ -124,6 +124,24 @@ bun run mascot
 | Right-click pill or lobster | Open context menu |
 | Drag window | Reposition (overrides alignment until Snap) |
 
+### CLI flags
+
+```
+molt-mascot [options]
+
+Options:
+  -v, --version          Print version and exit
+  -h, --help             Print this help and exit
+  --gateway <url>        Gateway WebSocket URL (overrides env)
+  --token <token>        Gateway auth token (overrides env)
+  --align <position>     Window alignment (overrides env/saved prefs)
+  --size <preset>        Size preset: small, medium, large, xlarge
+  --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
+  --padding <px>         Edge padding in pixels (overrides env/saved prefs)
+  --debug                Open DevTools on launch
+  --reset-prefs          Clear saved preferences and start fresh
+```
+
 ## Project Structure
 
 - `apps/molt-mascot` (@molt/mascot): The Electron desktop app.
