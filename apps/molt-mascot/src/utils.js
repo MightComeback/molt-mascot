@@ -15,6 +15,18 @@ export function coerceDelayMs(v, fallback) {
 import { truncate, cleanErrorString, formatDuration } from '@molt/mascot-plugin';
 export { truncate, cleanErrorString, formatDuration };
 
+/**
+ * Capitalize the first character of a string.
+ * Useful for turning mode names like "idle" into "Idle" for display.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export function capitalize(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;
   const payloadOk = msg?.payload?.ok;

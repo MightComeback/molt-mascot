@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -254,7 +254,7 @@ function syncPill() {
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
 
-  let label = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  let label = capitalize(currentMode);
   if (currentMode === Mode.connected) {
     label = 'Connected ✓';
   }
@@ -1142,7 +1142,7 @@ function showContextMenu(e) {
   // Build a status summary line for the context menu header
   const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   const isSleepingCtx = currentMode === Mode.idle && modeDur > SLEEP_THRESHOLD_S;
-  let modeLabel = isSleepingCtx ? 'Sleeping' : currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+  let modeLabel = isSleepingCtx ? 'Sleeping' : capitalize(currentMode);
   if (currentMode === Mode.tool && currentTool) modeLabel = truncate(currentTool, 20);
   if (currentMode === Mode.error && lastErrorMessage) modeLabel = truncate(lastErrorMessage, 28);
   const appVer = window.moltMascot?.version;

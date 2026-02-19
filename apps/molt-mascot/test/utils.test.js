@@ -13,10 +13,32 @@ import {
   buildTooltip,
   normalizeWsUrl,
   formatCloseDetail,
+  capitalize,
   WS_CLOSE_CODE_LABELS,
   PLUGIN_STATE_METHODS,
   PLUGIN_RESET_METHODS,
 } from "../src/utils.js";
+
+describe("capitalize", () => {
+  it("capitalizes the first character", () => {
+    expect(capitalize("idle")).toBe("Idle");
+    expect(capitalize("thinking")).toBe("Thinking");
+  });
+
+  it("returns empty/falsy values unchanged", () => {
+    expect(capitalize("")).toBe("");
+    expect(capitalize(null)).toBe(null);
+    expect(capitalize(undefined)).toBe(undefined);
+  });
+
+  it("handles single-character strings", () => {
+    expect(capitalize("a")).toBe("A");
+  });
+
+  it("does not alter already-capitalized strings", () => {
+    expect(capitalize("Connected")).toBe("Connected");
+  });
+});
 
 describe("coerceDelayMs", () => {
   it("returns the number when valid and >= 0", () => {
