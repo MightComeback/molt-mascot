@@ -15,22 +15,10 @@ export function coerceDelayMs(v, fallback) {
 import { truncate, cleanErrorString, formatDuration, formatBytes, successRate } from '@molt/mascot-plugin';
 export { truncate, cleanErrorString, formatDuration, formatBytes, successRate };
 
-/**
- * Format a latency value in milliseconds into a compact, human-readable string.
- * - 0 → "< 1ms" (sub-millisecond precision isn't meaningful for WS round-trips)
- * - 1–999 → "Xms"
- * - 1000+ → "X.Ys" (one decimal, e.g. "1.2s")
- * - Negative/NaN/Infinity → "–" (dash, indicates unavailable)
- *
- * @param {number} ms - Latency in milliseconds
- * @returns {string}
- */
-export function formatLatency(ms) {
-  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return '–';
-  if (ms === 0) return '< 1ms';
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
+// Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
+// Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
+import { formatLatency } from './format-latency.cjs';
+export { formatLatency };
 
 /**
  * Capitalize the first character of a string.
