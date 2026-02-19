@@ -88,6 +88,7 @@ bun run mascot
 - **Middle-click pill**: Toggles hide-text mode (pixel-only)
 - **Double-click lobster**: Toggles ghost mode (click-through)
 - **Mouse wheel on lobster**: Adjusts opacity in 10% steps (scroll up = more opaque, down = more transparent)
+- **Middle-click lobster**: Force reconnect to Gateway
 
 ### Keyboard shortcuts summary
 
@@ -114,6 +115,7 @@ bun run mascot
 | Middle-click pill | Toggle hide-text mode (pixel-only) |
 | Double-click lobster | Toggle ghost mode (click-through) |
 | Mouse wheel on lobster | Adjust opacity ±10% |
+| Middle-click lobster | Force reconnect to Gateway |
 | Right-click pill or lobster | Open context menu |
 | Drag window | Reposition (overrides alignment until Snap) |
 
