@@ -225,6 +225,9 @@ describe("utils", () => {
     expect(cleanErrorString("SystemExit: 1")).toBe("1");
     expect(cleanErrorString("GeneratorExit: cleanup")).toBe("cleanup");
     expect(cleanErrorString("StopAsyncIteration: exhausted")).toBe("exhausted");
+    // Container tools
+    expect(cleanErrorString("podman: Error: no such container")).toBe("no such container");
+    expect(cleanErrorString("helm: Error: chart not found")).toBe("chart not found");
     // Cloud CLI prefixes
     expect(cleanErrorString("aws: error: no such command")).toBe("no such command");
     expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");

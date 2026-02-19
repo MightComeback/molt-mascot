@@ -264,7 +264,9 @@ export const ERROR_PREFIXES = [
   "deno:",
   // Infrastructure tools
   "docker:",
+  "podman:",
   "kubectl:",
+  "helm:",
   "terraform:",
   "ansible:",
   "make:",
