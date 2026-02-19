@@ -111,6 +111,8 @@ export function show(items, { x, y }) {
     menuItems[focusIdx].classList.add('ctx-focus');
     // Move DOM focus so screen readers track the active item.
     menuItems[focusIdx].focus({ preventScroll: true });
+    // Scroll the focused item into view when the menu overflows (small window sizes).
+    menuItems[focusIdx].scrollIntoView?.({ block: 'nearest' });
   };
 
   const focusNext = () => {

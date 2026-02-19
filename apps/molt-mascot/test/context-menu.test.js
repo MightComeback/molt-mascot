@@ -57,6 +57,9 @@ function makeElement(tag) {
     focus(_opts) {
       el._focused = true;
     },
+    scrollIntoView(_opts) {
+      el._scrolledIntoView = true;
+    },
     click() {
       (el._listeners["click"] || []).forEach((fn) => fn({ target: el }));
     },
@@ -542,6 +545,24 @@ describe("context-menu", () => {
     expect(ctxMenu.isVisible()).toBe(true);
     ctxMenu.dismiss();
     expect(ctxMenu.isVisible()).toBe(false);
+  });
+
+  it("keyboard navigation scrolls focused item into view", async () => {
+    const menu = ctxMenu.show([
+      { label: "Alpha", action: () => {} },
+      { label: "Beta", action: () => {} },
+    ], { x: 10, y: 10 });
+    await new Promise((r) => setTimeout(r, 5));
+
+    // Auto-focus on first item should trigger scrollIntoView
+    expect(menu._children[0]._scrolledIntoView).toBe(true);
+
+    // Arrow down should also scroll the newly focused item
+    const keydown = (document._listeners["keydown"] || [])[0];
+    keydown({ key: "ArrowDown", preventDefault() {} });
+    expect(menu._children[1]._scrolledIntoView).toBe(true);
+
+    ctxMenu.dismiss();
   });
 
   it("keyboard navigation moves DOM focus to the active item", async () => {

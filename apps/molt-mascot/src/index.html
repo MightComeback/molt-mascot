@@ -159,8 +159,14 @@
         backdrop-filter: blur(12px);
         z-index: 9999;
         min-width: 120px;
+        max-height: calc(100vh - 16px);
+        overflow-y: auto;
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       }
+      #molt-ctx::-webkit-scrollbar { width: 4px; }
+      #molt-ctx::-webkit-scrollbar-track { background: transparent; }
+      #molt-ctx::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+      #molt-ctx::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }
       #molt-ctx [data-separator] {
         height: 1px;
         margin: 4px 8px;
