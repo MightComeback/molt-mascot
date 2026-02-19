@@ -843,7 +843,11 @@ app.whenReady().then(async () => {
   let currentCloseDetail = null;
   let currentReconnectAttempt = 0;
   let currentTargetUrl = null;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttemptVal, targetUrl) => {
+  ipcMain.on('molt-mascot:mode-update', (_event, update) => {
+    // Accept both object and legacy positional args for back-compat.
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl } =
+      (update && typeof update === 'object') ? update : {};
+
     // Track tool call stats for tray tooltip diagnostics.
     if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
     if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
