@@ -130,6 +130,7 @@ function formatBytes(bytes) {
   return `${value.toFixed(1)} TB`;
 }
 function formatDuration(seconds) {
+  if (!Number.isFinite(seconds)) return "0s";
   const s = Math.max(0, Math.round(seconds));
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);

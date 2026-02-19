@@ -63,6 +63,10 @@ describe("utils", () => {
     expect(formatDuration(1296000)).toBe("2w 1d");
     // Negative clamps to 0
     expect(formatDuration(-5)).toBe("0s");
+    // Non-finite values return "0s" instead of crashing
+    expect(formatDuration(Infinity)).toBe("0s");
+    expect(formatDuration(-Infinity)).toBe("0s");
+    expect(formatDuration(NaN)).toBe("0s");
     // Fractional rounds
     expect(formatDuration(59.7)).toBe("1m");
   });

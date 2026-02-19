@@ -184,6 +184,7 @@ export function formatBytes(bytes: number): string {
  * Exported so the Electron renderer can reuse the same implementation (single source of truth).
  */
 export function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds)) return "0s";
   const s = Math.max(0, Math.round(seconds));
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);

@@ -201,6 +201,12 @@ describe("formatDuration", () => {
   it("handles negative values", () => {
     expect(formatDuration(-5)).toBe("0s");
   });
+
+  it("handles non-finite values", () => {
+    expect(formatDuration(Infinity)).toBe("0s");
+    expect(formatDuration(-Infinity)).toBe("0s");
+    expect(formatDuration(NaN)).toBe("0s");
+  });
 });
 
 describe("formatElapsed", () => {
