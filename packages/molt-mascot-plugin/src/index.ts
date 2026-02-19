@@ -1002,7 +1002,7 @@ export default function register(api: PluginApi) {
           : typeof err === "string"
           ? err
           : typeof err === "object" && err
-          ? err.message || err.text || err.code || (typeof err.error === "string" ? err.error : "") || ""
+          ? err.message || err.text || err.detail || err.description || err.code || (typeof err.error === "string" ? err.error : "") || ""
           : "";
 
       if (String(msg).trim()) {

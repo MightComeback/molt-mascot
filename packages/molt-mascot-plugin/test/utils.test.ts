@@ -911,6 +911,42 @@ describe("utils", () => {
     expect(payload?.state?.lastError?.message).toContain("spawn ENOENT");
   });
 
+  it("agent end with error.detail or error.description enters error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    // error.detail (common in REST API error payloads)
+    agentListener({ phase: "start", sessionKey: "s1" });
+    agentListener({
+      phase: "end",
+      sessionKey: "s1",
+      error: { detail: "rate limit exceeded" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("rate limit exceeded");
+
+    // Wait for error hold to expire before next test
+    await new Promise((r) => setTimeout(r, 120));
+
+    // error.description (common in OAuth/API error responses)
+    agentListener({ phase: "start", sessionKey: "s2" });
+    agentListener({
+      phase: "end",
+      sessionKey: "s2",
+      error: { description: "invalid API key" },
+    });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("invalid API key");
+  });
+
   it("agent end with error code (no message) still enters error mode", async () => {
     const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
     register(api);
