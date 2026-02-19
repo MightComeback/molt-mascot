@@ -1115,6 +1115,16 @@ canvas.addEventListener('wheel', (e) => {
   syncPill();
 }, { passive: false });
 
+// Middle-click on the lobster sprite to force reconnect.
+// Complements double-click (ghost mode) and scroll wheel (opacity) with another
+// common desktop-widget interaction — middle-click to refresh/reconnect.
+canvas.addEventListener('mousedown', (e) => {
+  if (e.button !== 1) return; // 1 = middle button
+  e.preventDefault();
+  forceReconnectNow();
+  showTransientFeedback('Reconnecting…');
+});
+
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
 // all open the context menu. Combined into a single listener to avoid duplicate
 // event subscriptions on the same element.
