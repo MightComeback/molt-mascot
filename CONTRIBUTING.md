@@ -59,7 +59,7 @@ bun run --cwd apps/molt-mascot capture
 
 1. Add the sprite frames to `apps/molt-mascot/src/sprites.js` in the `overlay` export.
 2. Each frame is a 32×32 array of palette character strings. Use `.` for transparent pixels.
-3. Add the rendering branch in `drawLobster()` in `apps/molt-mascot/src/draw.js`.
+3. Add an entry to the `OVERLAY_TIMING` map in `apps/molt-mascot/src/draw.js` — no branching logic needed, just `{ sprites, frameDurationMs }`.
 4. Add sprite validation tests in `apps/molt-mascot/test/sprites.test.js`.
 5. Add a draw test in `apps/molt-mascot/test/draw.test.js`.
 
