@@ -12,8 +12,8 @@ export function coerceDelayMs(v, fallback) {
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { truncate, cleanErrorString, formatDuration } from '@molt/mascot-plugin';
-export { truncate, cleanErrorString, formatDuration };
+import { truncate, cleanErrorString, formatDuration, formatBytes } from '@molt/mascot-plugin';
+export { truncate, cleanErrorString, formatDuration, formatBytes };
 
 /**
  * Capitalize the first character of a string.

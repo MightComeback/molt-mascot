@@ -1,7 +1,7 @@
 declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
-type Size = "small" | "medium" | "large";
+type Size = "small" | "medium" | "large" | "xlarge";
 type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;
@@ -66,6 +66,12 @@ declare function coerceSize(v: unknown, fallback: Size): Size;
 declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
 declare function truncate(str: string, limit?: number): string;
 /**
+ * Format a byte count into a compact human-readable string with appropriate unit.
+ * e.g. 0 → "0 B", 1023 → "1023 B", 1536 → "1.5 KB", 1048576 → "1.0 MB"
+ * Uses binary units (1 KB = 1024 bytes) consistent with OS conventions.
+ */
+declare function formatBytes(bytes: number): string;
+/**
  * Format a duration in seconds into a compact human-readable string.
  * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
  * Exported so the Electron renderer can reuse the same implementation (single source of truth).
@@ -102,4 +108,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatDuration, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, summarizeToolResultMessage, truncate, version };

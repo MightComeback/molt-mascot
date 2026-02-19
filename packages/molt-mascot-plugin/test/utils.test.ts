@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -60,6 +60,22 @@ describe("utils", () => {
     expect(formatDuration(-5)).toBe("0s");
     // Fractional rounds
     expect(formatDuration(59.7)).toBe("1m");
+  });
+
+  it("formatBytes", () => {
+    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(512)).toBe("512 B");
+    expect(formatBytes(1023)).toBe("1023 B");
+    expect(formatBytes(1024)).toBe("1.0 KB");
+    expect(formatBytes(1536)).toBe("1.5 KB");
+    expect(formatBytes(1048576)).toBe("1.0 MB");
+    expect(formatBytes(1572864)).toBe("1.5 MB");
+    expect(formatBytes(1073741824)).toBe("1.0 GB");
+    expect(formatBytes(1099511627776)).toBe("1.0 TB");
+    // Edge cases
+    expect(formatBytes(-1)).toBe("0 B");
+    expect(formatBytes(NaN)).toBe("0 B");
+    expect(formatBytes(Infinity)).toBe("0 B");
   });
 
   it("coerceBoolean", () => {

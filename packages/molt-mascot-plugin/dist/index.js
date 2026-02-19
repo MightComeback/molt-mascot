@@ -30,6 +30,7 @@ __export(index_exports, {
   coerceNumber: () => coerceNumber,
   coerceSize: () => coerceSize,
   default: () => register,
+  formatBytes: () => formatBytes,
   formatDuration: () => formatDuration,
   id: () => id,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -125,7 +126,7 @@ var allowedAlignments = [
   "center-right",
   "center"
 ];
-var allowedSizes = ["small", "medium", "large"];
+var allowedSizes = ["small", "medium", "large", "xlarge"];
 function coerceSize(v, fallback) {
   if (typeof v === "string" && allowedSizes.includes(v)) {
     return v;
@@ -151,6 +152,19 @@ function truncate(str, limit = 140) {
   }
   return cut + "\u2026";
 }
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return "0 B";
+  if (bytes < 1024) return `${Math.round(bytes)} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes;
+  for (const unit of units) {
+    value /= 1024;
+    if (value < 1024 || unit === "TB") {
+      return `${value.toFixed(1)} ${unit}`;
+    }
+  }
+  return `${value.toFixed(1)} TB`;
+}
 function formatDuration(seconds) {
   const s = Math.max(0, Math.round(seconds));
   if (s < 60) return `${s}s`;
@@ -165,8 +179,13 @@ function formatDuration(seconds) {
   return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
 }
 var ERROR_PREFIXES = [
-  // Generic patterns
+  // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
+  // All specific *Error entries are redundant with this pattern and have been removed.
   "[a-zA-Z0-9_]*Error",
+  // Java/JVM-style: java.lang.NullPointerException, kotlin.KotlinNullPointerException, etc.
+  // Also handles .NET: System.InvalidOperationException, System.IO.FileNotFoundException, etc.
+  "(?:[a-zA-Z_][a-zA-Z0-9_]*\\.)+[a-zA-Z_][a-zA-Z0-9_]*(?:Error|Exception|Fault)",
+  // Generic non-Error prefixes
   "Tool failed",
   "Command failed",
   "Exception",
@@ -181,21 +200,14 @@ var ERROR_PREFIXES = [
   "debug",
   "trace",
   "warn",
-  // JavaScript/TypeScript built-in errors
-  "TypeError",
-  "ReferenceError",
-  "SyntaxError",
-  "EvalError",
-  "RangeError",
-  "URIError",
-  "AggregateError",
-  // Runtime/System errors
-  "TimeoutError",
-  "SystemError",
-  "AssertionError",
-  "AbortError",
-  "CancellationError",
-  // Environment/Tool prefixes
+  // Python non-Error exceptions (not matched by *Error pattern)
+  "StopIteration",
+  "KeyboardInterrupt",
+  "SystemExit",
+  "GeneratorExit",
+  // Java/JVM "Caused by:" chained exception prefix
+  "Caused by",
+  // Environment/Tool colon-prefixes
   "node:",
   "fs:",
   "process:",
@@ -243,114 +255,15 @@ var ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
+  // Cloud CLIs
+  "aws:",
+  "gcloud:",
+  "az:",
+  "gsutil:",
+  "pip:",
   // OpenClaw specific
   "cron:",
-  "nodes:",
-  // Domain-specific errors
-  "GitError",
-  "GraphQLError",
-  "ProtocolError",
-  "IPCError",
-  "RuntimeError",
-  "BrowserError",
-  "CanvasError",
-  "ExecError",
-  "SpawnError",
-  "ShellError",
-  "NetworkError",
-  "BroadcastError",
-  "SecurityError",
-  "AuthError",
-  "ForbiddenError",
-  "EvaluationError",
-  "GatewayError",
-  "FetchError",
-  "ClawdError",
-  "OpenClawError",
-  "AgentSkillError",
-  "PluginError",
-  "RpcError",
-  "MoltError",
-  "MoltMascotError",
-  // AI Provider errors
-  "AnthropicError",
-  "OpenAIError",
-  "OllamaError",
-  "DeepSeekError",
-  "GoogleGenerativeAIError",
-  "GaxiosError",
-  "AxiosError",
-  "ProviderError",
-  // Service errors
-  "PerplexityError",
-  "SonarError",
-  "BraveError",
-  "BunError",
-  "RateLimitError",
-  "ValidationError",
-  "ZodError",
-  // Integration errors
-  "LinearError",
-  "GitHubError",
-  "TelegramError",
-  "DiscordError",
-  "SlackError",
-  "SignalError",
-  "WhatsAppError",
-  "BlueBubblesError",
-  "BirdError",
-  "ClawdHubError",
-  "GeminiError",
-  "GogError",
-  "NotionError",
-  "PeekabooError",
-  "SummarizeError",
-  "VideoFramesError",
-  "SkillCreatorError",
-  "CodingAgentError",
-  "WeatherError",
-  "McpError",
-  // Network/IO errors
-  "WebSocketError",
-  "SocketError",
-  "CronError",
-  "ConnectionError",
-  "RequestError",
-  "ResponseError",
-  // Database errors
-  "DatabaseError",
-  "SqlError",
-  "PrismaError",
-  "MongoError",
-  "RedisError",
-  // Python-style errors
-  "ValueError",
-  "KeyError",
-  "IndexError",
-  "AttributeError",
-  "NameError",
-  "ImportError",
-  "ModuleNotFoundError",
-  "FileNotFoundError",
-  "FileExistsError",
-  "IsADirectoryError",
-  "NotADirectoryError",
-  "PermissionError",
-  "IOError",
-  "OSError",
-  "EOFError",
-  "OverflowError",
-  "RecursionError",
-  "NotImplementedError",
-  "StopIteration",
-  "BrokenPipeError",
-  "ChildProcessError",
-  "InterruptedError",
-  "BlockingIOError",
-  "ProcessLookupError",
-  "ConnectionRefusedError",
-  "ConnectionResetError",
-  "ConnectionAbortedError"
+  "nodes:"
 ];
 var ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
@@ -363,7 +276,9 @@ function cleanErrorString(s) {
   str = str.replace(/^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "").trim();
   str = str.replace(/\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "").trim();
   str = str.replace(/^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i, "$1").trim();
+  str = str.replace(/^thread\s+'[^']*'\s+panicked\s+at\s+\S+:\d+(?::\d+)?:\s*/i, "").trim();
   str = str.replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1").trim();
+  str = str.replace(/^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i, "").trim();
   const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
   const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
   const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
@@ -389,6 +304,9 @@ function cleanErrorString(s) {
     const tracebackLine = lines.find((l) => /^traceback\b/i.test(l));
     if (tracebackLine && lines[lines.length - 1] !== tracebackLine) {
       return cleanErrorString(lines[lines.length - 1]);
+    }
+    if (/^goroutine\s+\d+\s+\[/i.test(lines[0])) {
+      return cleanErrorString(lines.slice(1).join("\n"));
     }
   }
   return lines[0] || str;
@@ -752,7 +670,7 @@ function register(api) {
       const isExitError = hasExitCode && msg.exitCode !== 0;
       const isContentTool = contentTools.has(rawToolName);
       const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
-      const isExplicitError = msg?.isError === true || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
+      const isExplicitError = msg?.isError === true || msg?.success === false || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
@@ -870,6 +788,7 @@ function register(api) {
   coerceBoolean,
   coerceNumber,
   coerceSize,
+  formatBytes,
   formatDuration,
   id,
   summarizeToolResultMessage,

@@ -47,7 +47,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -164,10 +164,10 @@ export function buildDebugInfo(params) {
     : '';
   lines.push(`Display scale: ${dpr}x (canvas scale: ${canvasScale}${canvasDims})`);
   if (memory && typeof memory.usedJSHeapSize === 'number') {
-    const used = (memory.usedJSHeapSize / 1048576).toFixed(1);
-    const total = (memory.totalJSHeapSize / 1048576).toFixed(1);
-    const limit = (memory.jsHeapSizeLimit / 1048576).toFixed(0);
-    lines.push(`Memory: ${used}MB used / ${total}MB total (limit ${limit}MB)`);
+    const used = formatBytes(memory.usedJSHeapSize);
+    const total = formatBytes(memory.totalJSHeapSize);
+    const limit = formatBytes(memory.jsHeapSizeLimit);
+    lines.push(`Memory: ${used} used / ${total} total (limit ${limit})`);
   }
   const runtimeParts = [
     versions?.electron ? `Electron ${versions.electron}` : null,
