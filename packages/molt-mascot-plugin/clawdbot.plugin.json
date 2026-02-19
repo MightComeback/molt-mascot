@@ -1,7 +1,7 @@
 {
   "id": "@molt/mascot-plugin",
   "name": "Molt Mascot",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "OpenClaw plugin for Molt Mascot (pixel mascot)",
   "main": "dist/index.js",
   "configSchema": {
