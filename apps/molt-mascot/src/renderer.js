@@ -1284,6 +1284,9 @@ function showContextMenu(e) {
     { label: 'About Molt Mascot', action: () => {
       if (window.moltMascot?.showAbout) window.moltMascot.showAbout();
     }},
+    { label: 'Open on GitHub…', action: () => {
+      if (window.moltMascot?.openExternal) window.moltMascot.openExternal('https://github.com/MightComeback/molt-mascot');
+    }},
     { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
       if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
     }},

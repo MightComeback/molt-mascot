@@ -501,6 +501,7 @@ app.whenReady().then(async () => {
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${APP_VERSION}`, enabled: false },
       { label: 'About Molt Mascot', click: () => app.showAboutPanel() },
+      { label: 'Open on GitHub…', click: () => { const { shell } = require('electron'); shell.openExternal('https://github.com/MightComeback/molt-mascot'); } },
       { type: 'separator' },
       {
         label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
@@ -611,6 +612,13 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
   ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
+  ipcMain.on('molt-mascot:open-external', (_event, url) => {
+    // Only allow https URLs to prevent shell injection via IPC.
+    if (typeof url === 'string' && /^https:\/\//i.test(url)) {
+      const { shell } = require('electron');
+      shell.openExternal(url);
+    }
+  });
 
   // Live mode updates from the renderer — used to enrich the tray tooltip
   // so hovering the system tray shows the current gateway state even when
