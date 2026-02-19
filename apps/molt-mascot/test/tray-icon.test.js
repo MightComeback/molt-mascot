@@ -260,6 +260,20 @@ describe('tray-icon', () => {
       expect(tip).not.toContain('↑');
     });
 
+    it('includes latency when provided', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42 });
+      expect(tip).toContain('⏱ 42ms');
+    });
+
+    it('omits latency when null or undefined', () => {
+      expect(buildTrayTooltip({ ...base, latencyMs: null })).not.toContain('⏱');
+      expect(buildTrayTooltip({ ...base })).not.toContain('⏱');
+    });
+
+    it('omits latency when negative', () => {
+      expect(buildTrayTooltip({ ...base, latencyMs: -1 })).not.toContain('⏱');
+    });
+
     it('joins all parts with " · "', () => {
       const tip = buildTrayTooltip({ ...base, clickThrough: true, hideText: true, opacityPercent: 40 });
       const parts = tip.split(' · ');

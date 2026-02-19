@@ -347,7 +347,7 @@ function syncPill() {
   const effectiveMode = isSleeping ? 'sleeping' : currentMode;
   if (effectiveMode !== _lastReportedMode) {
     _lastReportedMode = effectiveMode;
-    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode);
+    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode, latencyMs);
   }
 }
 

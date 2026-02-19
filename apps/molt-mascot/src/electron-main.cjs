@@ -494,6 +494,7 @@ app.whenReady().then(async () => {
       sizeLabel: sizeCycle[sizeIndex].label,
       opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
       uptimeStr,
+      latencyMs: currentLatencyMs,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -642,7 +643,13 @@ app.whenReady().then(async () => {
   // Track when the gateway connection was established (for tray tooltip uptime).
   let connectedSinceMs = null;
 
-  ipcMain.on('molt-mascot:mode-update', (_event, mode) => {
+  // Track latest plugin state poll latency for tray tooltip diagnostics.
+  let currentLatencyMs = null;
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency) => {
+    // Always update latency when provided (even if mode unchanged).
+    if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
+    else if (latency === null || latency === undefined) currentLatencyMs = null;
+
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;
       // Track connection start for uptime display in tray tooltip.
@@ -650,6 +657,7 @@ app.whenReady().then(async () => {
         connectedSinceMs = Date.now();
       } else if (mode === 'disconnected' || mode === 'connecting') {
         connectedSinceMs = null;
+        currentLatencyMs = null;
       }
       updateTrayIcon(mode);
       rebuildTrayMenu();
