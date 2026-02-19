@@ -198,6 +198,12 @@ describe("formatDuration", () => {
     expect(formatDuration(172800)).toBe("2d");
   });
 
+  it("formats weeks", () => {
+    expect(formatDuration(604800)).toBe("1w");
+    expect(formatDuration(691200)).toBe("1w 1d");
+    expect(formatDuration(1209600)).toBe("2w");
+  });
+
   it("handles negative values", () => {
     expect(formatDuration(-5)).toBe("0s");
   });
