@@ -48,8 +48,8 @@ contextBridge.exposeInMainWorld('moltMascot', {
     node: process.versions.node || '',
   },
   env: {
-    gatewayUrl: process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',
-    gatewayToken: process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || process.env.gatewayToken || '',
+    gatewayUrl: process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',
+    gatewayToken: process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || process.env.gatewayToken || '',
     // Allow protocol negotiation for older/newer Gateways.
     // Prefer the same env vars as tools/ws-dump for consistency.
     minProtocol: process.env.GATEWAY_MIN_PROTOCOL || process.env.MOLT_MASCOT_MIN_PROTOCOL || '',

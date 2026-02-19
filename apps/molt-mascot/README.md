@@ -76,8 +76,10 @@ To pre-configure the connection to the Gateway (skipping the setup screen):
 
 | Variable | Description |
 |---|---|
-| `GATEWAY_URL` | WebSocket URL (e.g., `ws://127.0.0.1:18789`) |
-| `GATEWAY_TOKEN` | Gateway authentication token |
+| `MOLT_MASCOT_GATEWAY_URL` | WebSocket URL (e.g., `ws://127.0.0.1:18789`) |
+| `MOLT_MASCOT_GATEWAY_TOKEN` | Gateway authentication token |
+
+Back-compat aliases (checked in order): `GATEWAY_URL`/`GATEWAY_TOKEN`, `OPENCLAW_GATEWAY_URL`/`OPENCLAW_GATEWAY_TOKEN`, `CLAWDBOT_GATEWAY_URL`/`CLAWDBOT_GATEWAY_TOKEN`.
 | `GATEWAY_MIN_PROTOCOL` | Minimum Gateway WS protocol version to negotiate (optional; useful for older Gateways) |
 | `GATEWAY_MAX_PROTOCOL` | Maximum Gateway WS protocol version to negotiate (optional; useful for newer Gateways) |
 
