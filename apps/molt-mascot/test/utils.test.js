@@ -18,6 +18,7 @@ import {
   PLUGIN_STATE_METHODS,
   PLUGIN_RESET_METHODS,
   successRate,
+  formatBytes,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -755,5 +756,33 @@ describe("successRate", () => {
   it("handles missing errorCount", () => {
     expect(successRate(10, null)).toBe(100);
     expect(successRate(10, undefined)).toBe(100);
+  });
+});
+
+describe("formatBytes", () => {
+  it("formats bytes below 1024", () => {
+    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(512)).toBe("512 B");
+    expect(formatBytes(1023)).toBe("1023 B");
+  });
+
+  it("formats kilobytes", () => {
+    expect(formatBytes(1024)).toBe("1.0 KB");
+    expect(formatBytes(1536)).toBe("1.5 KB");
+  });
+
+  it("formats megabytes", () => {
+    expect(formatBytes(1048576)).toBe("1.0 MB");
+    expect(formatBytes(10 * 1024 * 1024)).toBe("10.0 MB");
+  });
+
+  it("formats gigabytes", () => {
+    expect(formatBytes(1073741824)).toBe("1.0 GB");
+  });
+
+  it("returns 0 B for invalid inputs", () => {
+    expect(formatBytes(-1)).toBe("0 B");
+    expect(formatBytes(NaN)).toBe("0 B");
+    expect(formatBytes(Infinity)).toBe("0 B");
   });
 });
