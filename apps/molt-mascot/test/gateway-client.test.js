@@ -656,6 +656,32 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("clears latencyMs on disconnect to prevent stale values during reconnect", () => {
+    const client = new GatewayClient({ reconnectBaseMs: 50000 });
+    client.connect({ url: "ws://localhost:18789" });
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Simulate a plugin state response to populate latencyMs
+    client.hasPlugin = true;
+    client._pluginStateSentAt = Date.now() - 42;
+    client._pluginStateReqId = "p1";
+    client._pluginStatePending = true;
+    ws._emitMessage({
+      type: "res", id: "p1", ok: true,
+      payload: { ok: true, state: { mode: "idle" } },
+    });
+    expect(client.latencyMs).toBeGreaterThanOrEqual(0);
+
+    // Disconnect — latencyMs should be cleared
+    ws.onclose({ code: 1006 });
+    expect(client.latencyMs).toBeNull();
+
+    client.destroy();
+  });
+
   it("destroy() clears connection state to prevent stale tooltips", () => {
     const client = new GatewayClient({ reconnectBaseMs: 50000 });
     client.connect({ url: "ws://localhost:18789" });

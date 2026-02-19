@@ -363,6 +363,8 @@ export class GatewayClient {
       this.lastCloseReason = (ev?.reason || '').trim() || null;
       this.connectedSince = null;
       this.connectedUrl = '';
+      this.latencyMs = null;
+      this._pluginStateSentAt = 0;
       this._stopStaleCheck();
 
       this.onPluginStateReset?.();
