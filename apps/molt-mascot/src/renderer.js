@@ -354,7 +354,7 @@ function syncPill() {
   if (effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool) {
     _lastReportedMode = effectiveMode;
     _lastReportedTool = effectiveTool;
-    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode, latencyMs, effectiveTool || null);
+    if (window.moltMascot?.updateMode) window.moltMascot.updateMode(effectiveMode, latencyMs, effectiveTool || null, currentMode === Mode.error ? lastErrorMessage || null : null);
   }
 }
 

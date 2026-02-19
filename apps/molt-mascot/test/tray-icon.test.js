@@ -276,6 +276,17 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, latencyMs: -1 })).not.toContain('⏱');
     });
 
+    it('shows error detail in error mode when lastErrorMessage is provided', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'error', lastErrorMessage: 'spawn ENOENT' });
+      expect(tip).toContain('❌ spawn ENOENT');
+      expect(tip).not.toContain('❌ error');
+    });
+
+    it('falls back to generic error label when lastErrorMessage is absent', () => {
+      const tip = buildTrayTooltip({ ...base, mode: 'error' });
+      expect(tip).toContain('❌ error');
+    });
+
     it('joins all parts with " · "', () => {
       const tip = buildTrayTooltip({ ...base, clickThrough: true, hideText: true, opacityPercent: 40 });
       const parts = tip.split(' · ');

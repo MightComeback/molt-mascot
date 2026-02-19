@@ -496,6 +496,7 @@ app.whenReady().then(async () => {
       uptimeStr,
       latencyMs: currentLatencyMs,
       currentTool: currentToolName,
+      lastErrorMessage: currentErrorMessage,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -663,7 +664,8 @@ app.whenReady().then(async () => {
   // Track latest plugin state poll latency and active tool for tray tooltip.
   let currentLatencyMs = null;
   let currentToolName = null;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool) => {
+  let currentErrorMessage = null;
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage) => {
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;
@@ -673,6 +675,13 @@ app.whenReady().then(async () => {
     if (nextTool !== currentToolName) {
       currentToolName = nextTool;
       // Rebuild even if mode didn't change — tool name alone is worth updating.
+      rebuildTrayMenu();
+    }
+
+    // Track error message for tray tooltip (e.g. "❌ spawn ENOENT" instead of "❌ error").
+    const nextError = (typeof errorMessage === 'string' && errorMessage) ? errorMessage : null;
+    if (nextError !== currentErrorMessage) {
+      currentErrorMessage = nextError;
       rebuildTrayMenu();
     }
 
