@@ -45,6 +45,10 @@ window.addEventListener('resize', _debouncedRecalcScale);
 
 const STORAGE_KEY = 'moltMascot:gateway';
 
+// Stable instance ID across reconnects so the gateway can track this client
+// as a single session rather than treating each reconnect as a new client.
+const INSTANCE_ID = `moltMascot-${Math.random().toString(16).slice(2)}`;
+
 const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
@@ -661,7 +665,7 @@ function connect(cfg) {
           version: window.moltMascot?.version || 'dev',
           platform: window.moltMascot?.platform || navigator.userAgent,
           mode: 'gui',
-          instanceId: `moltMascot-${Math.random().toString(16).slice(2)}`,
+          instanceId: INSTANCE_ID,
         },
         role: 'operator',
         scopes: ['operator.read'],
