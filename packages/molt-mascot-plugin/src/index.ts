@@ -309,6 +309,7 @@ export const ERROR_PREFIXES = [
   "pip:",
   "wrangler:",
   "miniflare:",
+  "workerd:",
   // OpenClaw specific
   "cron:",
   "nodes:",

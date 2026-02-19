@@ -604,6 +604,35 @@ export class GatewayClient {
   }
 
   /**
+   * Return a plain, JSON-serializable snapshot of the client's current state.
+   * Useful for debug info export, logging, and diagnostics without manually
+   * plucking individual properties.
+   *
+   * @returns {object} Serializable status object
+   */
+  getStatus() {
+    return {
+      isConnected: this.isConnected,
+      isDestroyed: this._destroyed,
+      connectedSince: this.connectedSince,
+      connectedUrl: this.connectedUrl,
+      targetUrl: this.targetUrl,
+      hasPlugin: this.hasPlugin,
+      pluginStateMethod: this.pluginStateMethod,
+      latencyMs: this.latencyMs,
+      wsReadyState: this.wsReadyState,
+      reconnectAttempt: this._reconnectAttempt,
+      sessionConnectCount: this.sessionConnectCount,
+      lastDisconnectedAt: this.lastDisconnectedAt,
+      lastCloseCode: this.lastCloseCode,
+      lastCloseReason: this.lastCloseReason,
+      lastCloseDetail: this.lastCloseDetail,
+      isPollingPaused: this._pollingPaused,
+      uptimeSeconds: this.uptimeSeconds,
+    };
+  }
+
+  /**
    * Tear down all timers and close the socket.
    * Fires onPluginStateReset so consumers clear any cached plugin config.
    * After destroy(), connect() and other methods become no-ops.

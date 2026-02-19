@@ -1241,4 +1241,35 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("getStatus returns a serializable snapshot of client state", () => {
+    const client = new GatewayClient();
+    const status = client.getStatus();
+
+    expect(status.isConnected).toBe(false);
+    expect(status.isDestroyed).toBe(false);
+    expect(status.connectedSince).toBeNull();
+    expect(status.connectedUrl).toBe("");
+    expect(status.targetUrl).toBe("");
+    expect(status.hasPlugin).toBe(false);
+    expect(status.pluginStateMethod).toBeNull();
+    expect(status.latencyMs).toBeNull();
+    expect(status.wsReadyState).toBeNull();
+    expect(status.reconnectAttempt).toBe(0);
+    expect(status.sessionConnectCount).toBe(0);
+    expect(status.lastDisconnectedAt).toBeNull();
+    expect(status.lastCloseCode).toBeNull();
+    expect(status.lastCloseReason).toBeNull();
+    expect(status.lastCloseDetail).toBeNull();
+    expect(status.isPollingPaused).toBe(false);
+    expect(status.uptimeSeconds).toBeNull();
+
+    // Verify it's JSON-serializable (no circular refs, no functions)
+    const json = JSON.stringify(status);
+    expect(typeof json).toBe("string");
+    const parsed = JSON.parse(json);
+    expect(parsed.isConnected).toBe(false);
+
+    client.destroy();
+  });
 });
