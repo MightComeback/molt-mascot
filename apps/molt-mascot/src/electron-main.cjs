@@ -115,6 +115,10 @@ if (process.argv.includes('--reset-prefs')) {
 // CLI flags: --debug opens DevTools on launch for easier development.
 const cliDebug = process.argv.includes('--debug');
 
+// CLI flags: --no-tray disables the system tray icon entirely.
+// Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
+const cliNoTray = process.argv.includes('--no-tray');
+
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   process.stdout.write(`molt-mascot ${APP_VERSION}
@@ -138,6 +142,8 @@ Options:
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
+  --no-tray              Disable system tray icon (useful on Linux DEs
+                         without tray support, e.g. GNOME)
   --reset-prefs          Clear saved preferences and start fresh
 
 Environment variables:
@@ -553,29 +559,33 @@ app.whenReady().then(async () => {
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
-  // Build a multi-resolution tray icon: 16px @1x + 32px @2x + 48px @3x for crisp rendering on all DPIs.
-  const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
-  trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
-  trayIcon.addRepresentation({ buffer: renderTraySprite(3), width: 48, height: 48, scaleFactor: 3.0 });
-  // Mark as template on macOS so the system auto-tints the icon for light/dark menu bars.
-  // Template images use alpha as the shape and ignore RGB values, which means the icon
-  // stays legible regardless of the user's appearance setting.
-  if (process.platform === 'darwin') {
-    trayIcon.setTemplateImage(true);
-  }
-  let tray = new Tray(trayIcon);
-  tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
+  // Skipped entirely when --no-tray is passed (useful on Linux DEs without tray support).
+  let tray = null;
+  if (!cliNoTray) {
+    // Build a multi-resolution tray icon: 16px @1x + 32px @2x + 48px @3x for crisp rendering on all DPIs.
+    const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
+    trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
+    trayIcon.addRepresentation({ buffer: renderTraySprite(3), width: 48, height: 48, scaleFactor: 3.0 });
+    // Mark as template on macOS so the system auto-tints the icon for light/dark menu bars.
+    // Template images use alpha as the shape and ignore RGB values, which means the icon
+    // stays legible regardless of the user's appearance setting.
+    if (process.platform === 'darwin') {
+      trayIcon.setTemplateImage(true);
+    }
+    tray = new Tray(trayIcon);
+    tray.setToolTip(`Molt Mascot v${APP_VERSION}`);
 
-  // Left-click (or double-click on Windows) toggles mascot visibility.
-  // On macOS, `click` fires on left-click; on Windows/Linux, `double-click` is more conventional.
-  const trayToggle = () => {
-    withMainWin((w) => {
-      if (w.isVisible()) w.hide();
-      else w.show();
-      rebuildTrayMenu();
-    });
-  };
-  tray.on('click', trayToggle);
+    // Left-click (or double-click on Windows) toggles mascot visibility.
+    // On macOS, `click` fires on left-click; on Windows/Linux, `double-click` is more conventional.
+    const trayToggle = () => {
+      withMainWin((w) => {
+        if (w.isVisible()) w.hide();
+        else w.show();
+        rebuildTrayMenu();
+      });
+    };
+    tray.on('click', trayToggle);
+  }
 
   // Alignment cycling order for Cmd+Shift+A shortcut
   const alignmentCycle = [
@@ -614,6 +624,7 @@ app.whenReady().then(async () => {
 
   function _rebuildTrayMenuNow() {
     _trayRebuildTimer = null;
+    if (!tray) return;
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
     // Compute connection uptime string for tray tooltip (if connected).
     let uptimeStr;
