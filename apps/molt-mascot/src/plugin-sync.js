@@ -12,6 +12,20 @@
  */
 
 /**
+ * Optional per-property validation.
+ * Return true if the value is acceptable, false to skip the update.
+ * Only needed for numeric properties with domain constraints;
+ * type checking is handled generically by the sync loop.
+ */
+const VALIDATORS = {
+  opacity: (v) => v >= 0 && v <= 1,
+  padding: (v) => v >= 0,
+  toolCalls: (v) => v >= 0 && Number.isInteger(v),
+  toolErrors: (v) => v >= 0 && Number.isInteger(v),
+  startedAt: (v) => v > 0,
+};
+
+/**
  * Property descriptors: [stateKey, expectedType, callbackName].
  * Order matches the original sync order for deterministic changed[] output.
  */
@@ -70,6 +84,11 @@ export function createPluginSync(callbacks = {}) {
       if (typeof val !== expectedType) continue;
       // String properties must be non-empty to count as a valid update.
       if (expectedType === 'string' && !val) continue;
+      // NaN/Infinity guard: only finite numbers are valid state values.
+      if (expectedType === 'number' && !Number.isFinite(val)) continue;
+      // Domain-specific validation (e.g. opacity 0-1, padding >= 0).
+      const validate = VALIDATORS[key];
+      if (validate && !validate(val)) continue;
       if (val === last[key]) continue;
       last[key] = val;
       callbacks[cbName]?.(val);

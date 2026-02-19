@@ -136,4 +136,67 @@ describe('createPluginSync', () => {
     const changed = ps.sync({ opacity: 0.5, alignment: 'top-left', padding: 10 });
     expect(changed).toEqual(['alignment', 'padding']);
   });
+
+  it('rejects out-of-range opacity values', () => {
+    const onOpacity = mock(() => {});
+    const ps = createPluginSync({ onOpacity });
+
+    ps.sync({ opacity: -0.1 });
+    expect(onOpacity).not.toHaveBeenCalled();
+
+    ps.sync({ opacity: 1.5 });
+    expect(onOpacity).not.toHaveBeenCalled();
+
+    ps.sync({ opacity: 0.5 });
+    expect(onOpacity).toHaveBeenCalledWith(0.5);
+  });
+
+  it('rejects negative padding', () => {
+    const onPadding = mock(() => {});
+    const ps = createPluginSync({ onPadding });
+
+    ps.sync({ padding: -10 });
+    expect(onPadding).not.toHaveBeenCalled();
+
+    ps.sync({ padding: 0 });
+    expect(onPadding).toHaveBeenCalledWith(0);
+  });
+
+  it('rejects NaN and Infinity for numeric properties', () => {
+    const onOpacity = mock(() => {});
+    const onPadding = mock(() => {});
+    const ps = createPluginSync({ onOpacity, onPadding });
+
+    ps.sync({ opacity: NaN, padding: Infinity });
+    expect(onOpacity).not.toHaveBeenCalled();
+    expect(onPadding).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-integer toolCalls and toolErrors', () => {
+    const onToolCalls = mock(() => {});
+    const onToolErrors = mock(() => {});
+    const ps = createPluginSync({ onToolCalls, onToolErrors });
+
+    ps.sync({ toolCalls: 2.5, toolErrors: 1.7 });
+    expect(onToolCalls).not.toHaveBeenCalled();
+    expect(onToolErrors).not.toHaveBeenCalled();
+
+    ps.sync({ toolCalls: 3, toolErrors: 1 });
+    expect(onToolCalls).toHaveBeenCalledWith(3);
+    expect(onToolErrors).toHaveBeenCalledWith(1);
+  });
+
+  it('rejects zero or negative startedAt', () => {
+    const onStartedAt = mock(() => {});
+    const ps = createPluginSync({ onStartedAt });
+
+    ps.sync({ startedAt: 0 });
+    expect(onStartedAt).not.toHaveBeenCalled();
+
+    ps.sync({ startedAt: -100 });
+    expect(onStartedAt).not.toHaveBeenCalled();
+
+    ps.sync({ startedAt: 1000 });
+    expect(onStartedAt).toHaveBeenCalledWith(1000);
+  });
 });
