@@ -41,6 +41,7 @@
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure", "code 1006")
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
+ * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -90,6 +91,7 @@ export function buildDebugInfo(params) {
     lastCloseDetail,
     processUptimeS,
     sessionConnectCount,
+    isPollingPaused,
     now: nowOverride,
   } = params;
 
@@ -135,6 +137,7 @@ export function buildDebugInfo(params) {
       lines.push(`Plugin uptime: ${formatElapsed(pluginStartedAt, now)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
   }
+  if (isPollingPaused) lines.push('Polling: paused');
   if (pluginToolCalls > 0) {
     const successRate = pluginToolErrors > 0
       ? ` (${Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100)}% ok)`

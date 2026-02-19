@@ -520,6 +520,11 @@ export class GatewayClient {
     return Math.max(0, Math.round((Date.now() - this.connectedSince) / 1000));
   }
 
+  /** Whether plugin state polling is currently paused (e.g. window hidden). */
+  get isPollingPaused() {
+    return this._pollingPaused;
+  }
+
   /**
    * Human-readable close detail string (e.g. "1006 (abnormal)" or "going away").
    * Returns null if no disconnect has occurred yet.

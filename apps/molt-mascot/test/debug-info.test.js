@@ -325,6 +325,16 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Mode: idle (sleeping)");
   });
 
+  it("shows 'Polling: paused' when isPollingPaused is true", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, isPollingPaused: true });
+    expect(info).toContain("Polling: paused");
+  });
+
+  it("omits polling line when isPollingPaused is false or undefined", () => {
+    expect(buildDebugInfo({ ...BASE_PARAMS, isPollingPaused: false })).not.toContain("Polling:");
+    expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Polling:");
+  });
+
   it("shows plain 'idle' when idle duration is below sleep threshold", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

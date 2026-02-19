@@ -874,6 +874,22 @@ describe("pausePolling / resumePolling", () => {
     client.destroy();
   });
 
+  it("exposes isPollingPaused getter", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50 });
+    expect(client.isPollingPaused).toBe(false);
+
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    expect(client.isPollingPaused).toBe(false);
+    client.pausePolling();
+    expect(client.isPollingPaused).toBe(true);
+    client.resumePolling();
+    expect(client.isPollingPaused).toBe(false);
+
+    client.destroy();
+  });
+
   it("resumePolling sends an immediate refresh and clears the pause flag", () => {
     const client = new GatewayClient({ pollIntervalMs: 50 });
     const ws = connectAndHandshake(client);

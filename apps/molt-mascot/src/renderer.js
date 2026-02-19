@@ -1123,6 +1123,7 @@ function buildDebugInfo() {
     versions: window.moltMascot?.versions,
     processUptimeS: window.moltMascot?.processUptimeS?.(),
     sessionConnectCount,
+    isPollingPaused: document.hidden,
   });
 }
 
