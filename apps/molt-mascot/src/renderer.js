@@ -1148,7 +1148,11 @@ function showContextMenu(e) {
   const statusParts = [appVer ? `v${appVer} · ${modeLabel}` : modeLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
   if (connectedSince) {
-    statusParts.push(`↑ ${formatElapsed(connectedSince, Date.now())}`);
+    let uptimeStr = `↑ ${formatElapsed(connectedSince, Date.now())}`;
+    // Show reconnect count when the connection has flapped (>1 handshake),
+    // so users can spot instability at a glance without opening debug info.
+    if (sessionConnectCount > 1) uptimeStr += ` ↻${sessionConnectCount - 1}`;
+    statusParts.push(uptimeStr);
   }
   if (!connectedSince && reconnectAttempt > 0) {
     statusParts.push(`retry #${reconnectAttempt}`);
