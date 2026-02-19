@@ -730,6 +730,11 @@ describe("formatCloseDetail", () => {
     expect(formatCloseDetail(1006, shortReason)).toBe("server restarting gracefully (1006)");
   });
 
+  it("collapses multi-line close reasons into a single line", () => {
+    const multiLine = "server shutting down\nplease reconnect later";
+    expect(formatCloseDetail(1001, multiLine)).toBe("server shutting down please reconnect later (1001)");
+  });
+
   it("WS_CLOSE_CODE_LABELS covers common codes", () => {
     expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
     expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");

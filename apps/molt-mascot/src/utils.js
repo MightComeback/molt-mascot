@@ -296,7 +296,9 @@ export function formatCloseDetail(code, reason) {
   // Truncate long close reasons (WS spec allows up to 123 bytes) to keep
   // tooltips and debug info readable. 80 chars is plenty for diagnostics.
   const MAX_REASON_LEN = 80;
-  const rawReason = (reason || '').trim();
+  // Collapse whitespace/newlines to single spaces — some servers send multi-line
+  // close reasons that would break single-line tooltip/debug display.
+  const rawReason = (reason || '').trim().replace(/\s+/g, ' ');
   const trimmedReason = rawReason.length > MAX_REASON_LEN
     ? rawReason.slice(0, MAX_REASON_LEN - 1) + '…'
     : rawReason;
