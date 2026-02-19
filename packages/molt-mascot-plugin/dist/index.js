@@ -79,8 +79,10 @@ var package_default = {
   },
   keywords: [
     "clawdbot",
+    "openclaw",
     "plugin",
     "mascot",
+    "pixel-art",
     "ai",
     "agent"
   ],
@@ -261,6 +263,17 @@ var ERROR_PREFIXES = [
   "go:",
   "rustc:",
   "cargo:",
+  // Compilers / type-checkers
+  "tsc:",
+  "swiftc:",
+  "javac:",
+  "gcc:",
+  "g\\+\\+:",
+  "clang:",
+  "clang\\+\\+:",
+  "zig:",
+  "esbuild:",
+  "vite:",
   // Browser automation
   "browser:",
   "playwright:",

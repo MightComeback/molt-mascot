@@ -236,6 +236,17 @@ describe("utils", () => {
     expect(cleanErrorString("Uncaught (in promise) TypeError: Failed to fetch")).toBe("Failed to fetch");
     expect(cleanErrorString("(in promise) ReferenceError: x is not defined")).toBe("x is not defined");
     expect(cleanErrorString("error: Uncaught (in promise) TypeError: Cannot read properties of null")).toBe("Cannot read properties of null");
+    // Compiler / type-checker prefixes
+    expect(cleanErrorString("tsc: error TS2304: Cannot find name 'foo'")).toBe("TS2304: Cannot find name 'foo'");
+    expect(cleanErrorString("swiftc: error: no such module 'Bar'")).toBe("no such module 'Bar'");
+    expect(cleanErrorString("javac: error: class not found: Foo")).toBe("class not found: Foo");
+    expect(cleanErrorString("gcc: error: unrecognized option '-foo'")).toBe("unrecognized option '-foo'");
+    expect(cleanErrorString("g++: error: missing argument")).toBe("missing argument");
+    expect(cleanErrorString("clang: error: linker command failed")).toBe("linker command failed");
+    expect(cleanErrorString("clang++: error: no input files")).toBe("no input files");
+    expect(cleanErrorString("esbuild: error: Could not resolve 'missing'")).toBe("Could not resolve 'missing'");
+    expect(cleanErrorString("vite: error: Build failed")).toBe("Build failed");
+    expect(cleanErrorString("zig: error: expected token '}'")).toBe("expected token '}'");
   });
 
   it("summarizeToolResultMessage", () => {
