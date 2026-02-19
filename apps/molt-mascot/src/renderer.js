@@ -1118,6 +1118,7 @@ canvas.addEventListener('dblclick', () => {
   if (window.moltMascot?.setClickThrough) {
     isClickThrough = !isClickThrough;
     window.moltMascot.setClickThrough(isClickThrough);
+    showTransientFeedback(isClickThrough ? '👻 Ghost on' : '👻 Ghost off');
     syncPill();
   }
 });
