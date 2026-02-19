@@ -298,6 +298,9 @@ export function formatCloseDetail(code, reason) {
  * @returns {string} Formatted duration string (e.g. "5m 30s")
  */
 export function formatElapsed(since, now) {
+  if (typeof since !== 'number' || typeof now !== 'number' || !Number.isFinite(since) || !Number.isFinite(now)) {
+    return '0s';
+  }
   return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
 }
 

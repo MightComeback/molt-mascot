@@ -217,6 +217,20 @@ describe("formatElapsed", () => {
   it("handles zero elapsed", () => {
     expect(formatElapsed(5000, 5000)).toBe("0s");
   });
+
+  it("returns 0s for non-number inputs", () => {
+    expect(formatElapsed(null, 1000)).toBe("0s");
+    expect(formatElapsed(undefined, 1000)).toBe("0s");
+    expect(formatElapsed("abc", 1000)).toBe("0s");
+    expect(formatElapsed(1000, null)).toBe("0s");
+    expect(formatElapsed(1000, undefined)).toBe("0s");
+  });
+
+  it("returns 0s for non-finite inputs", () => {
+    expect(formatElapsed(NaN, 1000)).toBe("0s");
+    expect(formatElapsed(Infinity, 1000)).toBe("0s");
+    expect(formatElapsed(1000, -Infinity)).toBe("0s");
+  });
 });
 
 describe("isTruthyEnv", () => {
