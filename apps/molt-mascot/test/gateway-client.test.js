@@ -926,9 +926,9 @@ describe("pausePolling / resumePolling", () => {
     const client = new GatewayClient();
     const ws = connectAndHandshake(client);
 
-    // Code only (empty reason) — 1000 gets friendly label "normal"
+    // Code only (empty reason) — 1000 gets friendly label with code
     ws.onclose({ code: 1000, reason: '' });
-    expect(client.lastCloseDetail).toBe('normal');
+    expect(client.lastCloseDetail).toBe('normal (1000)');
 
     client.destroy();
   });

@@ -252,9 +252,10 @@ export function formatCloseDetail(code, reason) {
   if (trimmedReason) {
     return trimmedReason;
   }
-  // No reason — use the friendly label if available
+  // No reason — use the friendly label if available, with the numeric code
+  // for searchability (e.g. "abnormal closure (1006)" helps when searching docs).
   if (label) {
-    return label;
+    return code != null ? `${label} (${code})` : label;
   }
   // Unknown code, no reason — show the raw code
   if (code != null) {

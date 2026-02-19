@@ -574,11 +574,11 @@ describe("normalizeWsUrl", () => {
 
 describe("formatCloseDetail", () => {
   it("returns friendly label for well-known codes", () => {
-    expect(formatCloseDetail(1006, null)).toBe("abnormal closure");
-    expect(formatCloseDetail(1001, "")).toBe("going away");
-    expect(formatCloseDetail(1011, undefined)).toBe("internal error");
-    expect(formatCloseDetail(1012, "")).toBe("service restart");
-    expect(formatCloseDetail(1013, null)).toBe("try again later");
+    expect(formatCloseDetail(1006, null)).toBe("abnormal closure (1006)");
+    expect(formatCloseDetail(1001, "")).toBe("going away (1001)");
+    expect(formatCloseDetail(1011, undefined)).toBe("internal error (1011)");
+    expect(formatCloseDetail(1012, "")).toBe("service restart (1012)");
+    expect(formatCloseDetail(1013, null)).toBe("try again later (1013)");
   });
 
   it("prefers reason string over code label", () => {
@@ -592,8 +592,8 @@ describe("formatCloseDetail", () => {
   });
 
   it("returns friendly label for normal close (1000) with no reason", () => {
-    expect(formatCloseDetail(1000, "")).toBe("normal");
-    expect(formatCloseDetail(1000, null)).toBe("normal");
+    expect(formatCloseDetail(1000, "")).toBe("normal (1000)");
+    expect(formatCloseDetail(1000, null)).toBe("normal (1000)");
   });
 
   it("returns empty string when both null", () => {
