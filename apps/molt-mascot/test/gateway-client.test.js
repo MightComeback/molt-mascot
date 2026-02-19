@@ -1003,7 +1003,7 @@ describe("pausePolling / resumePolling", () => {
 
     expect(client.lastCloseCode).toBe(1006);
     expect(client.lastCloseReason).toBe('abnormal closure');
-    expect(client.lastCloseDetail).toBe('abnormal closure');
+    expect(client.lastCloseDetail).toBe('abnormal closure (1006)');
     expect(client.lastDisconnectedAt).toBeGreaterThan(0);
 
     client.destroy();
@@ -1026,7 +1026,7 @@ describe("pausePolling / resumePolling", () => {
 
     ws.onclose({ code: 1001, reason: '  going away  ' });
     expect(client.lastCloseReason).toBe('going away');
-    expect(client.lastCloseDetail).toBe('going away');
+    expect(client.lastCloseDetail).toBe('going away (1001)');
 
     client.destroy();
   });

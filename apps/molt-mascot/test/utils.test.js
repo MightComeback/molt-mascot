@@ -637,9 +637,14 @@ describe("formatCloseDetail", () => {
     expect(formatCloseDetail(1013, null)).toBe("try again later (1013)");
   });
 
-  it("prefers reason string over code label", () => {
-    expect(formatCloseDetail(1006, "server restarting")).toBe("server restarting");
-    expect(formatCloseDetail(1001, "shutting down")).toBe("shutting down");
+  it("shows reason with code for searchability", () => {
+    expect(formatCloseDetail(1006, "server restarting")).toBe("server restarting (1006)");
+    expect(formatCloseDetail(1001, "shutting down")).toBe("shutting down (1001)");
+  });
+
+  it("shows reason without code when code is null", () => {
+    expect(formatCloseDetail(null, "server restarting")).toBe("server restarting");
+    expect(formatCloseDetail(undefined, "custom reason")).toBe("custom reason");
   });
 
   it("returns raw code for unknown codes without reason", () => {
@@ -660,13 +665,16 @@ describe("formatCloseDetail", () => {
   it("truncates long reason strings to keep tooltips readable", () => {
     const longReason = "a".repeat(120);
     const result = formatCloseDetail(1006, longReason);
-    expect(result.length).toBeLessThanOrEqual(80);
-    expect(result.endsWith("…")).toBe(true);
+    // Reason is truncated to ~80 chars, then " (1006)" is appended
+    expect(result).toContain("…");
+    expect(result).toEndWith(" (1006)");
+    // Truncated reason (≤80) + " (1006)" (7) = ≤87
+    expect(result.length).toBeLessThanOrEqual(87);
   });
 
-  it("preserves short reason strings unchanged", () => {
+  it("preserves short reason strings with code appended", () => {
     const shortReason = "server restarting gracefully";
-    expect(formatCloseDetail(1006, shortReason)).toBe(shortReason);
+    expect(formatCloseDetail(1006, shortReason)).toBe("server restarting gracefully (1006)");
   });
 
   it("WS_CLOSE_CODE_LABELS covers common codes", () => {

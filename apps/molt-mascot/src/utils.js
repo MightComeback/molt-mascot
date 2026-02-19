@@ -272,9 +272,10 @@ export function formatCloseDetail(code, reason) {
     : rawReason;
   const label = (code != null) ? WS_CLOSE_CODE_LABELS[code] : undefined;
 
-  // If we have a human reason string, prefer it (possibly with the friendly label)
+  // If we have a human reason string, append the numeric code for searchability
+  // (e.g. "server going down (1001)" helps when looking up close codes in docs).
   if (trimmedReason) {
-    return trimmedReason;
+    return code != null ? `${trimmedReason} (${code})` : trimmedReason;
   }
   // No reason — use the friendly label if available, with the numeric code
   // for searchability (e.g. "abnormal closure (1006)" helps when searching docs).
