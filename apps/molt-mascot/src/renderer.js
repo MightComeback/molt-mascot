@@ -253,10 +253,11 @@ function showCopiedFeedback() {
  *
  * @param {string} text - Text to display in the pill
  * @param {number} [durationMs=700] - How long to show the feedback
+ * @param {string} [pillClass='pill--idle'] - CSS class for the pill during feedback
  */
-function showTransientFeedback(text, durationMs = 700) {
+function showTransientFeedback(text, durationMs = 700, pillClass = 'pill--idle') {
   pill.textContent = text;
-  pill.className = 'pill--idle';
+  pill.className = pillClass;
   copiedUntil = Date.now() + durationMs;
 }
 
@@ -1140,7 +1141,7 @@ canvas.addEventListener('mousedown', (e) => {
   if (e.button !== 1) return; // 1 = middle button
   e.preventDefault();
   forceReconnectNow();
-  showTransientFeedback('Reconnecting…');
+  showTransientFeedback('Reconnecting…', 700, 'pill--connecting');
 });
 
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
