@@ -68,6 +68,14 @@ export class GatewayClient {
     // to save bandwidth (e.g. when the window is hidden/minimized).
     this._pollingPaused = false;
 
+    // Round-trip latency tracking for plugin state polls.
+    // Updated on each successful plugin state response; consumers can display
+    // this in tooltips/debug info to diagnose gateway responsiveness.
+    /** @type {number|null} Most recent plugin state poll round-trip time in ms. */
+    this.latencyMs = null;
+    /** @private */
+    this._pluginStateSentAt = 0;
+
     // Plugin state polling
     this.hasPlugin = false;
     this._pluginPollerStarted = false;
@@ -148,6 +156,7 @@ export class GatewayClient {
     this._pluginStateReqId = id;
     this._pluginStatePending = true;
     this._pluginStateLastSentAt = now;
+    this._pluginStateSentAt = now;
     try {
       this._ws.send(JSON.stringify({
         type: 'req', id,
@@ -304,6 +313,10 @@ export class GatewayClient {
       ) {
         this.hasPlugin = true;
         this._startPluginPoller();
+        // Track round-trip latency for diagnostics
+        if (this._pluginStateSentAt > 0) {
+          this.latencyMs = Date.now() - this._pluginStateSentAt;
+        }
         this.onPluginState?.(msg.payload.state);
         return;
       }
@@ -463,6 +476,8 @@ export class GatewayClient {
     this.hasPlugin = false;
     this._pluginStatePending = false;
     this._pluginStateLastSentAt = 0;
+    this._pluginStateSentAt = 0;
+    this.latencyMs = null;
 
     // Notify consumers to clear cached plugin config (clickThrough, alignment,
     // etc.) so stale values don't persist across reconnections.

@@ -135,6 +135,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.pluginVersion] - Plugin version string
  * @param {number|null} [params.pluginStartedAt] - Plugin start timestamp (for uptime display)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
+ * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -160,6 +161,7 @@ export function buildTooltip(params) {
     pluginVersion,
     pluginStartedAt,
     sessionConnectCount = 0,
+    latencyMs,
     now: nowOverride,
   } = params;
 
@@ -193,6 +195,7 @@ export function buildTooltip(params) {
       tip += `, ${pluginToolErrors} errors (${successRate}% ok)`;
     }
   }
+  if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${latencyMs}ms`;
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;

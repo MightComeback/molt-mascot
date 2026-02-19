@@ -335,6 +335,7 @@ function syncPill() {
     pluginVersion,
     pluginStartedAt,
     sessionConnectCount,
+    latencyMs,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
@@ -440,6 +441,7 @@ window.__moltMascotGetState = () => ({
   sessionConnectCount,
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
+  latencyMs,
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
@@ -486,6 +488,8 @@ function resetConnectionState() {
   pluginPollerStarted = false;
   pluginStatePending = false;
   pluginStateLastSentAt = 0;
+  pluginStateSentAt = 0;
+  latencyMs = null;
   connectedSince = null;
   connectedUrl = '';
   lastCloseDetail = '';
@@ -543,6 +547,8 @@ let hasPlugin = false;
 let pluginPollerStarted = false;
 let pluginStatePending = false;
 let pluginStateLastSentAt = 0;
+let pluginStateSentAt = 0;
+let latencyMs = null;
 let pollInterval = null;
 
 function sendPluginStateReq(prefix = 'p') {
@@ -558,6 +564,7 @@ function sendPluginStateReq(prefix = 'p') {
   pluginStateReqId = id;
   pluginStatePending = true;
   pluginStateLastSentAt = now;
+  pluginStateSentAt = now;
   try {
     ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
   } catch {
@@ -750,6 +757,10 @@ function connect(cfg) {
     ) {
       hasPlugin = true;
       startPluginPoller();
+      // Track round-trip latency for diagnostics
+      if (pluginStateSentAt > 0) {
+        latencyMs = Date.now() - pluginStateSentAt;
+      }
       const nextMode = msg.payload.state.mode;
       const nextTool = msg.payload.state.currentTool || '';
       if (nextTool !== currentTool) {
@@ -1143,6 +1154,7 @@ function buildDebugInfo() {
     processUptimeS: window.moltMascot?.processUptimeS?.(),
     sessionConnectCount,
     isPollingPaused: document.hidden,
+    latencyMs,
   });
 }
 

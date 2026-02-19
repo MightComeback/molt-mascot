@@ -42,6 +42,7 @@
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
+ * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -92,6 +93,7 @@ export function buildDebugInfo(params) {
     processUptimeS,
     sessionConnectCount,
     isPollingPaused,
+    latencyMs,
     now: nowOverride,
   } = params;
 
@@ -138,6 +140,7 @@ export function buildDebugInfo(params) {
     }
   }
   if (isPollingPaused) lines.push('Polling: paused');
+  if (typeof latencyMs === 'number' && latencyMs >= 0) lines.push(`Latency: ${latencyMs}ms`);
   if (pluginToolCalls > 0) {
     const successRate = pluginToolErrors > 0
       ? ` (${Math.round(((pluginToolCalls - pluginToolErrors) / pluginToolCalls) * 100)}% ok)`
