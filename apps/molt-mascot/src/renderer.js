@@ -120,6 +120,10 @@ function showSetup(prefill) {
   syncPill();
   urlInput.value = prefill?.url || 'ws://127.0.0.1:18789';
   tokenInput.value = prefill?.token || '';
+  // Programmatically focus the URL input since the HTML autofocus attribute
+  // only fires on initial page load, not when the form is dynamically shown.
+  // Use requestAnimationFrame to ensure the DOM is ready and focus is reliable.
+  requestAnimationFrame(() => urlInput.focus());
   // Show version in setup form so users can identify their build
   const versionEl = document.getElementById('setup-version');
   if (versionEl && window.moltMascot?.version) {
