@@ -112,6 +112,23 @@ if (process.argv.includes('--reset-prefs')) {
   // Continue launching with defaults (don't exit) so the user sees the fresh state.
 }
 
+// CLI flags: --list-prefs prints the saved preferences file and exits.
+// Useful for diagnosing why the mascot is positioned oddly or has unexpected settings.
+if (process.argv.includes('--list-prefs')) {
+  try {
+    const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
+    if (fs.existsSync(prefsPath)) {
+      const data = fs.readFileSync(prefsPath, 'utf8');
+      process.stdout.write(`${prefsPath}\n${data}\n`);
+    } else {
+      process.stdout.write(`No preferences file found (${prefsPath})\n`);
+    }
+  } catch (err) {
+    process.stderr.write(`Failed to read preferences: ${err.message}\n`);
+  }
+  process.exit(0);
+}
+
 // CLI flags: --debug opens DevTools on launch for easier development.
 const cliDebug = process.argv.includes('--debug');
 
@@ -145,6 +162,7 @@ Options:
   --no-tray              Disable system tray icon (useful on Linux DEs
                          without tray support, e.g. GNOME)
   --reset-prefs          Clear saved preferences and start fresh
+  --list-prefs           Print saved preferences and exit
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
