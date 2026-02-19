@@ -510,6 +510,9 @@ function startStaleCheck() {
   staleCheckTimer = setInterval(() => {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     if (!connectedSince) return; // Not yet handshaked
+    // Skip stale detection while the window is hidden — the poller pauses when
+    // hidden so no messages arrive, which would cause a false positive reconnect.
+    if (document.hidden) return;
     if (Date.now() - lastMessageAt > STALE_CONNECTION_MS) {
       // eslint-disable-next-line no-console
       console.warn('molt-mascot: connection stale, forcing reconnect');
