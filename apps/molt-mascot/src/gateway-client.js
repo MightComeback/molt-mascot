@@ -465,6 +465,9 @@ export class GatewayClient {
    */
   forceReconnect(cfg) {
     this._reconnectAttempt = 0;
+    // Record disconnect timestamp before cleanup nulls the socket reference.
+    // Without this, tooltips/debug info show stale lastDisconnectedAt after force reconnect.
+    this.lastDisconnectedAt = Date.now();
     this._cleanup();
     this.onPluginStateReset?.();
     if (cfg) this.connect(cfg);

@@ -965,4 +965,18 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("forceReconnect records lastDisconnectedAt so tooltip shows accurate disconnect time", () => {
+    const client = new GatewayClient();
+    const ws = connectAndHandshake(client);
+
+    const before = Date.now();
+    client.forceReconnect();
+    const after = Date.now();
+
+    expect(client.lastDisconnectedAt).toBeGreaterThanOrEqual(before);
+    expect(client.lastDisconnectedAt).toBeLessThanOrEqual(after);
+
+    client.destroy();
+  });
 });
