@@ -990,6 +990,11 @@ function resetState() {
     } catch {
       // Socket closed between readyState check and send — best-effort.
     }
+    // Immediately refresh plugin state so the UI reflects the reset without
+    // waiting for the next 1s poll cycle (same pattern as visibility resume).
+    pluginStatePending = false;
+    pluginStateLastSentAt = 0;
+    sendPluginStateReq('r');
   }
 }
 
