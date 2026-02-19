@@ -354,12 +354,8 @@ describe("OVERLAY_TIMING", () => {
     }
   });
 
-  it("static overlays (error) have frameDurationMs=0", () => {
-    expect(OVERLAY_TIMING.error.frameDurationMs).toBe(0);
-  });
-
-  it("animated overlays have positive frameDurationMs", () => {
-    for (const mode of ["thinking", "tool", "sleep", "connecting", "connected", "disconnected"]) {
+  it("all overlays have positive frameDurationMs (animated)", () => {
+    for (const mode of ["thinking", "tool", "error", "sleep", "connecting", "connected", "disconnected"]) {
       expect(OVERLAY_TIMING[mode].frameDurationMs).toBeGreaterThan(0);
     }
   });

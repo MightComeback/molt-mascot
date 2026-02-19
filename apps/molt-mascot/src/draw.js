@@ -154,7 +154,7 @@ export function createBlinkState(opts = {}) {
 export const OVERLAY_TIMING = {
   thinking:     { sprites: overlay.thinking,     frameDurationMs: 600 },
   tool:         { sprites: overlay.tool,          frameDurationMs: 700 },
-  error:        { sprites: [overlay.error],      frameDurationMs: 0   },
+  error:        { sprites: overlay.error,         frameDurationMs: 600 },
   sleep:        { sprites: overlay.sleep,        frameDurationMs: 800 },
   connecting:   { sprites: overlay.connecting,   frameDurationMs: 500 },
   connected:    { sprites: overlay.connected,    frameDurationMs: 300 },

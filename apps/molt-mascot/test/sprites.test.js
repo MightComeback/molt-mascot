@@ -110,8 +110,18 @@ describe("sprites", () => {
   });
 
   describe("overlay.error", () => {
-    it("is a valid 32x32 sprite", () => {
-      validateFrame(overlay.error, "error");
+    it("has 2 frames", () => {
+      expect(overlay.error.length).toBe(2);
+    });
+
+    it("frames are valid 32x32 sprites", () => {
+      validateFrame(overlay.error[0], "error[0]");
+      validateFrame(overlay.error[1], "error[1]");
+    });
+
+    it("frames differ (animation)", () => {
+      const hasDiff = overlay.error[0].some((row, i) => row !== overlay.error[1][i]);
+      expect(hasDiff).toBe(true);
     });
   });
 
