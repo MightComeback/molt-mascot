@@ -1144,4 +1144,31 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("targetUrl persists across disconnects so consumers can display the reconnect target", () => {
+    const client = new GatewayClient();
+    expect(client.targetUrl).toBe('');
+
+    client.connect({ url: "http://localhost:18789" });
+    // targetUrl should be set immediately on connect (normalized to ws://)
+    expect(client.targetUrl).toBe("ws://localhost:18789");
+
+    const ws = MockWebSocket._last;
+    // Complete handshake
+    ws._emit("open");
+    ws._emitMessage({ type: "res", payload: { type: "hello-ok" } });
+    expect(client.connectedUrl).toBe("ws://localhost:18789");
+
+    // Simulate disconnect
+    ws.onclose?.({ code: 1006 });
+    // connectedUrl is cleared but targetUrl persists
+    expect(client.connectedUrl).toBe('');
+    expect(client.targetUrl).toBe("ws://localhost:18789");
+
+    // Force reconnect to a different URL
+    client.forceReconnect({ url: "ws://other:9999" });
+    expect(client.targetUrl).toBe("ws://other:9999");
+
+    client.destroy();
+  });
 });

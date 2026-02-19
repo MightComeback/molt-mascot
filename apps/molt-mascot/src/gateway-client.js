@@ -51,6 +51,8 @@ export class GatewayClient {
     /** @type {number|null} */
     this.connectedSince = null;
     this.connectedUrl = '';
+    /** The URL currently being connected/reconnected to (persists across disconnects). */
+    this.targetUrl = '';
     /** @type {number|null} Timestamp of last disconnect (for tooltip "disconnected X ago") */
     this.lastDisconnectedAt = null;
     /** @type {number|null} WebSocket close code from the last disconnect */
@@ -227,6 +229,9 @@ export class GatewayClient {
 
     // Auto-correct common URL scheme mistakes: http(s) → ws(s)
     const url = normalizeWsUrl(cfg.url);
+    // Persist the target URL so consumers can display it even when disconnected
+    // (e.g. debug info "Saved URL:" or tray tooltip) without re-reading config.
+    this.targetUrl = url || '';
 
     let ws;
     try {
@@ -490,6 +495,8 @@ export class GatewayClient {
     }
     this.connectedSince = null;
     this.connectedUrl = '';
+    // Intentionally do NOT clear targetUrl here — it persists across
+    // reconnects so consumers can show which URL is being retried.
     this.hasPlugin = false;
     this._pluginStatePending = false;
     this._pluginStateLastSentAt = 0;
