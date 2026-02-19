@@ -567,6 +567,33 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("skips stale detection while polling is paused to prevent false reconnects", async () => {
+    const client = new GatewayClient({
+      staleConnectionMs: 50,
+      staleCheckIntervalMs: 20,
+    });
+    let errorMsg = "";
+    client.onError = (msg) => { errorMsg = msg; };
+    client.connect({ url: "ws://localhost:18789" });
+
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+
+    // Pause polling (simulates window hidden) — stale check should be skipped
+    client.pausePolling();
+
+    // Wait longer than staleConnectionMs + staleCheckIntervalMs
+    await new Promise((r) => setTimeout(r, 120));
+
+    // Should NOT have triggered stale detection
+    expect(errorMsg).toBe("");
+    expect(ws.readyState).toBe(MockWebSocket.OPEN);
+
+    client.destroy();
+  });
+
   it("forwards raw messages via onMessage callback", () => {
     const client = new GatewayClient();
     const messages = [];

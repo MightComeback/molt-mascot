@@ -136,6 +136,10 @@ export class GatewayClient {
     this._staleCheckTimer = setInterval(() => {
       if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
       if (!this.connectedSince) return;
+      // Skip stale detection while polling is paused (e.g. window hidden) —
+      // no poll requests are sent, so no messages arrive, which would cause
+      // a false positive reconnect.
+      if (this._pollingPaused) return;
       if (Date.now() - this._lastMessageAt > this._staleConnectionMs) {
         this.onError?.('connection stale');
         try { this._ws.close(); } catch {}
