@@ -551,6 +551,60 @@ export function summarizeToolResultMessage(msg: any): string {
 }
 
 /**
+ * Tools that return raw content (like 'read') can contain "error:" in the text
+ * without actually failing. For these tools we disable text-sniffing for errors
+ * and rely on explicit failure signals (status/exitCode/success/isError).
+ *
+ * Exported so consumers can check membership or extend the list.
+ */
+export const CONTENT_TOOLS: ReadonlySet<string> = new Set([
+  "read",
+  "write",
+  "edit",
+  "exec",
+  "web_fetch",
+  "web_search",
+  "memory_get",
+  "memory_search",
+  "browser",
+  "canvas",
+  "sessions_history",
+  "sessions_list",
+  "agents_list",
+  "session_status",
+  "sessions_spawn",
+  "sessions_send",
+  "tts",
+  "cron",
+  "nodes",
+  "process",
+  "gateway",
+  "message",
+  "slack",
+  "gog",
+  "github",
+  "notion",
+  "gemini",
+  "bird",
+  "bluebubbles",
+  "clawdhub",
+  "peekaboo",
+  "summarize",
+  "video_frames",
+  "video-frames",
+  "weather",
+  "skill_creator",
+  "skill-creator",
+  "coding_agent",
+  "coding-agent",
+  "image",
+  // multi_tool_use.parallel becomes just "parallel" after prefix stripping
+  "parallel",
+  // Linear integration via hakky-tools
+  "hakky-tools",
+]);
+
+/**
  * Initialize the molt-mascot plugin.
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
@@ -633,55 +687,7 @@ export default function register(api: PluginApi) {
   // Track recency so we can show the most recently-active tool when multiple sessions are running tools.
   const agentLastToolTs = new Map<string, number>();
 
-  // Some tools (read/write/web_fetch/etc) can legitimately return strings containing
-  // "error:" without that implying the tool itself failed. For these tools we avoid
-  // text-sniffing and rely on explicit failure signals (status/exitCode/etc).
-  const contentTools = new Set<string>([
-    "read",
-    "write",
-    "edit",
-    "exec",
-    "web_fetch",
-    "web_search",
-    "memory_get",
-    "memory_search",
-    "browser",
-    "canvas",
-    "sessions_history",
-    "sessions_list",
-    "agents_list",
-    "session_status",
-    "sessions_spawn",
-    "sessions_send",
-    "tts",
-    "cron",
-    "nodes",
-    "process",
-    "gateway",
-    "message",
-    "slack",
-    "gog",
-    "github",
-    "notion",
-    "gemini",
-    "bird",
-    "bluebubbles",
-    "clawdhub",
-    "peekaboo",
-    "summarize",
-    "video_frames",
-    "video-frames",
-    "weather",
-    "skill_creator",
-    "skill-creator",
-    "coding_agent",
-    "coding-agent",
-    "image",
-    // multi_tool_use.parallel becomes just "parallel" after prefix stripping
-    "parallel",
-    // Linear integration via hakky-tools
-    "hakky-tools",
-  ]);
+  const contentTools = CONTENT_TOOLS;
 
   const getToolDepth = () => {
     let inputs = 0;

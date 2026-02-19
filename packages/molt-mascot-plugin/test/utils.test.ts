@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1094,5 +1094,19 @@ describe("utils", () => {
     // Null/undefined errorCount treated as 0
     expect(successRate(10, null as any)).toBe(100);
     expect(successRate(10, undefined as any)).toBe(100);
+  });
+
+  it("CONTENT_TOOLS is a non-empty ReadonlySet containing core tools", () => {
+    expect(CONTENT_TOOLS).toBeInstanceOf(Set);
+    expect(CONTENT_TOOLS.size).toBeGreaterThan(0);
+    // Verify core tools are present
+    for (const tool of ["read", "write", "edit", "exec", "web_fetch", "browser", "image"]) {
+      expect(CONTENT_TOOLS.has(tool)).toBe(true);
+    }
+    // Verify both dash and underscore variants are included for aliased tools
+    expect(CONTENT_TOOLS.has("video_frames")).toBe(true);
+    expect(CONTENT_TOOLS.has("video-frames")).toBe(true);
+    expect(CONTENT_TOOLS.has("coding_agent")).toBe(true);
+    expect(CONTENT_TOOLS.has("coding-agent")).toBe(true);
   });
 });
