@@ -738,6 +738,15 @@ function connect(cfg) {
       lastErrorMessage = truncate(cleanErrorString(String(detail)), 48);
       setMode(Mode.error);
       pill.textContent = lastErrorMessage;
+      // Detach onclose before closing so the reconnect-on-close handler doesn't
+      // fire and start a reconnect cycle while the setup form is showing.
+      // Without this, the user briefly sees setup, then the socket's onclose
+      // triggers a reconnect that hides the form and retries with the same
+      // bad credentials — an infinite loop of failed auth attempts.
+      ws.onclose = null;
+      try { ws.close(); } catch {}
+      ws = null;
+      resetConnectionState();
       // Show setup so the user can fix credentials.
       // Use the actual URL/token we connected with (from cfg) rather than stale input values,
       // so the form reflects what was attempted — especially important when env vars seeded the config.
