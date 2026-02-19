@@ -1422,6 +1422,11 @@ document.addEventListener('visibilitychange', () => {
     // Immediately refresh plugin state so the UI catches up after being hidden.
     // The 1s poller skips ticks while hidden, so without this the pill would
     // show stale info for up to 1s after the window reappears.
+    // Reset rate-limit and in-flight guards: while hidden, no responses arrive
+    // to clear a stale pending flag, and the 150ms debounce could suppress the
+    // refresh. Mirrors GatewayClient.resumePolling() logic.
+    pluginStatePending = false;
+    pluginStateLastSentAt = 0;
     if (hasPlugin) sendPluginStateReq('v');
   }
 });
