@@ -199,4 +199,41 @@ describe('createPluginSync', () => {
     ps.sync({ startedAt: 1000 });
     expect(onStartedAt).toHaveBeenCalledWith(1000);
   });
+
+  it('syncs activeAgents and activeTools counts', () => {
+    const onActiveAgents = mock(() => {});
+    const onActiveTools = mock(() => {});
+    const ps = createPluginSync({ onActiveAgents, onActiveTools });
+
+    // Initial sync
+    const changed = ps.sync({ activeAgents: 2, activeTools: 3 });
+    expect(onActiveAgents).toHaveBeenCalledWith(2);
+    expect(onActiveTools).toHaveBeenCalledWith(3);
+    expect(changed).toContain('activeAgents');
+    expect(changed).toContain('activeTools');
+
+    // Same values — no callback
+    onActiveAgents.mockClear();
+    onActiveTools.mockClear();
+    const unchanged = ps.sync({ activeAgents: 2, activeTools: 3 });
+    expect(onActiveAgents).not.toHaveBeenCalled();
+    expect(onActiveTools).not.toHaveBeenCalled();
+    expect(unchanged).not.toContain('activeAgents');
+
+    // Zero is valid
+    ps.sync({ activeAgents: 0, activeTools: 0 });
+    expect(onActiveAgents).toHaveBeenCalledWith(0);
+    expect(onActiveTools).toHaveBeenCalledWith(0);
+  });
+
+  it('rejects negative activeAgents/activeTools', () => {
+    const onActiveAgents = mock(() => {});
+    const ps = createPluginSync({ onActiveAgents });
+
+    ps.sync({ activeAgents: -1 });
+    expect(onActiveAgents).not.toHaveBeenCalled();
+
+    ps.sync({ activeAgents: 1.5 });
+    expect(onActiveAgents).not.toHaveBeenCalled();
+  });
 });

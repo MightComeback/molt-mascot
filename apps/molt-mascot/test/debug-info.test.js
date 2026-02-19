@@ -369,6 +369,26 @@ describe("buildDebugInfo", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: null })).not.toContain("Latency:");
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Latency:");
   });
+
+  it("includes active agents/tools line when counts are non-zero", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 2, activeTools: 3 });
+    expect(info).toContain("Active: 2 agents, 3 tools");
+  });
+
+  it("includes singular forms for 1 agent/1 tool", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 1, activeTools: 1 });
+    expect(info).toContain("Active: 1 agent, 1 tool");
+  });
+
+  it("omits active line when both counts are zero", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 0, activeTools: 0 });
+    expect(info).not.toContain("Active:");
+  });
+
+  it("omits active line when counts are not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS });
+    expect(info).not.toContain("Active:");
+  });
 });
 
 describe("formatElapsed", () => {

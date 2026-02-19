@@ -47,6 +47,10 @@ export type State = {
   toolErrors?: number;
   /** Epoch ms when the plugin was registered (for uptime calculation). */
   startedAt?: number;
+  /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
+  activeAgents?: number;
+  /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
+  activeTools?: number;
 };
 
 // Plugin API contract definition for better type safety
@@ -862,6 +866,9 @@ export default function register(api: PluginApi) {
 
   // Expose current simplified state to WS clients.
   registerAlias("state", (_params: any, { respond }: any) => {
+    // Populate dynamic counters (not stored persistently, computed on demand).
+    state.activeAgents = activeAgents.size;
+    state.activeTools = getToolDepth();
     respond(true, { ok: true, state });
   });
 
@@ -873,6 +880,8 @@ export default function register(api: PluginApi) {
     // Preserve version and startedAt through resets (static metadata, not runtime state).
     state.toolCalls = 0;
     state.toolErrors = 0;
+    state.activeAgents = 0;
+    state.activeTools = 0;
     agentToolStacks.clear();
     agentLastToolTs.clear();
     activeAgents.clear();

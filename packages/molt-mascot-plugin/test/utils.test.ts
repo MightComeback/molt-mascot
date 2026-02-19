@@ -838,6 +838,58 @@ describe("utils", () => {
     expect(payload?.state?.toolErrors).toBe(0);
   });
 
+  it("exposes activeAgents and activeTools counts in state response", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
+
+    let payload: any;
+
+    // Initially zero
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeAgents).toBe(0);
+    expect(payload?.state?.activeTools).toBe(0);
+
+    // Start an agent — activeAgents increments
+    agentListener({ phase: "start", sessionKey: "s1" });
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeAgents).toBe(1);
+    expect(payload?.state?.activeTools).toBe(0);
+
+    // Start a tool — activeTools increments
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeAgents).toBe(1);
+    expect(payload?.state?.activeTools).toBe(1);
+
+    // Start a nested tool — activeTools increments again
+    toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeTools).toBe(2);
+
+    // End one tool — activeTools decrements
+    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeTools).toBe(1);
+
+    // End agent — activeAgents decrements, tool stack cleared
+    agentListener({ phase: "end", sessionKey: "s1" });
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeAgents).toBe(0);
+    expect(payload?.state?.activeTools).toBe(0);
+
+    // Reset clears counters
+    agentListener({ phase: "start", sessionKey: "s2" });
+    toolListener({ phase: "start", sessionKey: "s2", tool: "web_search" });
+    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.activeAgents).toBe(0);
+    expect(payload?.state?.activeTools).toBe(0);
+  });
+
   it("nested tools maintain correct depth and show most recent tool", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);

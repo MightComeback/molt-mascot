@@ -44,6 +44,8 @@
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
+ * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
+ * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -96,6 +98,8 @@ export function buildDebugInfo(params) {
     sessionConnectCount,
     isPollingPaused,
     latencyMs,
+    activeAgents,
+    activeTools,
     now: nowOverride,
   } = params;
 
@@ -148,6 +152,9 @@ export function buildDebugInfo(params) {
       ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
       : '';
     lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`);
+  }
+  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+    lines.push(`Active: ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);
   }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);

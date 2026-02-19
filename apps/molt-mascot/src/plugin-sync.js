@@ -23,6 +23,8 @@ const VALIDATORS = {
   toolCalls: (v) => v >= 0 && Number.isInteger(v),
   toolErrors: (v) => v >= 0 && Number.isInteger(v),
   startedAt: (v) => v > 0,
+  activeAgents: (v) => v >= 0 && Number.isInteger(v),
+  activeTools: (v) => v >= 0 && Number.isInteger(v),
 };
 
 /**
@@ -40,6 +42,8 @@ const SYNC_PROPS = [
   ['toolCalls',    'number',  'onToolCalls'],
   ['toolErrors',   'number',  'onToolErrors'],
   ['startedAt',    'number',  'onStartedAt'],
+  ['activeAgents', 'number',  'onActiveAgents'],
+  ['activeTools',  'number',  'onActiveTools'],
 ];
 
 /** Build a fresh cache object with all tracked keys set to null. */

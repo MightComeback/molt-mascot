@@ -190,6 +190,8 @@ let pluginVersion = '';
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 let pluginStartedAt = null;
+let pluginActiveAgents = 0;
+let pluginActiveTools = 0;
 
 // Centralized plugin state synchronizer (change-detection + dispatch).
 const _pluginSync = createPluginSync({
@@ -228,6 +230,8 @@ const _pluginSync = createPluginSync({
   onToolCalls(v) { pluginToolCalls = v; },
   onToolErrors(v) { pluginToolErrors = v; },
   onStartedAt(v) { pluginStartedAt = v; },
+  onActiveAgents(v) { pluginActiveAgents = v; },
+  onActiveTools(v) { pluginActiveTools = v; },
 });
 
 // Track the last mode reported to the main process (including 'sleeping') to avoid
@@ -451,6 +455,8 @@ window.__moltMascotGetState = () => ({
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
   latencyMs,
+  activeAgents: pluginActiveAgents,
+  activeTools: pluginActiveTools,
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
@@ -1212,6 +1218,8 @@ function buildDebugInfo() {
     sessionConnectCount,
     isPollingPaused: document.hidden,
     latencyMs,
+    activeAgents: pluginActiveAgents,
+    activeTools: pluginActiveTools,
   });
 }
 
