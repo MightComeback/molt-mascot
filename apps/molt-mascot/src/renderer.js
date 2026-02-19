@@ -988,6 +988,7 @@ const ipcUnsubs = [];
  */
 function resetState() {
   setMode(Mode.idle);
+  showTransientFeedback('Reset ✓', 700);
   if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
     pluginResetMethodIndex = 0;
     pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
