@@ -413,6 +413,7 @@ app.whenReady().then(async () => {
     { label: 'small', width: 160, height: 140 },
     { label: 'medium', width: 240, height: 200 },
     { label: 'large', width: 360, height: 300 },
+    { label: 'xlarge', width: 480, height: 400 },
   ];
   let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
     ? savedPrefs.sizeIndex : 1;
