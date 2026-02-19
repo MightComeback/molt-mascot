@@ -1205,6 +1205,9 @@ function showContextMenu(e) {
       : `${pluginToolCalls} calls`;
     statusParts.push(statsStr);
   }
+  if (typeof latencyMs === 'number' && latencyMs >= 0) {
+    statusParts.push(`${latencyMs}ms`);
+  }
 
   ctxMenu.show([
     { label: statusParts.join(' · '), disabled: true },
