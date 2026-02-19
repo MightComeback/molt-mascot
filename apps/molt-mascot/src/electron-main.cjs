@@ -140,7 +140,7 @@ const cliNoTray = process.argv.includes('--no-tray');
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   // Platform-aware modifier key labels so the help text matches the user's OS.
   const mod = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
-  const alt = process.platform === 'darwin' ? 'Alt' : 'Alt';
+  const alt = process.platform === 'darwin' ? 'Option' : 'Alt';
   process.stdout.write(`molt-mascot ${APP_VERSION}
 
 A tiny always-on-top desktop mascot (pixel lobster) that reflects your

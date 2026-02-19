@@ -469,6 +469,8 @@ window.__moltMascotGetState = () => ({
   latencyMs,
   activeAgents: pluginActiveAgents,
   activeTools: pluginActiveTools,
+  pillText: pill.textContent || '',
+  pillClass: pill.className || '',
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
