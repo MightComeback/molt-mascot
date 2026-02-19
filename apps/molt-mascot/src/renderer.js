@@ -1241,9 +1241,12 @@ function showContextMenu(e) {
   // Build a status summary line for the context menu header
   const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   const isSleepingCtx = currentMode === Mode.idle && modeDur > SLEEP_THRESHOLD_S;
-  let modeLabel = isSleepingCtx ? 'Sleeping' : capitalize(currentMode);
-  if (currentMode === Mode.tool && currentTool) modeLabel = truncate(currentTool, 20);
-  if (currentMode === Mode.error && lastErrorMessage) modeLabel = truncate(lastErrorMessage, 28);
+  const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
+  const emojiKey = isSleepingCtx ? 'sleeping' : currentMode;
+  const emoji = modeEmoji[emojiKey] ? `${modeEmoji[emojiKey]} ` : '';
+  let modeLabel = isSleepingCtx ? `${emoji}Sleeping` : `${emoji}${capitalize(currentMode)}`;
+  if (currentMode === Mode.tool && currentTool) modeLabel = `${modeEmoji.tool} ${truncate(currentTool, 20)}`;
+  if (currentMode === Mode.error && lastErrorMessage) modeLabel = `${modeEmoji.error} ${truncate(lastErrorMessage, 28)}`;
   const appVer = window.moltMascot?.version;
   const statusParts = [appVer ? `v${appVer} · ${modeLabel}` : modeLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
