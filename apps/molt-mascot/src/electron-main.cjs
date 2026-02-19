@@ -600,6 +600,7 @@ app.whenReady().then(async () => {
       toolErrors: currentToolErrors,
       lastCloseDetail: currentCloseDetail,
       reconnectAttempt: currentReconnectAttempt,
+      targetUrl: currentTargetUrl,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -773,7 +774,8 @@ app.whenReady().then(async () => {
   let sessionConnectCount = 0;
   let currentCloseDetail = null;
   let currentReconnectAttempt = 0;
-  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttemptVal) => {
+  let currentTargetUrl = null;
+  ipcMain.on('molt-mascot:mode-update', (_event, mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttemptVal, targetUrl) => {
     // Track tool call stats for tray tooltip diagnostics.
     if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
     if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
@@ -785,6 +787,10 @@ app.whenReady().then(async () => {
     if (typeof closeDetail === 'string' && closeDetail) currentCloseDetail = closeDetail;
     else if (closeDetail === null) currentCloseDetail = null;
     if (typeof reconnectAttemptVal === 'number' && reconnectAttemptVal >= 0) currentReconnectAttempt = reconnectAttemptVal;
+
+    // Track target URL for tray tooltip (shows which endpoint is being connected to when disconnected).
+    if (typeof targetUrl === 'string' && targetUrl) currentTargetUrl = targetUrl;
+    else if (targetUrl === null) currentTargetUrl = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;
