@@ -448,6 +448,11 @@ export class GatewayClient {
     // so we must reset it here to avoid blocking the immediate refresh.
     this._pluginStateLastSentAt = 0;
     this._pluginStatePending = false;
+    // Reset stale-check baseline so the first check after un-pausing doesn't
+    // false-positive — no messages arrived while paused, so _lastMessageAt
+    // could be very old. Without this, the stale timer sees pollingPaused=false
+    // and an ancient _lastMessageAt on the next tick, triggering a spurious reconnect.
+    this._lastMessageAt = Date.now();
     // Immediate refresh so the UI doesn't show stale data for up to 1s
     if (this.hasPlugin) this._sendPluginStateReq('v');
   }

@@ -978,6 +978,25 @@ describe("pausePolling / resumePolling", () => {
     client.destroy();
   });
 
+  it("resumePolling resets stale-check baseline to prevent false-positive reconnect", () => {
+    const client = new GatewayClient({ pollIntervalMs: 50, staleConnectionMs: 100, staleCheckIntervalMs: 50 });
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    // Pause polling and let _lastMessageAt go stale
+    client.pausePolling();
+    // Manually backdate _lastMessageAt to simulate a long hidden period
+    client._lastMessageAt = Date.now() - 200;
+
+    // Resume — should reset _lastMessageAt so stale check doesn't fire
+    client.resumePolling();
+
+    // _lastMessageAt should be recent (within the last second)
+    expect(Date.now() - client._lastMessageAt).toBeLessThan(1000);
+
+    client.destroy();
+  });
+
   it("resumePolling is a no-op when not paused", () => {
     const client = new GatewayClient({ pollIntervalMs: 50 });
     const ws = connectAndHandshake(client);
