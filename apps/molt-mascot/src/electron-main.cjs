@@ -75,6 +75,57 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
   process.exit(0);
 }
 
+// CLI flags: --help prints usage information and exits.
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  process.stdout.write(`molt-mascot ${APP_VERSION}
+
+A tiny always-on-top desktop mascot (pixel lobster) that reflects your
+local OpenClaw Gateway state.
+
+Usage:
+  molt-mascot [options]
+
+Options:
+  -v, --version          Print version and exit
+  -h, --help             Print this help and exit
+
+Environment variables:
+  MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
+  MOLT_MASCOT_GATEWAY_TOKEN   Gateway auth token
+  MOLT_MASCOT_ALIGN           Window alignment (bottom-right, top-left, center, etc.)
+  MOLT_MASCOT_PADDING         Edge padding in pixels (default: 24)
+  MOLT_MASCOT_WIDTH           Window width in pixels (default: 240)
+  MOLT_MASCOT_HEIGHT          Window height in pixels (default: 200)
+  MOLT_MASCOT_OPACITY         Window opacity 0.0-1.0 (default: 1.0)
+  MOLT_MASCOT_CLICK_THROUGH   Enable ghost mode (1/true/yes)
+  MOLT_MASCOT_HIDE_TEXT        Hide HUD text pill (1/true/yes)
+  MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
+  MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
+
+Keyboard shortcuts (while mascot is focused):
+  Cmd+Shift+M   Toggle ghost mode (click-through)
+  Cmd+Shift+H   Toggle HUD text visibility
+  Cmd+Shift+A   Cycle alignment
+  Cmd+Shift+S   Snap to position
+  Cmd+Shift+Z   Cycle size preset
+  Cmd+Shift+O   Cycle opacity
+  Cmd+Shift+R   Reset state
+  Cmd+Shift+C   Force reconnect
+  Cmd+Shift+I   Copy debug info
+  Cmd+Shift+V   Toggle visibility
+  Cmd+Alt+Q     Quit
+
+Mouse interactions:
+  Double-click lobster   Toggle ghost mode
+  Scroll wheel           Adjust opacity
+  Middle-click lobster   Force reconnect
+  Right-click            Open context menu
+  Double-click pill      Copy status text
+  Middle-click pill      Toggle HUD text
+`);
+  process.exit(0);
+}
+
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.mightcomeback.molt-mascot');
