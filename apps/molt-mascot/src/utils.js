@@ -210,6 +210,9 @@ export function normalizeWsUrl(url) {
   const trimmed = url.trim();
   if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
   if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
+  // Auto-add ws:// for bare host(:port) URLs — common user mistake when pasting
+  // gateway addresses without a scheme (e.g. "127.0.0.1:18789" or "localhost:8080/ws").
+  if (trimmed && !/:\/\//.test(trimmed)) return `ws://${trimmed}`;
   return trimmed;
 }
 

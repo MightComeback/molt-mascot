@@ -563,8 +563,10 @@ describe("normalizeWsUrl", () => {
     expect(normalizeWsUrl(undefined)).toBe(undefined);
   });
 
-  it("passes through URLs without a recognized scheme", () => {
-    expect(normalizeWsUrl("127.0.0.1:18789")).toBe("127.0.0.1:18789");
+  it("auto-adds ws:// for bare host:port URLs", () => {
+    expect(normalizeWsUrl("127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+    expect(normalizeWsUrl("localhost:8080/ws")).toBe("ws://localhost:8080/ws");
+    expect(normalizeWsUrl("gateway.example.com")).toBe("ws://gateway.example.com");
   });
 
   it("handles empty string", () => {
