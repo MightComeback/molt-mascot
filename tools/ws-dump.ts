@@ -24,8 +24,10 @@ Connect to an OpenClaw Gateway WebSocket and print all frames as JSON.
 Options:
   --once, --exit          Exit after receiving hello-ok
   --state                 Print plugin state and exit (shortcut for quick checks)
+  --watch                 Continuously poll plugin state; print only on change
   --reset                 Reset plugin state and exit (clears error/tool/counters)
   --timeout-ms=<ms>       Timeout for --once/--state/--reset mode (default: 5000)
+  --poll-ms=<ms>          Poll interval for --watch mode (default: 1000)
   --min-protocol=<n>      Minimum protocol version (default: 3)
   --max-protocol=<n>      Maximum protocol version (default: 3)
   --filter=<type>         Only print events matching this type/event name
@@ -45,6 +47,7 @@ Environment:
 
 const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 const stateMode = args.has("--state");
+const watchMode = args.has("--watch");
 const resetMode = args.has("--reset");
 const quiet = args.has("--quiet") || args.has("-q");
 
@@ -150,6 +153,9 @@ let resetReqId: string | null = null;
 
 let stateMethodIndex = 0;
 let resetMethodIndex = 0;
+let lastWatchJson = "";
+let watchInterval: ReturnType<typeof setInterval> | null = null;
+const watchPollMs = Number(getArg("--poll-ms") ?? 1000);
 
 const isMissingMethod = isMissingMethodResponse;
 
@@ -176,6 +182,23 @@ ws.addEventListener("message", (ev) => {
           method: PLUGIN_RESET_METHODS[resetMethodIndex],
           params: {},
         }));
+      } else if (watchMode) {
+        // Start polling plugin state; print only when it changes.
+        stateReqId = nextId("s");
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        watchInterval = setInterval(() => {
+          if (ws.readyState !== WebSocket.OPEN) return;
+          stateReqId = nextId("s");
+          ws.send(JSON.stringify({
+            type: "req", id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }));
+        }, watchPollMs);
       } else if (stateMode) {
         stateReqId = nextId("s");
         ws.send(JSON.stringify({
@@ -227,6 +250,32 @@ ws.addEventListener("message", (ev) => {
       process.exit(1);
     }
 
+    // --watch mode: print plugin state only when it changes
+    if (watchMode && msg.type === "res" && msg.id === stateReqId) {
+      if (msg.ok && msg.payload?.ok && msg.payload?.state) {
+        const json = JSON.stringify(msg.payload.state);
+        if (json !== lastWatchJson) {
+          lastWatchJson = json;
+          const ts = new Date().toISOString().slice(11, 23);
+          const line = compact ? json : JSON.stringify(msg.payload.state, null, 2);
+          console.log(compact ? `[${ts}] ${line}` : `--- ${ts} ---\n${line}`);
+        }
+        return;
+      }
+      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+        stateMethodIndex++;
+        stateReqId = nextId("s");
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        return;
+      }
+      console.error("ws-dump: plugin not available (no state method found)");
+      process.exit(1);
+    }
+
     // --state mode: handle plugin state response
     if (stateMode && msg.type === "res" && msg.id === stateReqId) {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
@@ -253,6 +302,7 @@ ws.addEventListener("message", (ev) => {
 });
 
 // Safety: in --once/--state mode, don't hang forever if the server never replies.
+// (--watch mode runs indefinitely, so no timeout for it.)
 if (once || stateMode || resetMode) {
   setTimeout(() => {
     if (!gotHello) {
@@ -271,6 +321,7 @@ if (once || stateMode || resetMode) {
 }
 
 ws.addEventListener("close", () => {
+  if (watchInterval) clearInterval(watchInterval);
   process.exit(0);
 });
 
