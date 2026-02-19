@@ -500,7 +500,7 @@ app.whenReady().then(async () => {
     }
     tray.setToolTip(buildTrayTooltip({
       appVersion: APP_VERSION,
-      mode: currentRendererMode || 'idle',
+      mode: trayShowsSleeping ? 'sleeping' : (currentRendererMode || 'idle'),
       clickThrough,
       hideText,
       alignment: (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase(),
@@ -712,6 +712,8 @@ app.whenReady().then(async () => {
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;
       modeChangedAt = Date.now();
+      // Reset sleeping tray state when mode changes away from idle.
+      if (mode !== 'idle') trayShowsSleeping = false;
       // Track connection start for uptime display in tray tooltip.
       if (mode === 'connected') {
         connectedSinceMs = Date.now();
@@ -724,6 +726,32 @@ app.whenReady().then(async () => {
       rebuildTrayMenu();
     }
   });
+
+  // Sleep detection: when the renderer stays in 'idle' mode for longer than
+  // the sleep threshold, update the tray icon/tooltip to show the sleeping state.
+  // The renderer handles its own ZZZ overlay; this mirrors that state in the tray
+  // so the menu bar icon gives at-a-glance feedback even when the mascot is hidden.
+  const SLEEP_THRESHOLD_MS = (() => {
+    const raw = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S);
+    return (Number.isFinite(raw) && raw >= 0 ? raw : 120) * 1000;
+  })();
+  let trayShowsSleeping = false;
+  const sleepCheckTimer = setInterval(() => {
+    if (currentRendererMode !== 'idle') {
+      if (trayShowsSleeping) {
+        trayShowsSleeping = false;
+        updateTrayIcon('idle');
+        rebuildTrayMenu();
+      }
+      return;
+    }
+    const idleDuration = Date.now() - modeChangedAt;
+    if (idleDuration > SLEEP_THRESHOLD_MS && !trayShowsSleeping) {
+      trayShowsSleeping = true;
+      updateTrayIcon('sleeping');
+      rebuildTrayMenu();
+    }
+  }, 10000); // Check every 10s — sleep threshold is 120s, so 10s granularity is fine.
 
   function repositionMainWindow({ force = false } = {}) {
     withMainWin((w) => {
@@ -868,6 +896,8 @@ app.whenReady().then(async () => {
     try { if (tray) { tray.destroy(); tray = null; } } catch {}
     // Cancel any pending display-metrics debounce timer.
     if (displayDebounce) { clearTimeout(displayDebounce); displayDebounce = null; }
+    // Cancel sleep detection timer.
+    if (sleepCheckTimer) clearInterval(sleepCheckTimer);
   });
 });
 
