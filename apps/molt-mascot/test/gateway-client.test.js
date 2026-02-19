@@ -966,6 +966,38 @@ describe("pausePolling / resumePolling", () => {
     client.destroy();
   });
 
+  it("destroy fires onPluginStateReset so consumers clear cached plugin config", () => {
+    const client = new GatewayClient();
+    const ws = connectAndHandshake(client);
+    activatePlugin(ws);
+
+    expect(client.hasPlugin).toBe(true);
+
+    let resetFired = false;
+    client.onPluginStateReset = () => { resetFired = true; };
+
+    client.destroy();
+
+    expect(resetFired).toBe(true);
+    expect(client.hasPlugin).toBe(false);
+  });
+
+  it("destroy does not fire onPluginStateReset when no plugin was active", () => {
+    const client = new GatewayClient();
+    connectAndHandshake(client);
+
+    expect(client.hasPlugin).toBe(false);
+
+    let resetFired = false;
+    client.onPluginStateReset = () => { resetFired = true; };
+
+    client.destroy();
+
+    // No plugin was active, so the reset callback should not fire
+    // (avoids spurious state resets in consumers).
+    expect(resetFired).toBe(false);
+  });
+
   it("forceReconnect records lastDisconnectedAt so tooltip shows accurate disconnect time", () => {
     const client = new GatewayClient();
     const ws = connectAndHandshake(client);

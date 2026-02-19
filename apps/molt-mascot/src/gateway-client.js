@@ -434,9 +434,15 @@ export class GatewayClient {
   /**
    * Tear down all timers, close the socket, and reset connection/plugin state.
    * Shared by forceReconnect() and destroy() to avoid duplicated cleanup logic.
+   *
+   * @param {{ notifyPluginReset?: boolean }} [opts] - When true, fires
+   *   onPluginStateReset so consumers clear cached plugin config (clickThrough,
+   *   alignment, etc.). Defaults to false for back-compat; callers that need
+   *   the notification pass `{ notifyPluginReset: true }`.
    * @private
    */
-  _cleanup() {
+  _cleanup(opts) {
+    const hadPlugin = this.hasPlugin;
     this._stopStaleCheck();
     this._stopPluginPoller();
     if (this._reconnectCountdownTimer) {
@@ -457,6 +463,12 @@ export class GatewayClient {
     this.hasPlugin = false;
     this._pluginStatePending = false;
     this._pluginStateLastSentAt = 0;
+
+    // Notify consumers to clear cached plugin config (clickThrough, alignment,
+    // etc.) so stale values don't persist across reconnections.
+    if (opts?.notifyPluginReset && hadPlugin) {
+      this.onPluginStateReset?.();
+    }
   }
 
   /**
@@ -468,8 +480,7 @@ export class GatewayClient {
     // Record disconnect timestamp before cleanup nulls the socket reference.
     // Without this, tooltips/debug info show stale lastDisconnectedAt after force reconnect.
     this.lastDisconnectedAt = Date.now();
-    this._cleanup();
-    this.onPluginStateReset?.();
+    this._cleanup({ notifyPluginReset: true });
     if (cfg) this.connect(cfg);
   }
 
@@ -522,9 +533,10 @@ export class GatewayClient {
 
   /**
    * Tear down all timers and close the socket.
+   * Fires onPluginStateReset so consumers clear any cached plugin config.
    */
   destroy() {
-    this._cleanup();
+    this._cleanup({ notifyPluginReset: true });
   }
 
   /** @private */
