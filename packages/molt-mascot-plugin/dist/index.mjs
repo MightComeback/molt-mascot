@@ -98,6 +98,11 @@ function coerceAlignment(v, fallback) {
   }
   return fallback;
 }
+function successRate(totalCalls, errorCount) {
+  if (!totalCalls || totalCalls <= 0) return null;
+  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
+  return Math.round((totalCalls - errors) / totalCalls * 100);
+}
 function truncate(str, limit = 140) {
   if (limit <= 0) return "";
   const s = str.trim().replace(/\s+/g, " ");
@@ -135,7 +140,10 @@ function formatDuration(seconds) {
   if (h < 24) return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
   const d = Math.floor(h / 24);
   const remH = h % 24;
-  return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
+  if (d < 7) return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
+  const w = Math.floor(d / 7);
+  const remD = d % 7;
+  return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
 }
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
@@ -161,6 +169,7 @@ var ERROR_PREFIXES = [
   "warn",
   // Python non-Error exceptions (not matched by *Error pattern)
   "StopIteration",
+  "StopAsyncIteration",
   "KeyboardInterrupt",
   "SystemExit",
   "GeneratorExit",
@@ -646,7 +655,7 @@ function register(api) {
       agentLastToolTs.delete(sessionKey);
       recalcCurrentTool();
       const err = event?.error;
-      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
+      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.detail || err.description || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
       if (String(msg).trim()) {
         const clean = cleanErrorString(msg);
         enterError(truncate(clean));
@@ -750,6 +759,7 @@ export {
   formatBytes,
   formatDuration,
   id,
+  successRate,
   summarizeToolResultMessage,
   truncate,
   version

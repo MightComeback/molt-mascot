@@ -64,6 +64,15 @@ declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
 declare const allowedSizes: Size[];
 declare function coerceSize(v: unknown, fallback: Size): Size;
 declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
+/**
+ * Compute a success-rate percentage from total calls and error count.
+ * Returns null if totalCalls is 0 (avoids division by zero).
+ *
+ * @param totalCalls - Total number of calls
+ * @param errorCount - Number of errors
+ * @returns Integer percentage (0-100), or null if no calls
+ */
+declare function successRate(totalCalls: number, errorCount: number): number | null;
 declare function truncate(str: string, limit?: number): string;
 /**
  * Format a byte count into a compact human-readable string with appropriate unit.
@@ -108,4 +117,4 @@ declare function summarizeToolResultMessage(msg: any): string;
  */
 declare function register(api: PluginApi): void;
 
-export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, summarizeToolResultMessage, truncate, version };
+export { ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, successRate, summarizeToolResultMessage, truncate, version };

@@ -124,6 +124,20 @@ export function coerceAlignment(
   return fallback;
 }
 
+/**
+ * Compute a success-rate percentage from total calls and error count.
+ * Returns null if totalCalls is 0 (avoids division by zero).
+ *
+ * @param totalCalls - Total number of calls
+ * @param errorCount - Number of errors
+ * @returns Integer percentage (0-100), or null if no calls
+ */
+export function successRate(totalCalls: number, errorCount: number): number | null {
+  if (!totalCalls || totalCalls <= 0) return null;
+  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
+  return Math.round(((totalCalls - errors) / totalCalls) * 100);
+}
+
 export function truncate(str: string, limit = 140): string {
   if (limit <= 0) return "";
   // Collapse whitespace/newlines to single spaces for cleaner display

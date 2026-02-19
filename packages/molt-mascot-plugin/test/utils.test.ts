@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1079,5 +1079,20 @@ describe("utils", () => {
     await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("permission denied");
+  });
+
+  it("successRate", () => {
+    expect(successRate(100, 5)).toBe(95);
+    expect(successRate(10, 3)).toBe(70);
+    expect(successRate(1, 1)).toBe(0);
+    expect(successRate(1, 0)).toBe(100);
+    // Zero/negative/null/undefined totalCalls returns null
+    expect(successRate(0, 0)).toBe(null);
+    expect(successRate(-1, 0)).toBe(null);
+    // Clamps errorCount to totalCalls (can't have more errors than calls)
+    expect(successRate(5, 10)).toBe(0);
+    // Null/undefined errorCount treated as 0
+    expect(successRate(10, null as any)).toBe(100);
+    expect(successRate(10, undefined as any)).toBe(100);
   });
 });

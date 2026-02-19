@@ -12,8 +12,8 @@ export function coerceDelayMs(v, fallback) {
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { truncate, cleanErrorString, formatDuration, formatBytes } from '@molt/mascot-plugin';
-export { truncate, cleanErrorString, formatDuration, formatBytes };
+import { truncate, cleanErrorString, formatDuration, formatBytes, successRate } from '@molt/mascot-plugin';
+export { truncate, cleanErrorString, formatDuration, formatBytes, successRate };
 
 /**
  * Capitalize the first character of a string.
@@ -345,22 +345,6 @@ export const PLUGIN_RESET_METHODS = [
   'moltMascot.reset',
   'moltMascotPlugin.reset',
 ];
-
-/**
- * Compute a success-rate percentage from total calls and error count.
- * Returns null if totalCalls is 0 (avoids division by zero).
- * Used in buildTooltip, buildDebugInfo, and context menu to avoid
- * repeating the same inline Math.round() calculation.
- *
- * @param {number} totalCalls
- * @param {number} errorCount
- * @returns {number|null} Integer percentage (0-100), or null if no calls
- */
-export function successRate(totalCalls, errorCount) {
-  if (!totalCalls || totalCalls <= 0) return null;
-  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
-  return Math.round(((totalCalls - errors) / totalCalls) * 100);
-}
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
