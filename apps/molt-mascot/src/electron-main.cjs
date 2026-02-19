@@ -112,6 +112,7 @@ Keyboard shortcuts (while mascot is focused):
   Cmd+Shift+R   Reset state
   Cmd+Shift+C   Force reconnect
   Cmd+Shift+I   Copy debug info
+  Cmd+Shift+D   Toggle DevTools
   Cmd+Shift+V   Toggle visibility
   Cmd+Alt+Q     Quit
 
