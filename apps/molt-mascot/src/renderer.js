@@ -1433,6 +1433,8 @@ document.addEventListener('visibilitychange', () => {
 
 // Cleanup on page unload (prevents leaked intervals/sockets during hot-reload or navigation)
 window.addEventListener('beforeunload', () => {
+  // Dismiss any open context menu to remove its DOM and event listeners cleanly.
+  ctxMenu.dismiss();
   stopAnimation();
   if (pollInterval) {
     clearInterval(pollInterval);
