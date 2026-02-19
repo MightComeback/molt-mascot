@@ -238,9 +238,21 @@ let copiedUntil = 0;
  * This prevents the 1-second pill refresh from immediately overwriting the feedback.
  */
 function showCopiedFeedback() {
-  pill.textContent = 'Copied ✓';
+  showTransientFeedback('Copied ✓', 700);
+}
+
+/**
+ * Show transient feedback text in the pill for a brief period, suppressing
+ * syncPill() updates so the message isn't immediately overwritten.
+ * Used for clipboard confirmation, opacity scroll feedback, etc.
+ *
+ * @param {string} text - Text to display in the pill
+ * @param {number} [durationMs=700] - How long to show the feedback
+ */
+function showTransientFeedback(text, durationMs = 700) {
+  pill.textContent = text;
   pill.className = 'pill--idle';
-  copiedUntil = Date.now() + 700;
+  copiedUntil = Date.now() + durationMs;
 }
 
 function syncPill() {
@@ -1067,6 +1079,9 @@ canvas.addEventListener('wheel', (e) => {
   if (next === currentOpacity) return;
   currentOpacity = next;
   window.moltMascot.setOpacity(currentOpacity);
+  // Brief visual feedback in the pill so the user sees the current opacity level
+  // while scrolling (the tooltip updates too, but it's not always visible).
+  showTransientFeedback(`Opacity ${Math.round(currentOpacity * 100)}%`);
   syncPill();
 }, { passive: false });
 
