@@ -68,6 +68,17 @@ bun run --cwd apps/molt-mascot capture
 1. Add the character → CSS color mapping to `palette` in `sprites.js`.
 2. All existing sprites remain valid (the validator checks `ch in palette`).
 
+## Adding a New Synced Property (Plugin → Electron)
+
+Plugin state properties (clickThrough, opacity, size, etc.) sync from the Gateway plugin to the Electron app via a declarative change-detection system. To add a new synced property:
+
+1. **Plugin (`packages/molt-mascot-plugin/src/index.ts`)**: Add the field to the `State` type and (optionally) `PluginConfig`. Initialize it in the `state` object inside `register()`.
+2. **Plugin sync (`apps/molt-mascot/src/plugin-sync.js`)**: Add an entry to `SYNC_PROPS` — `[stateKey, expectedType, callbackName]`. Add a validator to `VALIDATORS` if the value has domain constraints (e.g. `>= 0`, `0-1`).
+3. **Renderer (`apps/molt-mascot/src/renderer.js`)**: Add a callback in the `createPluginSync({...})` call to handle the new property (update local state, call IPC, etc.).
+4. **Tests**: Add sync tests in `apps/molt-mascot/test/plugin-sync.test.js` (change detection, validation, reset behavior).
+
+The system is designed so adding a new synced property is a one-liner in `SYNC_PROPS` + a callback — no duplicated if-blocks needed.
+
 ## Testing
 
 Tests use `bun:test`. Every `src/` module has a corresponding `test/` file. Run:
