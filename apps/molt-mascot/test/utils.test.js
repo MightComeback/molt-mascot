@@ -648,8 +648,25 @@ describe("formatCloseDetail", () => {
   });
 
   it("returns raw code for unknown codes without reason", () => {
-    expect(formatCloseDetail(4000, "")).toBe("code 4000");
     expect(formatCloseDetail(4999, null)).toBe("code 4999");
+    expect(formatCloseDetail(3999, "")).toBe("code 3999");
+  });
+
+  it("returns friendly label for application-specific codes (4000-4014)", () => {
+    expect(formatCloseDetail(4000, "")).toBe("unknown error (4000)");
+    expect(formatCloseDetail(4001, "")).toBe("auth failed (4001)");
+    expect(formatCloseDetail(4002, null)).toBe("rate limited (4002)");
+    expect(formatCloseDetail(4003, "")).toBe("forbidden (4003)");
+    expect(formatCloseDetail(4006, "")).toBe("session replaced (4006)");
+    expect(formatCloseDetail(4009, null)).toBe("session expired (4009)");
+    expect(formatCloseDetail(4010, "")).toBe("server restart (4010)");
+    expect(formatCloseDetail(4014, "")).toBe("disallowed intent (4014)");
+  });
+
+  it("prefers custom reason over label for application-specific codes", () => {
+    // When the server provides a custom reason, it takes precedence over the generic label
+    expect(formatCloseDetail(4001, "invalid token")).toBe("invalid token (4001)");
+    expect(formatCloseDetail(4010, "upgrading to v2")).toBe("upgrading to v2 (4010)");
   });
 
   it("returns friendly label for normal close (1000) with no reason", () => {
@@ -681,6 +698,10 @@ describe("formatCloseDetail", () => {
     expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
     expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");
     expect(WS_CLOSE_CODE_LABELS[1015]).toBe("TLS handshake failed");
+    // Application-specific range (4000-4999)
+    expect(WS_CLOSE_CODE_LABELS[4001]).toBe("auth failed");
+    expect(WS_CLOSE_CODE_LABELS[4006]).toBe("session replaced");
+    expect(WS_CLOSE_CODE_LABELS[4010]).toBe("server restart");
   });
 });
 

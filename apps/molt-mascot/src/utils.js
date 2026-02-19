@@ -253,6 +253,24 @@ export const WS_CLOSE_CODE_LABELS = {
   1013: 'try again later',
   1014: 'bad gateway',
   1015: 'TLS handshake failed',
+  // Application-specific codes (4000-4999): common Gateway/server conventions.
+  // These are not standardized by IANA but widely used by WebSocket servers
+  // (including OpenClaw Gateway, Discord, Cloudflare, etc.).
+  4000: 'unknown error',
+  4001: 'auth failed',
+  4002: 'rate limited',
+  4003: 'forbidden',
+  4004: 'not found',
+  4005: 'already connected',
+  4006: 'session replaced',
+  4007: 'invalid payload',
+  4008: 'request timeout',
+  4009: 'session expired',
+  4010: 'server restart',
+  4011: 'reconnect required',
+  4012: 'invalid version',
+  4013: 'invalid intent',
+  4014: 'disallowed intent',
 };
 
 /**
