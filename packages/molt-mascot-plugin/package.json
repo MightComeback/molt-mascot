@@ -30,6 +30,7 @@
     "build": "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
     "dev": "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --watch",
     "test": "bun test",
+    "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
     "prepack": "node -e \"try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}\" && bun run build"
   },
