@@ -219,6 +219,8 @@ describe('tray-icon', () => {
     it('shows mode emoji for non-idle modes', () => {
       expect(buildTrayTooltip({ ...base, mode: 'thinking' })).toContain('🧠 thinking');
       expect(buildTrayTooltip({ ...base, mode: 'tool' })).toContain('🔧 tool');
+      expect(buildTrayTooltip({ ...base, mode: 'tool', currentTool: 'web_search' })).toContain('🔧 web_search');
+      expect(buildTrayTooltip({ ...base, mode: 'tool', currentTool: 'web_search' })).not.toContain('🔧 tool');
       expect(buildTrayTooltip({ ...base, mode: 'error' })).toContain('❌ error');
       expect(buildTrayTooltip({ ...base, mode: 'sleeping' })).toContain('💤 sleeping');
       expect(buildTrayTooltip({ ...base, mode: 'disconnected' })).toContain('⚡ disconnected');

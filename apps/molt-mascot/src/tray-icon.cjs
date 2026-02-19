@@ -149,14 +149,19 @@ function renderTraySprite(scale, opts) {
  * @param {number} params.opacityPercent - Current opacity as integer percentage (0-100)
  * @param {string} [params.uptimeStr] - Connection uptime string (e.g. "2h 15m") — shown when connected
  * @param {number|null} [params.latencyMs] - Plugin state poll round-trip latency in ms
+ * @param {string} [params.currentTool] - Active tool name (shown in tooltip when mode is 'tool')
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
-  if (modeLabel !== 'idle') parts.push(`${modeEmoji[modeLabel] || '●'} ${modeLabel}`);
+  if (modeLabel !== 'idle') {
+    let modePart = `${modeEmoji[modeLabel] || '●'} ${modeLabel}`;
+    if (modeLabel === 'tool' && currentTool) modePart = `${modeEmoji.tool} ${currentTool}`;
+    parts.push(modePart);
+  }
   if (clickThrough) parts.push('👻 Ghost');
   if (hideText) parts.push('🙈 Text hidden');
   parts.push(`📍 ${alignment || 'bottom-right'}`);
