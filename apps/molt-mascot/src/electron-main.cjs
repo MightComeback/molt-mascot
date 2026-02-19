@@ -138,6 +138,9 @@ const cliNoTray = process.argv.includes('--no-tray');
 
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  // Platform-aware modifier key labels so the help text matches the user's OS.
+  const mod = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
+  const alt = process.platform === 'darwin' ? 'Alt' : 'Alt';
   process.stdout.write(`molt-mascot ${APP_VERSION}
 
 A tiny always-on-top desktop mascot (pixel lobster) that reflects your
@@ -178,18 +181,18 @@ Environment variables:
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):
-  Cmd+Shift+M   Toggle ghost mode (click-through)
-  Cmd+Shift+H   Toggle HUD text visibility
-  Cmd+Shift+A   Cycle alignment
-  Cmd+Shift+S   Snap to position
-  Cmd+Shift+Z   Cycle size preset
-  Cmd+Shift+O   Cycle opacity
-  Cmd+Shift+R   Reset state
-  Cmd+Shift+C   Force reconnect
-  Cmd+Shift+I   Copy debug info
-  Cmd+Shift+D   Toggle DevTools
-  Cmd+Shift+V   Toggle visibility
-  Cmd+Alt+Q     Quit
+  ${mod}+Shift+M   Toggle ghost mode (click-through)
+  ${mod}+Shift+H   Toggle HUD text visibility
+  ${mod}+Shift+A   Cycle alignment
+  ${mod}+Shift+S   Snap to position
+  ${mod}+Shift+Z   Cycle size preset
+  ${mod}+Shift+O   Cycle opacity
+  ${mod}+Shift+R   Reset state
+  ${mod}+Shift+C   Force reconnect
+  ${mod}+Shift+I   Copy debug info
+  ${mod}+Shift+D   Toggle DevTools
+  ${mod}+Shift+V   Toggle visibility
+  ${mod}+${alt}+Q     Quit
 
 Mouse interactions:
   Double-click lobster   Toggle ghost mode
