@@ -245,6 +245,21 @@ describe('tray-icon', () => {
       expect(tip).toContain('📐 large');
     });
 
+    it('shows connection uptime when uptimeStr is provided', () => {
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '2h 15m' });
+      expect(tip).toContain('↑ 2h 15m');
+    });
+
+    it('omits uptime when uptimeStr is undefined', () => {
+      const tip = buildTrayTooltip(base);
+      expect(tip).not.toContain('↑');
+    });
+
+    it('omits uptime when uptimeStr is empty string', () => {
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '' });
+      expect(tip).not.toContain('↑');
+    });
+
     it('joins all parts with " · "', () => {
       const tip = buildTrayTooltip({ ...base, clickThrough: true, hideText: true, opacityPercent: 40 });
       const parts = tip.split(' · ');

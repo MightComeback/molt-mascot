@@ -479,6 +479,14 @@ app.whenReady().then(async () => {
 
   function rebuildTrayMenu() {
     // Update tooltip to reflect current state (ghost mode, alignment, etc.)
+    // Compute connection uptime string for tray tooltip (if connected).
+    let uptimeStr;
+    if (connectedSinceMs) {
+      const sec = Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000));
+      if (sec < 60) uptimeStr = `${sec}s`;
+      else if (sec < 3600) uptimeStr = `${Math.floor(sec / 60)}m`;
+      else { const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); uptimeStr = m > 0 ? `${h}h ${m}m` : `${h}h`; }
+    }
     tray.setToolTip(buildTrayTooltip({
       appVersion: APP_VERSION,
       mode: currentRendererMode || 'idle',
@@ -487,6 +495,7 @@ app.whenReady().then(async () => {
       alignment: (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase(),
       sizeLabel: sizeCycle[sizeIndex].label,
       opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
+      uptimeStr,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -632,9 +641,18 @@ app.whenReady().then(async () => {
     }
   }
 
+  // Track when the gateway connection was established (for tray tooltip uptime).
+  let connectedSinceMs = null;
+
   ipcMain.on('molt-mascot:mode-update', (_event, mode) => {
     if (typeof mode === 'string' && mode !== currentRendererMode) {
       currentRendererMode = mode;
+      // Track connection start for uptime display in tray tooltip.
+      if (mode === 'connected') {
+        connectedSinceMs = Date.now();
+      } else if (mode === 'disconnected' || mode === 'connecting') {
+        connectedSinceMs = null;
+      }
       updateTrayIcon(mode);
       rebuildTrayMenu();
     }
