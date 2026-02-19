@@ -316,6 +316,13 @@ export const ERROR_PREFIX_REGEX = new RegExp(
   "i"
 );
 
+// Regex constants used in the iterative prefix-stripping loop inside cleanErrorString.
+// Hoisted to module level so they're compiled once rather than on every function call.
+const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
+const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
+const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
+const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
+
 /**
  * Remove common error prefixes to save space on the pixel display.
  * e.g. "Error: Tool failed: File not found" -> "File not found"
@@ -383,15 +390,8 @@ export function cleanErrorString(s: string): string {
 
   // Iteratively strip error prefixes and POSIX errno codes.
   // Handles nested prefixes like "Error: Tool failed: ENOENT: no such file"
-  // Errno codes: ENOENT, EACCES, EPERM, ECONNREFUSED, etc.
-  const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
-  // Node.js bracketed error codes: [ERR_MODULE_NOT_FOUND]:, [ERR_INVALID_ARG_TYPE]:, etc.
-  const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
-  // Go runtime prefixes: "runtime: out of memory", "runtime/cgo: ..."
-  const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
-  // Unhandled rejection wrapper: "(in promise) TypeError: ..." → "TypeError: ..."
-  // Common in both Node.js and Deno unhandled promise rejection output.
-  const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
+  // Regex constants (ERRNO_REGEX, NODE_ERR_CODE_REGEX, GO_RUNTIME_REGEX, IN_PROMISE_REGEX)
+  // are hoisted to module level for performance.
   let prev = "";
   while (str !== prev) {
     prev = str;
