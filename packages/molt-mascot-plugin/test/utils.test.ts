@@ -637,6 +637,12 @@ describe("utils", () => {
     // failure field
     expect(summarizeToolResultMessage({ failure: "disk full" })).toBe("disk full");
 
+    // err field (shorthand used by some tools)
+    expect(summarizeToolResultMessage({ err: "connection reset" })).toBe("connection reset");
+
+    // status: 'failed' triggers isError detection (tested via plugin error mode, but also verify summary)
+    expect(summarizeToolResultMessage({ status: "failed", message: "build broke" })).toBe("build broke");
+
     // NaN and Infinity are not finite, should fall through
     expect(summarizeToolResultMessage(NaN)).toBe("tool error");
     expect(summarizeToolResultMessage(Infinity)).toBe("tool error");
@@ -973,5 +979,47 @@ describe("utils", () => {
     await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("DNS resolution failed");
+  });
+
+  it("status: 'failed' on tool result triggers error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    toolListener({ phase: "start", sessionKey: "s1", tool: "web_fetch" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "web_fetch",
+      result: { status: "failed", message: "timeout after 30s" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("timeout after 30s");
+  });
+
+  it("isError: true on tool result triggers error mode", async () => {
+    const api = createMockApi({ pluginConfig: { errorHoldMs: 100 } });
+    register(api);
+
+    const toolListener = api.listeners.get("tool");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+
+    toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      result: { isError: true, error: "permission denied" },
+    });
+
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.mode).toBe("error");
+    expect(payload?.state?.lastError?.message).toContain("permission denied");
   });
 });
