@@ -146,35 +146,13 @@ let gotHello = false;
 let stateReqId: string | null = null;
 let resetReqId: string | null = null;
 
-const PLUGIN_STATE_METHODS = [
-  "@molt/mascot-plugin.state",
-  "molt-mascot.state",
-  "molt-mascot-plugin.state",
-  "moltMascot.state",
-  "moltMascotPlugin.state",
-];
+// Import shared constants and helpers from utils.js (single source of truth)
+// to avoid drift between ws-dump and the renderer/gateway-client.
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse } from "../apps/molt-mascot/src/utils.js";
 let stateMethodIndex = 0;
-
-const PLUGIN_RESET_METHODS = [
-  "@molt/mascot-plugin.reset",
-  "molt-mascot.reset",
-  "molt-mascot-plugin.reset",
-  "moltMascot.reset",
-  "moltMascotPlugin.reset",
-];
 let resetMethodIndex = 0;
 
-/**
- * Check if a gateway response indicates the requested method doesn't exist.
- * Mirrors the logic in utils.js isMissingMethodResponse but kept inline
- * to avoid import complexity (this file is a standalone Bun CLI script).
- */
-function isMissingMethod(msg: any): boolean {
-  const err = msg?.payload?.error || msg?.error;
-  const code = Number(err?.code);
-  const errMsg = (err?.message || err || "").toString().toLowerCase();
-  return code === -32601 || errMsg.includes("method not found") || errMsg.includes("unknown method") || errMsg.includes("unknown rpc method");
-}
+const isMissingMethod = isMissingMethodResponse;
 
 ws.addEventListener("message", (ev) => {
   const raw = String(ev.data);
