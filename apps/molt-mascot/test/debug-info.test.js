@@ -362,7 +362,7 @@ describe("buildDebugInfo", () => {
 
   it("includes latency line for 0ms", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 0 });
-    expect(info).toContain("Latency: 0ms");
+    expect(info).toContain("Latency: < 1ms");
   });
 
   it("omits latency line when latencyMs is null or undefined", () => {

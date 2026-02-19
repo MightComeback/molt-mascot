@@ -19,6 +19,7 @@ import {
   PLUGIN_RESET_METHODS,
   successRate,
   formatBytes,
+  formatLatency,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -596,7 +597,7 @@ describe("buildTooltip", () => {
 
   it("includes latencyMs of 0", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 0 });
-    expect(tip).toContain("0ms");
+    expect(tip).toContain("< 1ms");
   });
 });
 
@@ -796,5 +797,37 @@ describe("formatBytes", () => {
     expect(formatBytes(-1)).toBe("0 B");
     expect(formatBytes(NaN)).toBe("0 B");
     expect(formatBytes(Infinity)).toBe("0 B");
+  });
+});
+
+describe("formatLatency", () => {
+  it("returns '< 1ms' for zero", () => {
+    expect(formatLatency(0)).toBe("< 1ms");
+  });
+
+  it("formats milliseconds for values under 1000", () => {
+    expect(formatLatency(1)).toBe("1ms");
+    expect(formatLatency(42)).toBe("42ms");
+    expect(formatLatency(999)).toBe("999ms");
+  });
+
+  it("rounds fractional milliseconds", () => {
+    expect(formatLatency(1.4)).toBe("1ms");
+    expect(formatLatency(1.6)).toBe("2ms");
+  });
+
+  it("formats seconds for values >= 1000", () => {
+    expect(formatLatency(1000)).toBe("1.0s");
+    expect(formatLatency(1200)).toBe("1.2s");
+    expect(formatLatency(5432)).toBe("5.4s");
+  });
+
+  it("returns dash for negative, NaN, Infinity, and non-numbers", () => {
+    expect(formatLatency(-1)).toBe("–");
+    expect(formatLatency(NaN)).toBe("–");
+    expect(formatLatency(Infinity)).toBe("–");
+    expect(formatLatency(undefined)).toBe("–");
+    expect(formatLatency(null)).toBe("–");
+    expect(formatLatency("50")).toBe("–");
   });
 });

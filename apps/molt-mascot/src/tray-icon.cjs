@@ -170,7 +170,10 @@ function buildTrayTooltip(params) {
   parts.push(`📐 ${sizeLabel || 'medium'}`);
   if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
-  if (typeof latencyMs === 'number' && latencyMs >= 0) parts.push(`⏱ ${latencyMs}ms`);
+  if (typeof latencyMs === 'number' && latencyMs >= 0) {
+    const latStr = latencyMs === 0 ? '< 1ms' : latencyMs < 1000 ? `${Math.round(latencyMs)}ms` : `${(latencyMs / 1000).toFixed(1)}s`;
+    parts.push(`⏱ ${latStr}`);
+  }
   return parts.join(' · ');
 }
 

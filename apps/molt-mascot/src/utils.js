@@ -16,6 +16,23 @@ import { truncate, cleanErrorString, formatDuration, formatBytes, successRate } 
 export { truncate, cleanErrorString, formatDuration, formatBytes, successRate };
 
 /**
+ * Format a latency value in milliseconds into a compact, human-readable string.
+ * - 0 → "< 1ms" (sub-millisecond precision isn't meaningful for WS round-trips)
+ * - 1–999 → "Xms"
+ * - 1000+ → "X.Ys" (one decimal, e.g. "1.2s")
+ * - Negative/NaN/Infinity → "–" (dash, indicates unavailable)
+ *
+ * @param {number} ms - Latency in milliseconds
+ * @returns {string}
+ */
+export function formatLatency(ms) {
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return '–';
+  if (ms === 0) return '< 1ms';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/**
  * Capitalize the first character of a string.
  * Useful for turning mode names like "idle" into "Idle" for display.
  *
@@ -195,7 +212,7 @@ export function buildTooltip(params) {
       tip += `, ${pluginToolErrors} errors (${rate}% ok)`;
     }
   }
-  if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${latencyMs}ms`;
+  if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${formatLatency(latencyMs)}`;
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
