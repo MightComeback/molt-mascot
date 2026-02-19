@@ -1450,6 +1450,12 @@ document.addEventListener('visibilitychange', () => {
     // refresh. Mirrors GatewayClient.resumePolling() logic.
     pluginStatePending = false;
     pluginStateLastSentAt = 0;
+    // Reset stale-check baseline so the first check after un-hiding doesn't
+    // false-positive (no messages arrived while hidden, so lastMessageAt could
+    // be very old). The document.hidden guard in the stale timer prevents checks
+    // *during* hidden state, but there's a race on the first tick after visibility
+    // resumes where document.hidden is already false but no message has arrived yet.
+    lastMessageAt = Date.now();
     if (hasPlugin) sendPluginStateReq('v');
   }
 });
