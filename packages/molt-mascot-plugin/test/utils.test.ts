@@ -823,6 +823,7 @@ describe("utils", () => {
     expect(coerceSize("small", "medium")).toBe("small");
     expect(coerceSize("medium", "small")).toBe("medium");
     expect(coerceSize("large", "small")).toBe("large");
+    expect(coerceSize("xlarge", "medium")).toBe("xlarge");
     expect(coerceSize("huge", "medium")).toBe("medium");
     expect(coerceSize(42, "medium")).toBe("medium");
     expect(coerceSize(undefined, "large")).toBe("large");
@@ -950,7 +951,7 @@ describe("utils", () => {
     expect(allowedAlignments).toContain("bottom-right");
     expect(allowedAlignments).toContain("center");
     expect(allowedAlignments).toHaveLength(9);
-    expect(allowedSizes).toEqual(["small", "medium", "large"]);
+    expect(allowedSizes).toEqual(["small", "medium", "large", "xlarge"]);
   });
 
   it("success: false on tool result triggers error mode", async () => {
