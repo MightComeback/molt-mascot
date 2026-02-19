@@ -1053,4 +1053,30 @@ describe("pausePolling / resumePolling", () => {
 
     client.destroy();
   });
+
+  it("isDestroyed returns false before destroy and true after", () => {
+    const client = new GatewayClient();
+    expect(client.isDestroyed).toBe(false);
+
+    client.destroy();
+    expect(client.isDestroyed).toBe(true);
+  });
+
+  it("connect() is a no-op after destroy()", () => {
+    const client = new GatewayClient();
+    client.destroy();
+
+    const before = MockWebSocket._last;
+    client.connect({ url: "ws://localhost:18789" });
+    // No new WebSocket should have been created
+    expect(MockWebSocket._last).toBe(before);
+  });
+
+  it("forceReconnect() is a no-op after destroy()", () => {
+    const client = new GatewayClient();
+    client.destroy();
+
+    client.forceReconnect({ url: "ws://localhost:18789" });
+    expect(client.isDestroyed).toBe(true);
+  });
 });

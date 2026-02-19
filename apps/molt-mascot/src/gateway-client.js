@@ -88,6 +88,10 @@ export class GatewayClient {
     this._pollInterval = null;
     this._connectReqId = null;
 
+    // Lifecycle flag: set to true after destroy() so consumers can guard
+    // against accidental use of a torn-down client.
+    this._destroyed = false;
+
     // Event callbacks (set by consumer)
     /** @type {((msg: object) => void)|null} */
     this.onMessage = null;
@@ -195,6 +199,7 @@ export class GatewayClient {
    * @param {{ url: string, token?: string }} cfg
    */
   connect(cfg) {
+    if (this._destroyed) return;
     this.onConnectionStateChange?.('connecting');
 
     if (this._reconnectCountdownTimer) {
@@ -493,6 +498,7 @@ export class GatewayClient {
    * @param {{ url: string, token?: string }} [cfg] - Config to use; if omitted, caller must call connect() manually.
    */
   forceReconnect(cfg) {
+    if (this._destroyed) return;
     this._reconnectAttempt = 0;
     // Record disconnect timestamp before cleanup nulls the socket reference.
     // Without this, tooltips/debug info show stale lastDisconnectedAt after force reconnect.
@@ -553,11 +559,18 @@ export class GatewayClient {
     return formatCloseDetail(this.lastCloseCode, this.lastCloseReason) || null;
   }
 
+  /** Whether the client has been destroyed via destroy(). */
+  get isDestroyed() {
+    return this._destroyed;
+  }
+
   /**
    * Tear down all timers and close the socket.
    * Fires onPluginStateReset so consumers clear any cached plugin config.
+   * After destroy(), connect() and other methods become no-ops.
    */
   destroy() {
+    this._destroyed = true;
     this._cleanup({ notifyPluginReset: true });
   }
 
