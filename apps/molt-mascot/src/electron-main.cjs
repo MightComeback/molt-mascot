@@ -171,6 +171,7 @@ Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
   MOLT_MASCOT_GATEWAY_TOKEN   Gateway auth token
   MOLT_MASCOT_ALIGN           Window alignment (bottom-right, top-left, center, etc.)
+  MOLT_MASCOT_SIZE            Size preset (small, medium, large, xlarge; default: medium)
   MOLT_MASCOT_PADDING         Edge padding in pixels (default: 24)
   MOLT_MASCOT_WIDTH           Window width in pixels (default: 240)
   MOLT_MASCOT_HEIGHT          Window height in pixels (default: 200)
@@ -562,7 +563,13 @@ app.whenReady().then(async () => {
   ];
   let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
     ? savedPrefs.sizeIndex : 1;
-  // CLI --size overrides saved preference.
+  // Env var MOLT_MASCOT_SIZE overrides saved preference (parity with MOLT_MASCOT_ALIGN etc.).
+  const envSize = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
+  if (envSize) {
+    const envSizeIdx = sizeCycle.findIndex((s) => s.label === envSize);
+    if (envSizeIdx >= 0) sizeIndex = envSizeIdx;
+  }
+  // CLI --size overrides env var and saved preference.
   if (cliSize) {
     const cliSizeIdx = sizeCycle.findIndex((s) => s.label === cliSize);
     if (cliSizeIdx >= 0) sizeIndex = cliSizeIdx;

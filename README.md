@@ -82,6 +82,7 @@ bun run mascot
   - Note: `center` ignores padding; all other alignments use `MOLT_MASCOT_PADDING`.
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
 - **Opacity**: `MOLT_MASCOT_OPACITY` (default: `1.0`, range: `0.0`-`1.0`)
+- **Size preset**: `MOLT_MASCOT_SIZE` (values: `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
