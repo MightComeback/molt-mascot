@@ -132,6 +132,17 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | Flag | Description |
 |---|---|
 | `--version`, `-v` | Print the version number and exit |
+| `--help`, `-h` | Print usage information and exit |
+| `--gateway <url>` | Gateway WebSocket URL (overrides env) |
+| `--token <token>` | Gateway auth token (overrides env) |
+| `--align <position>` | Window alignment (overrides env/saved prefs) |
+| `--size <preset>` | Size preset: `small`, `medium`, `large`, `xlarge` |
+| `--opacity <0.0-1.0>` | Window opacity (overrides env/saved prefs) |
+| `--padding <px>` | Edge padding in pixels (overrides env/saved prefs) |
+| `--debug` | Open DevTools on launch |
+| `--no-tray` | Disable system tray icon (useful on Linux DEs without tray support) |
+| `--reset-prefs` | Clear saved preferences and start fresh |
+| `--list-prefs` | Print saved preferences and exit |
 
 ## Screenshot Capture
 
