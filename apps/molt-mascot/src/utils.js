@@ -241,6 +241,11 @@ export function normalizeWsUrl(url) {
   const trimmed = url.trim();
   if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
   if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
+  // Normalize uppercase WebSocket schemes to lowercase for consistency.
+  // Most WebSocket implementations are case-insensitive, but lowercase is canonical
+  // and avoids cosmetic inconsistencies in tooltips, debug info, and saved URLs.
+  if (/^wss:\/\//i.test(trimmed)) return trimmed.replace(/^wss:\/\//i, 'wss://');
+  if (/^ws:\/\//i.test(trimmed)) return trimmed.replace(/^ws:\/\//i, 'ws://');
   // Auto-add ws:// for bare host(:port) URLs — common user mistake when pasting
   // gateway addresses without a scheme (e.g. "127.0.0.1:18789" or "localhost:8080/ws").
   if (trimmed && !/:\/\//.test(trimmed)) return `ws://${trimmed}`;

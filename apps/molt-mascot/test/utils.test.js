@@ -655,9 +655,16 @@ describe("normalizeWsUrl", () => {
     expect(normalizeWsUrl("wss://gateway.example.com")).toBe("wss://gateway.example.com");
   });
 
-  it("is case-insensitive for scheme", () => {
+  it("is case-insensitive for http/https scheme", () => {
     expect(normalizeWsUrl("HTTP://localhost:8080")).toBe("ws://localhost:8080");
     expect(normalizeWsUrl("HTTPS://localhost")).toBe("wss://localhost");
+  });
+
+  it("normalizes uppercase WS/WSS schemes to lowercase", () => {
+    expect(normalizeWsUrl("WS://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+    expect(normalizeWsUrl("WSS://gateway.example.com")).toBe("wss://gateway.example.com");
+    expect(normalizeWsUrl("Ws://localhost:8080")).toBe("ws://localhost:8080");
+    expect(normalizeWsUrl("Wss://localhost")).toBe("wss://localhost");
   });
 
   it("trims whitespace", () => {
