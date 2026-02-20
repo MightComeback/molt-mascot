@@ -160,6 +160,11 @@ const cliDebug = process.argv.includes('--debug');
 // Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
 const cliNoTray = process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
 
+// CLI flags: --no-shortcuts disables global keyboard shortcut registration.
+// Useful when the mascot's shortcuts (Cmd+Shift+M, etc.) conflict with other apps.
+// All actions remain accessible via the tray menu, context menu, and IPC.
+const cliNoShortcuts = process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
+
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
   // Platform-aware modifier key labels so the help text matches the user's OS.
@@ -192,6 +197,8 @@ Options:
                          remote desktops, or Wayland compositors)
   --no-tray              Disable system tray icon (useful on Linux DEs
                          without tray support, e.g. GNOME)
+  --no-shortcuts         Disable global keyboard shortcuts (use tray/context
+                         menu instead; avoids conflicts with other apps)
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
@@ -215,6 +222,7 @@ Environment variables:
   MOLT_MASCOT_MAX_PROTOCOL    Maximum Gateway protocol version (default: 3)
   MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
   MOLT_MASCOT_NO_TRAY         Disable system tray icon (1/true/yes)
+  MOLT_MASCOT_NO_SHORTCUTS    Disable global keyboard shortcuts (1/true/yes)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):
@@ -789,27 +797,29 @@ app.whenReady().then(async () => {
 
   rebuildTrayMenu();
 
-  try {
-    const register = (acc, cb) => {
-      if (!globalShortcut.register(acc, cb)) {
-        console.warn(`molt-mascot: failed to register shortcut ${acc}`);
-      }
-    };
+  if (!cliNoShortcuts) {
+    try {
+      const register = (acc, cb) => {
+        if (!globalShortcut.register(acc, cb)) {
+          console.warn(`molt-mascot: failed to register shortcut ${acc}`);
+        }
+      };
 
-    register('CommandOrControl+Shift+M', () => actionToggleGhostMode());
-    register('CommandOrControl+Shift+H', () => actionToggleHideText());
-    register('CommandOrControl+Shift+R', actionResetState);
-    register('CommandOrControl+Shift+A', actionCycleAlignment);
-    register('CommandOrControl+Shift+V', actionToggleVisibility);
-    register('CommandOrControl+Alt+Q', () => app.quit());
-    register('CommandOrControl+Shift+S', actionSnapToPosition);
-    register('CommandOrControl+Shift+Z', actionCycleSize);
-    register('CommandOrControl+Shift+O', actionCycleOpacity);
-    register('CommandOrControl+Shift+C', actionForceReconnect);
-    register('CommandOrControl+Shift+D', actionToggleDevTools);
-    register('CommandOrControl+Shift+I', actionCopyDebugInfo);
-  } catch (err) {
-    console.error('molt-mascot: failed to register shortcuts', err);
+      register('CommandOrControl+Shift+M', () => actionToggleGhostMode());
+      register('CommandOrControl+Shift+H', () => actionToggleHideText());
+      register('CommandOrControl+Shift+R', actionResetState);
+      register('CommandOrControl+Shift+A', actionCycleAlignment);
+      register('CommandOrControl+Shift+V', actionToggleVisibility);
+      register('CommandOrControl+Alt+Q', () => app.quit());
+      register('CommandOrControl+Shift+S', actionSnapToPosition);
+      register('CommandOrControl+Shift+Z', actionCycleSize);
+      register('CommandOrControl+Shift+O', actionCycleOpacity);
+      register('CommandOrControl+Shift+C', actionForceReconnect);
+      register('CommandOrControl+Shift+D', actionToggleDevTools);
+      register('CommandOrControl+Shift+I', actionCopyDebugInfo);
+    } catch (err) {
+      console.error('molt-mascot: failed to register shortcuts', err);
+    }
   }
 
   ipcMain.on('molt-mascot:quit', () => app.quit());
