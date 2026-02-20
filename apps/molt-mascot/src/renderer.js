@@ -1203,6 +1203,7 @@ function buildDebugInfo() {
     lastDisconnectedAt,
     hasPlugin,
     pluginStateMethod,
+    pluginResetMethod,
     pluginStartedAt,
     pluginToolCalls,
     pluginToolErrors,

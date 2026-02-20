@@ -106,6 +106,28 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Plugin uptime:");
   });
 
+  it("shows plugin reset method alongside state method when both present", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      hasPlugin: true,
+      pluginStateMethod: "@molt/mascot-plugin.state",
+      pluginResetMethod: "@molt/mascot-plugin.reset",
+      pluginStartedAt: NOW - 120000,
+    });
+    expect(info).toContain("Plugin method: @molt/mascot-plugin.state (reset: @molt/mascot-plugin.reset)");
+  });
+
+  it("omits reset method suffix when pluginResetMethod is not provided", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      hasPlugin: true,
+      pluginStateMethod: "@molt/mascot-plugin.state",
+      pluginStartedAt: NOW - 120000,
+    });
+    expect(info).toContain("Plugin method: @molt/mascot-plugin.state");
+    expect(info).not.toContain("reset:");
+  });
+
   it("shows tool call stats when > 0", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, pluginToolCalls: 42, pluginToolErrors: 3 });
     expect(info).toContain("Tool calls: 42, errors: 3 (93% ok)");

@@ -10,6 +10,7 @@
  * @param {number|null} params.lastDisconnectedAt - Date.now() when last disconnected
  * @param {boolean} params.hasPlugin - Whether plugin is active
  * @param {string|null} params.pluginStateMethod - Current plugin state method
+ * @param {string|null} [params.pluginResetMethod] - Current plugin reset method (for diagnosing method resolution)
  * @param {number|null} params.pluginStartedAt - Plugin start timestamp
  * @param {number} params.pluginToolCalls - Tool call count
  * @param {number} params.pluginToolErrors - Tool error count
@@ -102,6 +103,7 @@ export function buildDebugInfo(params) {
     activeAgents,
     activeTools,
     arch,
+    pluginResetMethod,
     now: nowOverride,
   } = params;
 
@@ -142,7 +144,12 @@ export function buildDebugInfo(params) {
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
   if (hasPlugin) {
-    if (pluginStateMethod) lines.push(`Plugin method: ${pluginStateMethod}`);
+    if (pluginStateMethod) {
+      const methodLine = pluginResetMethod
+        ? `Plugin method: ${pluginStateMethod} (reset: ${pluginResetMethod})`
+        : `Plugin method: ${pluginStateMethod}`;
+      lines.push(methodLine);
+    }
     if (pluginStartedAt) {
       lines.push(`Plugin uptime: ${formatElapsed(pluginStartedAt, now)} (since ${new Date(pluginStartedAt).toISOString()})`);
     }
