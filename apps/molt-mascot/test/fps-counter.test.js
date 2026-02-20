@@ -1,0 +1,74 @@
+import { describe, it, expect } from 'bun:test';
+import { createFpsCounter } from '../src/fps-counter.js';
+
+describe('fps-counter', () => {
+  it('starts at 0 fps', () => {
+    const c = createFpsCounter();
+    expect(c.fps()).toBe(0);
+  });
+
+  it('counts frames within 1s window', () => {
+    const c = createFpsCounter();
+    // Simulate 60 frames over 1 second (16.67ms apart)
+    for (let i = 0; i < 60; i++) {
+      c.update(i * 16.67);
+    }
+    expect(c.fps()).toBe(60);
+  });
+
+  it('drops old frames outside the window', () => {
+    const c = createFpsCounter();
+    // 10 frames at t=0..9
+    for (let i = 0; i < 10; i++) c.update(i * 100);
+    expect(c.fps()).toBe(10);
+    // Jump to t=2000 — only this frame should be in window
+    c.update(2000);
+    expect(c.fps()).toBe(1);
+  });
+
+  it('respects custom windowMs', () => {
+    const c = createFpsCounter({ windowMs: 500 });
+    // 10 frames at 100ms apart: t=0,100,200,...,900
+    for (let i = 0; i < 10; i++) c.update(i * 100);
+    // At t=900, window is [400, 900] → frames at 500,600,700,800,900 = 5
+    // Actually window is (900-500, 900] = frames at 500..900 = 5
+    expect(c.fps()).toBe(6); // 400,500,600,700,800,900 — 900-400=500 = boundary
+  });
+
+  it('handles buffer wrapping correctly', () => {
+    const c = createFpsCounter({ bufferSize: 4 });
+    c.update(0);
+    c.update(100);
+    c.update(200);
+    c.update(300);
+    c.update(400); // wraps around, overwrites slot 0
+    c.update(500);
+    // Window: [500-1000, 500] = all 4 stored frames are within 1s
+    expect(c.fps()).toBeGreaterThanOrEqual(4);
+  });
+
+  it('reset clears all state', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(16);
+    c.update(32);
+    expect(c.fps()).toBe(3);
+    c.reset();
+    expect(c.fps()).toBe(0);
+    // After reset, fresh start
+    c.update(1000);
+    expect(c.fps()).toBe(1);
+  });
+
+  it('single frame yields fps of 1', () => {
+    const c = createFpsCounter();
+    c.update(5000);
+    expect(c.fps()).toBe(1);
+  });
+
+  it('all frames at same timestamp counts them all', () => {
+    const c = createFpsCounter({ bufferSize: 10 });
+    for (let i = 0; i < 5; i++) c.update(1000);
+    expect(c.fps()).toBe(5);
+  });
+});

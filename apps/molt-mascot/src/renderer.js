@@ -1,6 +1,7 @@
 import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
+import { createFpsCounter } from './fps-counter.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -1238,7 +1239,7 @@ function buildDebugInfo() {
     errorHoldMs,
     reducedMotion,
     frameIntervalMs: getFrameIntervalMs(),
-    actualFps: _actualFps,
+    actualFps: _fpsCounter.fps(),
     reconnectAttempt,
     canvasScale: currentScale,
     canvasWidth: canvas.width,
@@ -1428,30 +1429,10 @@ let lastFrameAt = 0;
 // Actual FPS measurement: ring buffer over a rolling 1-second window.
 // Uses a fixed-size circular buffer instead of Array.shift() to avoid O(n)
 // per-frame overhead in the render loop hot path.
-const _FPS_BUF_SIZE = 120; // enough for 2× 60fps
-const _fpsRing = new Float64Array(_FPS_BUF_SIZE);
-let _fpsHead = 0;   // next write index
-let _fpsCount = 0;  // total entries in the ring
-let _actualFps = 0;
+// FPS measurement — delegated to the extracted fps-counter module for testability.
+const _fpsCounter = createFpsCounter();
 
-function _updateActualFps(t) {
-  _fpsRing[_fpsHead] = t;
-  _fpsHead = (_fpsHead + 1) % _FPS_BUF_SIZE;
-  if (_fpsCount < _FPS_BUF_SIZE) _fpsCount++;
-
-  // Count how many timestamps fall within the last 1 second.
-  // Scan backwards from the most recent entry.
-  const cutoff = t - 1000;
-  let count = 0;
-  for (let i = 0; i < _fpsCount; i++) {
-    const idx = (_fpsHead - 1 - i + _FPS_BUF_SIZE) % _FPS_BUF_SIZE;
-    if (_fpsRing[idx] < cutoff) break;
-    count++;
-  }
-  _actualFps = count;
-}
-
-window.__moltMascotActualFps = () => _actualFps;
+window.__moltMascotActualFps = () => _fpsCounter.fps();
 
 // Throttle frame rate when idle/sleeping to save CPU.
 // Delegates to the pure utility function for testability.
@@ -1470,7 +1451,7 @@ function frame(t) {
     return;
   }
   lastFrameAt = t;
-  _updateActualFps(t);
+  _fpsCounter.update(t);
 
   const idleDur = currentMode === Mode.idle ? now - modeSince : 0;
   const isSleeping = currentMode === Mode.idle && idleDur > SLEEP_THRESHOLD_MS;
