@@ -74,7 +74,7 @@ bun run mascot
 - **Cycle Alignment**: **Cmd/Ctrl+Shift+A** (cycle through all 9 alignment positions)
 - **Reset State**: **Cmd/Ctrl+Shift+R** (force idle/clear error)
 - **Snap to Position**: **Cmd/Ctrl+Shift+S** (reset manual drag, reposition to current alignment)
-- **Cycle Size**: **Cmd/Ctrl+Shift+Z** (cycle through small → medium → large → xlarge window sizes)
+- **Cycle Size**: **Cmd/Ctrl+Shift+Z** (cycle through tiny → small → medium → large → xlarge window sizes)
 - **Cycle Opacity**: **Cmd/Ctrl+Shift+O** (cycle through 100% → 80% → 60% → 40% → 20%)
 - **DevTools**: **Cmd/Ctrl+Shift+D** (toggle detached DevTools for debugging WS frames)
 - **Alignment**: `MOLT_MASCOT_ALIGN` (default: `bottom-right`)
@@ -82,7 +82,7 @@ bun run mascot
   - Note: `center` ignores padding; all other alignments use `MOLT_MASCOT_PADDING`.
   - Edge padding: `MOLT_MASCOT_PADDING` (default: `24`)
 - **Opacity**: `MOLT_MASCOT_OPACITY` (default: `1.0`, range: `0.0`-`1.0`)
-- **Size preset**: `MOLT_MASCOT_SIZE` (values: `small`, `medium`, `large`, `xlarge`; default: `medium`)
+- **Size preset**: `MOLT_MASCOT_SIZE` (values: `tiny`, `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
 - **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings
@@ -108,7 +108,7 @@ bun run mascot
 | Cmd/Ctrl+Shift+A | Cycle alignment position |
 | Cmd/Ctrl+Shift+R | Reset state (force idle) |
 | Cmd/Ctrl+Shift+S | Snap to position (reset manual drag) |
-| Cmd/Ctrl+Shift+Z | Cycle window size (small → medium → large → xlarge) |
+| Cmd/Ctrl+Shift+Z | Cycle window size (tiny → small → medium → large → xlarge) |
 | Cmd/Ctrl+Shift+O | Cycle opacity (100% → 80% → 60% → 40% → 20%) |
 | Cmd/Ctrl+Shift+C | Force reconnect to Gateway |
 | Cmd/Ctrl+Shift+I | Copy debug info to clipboard |
@@ -138,7 +138,7 @@ Options:
   --gateway <url>        Gateway WebSocket URL (overrides env)
   --token <token>        Gateway auth token (overrides env)
   --align <position>     Window alignment (overrides env/saved prefs)
-  --size <preset>        Size preset: small, medium, large, xlarge
+  --size <preset>        Size preset: tiny, small, medium, large, xlarge
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --click-through        Start in ghost mode (click-through)
@@ -150,6 +150,7 @@ Options:
   --list-prefs           Print saved preferences and exit
   --reset-prefs          Clear saved preferences and start fresh
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
+  --no-shortcuts         Disable global keyboard shortcuts (use tray/context menu instead)
 ```
 
 ## Project Structure
