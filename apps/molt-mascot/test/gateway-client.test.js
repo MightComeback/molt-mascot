@@ -86,6 +86,10 @@ describe('GatewayClient', () => {
       expect(client.pluginStateMethod).toBeNull();
       expect(client.pluginResetMethod).toBeNull();
     });
+
+    it('reports 0 for lastMessageAt when no messages received', () => {
+      expect(client.lastMessageAt).toBe(0);
+    });
   });
 
   describe('getStatus()', () => {
@@ -286,6 +290,17 @@ describe('GatewayClient', () => {
       expect(client.connectedSince).not.toBeNull();
       expect(client.sessionConnectCount).toBe(1);
       expect(client.connectedUrl).toBe('ws://localhost:9999');
+    });
+
+    it('updates lastMessageAt on incoming message', () => {
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const before = Date.now();
+      const connectFrame = JSON.parse(ws._sent[0]);
+      ws._message({ type: 'res', id: connectFrame.id, ok: true, payload: { type: 'hello-ok' } });
+      expect(client.lastMessageAt).toBeGreaterThanOrEqual(before);
+      expect(client.lastMessageAt).toBeLessThanOrEqual(Date.now());
     });
 
     it('handles handshake failure without reconnect loop', () => {

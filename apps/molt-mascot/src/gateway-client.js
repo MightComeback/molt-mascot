@@ -599,6 +599,15 @@ export class GatewayClient {
   }
 
   /**
+   * Timestamp (epoch ms) of the last WebSocket message received, or 0 if none.
+   * Useful for diagnosing stale connections: consumers can compare this against
+   * Date.now() to detect gaps before the stale-check timer triggers a reconnect.
+   */
+  get lastMessageAt() {
+    return this._lastMessageAt;
+  }
+
+  /**
    * Return a plain, JSON-serializable snapshot of the client's current state.
    * Useful for debug info export, logging, and diagnostics without manually
    * plucking individual properties.
