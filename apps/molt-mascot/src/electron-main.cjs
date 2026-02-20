@@ -151,7 +151,7 @@ const cliDebug = process.argv.includes('--debug');
 
 // CLI flags: --no-tray disables the system tray icon entirely.
 // Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
-const cliNoTray = process.argv.includes('--no-tray');
+const cliNoTray = process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
 
 // CLI flags: --help prints usage information and exits.
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -207,6 +207,7 @@ Environment variables:
   MOLT_MASCOT_MIN_PROTOCOL    Minimum Gateway protocol version (default: 2)
   MOLT_MASCOT_MAX_PROTOCOL    Maximum Gateway protocol version (default: 3)
   MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
+  MOLT_MASCOT_NO_TRAY         Disable system tray icon (1/true/yes)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):
