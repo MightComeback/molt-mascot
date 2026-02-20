@@ -515,6 +515,43 @@ describe("buildDebugInfo", () => {
   });
 });
 
+describe("connection uptime", () => {
+  it("shows connection uptime percentage when process uptime and firstConnectedAt are available", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 90_000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      firstConnectedAt: NOW - 100_000,
+      processUptimeS: 200,
+      sessionConnectCount: 2,
+    });
+    expect(info).toContain("Connection uptime: ~50%");
+  });
+
+  it("omits connection uptime when process uptime is missing", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 90_000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      firstConnectedAt: NOW - 100_000,
+    });
+    expect(info).not.toContain("Connection uptime");
+  });
+
+  it("shows lower uptime percentage when currently disconnected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: null,
+      connectedUrl: "",
+      firstConnectedAt: NOW - 100_000,
+      lastDisconnectedAt: NOW - 50_000,
+      processUptimeS: 200,
+      sessionConnectCount: 2,
+    });
+    expect(info).toContain("Connection uptime: ~25%");
+  });
+});
+
 describe("formatElapsed", () => {
   it("returns human-readable duration between two timestamps", () => {
     const now = 1700000000000;
