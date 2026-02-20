@@ -14,6 +14,13 @@ export const EYE_RIGHT_COL = 18;
 export const EYE_ROW = 8;
 export const EYE_SIZE = 2; // 2×2 sprite pixels per eye
 
+// Animation timing constants.
+// BOB_PERIOD_MS controls the sinusoidal vertical bob cycle; also used to alternate
+// the two idle sprite frames (open/closed claws) at the same cadence.
+// BOB_AMPLITUDE_PX is the peak vertical displacement in canvas pixels.
+export const BOB_PERIOD_MS = 260;
+export const BOB_AMPLITUDE_PX = 2;
+
 /**
  * Draw a pixel-art sprite onto a 2D canvas context.
  *
@@ -191,8 +198,8 @@ export function drawLobster(ctx, params) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const frame = reducedMotion ? 0 : Math.floor(t / 260) % 2;
-  const bob = reducedMotion ? 0 : Math.sin(t / 260) * 2;
+  const frame = reducedMotion ? 0 : Math.floor(t / BOB_PERIOD_MS) % 2;
+  const bob = reducedMotion ? 0 : Math.sin(t / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX;
 
   // Subtle shadow (keeps it readable on transparent backgrounds)
   // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),

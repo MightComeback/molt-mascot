@@ -9,6 +9,8 @@ import {
   EYE_RIGHT_COL,
   EYE_ROW,
   EYE_SIZE,
+  BOB_PERIOD_MS,
+  BOB_AMPLITUDE_PX,
 } from "../src/draw.js";
 
 // Minimal canvas context mock that records draw calls
@@ -370,5 +372,48 @@ describe("eye constants", () => {
     expect(EYE_ROW).toBeGreaterThanOrEqual(0);
     expect(EYE_ROW).toBeLessThan(32);
     expect(EYE_SIZE).toBeGreaterThan(0);
+  });
+});
+
+describe("animation constants", () => {
+  it("BOB_PERIOD_MS is a positive number", () => {
+    expect(typeof BOB_PERIOD_MS).toBe("number");
+    expect(BOB_PERIOD_MS).toBeGreaterThan(0);
+    expect(Number.isFinite(BOB_PERIOD_MS)).toBe(true);
+  });
+
+  it("BOB_AMPLITUDE_PX is a positive number", () => {
+    expect(typeof BOB_AMPLITUDE_PX).toBe("number");
+    expect(BOB_AMPLITUDE_PX).toBeGreaterThan(0);
+    expect(Number.isFinite(BOB_AMPLITUDE_PX)).toBe(true);
+  });
+
+  it("drawLobster bob uses BOB_PERIOD_MS and BOB_AMPLITUDE_PX consistently", () => {
+    // At t=0, sin(0)=0 so bob=0. At t=BOB_PERIOD_MS*π/2, sin(π/2)=1 so bob=AMPLITUDE.
+    // Verify the blink eye position shifts by the expected bob at peak.
+    const peakT = BOB_PERIOD_MS * Math.PI / 2;
+    const expectedBob = Math.round(Math.sin(peakT / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX);
+    expect(expectedBob).toBe(Math.round(BOB_AMPLITUDE_PX)); // sin(π/2)=1
+
+    const ctx = mockCtx();
+    drawLobster(ctx, {
+      mode: "idle",
+      t: peakT,
+      scale: 3,
+      spriteSize: 32,
+      reducedMotion: false,
+      blinking: true,
+      canvas: { width: 96, height: 96 },
+    });
+
+    const fills = ctx.calls.filter((c) => c.fn === "fillRect");
+    const eyeY = EYE_ROW * 3 + expectedBob;
+    const eyeFills = fills.filter((c) =>
+      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+      c.args[1] === eyeY &&
+      c.args[2] === EYE_SIZE * 3 &&
+      c.args[3] === EYE_SIZE * 3
+    );
+    expect(eyeFills.length).toBe(2);
   });
 });
