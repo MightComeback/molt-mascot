@@ -3,6 +3,7 @@
  * Single source of truth: previously duplicated in renderer.js and tray-icon.cjs.
  */
 const MODE_EMOJI = Object.freeze({
+  idle: '●',
   thinking: '🧠',
   tool: '🔧',
   error: '❌',

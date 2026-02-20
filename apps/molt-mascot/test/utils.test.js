@@ -886,7 +886,7 @@ describe("MODE_EMOJI", () => {
     expect(MODE_EMOJI.sleeping).toBe("💤");
   });
 
-  it("does not include idle (idle has no emoji indicator)", () => {
-    expect(MODE_EMOJI.idle).toBeUndefined();
+  it("includes idle with a neutral dot indicator", () => {
+    expect(MODE_EMOJI.idle).toBe("●");
   });
 });

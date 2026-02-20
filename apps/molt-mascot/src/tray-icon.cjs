@@ -175,7 +175,7 @@ function buildTrayTooltip(params) {
   const modeEmoji = MODE_EMOJI;
   const modeLabel = mode || 'idle';
   if (modeLabel !== 'idle') {
-    let modePart = `${modeEmoji[modeLabel] || '●'} ${modeLabel}`;
+    let modePart = `${modeEmoji[modeLabel] ?? '●'} ${modeLabel}`;
     if (modeLabel === 'tool' && currentTool) modePart = `${modeEmoji.tool} ${currentTool}`;
     if (modeLabel === 'error' && lastErrorMessage) modePart = `${modeEmoji.error} ${lastErrorMessage}`;
     if (typeof modeDurationSec === 'number' && modeDurationSec > 0) modePart += ` (${formatDuration(modeDurationSec)})`;
