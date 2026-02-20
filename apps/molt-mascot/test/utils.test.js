@@ -421,6 +421,12 @@ describe("buildTooltip", () => {
     expect(tip).toContain("disconnected 2m ago");
   });
 
+  it("treats connectedSince=0 as connected (epoch timestamp)", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectedSince: 0, now: 60000 });
+    expect(tip).toContain("connected 1m");
+    expect(tip).not.toContain("retry");
+  });
+
   it("omits disconnected duration when connected", () => {
     const now = Date.now();
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, lastDisconnectedAt: now - 60_000, connectedSince: now - 30_000, now });

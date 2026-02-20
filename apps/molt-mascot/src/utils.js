@@ -183,19 +183,20 @@ export function buildTooltip(params) {
   if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
   if (isClickThrough) tip += ' (ghost mode)';
   if (isTextHidden) tip += ' (text hidden)';
-  if (connectedSince) {
+  const isConnected = typeof connectedSince === 'number' && connectedSince >= 0;
+  if (isConnected) {
     tip += ` · connected ${formatElapsed(connectedSince, now)}`;
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;
-  if (!connectedSince && typeof lastDisconnectedAt === 'number' && lastDisconnectedAt > 0) {
+  if (!isConnected && typeof lastDisconnectedAt === 'number' && lastDisconnectedAt > 0) {
     tip += ` · disconnected ${formatElapsed(lastDisconnectedAt, now)} ago`;
   }
-  if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
+  if (reconnectAttempt > 0 && !isConnected) tip += ` · retry #${reconnectAttempt}`;
   // Show target URL when disconnected to help diagnose which endpoint is failing.
-  if (typeof targetUrl === 'string' && targetUrl && !connectedSince) tip += ` · → ${targetUrl}`;
+  if (typeof targetUrl === 'string' && targetUrl && !isConnected) tip += ` · → ${targetUrl}`;
   // Show close reason when disconnected, or when connected but the connection has flapped
   // (helps diagnose why the last disconnect happened without opening debug info).
-  if (lastCloseDetail && (!connectedSince || (typeof sessionConnectCount === 'number' && sessionConnectCount > 1))) {
+  if (lastCloseDetail && (!isConnected || (typeof sessionConnectCount === 'number' && sessionConnectCount > 1))) {
     tip += ` · last close: ${lastCloseDetail}`;
   }
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
