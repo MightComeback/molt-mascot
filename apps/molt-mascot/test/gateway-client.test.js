@@ -110,6 +110,11 @@ describe('GatewayClient', () => {
       const parsed = JSON.parse(json);
       expect(parsed.isConnected).toBe(false);
     });
+
+    it('includes lastMessageAt (null when no messages received)', () => {
+      const status = client.getStatus();
+      expect(status.lastMessageAt).toBeNull();
+    });
   });
 
   describe('destroy()', () => {

@@ -473,6 +473,36 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("First connected");
   });
 
+  it("shows last message time when connected and lastMessageAt is set", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 120000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      lastMessageAt: NOW - 5000, // 5s ago
+    });
+    expect(info).toContain("Last message: 5s ago");
+  });
+
+  it("omits last message line when not connected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      lastMessageAt: NOW - 5000,
+    });
+    expect(info).not.toContain("Last message");
+  });
+
+  it("omits last message line when lastMessageAt is null/zero", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 120000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      lastMessageAt: 0,
+    });
+    expect(info).not.toContain("Last message");
+  });
+
   it("includes arch in Platform line when provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, arch: "arm64" });
     expect(info).toContain("Platform: MacIntel arm64");

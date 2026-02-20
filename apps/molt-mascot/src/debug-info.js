@@ -49,6 +49,7 @@
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {number|null} [params.firstConnectedAt] - Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
+ * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps diagnose stale connections before they trip the timeout)
  * @param {string} [params.arch] - CPU architecture (e.g. 'arm64', 'x64') — useful for diagnosing Electron compatibility issues
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
@@ -108,6 +109,7 @@ export function buildDebugInfo(params) {
     arch,
     pluginResetMethod,
     firstConnectedAt,
+    lastMessageAt,
     now: nowOverride,
   } = params;
 
@@ -131,6 +133,10 @@ export function buildDebugInfo(params) {
     }
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
+    // Show time since last WS message — helps diagnose stale connections before they trip the timeout.
+    if (typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+      lines.push(`Last message: ${formatElapsed(lastMessageAt, now)} ago`);
+    }
     // Show last disconnect even when connected — helps debug flaky connections
     if (lastDisconnectedAt) {
       lines.push(`Last disconnect: ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
