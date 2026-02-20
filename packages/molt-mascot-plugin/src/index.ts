@@ -295,6 +295,13 @@ export const ERROR_PREFIXES = [
   "zig:",
   "esbuild:",
   "vite:",
+  "swc:",
+  "biome:",
+  "oxlint:",
+  "eslint:",
+  "prettier:",
+  "turbo:",
+  "nx:",
   // Browser automation
   "browser:",
   "playwright:",

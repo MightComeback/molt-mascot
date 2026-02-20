@@ -254,6 +254,13 @@ describe("utils", () => {
     expect(cleanErrorString("esbuild: error: Could not resolve 'missing'")).toBe("Could not resolve 'missing'");
     expect(cleanErrorString("vite: error: Build failed")).toBe("Build failed");
     expect(cleanErrorString("zig: error: expected token '}'")).toBe("expected token '}'");
+    expect(cleanErrorString("swc: failed to compile module")).toBe("failed to compile module");
+    expect(cleanErrorString("biome: lint error in src/index.ts")).toBe("lint error in src/index.ts");
+    expect(cleanErrorString("oxlint: 3 errors found")).toBe("3 errors found");
+    expect(cleanErrorString("eslint: Unexpected token")).toBe("Unexpected token");
+    expect(cleanErrorString("prettier: SyntaxError: Unexpected token")).toBe("Unexpected token");
+    expect(cleanErrorString("turbo: error: could not find turbo.json")).toBe("could not find turbo.json");
+    expect(cleanErrorString("nx: Cannot find project 'app'")).toBe("Cannot find project 'app'");
   });
 
   it("summarizeToolResultMessage", () => {
