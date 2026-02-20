@@ -623,6 +623,8 @@ export class GatewayClient {
       isPollingPaused: this._pollingPaused,
       uptimeSeconds: this.uptimeSeconds,
       pluginResetMethod: this.pluginResetMethod,
+      pluginStateMethodIndex: this._pluginStateMethodIndex,
+      pluginResetMethodIndex: this._pluginResetMethodIndex,
     };
   }
 

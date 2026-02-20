@@ -160,6 +160,8 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure (1006)")
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown when disconnected)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose which endpoint is failing)
+ * @param {number} [params.toolCalls] - Total tool invocations since plugin start (shown with success rate)
+ * @param {number} [params.toolErrors] - Total tool errors since plugin start (shown alongside toolCalls)
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
