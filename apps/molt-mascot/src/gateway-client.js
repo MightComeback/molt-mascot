@@ -318,19 +318,8 @@ export class GatewayClient {
         const err = msg.payload?.error || msg.error;
         const detail = typeof err === 'string' ? err
           : err?.message || err?.code || 'connection rejected';
-        // Prevent reconnect loop: null onclose before closing the socket
-        ws.onclose = null;
-        try { ws.close(); } catch {}
-        this._ws = null;
-        this.connectedSince = null;
-        this.connectedUrl = '';
-        this.hasPlugin = false;
-        this._stopPluginPoller();
-        this._stopStaleCheck();
-        this._pluginStatePending = false;
-        this._pluginStateLastSentAt = 0;
-        this._pluginStateSentAt = 0;
-        this.latencyMs = null;
+        // Prevent reconnect loop: _cleanup nulls onclose before closing the socket.
+        this._cleanup();
         this.onHandshakeFailure?.(String(detail));
         return;
       }
