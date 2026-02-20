@@ -140,6 +140,8 @@ Options:
   --size <preset>        Size preset: small, medium, large, xlarge
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
+  --click-through        Start in ghost mode (click-through)
+  --hide-text            Start with HUD text hidden
   --debug                Open DevTools on launch
   --disable-gpu          Disable hardware acceleration (useful on VMs, Wayland, remote desktops)
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
