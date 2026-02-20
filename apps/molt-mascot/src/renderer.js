@@ -367,6 +367,10 @@ function syncPill() {
   const isSleeping = currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S;
   pill.className = isSleeping ? 'pill--sleeping' : `pill--${currentMode}`;
 
+  // Expose effective mode on <body> so external CSS/automation can target state.
+  const bodyMode = isSleeping ? 'sleeping' : currentMode;
+  if (document.body.dataset.mode !== bodyMode) document.body.dataset.mode = bodyMode;
+
   // Update canvas aria-label for screen readers (use display mode, not raw mode)
   const ariaMode = isSleeping ? 'sleeping' : currentMode;
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${ariaMode}`);
