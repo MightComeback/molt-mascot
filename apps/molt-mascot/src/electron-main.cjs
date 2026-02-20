@@ -148,6 +148,35 @@ if (cliMaxProtocol) {
   }
 }
 
+// CLI flags for timing customization (override env vars).
+const cliSleepThreshold = parseCliArg('--sleep-threshold');
+const cliIdleDelay = parseCliArg('--idle-delay');
+const cliErrorHold = parseCliArg('--error-hold');
+if (cliSleepThreshold) {
+  const v = Number(cliSleepThreshold);
+  if (Number.isFinite(v) && v >= 0) {
+    process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S = cliSleepThreshold;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --sleep-threshold "${cliSleepThreshold}" (must be >= 0 seconds)\n`);
+  }
+}
+if (cliIdleDelay) {
+  const v = Number(cliIdleDelay);
+  if (Number.isFinite(v) && v >= 0) {
+    process.env.MOLT_MASCOT_IDLE_DELAY_MS = cliIdleDelay;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --idle-delay "${cliIdleDelay}" (must be >= 0 ms)\n`);
+  }
+}
+if (cliErrorHold) {
+  const v = Number(cliErrorHold);
+  if (Number.isFinite(v) && v >= 0) {
+    process.env.MOLT_MASCOT_ERROR_HOLD_MS = cliErrorHold;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --error-hold "${cliErrorHold}" (must be >= 0 ms)\n`);
+  }
+}
+
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
 if (process.argv.includes('--reset-prefs')) {
@@ -235,6 +264,9 @@ Options:
                          without tray support, e.g. GNOME)
   --no-shortcuts         Disable global keyboard shortcuts (use tray/context
                          menu instead; avoids conflicts with other apps)
+  --sleep-threshold <s>  Idle seconds before sleep overlay (default: 120)
+  --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
+  --error-hold <ms>      How long to show error state before reverting (default: 5000)
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
