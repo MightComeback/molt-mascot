@@ -84,6 +84,7 @@ bun run mascot
 - **Opacity**: `MOLT_MASCOT_OPACITY` (default: `1.0`, range: `0.0`-`1.0`)
 - **Size preset**: `MOLT_MASCOT_SIZE` (values: `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
+- **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
