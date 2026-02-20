@@ -1,4 +1,4 @@
-import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -1276,7 +1276,7 @@ function showContextMenu(e) {
   }
   if (pluginToolCalls > 0) {
     const statsStr = pluginToolErrors > 0
-      ? `${pluginToolCalls} calls, ${pluginToolErrors} err`
+      ? `${pluginToolCalls} calls, ${pluginToolErrors} err (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
       : `${pluginToolCalls} calls`;
     statusParts.push(statsStr);
   }
