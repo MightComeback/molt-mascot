@@ -371,6 +371,8 @@ function syncPill() {
       closeDetail: lastCloseDetail || null,
       reconnectAttempt: reconnectAttempt || 0,
       targetUrl: connectedUrl || loadCfg()?.url || null,
+      activeAgents: pluginActiveAgents || 0,
+      activeTools: pluginActiveTools || 0,
     });
   }
 }

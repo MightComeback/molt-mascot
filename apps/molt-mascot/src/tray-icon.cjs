@@ -160,10 +160,12 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure (1006)")
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown when disconnected)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose which endpoint is failing)
+ * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
+ * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools } = params;
   const parts = [`Molt Mascot v${appVersion}`];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
@@ -194,6 +196,9 @@ function buildTrayTooltip(params) {
       ? `${toolCalls} calls, ${toolErrors} err (${rate}% ok)`
       : `${toolCalls} calls`;
     parts.push(`🔨 ${statsStr}`);
+  }
+  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+    parts.push(`⚡ ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);

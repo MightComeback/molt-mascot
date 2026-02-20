@@ -354,6 +354,24 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base })).not.toContain('🔨');
     });
 
+    it('shows active agents/tools when non-zero', () => {
+      const tip = buildTrayTooltip({ ...base, activeAgents: 2, activeTools: 3 });
+      expect(tip).toContain('2 agents, 3 tools');
+    });
+
+    it('uses singular form for 1 agent or 1 tool', () => {
+      const tip = buildTrayTooltip({ ...base, activeAgents: 1, activeTools: 1 });
+      expect(tip).toContain('1 agent,');
+      expect(tip).toContain('1 tool');
+      expect(tip).not.toContain('agents');
+      expect(tip).not.toContain('tools');
+    });
+
+    it('omits active agents/tools when both are zero', () => {
+      expect(buildTrayTooltip({ ...base, activeAgents: 0, activeTools: 0 })).not.toContain('agent');
+      expect(buildTrayTooltip({ ...base })).not.toContain('agent');
+    });
+
     it('shows close detail when provided', () => {
       const tip = buildTrayTooltip({ ...base, lastCloseDetail: 'abnormal closure (1006)' });
       expect(tip).toContain('⚡ abnormal closure (1006)');

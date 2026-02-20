@@ -679,6 +679,8 @@ app.whenReady().then(async () => {
       lastCloseDetail: currentCloseDetail,
       reconnectAttempt: currentReconnectAttempt,
       targetUrl: currentTargetUrl,
+      activeAgents: currentActiveAgents,
+      activeTools: currentActiveTools,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -853,14 +855,18 @@ app.whenReady().then(async () => {
   let currentCloseDetail = null;
   let currentReconnectAttempt = 0;
   let currentTargetUrl = null;
+  let currentActiveAgents = 0;
+  let currentActiveTools = 0;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
     if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
     if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
+    if (typeof activeAgents === 'number' && activeAgents >= 0) currentActiveAgents = activeAgents;
+    if (typeof activeTools === 'number' && activeTools >= 0) currentActiveTools = activeTools;
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;
