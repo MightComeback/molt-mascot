@@ -141,8 +141,22 @@ if (process.argv.includes('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 const cliMinProtocol = parseCliArg('--min-protocol');
 const cliMaxProtocol = parseCliArg('--max-protocol');
-if (cliMinProtocol) process.env.MOLT_MASCOT_MIN_PROTOCOL = cliMinProtocol;
-if (cliMaxProtocol) process.env.MOLT_MASCOT_MAX_PROTOCOL = cliMaxProtocol;
+if (cliMinProtocol) {
+  const v = Number(cliMinProtocol);
+  if (Number.isInteger(v) && v > 0) {
+    process.env.MOLT_MASCOT_MIN_PROTOCOL = cliMinProtocol;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --min-protocol "${cliMinProtocol}" (must be a positive integer)\n`);
+  }
+}
+if (cliMaxProtocol) {
+  const v = Number(cliMaxProtocol);
+  if (Number.isInteger(v) && v > 0) {
+    process.env.MOLT_MASCOT_MAX_PROTOCOL = cliMaxProtocol;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --max-protocol "${cliMaxProtocol}" (must be a positive integer)\n`);
+  }
+}
 
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
