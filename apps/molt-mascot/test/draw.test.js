@@ -11,6 +11,14 @@ import {
   EYE_SIZE,
   BOB_PERIOD_MS,
   BOB_AMPLITUDE_PX,
+  SHADOW_CENTER_Y_RATIO,
+  SHADOW_BASE_ALPHA,
+  SHADOW_MIN_ALPHA,
+  SHADOW_RX_FACTOR,
+  SHADOW_RY_FACTOR,
+  SHADOW_BOB_RX_FACTOR,
+  SHADOW_BOB_RY_FACTOR,
+  SHADOW_BOB_ALPHA_FACTOR,
 } from "../src/draw.js";
 
 // Minimal canvas context mock that records draw calls
@@ -372,6 +380,57 @@ describe("eye constants", () => {
     expect(EYE_ROW).toBeGreaterThanOrEqual(0);
     expect(EYE_ROW).toBeLessThan(32);
     expect(EYE_SIZE).toBeGreaterThan(0);
+  });
+});
+
+describe("shadow constants", () => {
+  it("SHADOW_CENTER_Y_RATIO is between 0 and 1", () => {
+    expect(SHADOW_CENTER_Y_RATIO).toBeGreaterThan(0);
+    expect(SHADOW_CENTER_Y_RATIO).toBeLessThanOrEqual(1);
+  });
+
+  it("SHADOW_BASE_ALPHA exceeds SHADOW_MIN_ALPHA", () => {
+    expect(SHADOW_BASE_ALPHA).toBeGreaterThan(SHADOW_MIN_ALPHA);
+    expect(SHADOW_MIN_ALPHA).toBeGreaterThan(0);
+    expect(SHADOW_BASE_ALPHA).toBeLessThanOrEqual(1);
+  });
+
+  it("shadow radii factors are positive", () => {
+    expect(SHADOW_RX_FACTOR).toBeGreaterThan(0);
+    expect(SHADOW_RY_FACTOR).toBeGreaterThan(0);
+    expect(SHADOW_RX_FACTOR).toBeGreaterThan(SHADOW_RY_FACTOR); // wider than tall
+  });
+
+  it("shadow bob factors are positive and small", () => {
+    expect(SHADOW_BOB_RX_FACTOR).toBeGreaterThan(0);
+    expect(SHADOW_BOB_RY_FACTOR).toBeGreaterThan(0);
+    expect(SHADOW_BOB_ALPHA_FACTOR).toBeGreaterThan(0);
+    // Bob factors should be small relative to the base values
+    expect(SHADOW_BOB_RX_FACTOR).toBeLessThan(SHADOW_RX_FACTOR);
+    expect(SHADOW_BOB_RY_FACTOR).toBeLessThan(SHADOW_RY_FACTOR);
+  });
+
+  it("drawLobster shadow ellipse uses the named constants correctly", () => {
+    const ctx = mockCtx();
+    // Use reducedMotion=true so bob=0 for deterministic shadow geometry
+    drawLobster(ctx, {
+      mode: "idle",
+      t: 0,
+      scale: 3,
+      spriteSize: 32,
+      reducedMotion: true,
+      blinking: false,
+      canvas: { width: 96, height: 96 },
+    });
+
+    const ellipses = ctx.calls.filter((c) => c.fn === "ellipse");
+    expect(ellipses.length).toBe(1);
+    const [cx, cy, rx, ry] = ellipses[0].args;
+    // With bob=0 and scale=3, spriteSize=32:
+    expect(cx).toBe((32 * 3) / 2); // centerX
+    expect(cy).toBe(32 * 3 * SHADOW_CENTER_Y_RATIO); // centerY
+    expect(rx).toBeCloseTo(SHADOW_RX_FACTOR * 3, 5); // no bob displacement
+    expect(ry).toBeCloseTo(SHADOW_RY_FACTOR * 3, 5);
   });
 });
 

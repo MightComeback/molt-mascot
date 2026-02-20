@@ -21,6 +21,21 @@ export const EYE_SIZE = 2; // 2×2 sprite pixels per eye
 export const BOB_PERIOD_MS = 260;
 export const BOB_AMPLITUDE_PX = 2;
 
+// Shadow geometry constants (relative to sprite grid).
+// SHADOW_CENTER_Y_RATIO positions the shadow ellipse vertically as a fraction of sprite height.
+// SHADOW_BASE_ALPHA is the resting opacity; bob displaces it slightly for depth.
+export const SHADOW_CENTER_Y_RATIO = 0.81;
+export const SHADOW_BASE_ALPHA = 0.35;
+export const SHADOW_MIN_ALPHA = 0.15;
+// Scale factors for the shadow ellipse radii (multiplied by sprite scale).
+// Derived from the original (26/3)*s and (10/3)*s formulas.
+export const SHADOW_RX_FACTOR = 26 / 3;
+export const SHADOW_RY_FACTOR = 10 / 3;
+// How much the bob affects shadow size and opacity (depth cue).
+export const SHADOW_BOB_RX_FACTOR = 0.4;
+export const SHADOW_BOB_RY_FACTOR = 0.2;
+export const SHADOW_BOB_ALPHA_FACTOR = 0.02;
+
 /**
  * Draw a pixel-art sprite onto a 2D canvas context.
  *
@@ -205,10 +220,10 @@ export function drawLobster(ctx, params) {
   // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
   // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
   const shadowCenterX = (spriteSize * s) / 2;
-  const shadowCenterY = (spriteSize * s) * 0.81;
-  const shadowScaleX = (26 * s / 3) - bob * 0.4;
-  const shadowScaleY = (10 * s / 3) - bob * 0.2;
-  const shadowAlpha = Math.max(0.15, 0.35 - bob * 0.02);
+  const shadowCenterY = (spriteSize * s) * SHADOW_CENTER_Y_RATIO;
+  const shadowScaleX = SHADOW_RX_FACTOR * s - bob * SHADOW_BOB_RX_FACTOR;
+  const shadowScaleY = SHADOW_RY_FACTOR * s - bob * SHADOW_BOB_RY_FACTOR;
+  const shadowAlpha = Math.max(SHADOW_MIN_ALPHA, SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR);
   ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
   ctx.beginPath();
   ctx.ellipse(shadowCenterX, shadowCenterY, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
