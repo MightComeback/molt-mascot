@@ -1,4 +1,31 @@
 /**
+ * Canonical set of valid alignment values.
+ * Shared across CLI --help, context menu, and position computation so there's
+ * a single source of truth for supported alignments.
+ */
+const VALID_ALIGNMENTS = Object.freeze([
+  'bottom-right',
+  'bottom-left',
+  'top-right',
+  'top-left',
+  'bottom-center',
+  'top-center',
+  'center-left',
+  'center-right',
+  'center',
+]);
+
+/**
+ * Check whether a string is a recognized alignment value (case-insensitive).
+ * @param {string} value
+ * @returns {boolean}
+ */
+function isValidAlignment(value) {
+  if (typeof value !== 'string') return false;
+  return VALID_ALIGNMENTS.includes(value.trim().toLowerCase());
+}
+
+/**
  * Pure function to compute window position for a given display, size, alignment, and padding.
  * Extracted from electron-main.cjs for testability.
  */
@@ -64,4 +91,4 @@ function clampToWorkArea(pos, size, workArea) {
   };
 }
 
-module.exports = { getPosition, clampToWorkArea };
+module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment };

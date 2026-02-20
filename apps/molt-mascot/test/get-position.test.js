@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment } = require("../src/get-position.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
@@ -169,5 +169,53 @@ describe("clampToWorkArea", () => {
   it("reports changed=false for already-rounded positions at edges", () => {
     const result = clampToWorkArea({ x: 1680, y: 880 }, size, workArea);
     expect(result).toEqual({ x: 1680, y: 880, changed: false });
+  });
+});
+
+describe("VALID_ALIGNMENTS", () => {
+  it("contains all 9 alignment values", () => {
+    expect(VALID_ALIGNMENTS).toHaveLength(9);
+    expect(VALID_ALIGNMENTS).toContain("bottom-right");
+    expect(VALID_ALIGNMENTS).toContain("center");
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(VALID_ALIGNMENTS)).toBe(true);
+  });
+
+  it("every value is accepted by getPosition without falling to default", () => {
+    const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
+    const defaultPos = getPosition(display, 240, 200, "bottom-right", 24);
+    for (const align of VALID_ALIGNMENTS) {
+      if (align === "bottom-right") continue;
+      const pos = getPosition(display, 240, 200, align, 24);
+      // Non-default alignments should produce a different position
+      expect(pos.x !== defaultPos.x || pos.y !== defaultPos.y).toBe(true);
+    }
+  });
+});
+
+describe("isValidAlignment", () => {
+  it("returns true for valid alignments", () => {
+    expect(isValidAlignment("bottom-right")).toBe(true);
+    expect(isValidAlignment("center")).toBe(true);
+    expect(isValidAlignment("top-left")).toBe(true);
+  });
+
+  it("is case-insensitive", () => {
+    expect(isValidAlignment("Bottom-Right")).toBe(true);
+    expect(isValidAlignment("TOP-CENTER")).toBe(true);
+  });
+
+  it("trims whitespace", () => {
+    expect(isValidAlignment("  center  ")).toBe(true);
+  });
+
+  it("returns false for invalid values", () => {
+    expect(isValidAlignment("diagonal")).toBe(false);
+    expect(isValidAlignment("")).toBe(false);
+    expect(isValidAlignment(null)).toBe(false);
+    expect(isValidAlignment(undefined)).toBe(false);
+    expect(isValidAlignment(42)).toBe(false);
   });
 });
