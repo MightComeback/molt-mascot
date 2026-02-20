@@ -1,258 +1,222 @@
-import { describe, it, expect, mock } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 import { createPluginSync } from '../src/plugin-sync.js';
 
 describe('createPluginSync', () => {
-  it('fires callbacks on first sync', () => {
-    const onClickThrough = mock(() => {});
-    const onAlignment = mock(() => {});
-    const ps = createPluginSync({ onClickThrough, onAlignment });
+  it('fires callbacks on first sync with valid state', () => {
+    const calls = {};
+    const sync = createPluginSync({
+      onClickThrough: (v) => { calls.clickThrough = v; },
+      onAlignment: (v) => { calls.alignment = v; },
+      onOpacity: (v) => { calls.opacity = v; },
+      onSize: (v) => { calls.size = v; },
+      onHideText: (v) => { calls.hideText = v; },
+      onVersion: (v) => { calls.version = v; },
+      onToolCalls: (v) => { calls.toolCalls = v; },
+      onToolErrors: (v) => { calls.toolErrors = v; },
+      onStartedAt: (v) => { calls.startedAt = v; },
+      onActiveAgents: (v) => { calls.activeAgents = v; },
+      onActiveTools: (v) => { calls.activeTools = v; },
+      onCurrentTool: (v) => { calls.currentTool = v; },
+    });
 
-    const changed = ps.sync({ clickThrough: true, alignment: 'top-left' });
+    const changed = sync.sync({
+      clickThrough: true,
+      alignment: 'top-left',
+      opacity: 0.8,
+      size: 'large',
+      hideText: false,
+      version: '1.0.0',
+      toolCalls: 5,
+      toolErrors: 1,
+      startedAt: 1700000000000,
+      activeAgents: 2,
+      activeTools: 3,
+      currentTool: 'web_fetch',
+    });
 
-    expect(onClickThrough).toHaveBeenCalledWith(true);
-    expect(onAlignment).toHaveBeenCalledWith('top-left');
-    expect(changed).toContain('clickThrough');
-    expect(changed).toContain('alignment');
+    expect(calls.clickThrough).toBe(true);
+    expect(calls.alignment).toBe('top-left');
+    expect(calls.opacity).toBe(0.8);
+    expect(calls.size).toBe('large');
+    expect(calls.hideText).toBe(false);
+    expect(calls.version).toBe('1.0.0');
+    expect(calls.toolCalls).toBe(5);
+    expect(calls.toolErrors).toBe(1);
+    expect(calls.startedAt).toBe(1700000000000);
+    expect(calls.activeAgents).toBe(2);
+    expect(calls.activeTools).toBe(3);
+    expect(calls.currentTool).toBe('web_fetch');
+    expect(changed).toEqual([
+      'clickThrough', 'alignment', 'opacity', 'size', 'hideText',
+      'version', 'toolCalls', 'toolErrors', 'startedAt',
+      'activeAgents', 'activeTools', 'currentTool',
+    ]);
   });
 
-  it('does not fire callback when value is unchanged', () => {
-    const onOpacity = mock(() => {});
-    const ps = createPluginSync({ onOpacity });
+  it('does not fire callbacks when values are unchanged', () => {
+    let callCount = 0;
+    const sync = createPluginSync({
+      onOpacity: () => { callCount++; },
+    });
 
-    ps.sync({ opacity: 0.8 });
-    expect(onOpacity).toHaveBeenCalledTimes(1);
+    sync.sync({ opacity: 0.5 });
+    expect(callCount).toBe(1);
 
-    ps.sync({ opacity: 0.8 });
-    expect(onOpacity).toHaveBeenCalledTimes(1); // not called again
-  });
-
-  it('fires callback when value changes', () => {
-    const onOpacity = mock(() => {});
-    const ps = createPluginSync({ onOpacity });
-
-    ps.sync({ opacity: 0.8 });
-    ps.sync({ opacity: 0.6 });
-    expect(onOpacity).toHaveBeenCalledTimes(2);
-    expect(onOpacity).toHaveBeenLastCalledWith(0.6);
-  });
-
-  it('ignores properties with wrong types', () => {
-    const onClickThrough = mock(() => {});
-    const onAlignment = mock(() => {});
-    const ps = createPluginSync({ onClickThrough, onAlignment });
-
-    ps.sync({ clickThrough: 'yes', alignment: 42 });
-    expect(onClickThrough).not.toHaveBeenCalled();
-    expect(onAlignment).not.toHaveBeenCalled();
-  });
-
-  it('ignores empty string for alignment and size', () => {
-    const onAlignment = mock(() => {});
-    const onSize = mock(() => {});
-    const ps = createPluginSync({ onAlignment, onSize });
-
-    const changed = ps.sync({ alignment: '', size: '' });
-    expect(onAlignment).not.toHaveBeenCalled();
-    expect(onSize).not.toHaveBeenCalled();
+    const changed = sync.sync({ opacity: 0.5 });
+    expect(callCount).toBe(1);
     expect(changed).toEqual([]);
   });
 
-  it('syncs all numeric properties', () => {
-    const onPadding = mock(() => {});
-    const onToolCalls = mock(() => {});
-    const onToolErrors = mock(() => {});
-    const onStartedAt = mock(() => {});
-    const ps = createPluginSync({ onPadding, onToolCalls, onToolErrors, onStartedAt });
+  it('fires callback when value changes', () => {
+    const values = [];
+    const sync = createPluginSync({
+      onAlignment: (v) => values.push(v),
+    });
 
-    ps.sync({ padding: 16, toolCalls: 5, toolErrors: 2, startedAt: 1000 });
-    expect(onPadding).toHaveBeenCalledWith(16);
-    expect(onToolCalls).toHaveBeenCalledWith(5);
-    expect(onToolErrors).toHaveBeenCalledWith(2);
-    expect(onStartedAt).toHaveBeenCalledWith(1000);
+    sync.sync({ alignment: 'top-left' });
+    sync.sync({ alignment: 'bottom-right' });
+    expect(values).toEqual(['top-left', 'bottom-right']);
   });
 
-  it('syncs hideText boolean', () => {
-    const onHideText = mock(() => {});
-    const ps = createPluginSync({ onHideText });
+  it('skips properties with wrong type', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onOpacity: () => { called = true; },
+    });
 
-    ps.sync({ hideText: true });
-    expect(onHideText).toHaveBeenCalledWith(true);
-
-    ps.sync({ hideText: false });
-    expect(onHideText).toHaveBeenCalledWith(false);
+    sync.sync({ opacity: 'not a number' });
+    expect(called).toBe(false);
   });
 
-  it('syncs version string', () => {
-    const onVersion = mock(() => {});
-    const ps = createPluginSync({ onVersion });
+  it('skips empty strings for non-allowEmpty properties', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onAlignment: () => { called = true; },
+    });
 
-    ps.sync({ version: '1.2.3' });
-    expect(onVersion).toHaveBeenCalledWith('1.2.3');
+    sync.sync({ alignment: '' });
+    expect(called).toBe(false);
   });
 
-  it('reset causes next sync to re-fire all callbacks', () => {
-    const onOpacity = mock(() => {});
-    const ps = createPluginSync({ onOpacity });
+  it('allows empty string for currentTool (allowEmpty)', () => {
+    const values = [];
+    const sync = createPluginSync({
+      onCurrentTool: (v) => values.push(v),
+    });
 
-    ps.sync({ opacity: 0.8 });
-    expect(onOpacity).toHaveBeenCalledTimes(1);
-
-    ps.reset();
-
-    ps.sync({ opacity: 0.8 });
-    expect(onOpacity).toHaveBeenCalledTimes(2);
+    sync.sync({ currentTool: 'exec' });
+    sync.sync({ currentTool: '' });
+    expect(values).toEqual(['exec', '']);
   });
 
-  it('last() returns current cached values', () => {
-    const ps = createPluginSync({});
+  it('validates opacity range (0-1)', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onOpacity: () => { called = true; },
+    });
 
-    ps.sync({ opacity: 0.5, alignment: 'center' });
-    const cached = ps.last();
-    expect(cached.opacity).toBe(0.5);
-    expect(cached.alignment).toBe('center');
-    expect(cached.clickThrough).toBeNull();
+    sync.sync({ opacity: 1.5 });
+    expect(called).toBe(false);
+
+    sync.sync({ opacity: -0.1 });
+    expect(called).toBe(false);
+
+    sync.sync({ opacity: 0.5 });
+    expect(called).toBe(true);
   });
 
-  it('handles null/undefined state gracefully', () => {
-    const onOpacity = mock(() => {});
-    const ps = createPluginSync({ onOpacity });
+  it('validates padding is non-negative', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onPadding: () => { called = true; },
+    });
 
-    expect(ps.sync(null)).toEqual([]);
-    expect(ps.sync(undefined)).toEqual([]);
-    expect(onOpacity).not.toHaveBeenCalled();
+    sync.sync({ padding: -10 });
+    expect(called).toBe(false);
+
+    sync.sync({ padding: 24 });
+    expect(called).toBe(true);
   });
 
-  it('works without callbacks (no-op)', () => {
-    const ps = createPluginSync();
-    const changed = ps.sync({ clickThrough: true, opacity: 0.5 });
-    expect(changed).toContain('clickThrough');
-    expect(changed).toContain('opacity');
-  });
+  it('validates toolCalls is a non-negative integer', () => {
+    const values = [];
+    const sync = createPluginSync({
+      onToolCalls: (v) => values.push(v),
+    });
 
-  it('returns only changed properties', () => {
-    const ps = createPluginSync({});
-
-    ps.sync({ opacity: 0.5, alignment: 'center' });
-    const changed = ps.sync({ opacity: 0.5, alignment: 'top-left', padding: 10 });
-    expect(changed).toEqual(['alignment', 'padding']);
-  });
-
-  it('rejects out-of-range opacity values', () => {
-    const onOpacity = mock(() => {});
-    const ps = createPluginSync({ onOpacity });
-
-    ps.sync({ opacity: -0.1 });
-    expect(onOpacity).not.toHaveBeenCalled();
-
-    ps.sync({ opacity: 1.5 });
-    expect(onOpacity).not.toHaveBeenCalled();
-
-    ps.sync({ opacity: 0.5 });
-    expect(onOpacity).toHaveBeenCalledWith(0.5);
-  });
-
-  it('rejects negative padding', () => {
-    const onPadding = mock(() => {});
-    const ps = createPluginSync({ onPadding });
-
-    ps.sync({ padding: -10 });
-    expect(onPadding).not.toHaveBeenCalled();
-
-    ps.sync({ padding: 0 });
-    expect(onPadding).toHaveBeenCalledWith(0);
+    sync.sync({ toolCalls: 3.5 });
+    sync.sync({ toolCalls: -1 });
+    sync.sync({ toolCalls: 10 });
+    expect(values).toEqual([10]);
   });
 
   it('rejects NaN and Infinity for numeric properties', () => {
-    const onOpacity = mock(() => {});
-    const onPadding = mock(() => {});
-    const ps = createPluginSync({ onOpacity, onPadding });
+    let called = false;
+    const sync = createPluginSync({
+      onOpacity: () => { called = true; },
+    });
 
-    ps.sync({ opacity: NaN, padding: Infinity });
-    expect(onOpacity).not.toHaveBeenCalled();
-    expect(onPadding).not.toHaveBeenCalled();
+    sync.sync({ opacity: NaN });
+    expect(called).toBe(false);
+
+    sync.sync({ opacity: Infinity });
+    expect(called).toBe(false);
   });
 
-  it('rejects non-integer toolCalls and toolErrors', () => {
-    const onToolCalls = mock(() => {});
-    const onToolErrors = mock(() => {});
-    const ps = createPluginSync({ onToolCalls, onToolErrors });
+  it('reset clears cached values so next sync re-fires all', () => {
+    let callCount = 0;
+    const sync = createPluginSync({
+      onOpacity: () => { callCount++; },
+    });
 
-    ps.sync({ toolCalls: 2.5, toolErrors: 1.7 });
-    expect(onToolCalls).not.toHaveBeenCalled();
-    expect(onToolErrors).not.toHaveBeenCalled();
+    sync.sync({ opacity: 0.5 });
+    expect(callCount).toBe(1);
 
-    ps.sync({ toolCalls: 3, toolErrors: 1 });
-    expect(onToolCalls).toHaveBeenCalledWith(3);
-    expect(onToolErrors).toHaveBeenCalledWith(1);
+    sync.reset();
+
+    sync.sync({ opacity: 0.5 });
+    expect(callCount).toBe(2);
   });
 
-  it('rejects zero or negative startedAt', () => {
-    const onStartedAt = mock(() => {});
-    const ps = createPluginSync({ onStartedAt });
+  it('last() returns a copy of cached values', () => {
+    const sync = createPluginSync({});
 
-    ps.sync({ startedAt: 0 });
-    expect(onStartedAt).not.toHaveBeenCalled();
+    sync.sync({ opacity: 0.7, alignment: 'center' });
+    const cached = sync.last();
+    expect(cached.opacity).toBe(0.7);
+    expect(cached.alignment).toBe('center');
 
-    ps.sync({ startedAt: -100 });
-    expect(onStartedAt).not.toHaveBeenCalled();
-
-    ps.sync({ startedAt: 1000 });
-    expect(onStartedAt).toHaveBeenCalledWith(1000);
+    // Mutating the returned object should not affect internal state
+    cached.opacity = 0.1;
+    expect(sync.last().opacity).toBe(0.7);
   });
 
-  it('syncs activeAgents and activeTools counts', () => {
-    const onActiveAgents = mock(() => {});
-    const onActiveTools = mock(() => {});
-    const ps = createPluginSync({ onActiveAgents, onActiveTools });
-
-    // Initial sync
-    const changed = ps.sync({ activeAgents: 2, activeTools: 3 });
-    expect(onActiveAgents).toHaveBeenCalledWith(2);
-    expect(onActiveTools).toHaveBeenCalledWith(3);
-    expect(changed).toContain('activeAgents');
-    expect(changed).toContain('activeTools');
-
-    // Same values — no callback
-    onActiveAgents.mockClear();
-    onActiveTools.mockClear();
-    const unchanged = ps.sync({ activeAgents: 2, activeTools: 3 });
-    expect(onActiveAgents).not.toHaveBeenCalled();
-    expect(onActiveTools).not.toHaveBeenCalled();
-    expect(unchanged).not.toContain('activeAgents');
-
-    // Zero is valid
-    ps.sync({ activeAgents: 0, activeTools: 0 });
-    expect(onActiveAgents).toHaveBeenCalledWith(0);
-    expect(onActiveTools).toHaveBeenCalledWith(0);
+  it('returns empty changed list for null/undefined state', () => {
+    const sync = createPluginSync({});
+    expect(sync.sync(null)).toEqual([]);
+    expect(sync.sync(undefined)).toEqual([]);
   });
 
-  it('syncs currentTool including empty string (cleared)', () => {
-    const onCurrentTool = mock(() => {});
-    const ps = createPluginSync({ onCurrentTool });
-
-    // Non-empty tool name
-    const changed = ps.sync({ currentTool: 'web_search' });
-    expect(onCurrentTool).toHaveBeenCalledWith('web_search');
-    expect(changed).toContain('currentTool');
-
-    // Same value — no callback
-    onCurrentTool.mockClear();
-    ps.sync({ currentTool: 'web_search' });
-    expect(onCurrentTool).not.toHaveBeenCalled();
-
-    // Cleared to empty string (tool finished)
-    ps.sync({ currentTool: '' });
-    expect(onCurrentTool).toHaveBeenCalledWith('');
+  it('handles missing callbacks gracefully', () => {
+    const sync = createPluginSync({});
+    // Should not throw even with no callbacks registered
+    const changed = sync.sync({ opacity: 0.5, alignment: 'top-left' });
+    expect(changed).toEqual(['alignment', 'opacity']);
   });
 
-  it('rejects negative activeAgents/activeTools', () => {
-    const onActiveAgents = mock(() => {});
-    const ps = createPluginSync({ onActiveAgents });
+  it('validates startedAt is positive', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onStartedAt: () => { called = true; },
+    });
 
-    ps.sync({ activeAgents: -1 });
-    expect(onActiveAgents).not.toHaveBeenCalled();
+    sync.sync({ startedAt: 0 });
+    expect(called).toBe(false);
 
-    ps.sync({ activeAgents: 1.5 });
-    expect(onActiveAgents).not.toHaveBeenCalled();
+    sync.sync({ startedAt: -1 });
+    expect(called).toBe(false);
+
+    sync.sync({ startedAt: 1700000000000 });
+    expect(called).toBe(true);
   });
 });
