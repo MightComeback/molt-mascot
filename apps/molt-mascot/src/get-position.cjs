@@ -82,4 +82,22 @@ function clampToWorkArea(pos, size, workArea) {
   };
 }
 
-module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment };
+/**
+ * Check whether a value is a valid opacity (finite number between 0 and 1 inclusive).
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidOpacity(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+/**
+ * Check whether a value is a valid padding (finite non-negative number).
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidPadding(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding } = require("../src/get-position.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
@@ -217,5 +217,52 @@ describe("isValidAlignment", () => {
     expect(isValidAlignment(null)).toBe(false);
     expect(isValidAlignment(undefined)).toBe(false);
     expect(isValidAlignment(42)).toBe(false);
+  });
+});
+
+describe("isValidOpacity", () => {
+  it("accepts valid opacity values (0–1)", () => {
+    expect(isValidOpacity(0)).toBe(true);
+    expect(isValidOpacity(0.5)).toBe(true);
+    expect(isValidOpacity(1)).toBe(true);
+    expect(isValidOpacity(0.01)).toBe(true);
+    expect(isValidOpacity(0.99)).toBe(true);
+  });
+
+  it("rejects out-of-range values", () => {
+    expect(isValidOpacity(-0.1)).toBe(false);
+    expect(isValidOpacity(1.1)).toBe(false);
+    expect(isValidOpacity(2)).toBe(false);
+    expect(isValidOpacity(-1)).toBe(false);
+  });
+
+  it("rejects non-finite and non-number values", () => {
+    expect(isValidOpacity(NaN)).toBe(false);
+    expect(isValidOpacity(Infinity)).toBe(false);
+    expect(isValidOpacity(-Infinity)).toBe(false);
+    expect(isValidOpacity("0.5")).toBe(false);
+    expect(isValidOpacity(null)).toBe(false);
+    expect(isValidOpacity(undefined)).toBe(false);
+  });
+});
+
+describe("isValidPadding", () => {
+  it("accepts valid padding values (>= 0)", () => {
+    expect(isValidPadding(0)).toBe(true);
+    expect(isValidPadding(24)).toBe(true);
+    expect(isValidPadding(100.5)).toBe(true);
+  });
+
+  it("rejects negative values", () => {
+    expect(isValidPadding(-1)).toBe(false);
+    expect(isValidPadding(-0.1)).toBe(false);
+  });
+
+  it("rejects non-finite and non-number values", () => {
+    expect(isValidPadding(NaN)).toBe(false);
+    expect(isValidPadding(Infinity)).toBe(false);
+    expect(isValidPadding("24")).toBe(false);
+    expect(isValidPadding(null)).toBe(false);
+    expect(isValidPadding(undefined)).toBe(false);
   });
 });
