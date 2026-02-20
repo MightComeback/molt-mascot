@@ -5,6 +5,7 @@ const fs = require('fs');
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
+const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, resolveSizePreset } = require('./size-presets.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
 const APP_VERSION = require('../package.json').version;
@@ -582,16 +583,10 @@ app.whenReady().then(async () => {
     });
   }
 
-  // Size presets for Cmd+Shift+Z cycling (label, width, height).
-  // Declared before window creation so the initial window can use the saved size.
-  const sizeCycle = [
-    { label: 'small', width: 160, height: 140 },
-    { label: 'medium', width: 240, height: 200 },
-    { label: 'large', width: 360, height: 300 },
-    { label: 'xlarge', width: 480, height: 400 },
-  ];
+  // Size presets from shared module (single source of truth).
+  const sizeCycle = SIZE_PRESETS;
   let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
-    ? savedPrefs.sizeIndex : 1;
+    ? savedPrefs.sizeIndex : DEFAULT_SIZE_INDEX;
   // Env var MOLT_MASCOT_SIZE overrides saved preference (parity with MOLT_MASCOT_ALIGN etc.).
   const envSize = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
   if (envSize) {
