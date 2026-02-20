@@ -410,6 +410,29 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, pluginStartedAt: -1 })).not.toContain('🔌');
     });
 
+    it('shows last message gap when >= 5s and connected', () => {
+      const now = Date.now();
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '10m', lastMessageAt: now - 8000, now });
+      expect(tip).toContain('📩 last msg');
+    });
+
+    it('omits last message gap when < 5s', () => {
+      const now = Date.now();
+      const tip = buildTrayTooltip({ ...base, uptimeStr: '10m', lastMessageAt: now - 3000, now });
+      expect(tip).not.toContain('📩');
+    });
+
+    it('omits last message gap when disconnected (no uptimeStr)', () => {
+      const now = Date.now();
+      const tip = buildTrayTooltip({ ...base, mode: 'disconnected', lastMessageAt: now - 10000, now });
+      expect(tip).not.toContain('📩');
+    });
+
+    it('omits last message gap when lastMessageAt is null or 0', () => {
+      expect(buildTrayTooltip({ ...base, uptimeStr: '5m', lastMessageAt: null })).not.toContain('📩');
+      expect(buildTrayTooltip({ ...base, uptimeStr: '5m', lastMessageAt: 0 })).not.toContain('📩');
+    });
+
     it('shows close detail when provided', () => {
       const tip = buildTrayTooltip({ ...base, lastCloseDetail: 'abnormal closure (1006)' });
       expect(tip).toContain('⚡ abnormal closure (1006)');

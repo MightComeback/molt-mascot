@@ -751,6 +751,7 @@ app.whenReady().then(async () => {
       activeAgents: currentActiveAgents,
       activeTools: currentActiveTools,
       pluginVersion: currentPluginVersion,
+      lastMessageAt: currentLastMessageAt,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -931,9 +932,10 @@ app.whenReady().then(async () => {
   let currentActiveAgents = 0;
   let currentActiveTools = 0;
   let currentPluginVersion = null;
+  let currentLastMessageAt = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -958,6 +960,10 @@ app.whenReady().then(async () => {
     // Track target URL for tray tooltip (shows which endpoint is being connected to when disconnected).
     if (typeof targetUrl === 'string' && targetUrl) currentTargetUrl = targetUrl;
     else if (targetUrl === null) currentTargetUrl = null;
+
+    // Track last WS message timestamp for tray tooltip (stale connection diagnostics).
+    if (typeof lastMessageAtVal === 'number' && lastMessageAtVal > 0) currentLastMessageAt = lastMessageAtVal;
+    else if (lastMessageAtVal === null) currentLastMessageAt = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;

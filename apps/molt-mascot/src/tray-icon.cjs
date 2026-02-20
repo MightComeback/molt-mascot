@@ -168,11 +168,12 @@ function renderTraySprite(scale, opts) {
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
  * @param {number} [params.pluginStartedAt] - Plugin start timestamp (for uptime display in tooltip)
+ * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -196,6 +197,15 @@ function buildTrayTooltip(params) {
   if (typeof lastCloseDetail === 'string' && lastCloseDetail) parts.push(`⚡ ${lastCloseDetail}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
     parts.push(`⏱ ${formatLatency(latencyMs)}`);
+  }
+  // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections
+  // before the stale-check timer (15s) triggers a reconnect. Below 5s the latency
+  // line already conveys liveness, so we avoid tooltip clutter.
+  if (typeof lastMessageAt === 'number' && lastMessageAt > 0 && uptimeStr) {
+    const gapMs = now - lastMessageAt;
+    if (gapMs >= 5000) {
+      parts.push(`📩 last msg ${formatElapsed(lastMessageAt, now)} ago`);
+    }
   }
   if (typeof toolCalls === 'number' && toolCalls > 0) {
     const rate = (typeof toolErrors === 'number' && toolErrors > 0)

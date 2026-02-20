@@ -442,6 +442,7 @@ function syncPill() {
       pluginVersion: pluginVersion || null,
       sessionConnectCount,
       sessionAttemptCount,
+      lastMessageAt: lastMessageAt || null,
     });
   }
 }
