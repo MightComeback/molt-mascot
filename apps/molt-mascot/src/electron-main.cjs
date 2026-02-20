@@ -101,8 +101,8 @@ const cliPadding = parseCliArg('--padding');
 
 // Validate CLI appearance flags and warn on invalid values so the user knows
 // their input was ignored rather than silently falling through to the default.
+const { isValidAlignment, isValidOpacity, isValidPadding } = require('./get-position.cjs');
 if (cliAlign) {
-  const { isValidAlignment } = require('./get-position.cjs');
   if (isValidAlignment(cliAlign)) {
     process.env.MOLT_MASCOT_ALIGN = cliAlign;
   } else {
@@ -111,7 +111,7 @@ if (cliAlign) {
 }
 if (cliOpacity) {
   const ov = Number(cliOpacity);
-  if (Number.isFinite(ov) && ov >= 0 && ov <= 1) {
+  if (isValidOpacity(ov)) {
     process.env.MOLT_MASCOT_OPACITY = cliOpacity;
   } else {
     process.stderr.write(`molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`);
@@ -119,7 +119,7 @@ if (cliOpacity) {
 }
 if (cliPadding) {
   const pv = Number(cliPadding);
-  if (Number.isFinite(pv) && pv >= 0) {
+  if (isValidPadding(pv)) {
     process.env.MOLT_MASCOT_PADDING = cliPadding;
   } else {
     process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
@@ -1081,7 +1081,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
     withMainWin((w) => {
       const v = Number(opacity);
-      if (Number.isFinite(v) && v >= 0 && v <= 1) {
+      if (isValidOpacity(v)) {
         w.setOpacity(v);
         // Sync the cycle index to the closest preset so keyboard cycling
         // continues from a sensible position after a plugin-pushed value.
@@ -1128,7 +1128,7 @@ app.whenReady().then(async () => {
 
   ipcMain.on('molt-mascot:set-padding', (event, padding) => {
     const v = Number(padding);
-    if (!Number.isFinite(v) || v < 0) return;
+    if (!isValidPadding(v)) return;
     paddingOverride = v;
     repositionMainWindow({ force: true });
     savePrefs({ padding: v });
