@@ -5,7 +5,7 @@ const fs = require('fs');
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
-const { SIZE_PRESETS, DEFAULT_SIZE_INDEX } = require('./size-presets.cjs');
+const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, VALID_SIZES, isValidSize } = require('./size-presets.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
 const APP_VERSION = require('../package.json').version;
@@ -126,11 +126,10 @@ if (cliPadding) {
   }
 }
 if (cliSize) {
-  const { findSizePreset } = require('./size-presets.cjs');
-  if (findSizePreset(cliSize)) {
+  if (isValidSize(cliSize)) {
     process.env.MOLT_MASCOT_SIZE = cliSize.trim().toLowerCase();
   } else {
-    process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${SIZE_PRESETS.map((s) => s.label).join(', ')})\n`);
+    process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${VALID_SIZES.join(', ')})\n`);
   }
 }
 
