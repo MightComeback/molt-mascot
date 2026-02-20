@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -71,6 +71,49 @@ describe('size-presets', () => {
 
     it('is case-insensitive', () => {
       expect(resolveSizePreset('XLARGE').index).toBe(4);
+    });
+  });
+
+  describe('VALID_SIZES', () => {
+    it('is a frozen array of lowercase label strings', () => {
+      expect(Object.isFrozen(VALID_SIZES)).toBe(true);
+      expect(VALID_SIZES).toEqual(['tiny', 'small', 'medium', 'large', 'xlarge']);
+    });
+
+    it('matches SIZE_PRESETS labels exactly', () => {
+      expect(VALID_SIZES).toEqual(SIZE_PRESETS.map(p => p.label));
+    });
+  });
+
+  describe('isValidSize', () => {
+    it('returns true for valid size labels', () => {
+      for (const label of VALID_SIZES) {
+        expect(isValidSize(label)).toBe(true);
+      }
+    });
+
+    it('is case-insensitive', () => {
+      expect(isValidSize('SMALL')).toBe(true);
+      expect(isValidSize('Large')).toBe(true);
+      expect(isValidSize('xLaRgE')).toBe(true);
+    });
+
+    it('trims whitespace', () => {
+      expect(isValidSize('  medium  ')).toBe(true);
+    });
+
+    it('returns false for invalid labels', () => {
+      expect(isValidSize('huge')).toBe(false);
+      expect(isValidSize('giant')).toBe(false);
+      expect(isValidSize('')).toBe(false);
+    });
+
+    it('returns false for non-string values', () => {
+      expect(isValidSize(null)).toBe(false);
+      expect(isValidSize(undefined)).toBe(false);
+      expect(isValidSize(42)).toBe(false);
+      expect(isValidSize(true)).toBe(false);
+      expect(isValidSize({})).toBe(false);
     });
   });
 });

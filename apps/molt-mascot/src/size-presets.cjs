@@ -46,4 +46,20 @@ function resolveSizePreset(label) {
   return { ...SIZE_PRESETS[DEFAULT_SIZE_INDEX], index: DEFAULT_SIZE_INDEX };
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset };
+/**
+ * Flat array of valid size label strings (lowercase).
+ * Mirrors VALID_ALIGNMENTS in get-position.cjs for consistent validation patterns.
+ */
+const VALID_SIZES = Object.freeze(SIZE_PRESETS.map(p => p.label));
+
+/**
+ * Check whether a string is a recognized size preset label (case-insensitive).
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidSize(value) {
+  if (typeof value !== 'string') return false;
+  return VALID_SIZES.includes(value.trim().toLowerCase());
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize };
