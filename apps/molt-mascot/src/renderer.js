@@ -271,6 +271,12 @@ const _pluginSync = createPluginSync({
   onStartedAt(v) { pluginStartedAt = v; },
   onActiveAgents(v) { pluginActiveAgents = v; },
   onActiveTools(v) { pluginActiveTools = v; },
+  onCurrentTool(v) {
+    if (v !== currentTool) {
+      currentTool = v;
+      if (currentMode === Mode.tool) syncPill();
+    }
+  },
 });
 
 // Track the last mode reported to the main process (including 'sleeping') to avoid
@@ -867,14 +873,9 @@ function connect(cfg) {
         pushLatencySample(latencyMs);
       }
       const nextMode = msg.payload.state.mode;
-      const nextTool = msg.payload.state.currentTool || '';
-      if (nextTool !== currentTool) {
-        currentTool = nextTool;
-        // If we are already in tool mode, update immediately
-        if (currentMode === Mode.tool) syncPill();
-      }
 
       // Sync all plugin config properties via centralized change-detection.
+      // currentTool is handled by onCurrentTool callback in _pluginSync.
       _pluginSync.sync(msg.payload.state);
 
       const nextErr = msg.payload?.state?.lastError?.message;
