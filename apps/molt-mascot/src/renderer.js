@@ -140,9 +140,12 @@ import { drawLobster as _drawLobster, createBlinkState } from './draw.js';
 import { createPluginSync } from './plugin-sync.js';
 
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
+// MOLT_MASCOT_REDUCED_MOTION env var overrides the system preference (useful for
+// CI/headless, embedded deployments, or accessibility without changing OS settings).
+const _envReducedMotion = isTruthyEnv(window.moltMascot?.env?.reducedMotion);
 const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-let reducedMotion = motionQuery?.matches ?? false;
-const _onMotionChange = (e) => { reducedMotion = e.matches; };
+let reducedMotion = _envReducedMotion || (motionQuery?.matches ?? false);
+const _onMotionChange = (e) => { reducedMotion = _envReducedMotion || e.matches; };
 motionQuery?.addEventListener?.('change', _onMotionChange);
 
 // Blink state (delegated to extracted module for testability)

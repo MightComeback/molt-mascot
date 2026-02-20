@@ -65,5 +65,6 @@ contextBridge.exposeInMainWorld('moltMascot', {
     hideText: process.env.MOLT_MASCOT_HIDE_TEXT || process.env.MOLT_MASCOT_HIDETEXT || '',
     // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
     clickThrough: process.env.MOLT_MASCOT_CLICKTHROUGH || process.env.MOLT_MASCOT_CLICK_THROUGH || '',
+    reducedMotion: process.env.MOLT_MASCOT_REDUCED_MOTION || '',
   },
 });

@@ -85,6 +85,7 @@ bun run mascot
 - **Size preset**: `MOLT_MASCOT_SIZE` (values: `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
+- **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)

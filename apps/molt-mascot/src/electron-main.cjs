@@ -247,6 +247,7 @@ Environment variables:
   MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
   MOLT_MASCOT_NO_TRAY         Disable system tray icon (1/true/yes)
   MOLT_MASCOT_NO_SHORTCUTS    Disable global keyboard shortcuts (1/true/yes)
+  MOLT_MASCOT_REDUCED_MOTION  Force reduced motion (1/true/yes; overrides OS preference)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):

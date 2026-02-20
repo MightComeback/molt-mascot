@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `MOLT_MASCOT_REDUCED_MOTION` env var to force reduced motion without changing OS preferences (useful for CI, headless, embedded deployments)
 - Scroll-to-dismiss for context menu (scrolling outside the menu closes it, matching macOS native behavior)
 - `tiny` size preset (120×100) for minimal screen footprint
 - `--min-protocol` and `--max-protocol` CLI flags for Gateway protocol version negotiation
