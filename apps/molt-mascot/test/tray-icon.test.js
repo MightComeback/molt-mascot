@@ -395,6 +395,21 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base })).not.toContain('agent');
     });
 
+    it('shows plugin uptime when pluginStartedAt is provided', () => {
+      const now = 1700000000000;
+      const tip = buildTrayTooltip({ ...base, pluginStartedAt: now - 3661000, now });
+      expect(tip).toContain('🔌 plugin up 1h 1m');
+    });
+
+    it('omits plugin uptime when pluginStartedAt is not provided', () => {
+      expect(buildTrayTooltip({ ...base })).not.toContain('🔌');
+    });
+
+    it('omits plugin uptime when pluginStartedAt is 0 or negative', () => {
+      expect(buildTrayTooltip({ ...base, pluginStartedAt: 0 })).not.toContain('🔌');
+      expect(buildTrayTooltip({ ...base, pluginStartedAt: -1 })).not.toContain('🔌');
+    });
+
     it('shows close detail when provided', () => {
       const tip = buildTrayTooltip({ ...base, lastCloseDetail: 'abnormal closure (1006)' });
       expect(tip).toContain('⚡ abnormal closure (1006)');
