@@ -95,6 +95,10 @@ if (cliAlign) process.env.MOLT_MASCOT_ALIGN = cliAlign;
 if (cliOpacity) process.env.MOLT_MASCOT_OPACITY = cliOpacity;
 if (cliPadding) process.env.MOLT_MASCOT_PADDING = cliPadding;
 
+// CLI flags for boolean appearance toggles (override env vars).
+if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
+if (process.argv.includes('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
+
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 const cliMinProtocol = parseCliArg('--min-protocol');
 const cliMaxProtocol = parseCliArg('--max-protocol');
@@ -174,6 +178,8 @@ Options:
                          Values: small, medium, large, xlarge
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
+  --click-through        Start in ghost mode (click-through)
+  --hide-text            Start with HUD text hidden
   --debug                Open DevTools on launch
   --disable-gpu          Disable hardware acceleration (useful on VMs,
                          remote desktops, or Wayland compositors)
