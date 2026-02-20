@@ -251,6 +251,31 @@ describe("utils", () => {
     expect(cleanErrorString("wrangler: Error: No account id found")).toBe("No account id found");
     expect(cleanErrorString("workerd: Error: Worker exceeded CPU time limit")).toBe("Worker exceeded CPU time limit");
     expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe("fetch failed");
+    // Deno runtime
+    expect(cleanErrorString("deno: error: Module not found")).toBe("Module not found");
+    // RPC/gRPC prefixes
+    expect(cleanErrorString("rpc: connection refused")).toBe("connection refused");
+    expect(cleanErrorString("grpc: deadline exceeded")).toBe("deadline exceeded");
+    // Docker/container tools
+    expect(cleanErrorString("docker: Error response from daemon: conflict")).toBe("response from daemon: conflict");
+    expect(cleanErrorString("kubectl: error: no matching resources found")).toBe("no matching resources found");
+    expect(cleanErrorString("terraform: Error: Invalid provider configuration")).toBe("Invalid provider configuration");
+    expect(cleanErrorString("ansible: fatal: unreachable host")).toBe("unreachable host");
+    // Build tools
+    expect(cleanErrorString("make: *** [all] Error 2")).toBe("*** [all] Error 2");
+    expect(cleanErrorString("cmake: Error: could not find CMakeLists.txt")).toBe("could not find CMakeLists.txt");
+    expect(cleanErrorString("gradle: FAILURE: Build failed with an exception")).toBe("FAILURE: Build failed with an exception");
+    expect(cleanErrorString("mvn: BUILD FAILURE")).toBe("BUILD FAILURE");
+    // Media tools
+    expect(cleanErrorString("ffmpeg: error: codec not found")).toBe("codec not found");
+    // Browser automation
+    expect(cleanErrorString("browser: timeout waiting for selector")).toBe("timeout waiting for selector");
+    expect(cleanErrorString("playwright: Error: page.click: Timeout 30000ms exceeded")).toBe("page.click: Timeout 30000ms exceeded");
+    expect(cleanErrorString("chrome: ERR_CONNECTION_REFUSED")).toBe("ERR_CONNECTION_REFUSED");
+    expect(cleanErrorString("firefox: NS_ERROR_FAILURE")).toBe("NS_ERROR_FAILURE");
+    expect(cleanErrorString("safari: WebDriver error: timeout")).toBe("WebDriver error: timeout");
+    // Cloud storage
+    expect(cleanErrorString("gsutil: CommandException: No URLs matched")).toBe("CommandException: No URLs matched");
     // Go goroutine stack trace headers
     expect(cleanErrorString("goroutine 1 [running]:\npanic: runtime error: index out of range")).toBe("runtime error: index out of range");
     // Unhandled promise rejection wrapper (Node.js / Deno)
