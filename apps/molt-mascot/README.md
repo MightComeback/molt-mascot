@@ -143,6 +143,10 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--debug` | Open DevTools on launch |
 | `--disable-gpu` | Disable hardware acceleration (useful on VMs, remote desktops, or Wayland) |
 | `--no-tray` | Disable system tray icon (useful on Linux DEs without tray support) |
+| `--click-through` | Start in ghost mode (click-through) |
+| `--hide-text` | Start with HUD text hidden (pixel-only) |
+| `--min-protocol <n>` | Minimum Gateway protocol version to negotiate (default: 2) |
+| `--max-protocol <n>` | Maximum Gateway protocol version to negotiate (default: 3) |
 | `--reset-prefs` | Clear saved preferences and start fresh |
 | `--list-prefs` | Print saved preferences and exit |
 
