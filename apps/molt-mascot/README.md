@@ -60,7 +60,7 @@ When running the Electron app standalone, you can configure it via environment v
 | Variable | Description | Default |
 |---|---|---|
 | `MOLT_MASCOT_ALIGN` | Screen position (`bottom-right`, `top-left`, etc.) | `bottom-right` |
-| `MOLT_MASCOT_SIZE` | Size preset (`small`, `medium`, `large`, `xlarge`) | `medium` |
+| `MOLT_MASCOT_SIZE` | Size preset (`tiny`, `small`, `medium`, `large`, `xlarge`) | `medium` |
 | `MOLT_MASCOT_WIDTH` | Window width in pixels (overridden by `SIZE`) | `240` |
 | `MOLT_MASCOT_HEIGHT` | Window height in pixels (overridden by `SIZE`) | `200` |
 | `MOLT_MASCOT_PADDING` | Padding from screen edge in pixels | `24` |
@@ -72,6 +72,7 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_SLEEP_THRESHOLD_S` | Seconds idle before showing sleeping state (ZZZ overlay). Set to `0` to disable. | `120` |
 | `MOLT_MASCOT_NO_TRAY` | Disable system tray icon (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_NO_SHORTCUTS` | Disable global keyboard shortcuts (`1`/`true` to enable) | `0` |
+| `MOLT_MASCOT_REDUCED_MOTION` | Force reduced motion (`1`/`true`); overrides OS preference | `0` |
 | `MOLT_MASCOT_DISABLE_GPU` | Disable hardware acceleration (`1`/`true` to enable) | `0` |
 
 ### Connection Configuration
@@ -107,7 +108,7 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + H | Toggle **hide text** (show only the pixel avatar) |
 | ⌘/Ctrl + ⇧ + V | Toggle **visibility** (hide/show the mascot window) |
 | ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
-| ⌘/Ctrl + ⇧ + Z | **Cycle size** (small 160×140 → medium 240×200 → large 360×300 → xlarge 480×400) |
+| ⌘/Ctrl + ⇧ + Z | **Cycle size** (tiny 120×100 → small 160×140 → medium 240×200 → large 360×300 → xlarge 480×400) |
 | ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40% → 20%) |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
 | ⌘/Ctrl + ⇧ + C | Force **reconnect** to the Gateway (bypass backoff) |
@@ -141,7 +142,7 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--gateway <url>` | Gateway WebSocket URL (overrides env) |
 | `--token <token>` | Gateway auth token (overrides env) |
 | `--align <position>` | Window alignment (overrides env/saved prefs) |
-| `--size <preset>` | Size preset: `small`, `medium`, `large`, `xlarge` |
+| `--size <preset>` | Size preset: `tiny`, `small`, `medium`, `large`, `xlarge` |
 | `--opacity <0.0-1.0>` | Window opacity (overrides env/saved prefs) |
 | `--padding <px>` | Edge padding in pixels (overrides env/saved prefs) |
 | `--debug` | Open DevTools on launch |
@@ -151,6 +152,9 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--hide-text` | Start with HUD text hidden (pixel-only) |
 | `--min-protocol <n>` | Minimum Gateway protocol version to negotiate (default: 2) |
 | `--max-protocol <n>` | Maximum Gateway protocol version to negotiate (default: 3) |
+| `--sleep-threshold <s>` | Idle seconds before sleep overlay (default: 120) |
+| `--idle-delay <ms>` | Delay before returning to idle after activity (default: 800) |
+| `--error-hold <ms>` | How long to show error state before reverting (default: 5000) |
 | `--no-shortcuts` | Disable global keyboard shortcuts (use tray/context menu instead) |
 | `--reset-prefs` | Clear saved preferences and start fresh |
 | `--list-prefs` | Print saved preferences and exit |
