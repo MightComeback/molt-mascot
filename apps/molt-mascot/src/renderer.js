@@ -1095,8 +1095,6 @@ function resetState() {
 
 if (window.moltMascot?.onReset) {
   ipcUnsubs.push(window.moltMascot.onReset(() => {
-    // eslint-disable-next-line no-console
-    console.log('Resetting state...');
     resetState();
   }));
 }
