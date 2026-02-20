@@ -98,9 +98,33 @@ const cliAlign = parseCliArg('--align');
 const cliSize = parseCliArg('--size');
 const cliOpacity = parseCliArg('--opacity');
 const cliPadding = parseCliArg('--padding');
-if (cliAlign) process.env.MOLT_MASCOT_ALIGN = cliAlign;
-if (cliOpacity) process.env.MOLT_MASCOT_OPACITY = cliOpacity;
-if (cliPadding) process.env.MOLT_MASCOT_PADDING = cliPadding;
+
+// Validate CLI appearance flags and warn on invalid values so the user knows
+// their input was ignored rather than silently falling through to the default.
+if (cliAlign) {
+  const { isValidAlignment } = require('./get-position.cjs');
+  if (isValidAlignment(cliAlign)) {
+    process.env.MOLT_MASCOT_ALIGN = cliAlign;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --align "${cliAlign}" (valid: bottom-right, bottom-left, top-right, top-left, bottom-center, top-center, center-left, center-right, center)\n`);
+  }
+}
+if (cliOpacity) {
+  const ov = Number(cliOpacity);
+  if (Number.isFinite(ov) && ov >= 0 && ov <= 1) {
+    process.env.MOLT_MASCOT_OPACITY = cliOpacity;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`);
+  }
+}
+if (cliPadding) {
+  const pv = Number(cliPadding);
+  if (Number.isFinite(pv) && pv >= 0) {
+    process.env.MOLT_MASCOT_PADDING = cliPadding;
+  } else {
+    process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
+  }
+}
 
 // CLI flags for boolean appearance toggles (override env vars).
 if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
@@ -609,8 +633,12 @@ app.whenReady().then(async () => {
   }
   // CLI --size overrides env var and saved preference.
   if (cliSize) {
-    const cliSizeIdx = sizeCycle.findIndex((s) => s.label === cliSize);
-    if (cliSizeIdx >= 0) sizeIndex = cliSizeIdx;
+    const cliSizeIdx = sizeCycle.findIndex((s) => s.label === cliSize.trim().toLowerCase());
+    if (cliSizeIdx >= 0) {
+      sizeIndex = cliSizeIdx;
+    } else {
+      process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${sizeCycle.map((s) => s.label).join(', ')})\n`);
+    }
   }
 
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
