@@ -198,7 +198,7 @@ function buildTrayTooltip(params) {
     parts.push(`🔨 ${statsStr}`);
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
-    parts.push(`⚡ ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);
+    parts.push(`🤖 ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
