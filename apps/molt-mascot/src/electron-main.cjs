@@ -79,8 +79,14 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
 function parseCliArg(flag) {
-  const idx = process.argv.indexOf(flag);
-  return (idx !== -1 && idx + 1 < process.argv.length) ? process.argv[idx + 1] : null;
+  for (let i = 0; i < process.argv.length; i++) {
+    const arg = process.argv[i];
+    // Support --flag=value syntax (standard CLI convention)
+    if (arg.startsWith(flag + '=')) return arg.slice(flag.length + 1);
+    // Support --flag value syntax (positional)
+    if (arg === flag && i + 1 < process.argv.length) return process.argv[i + 1];
+  }
+  return null;
 }
 const cliGatewayUrl = parseCliArg('--gateway');
 const cliGatewayToken = parseCliArg('--token');
