@@ -158,7 +158,7 @@ function drawLobster(mode, t, idleDurationMs = 0) {
     scale: currentScale,
     spriteSize: SPRITE_SIZE,
     reducedMotion,
-    blinking: _blinkState.isBlinking(t),
+    blinking: !reducedMotion && _blinkState.isBlinking(t),
     idleDurationMs,
     sleepThresholdMs: SLEEP_THRESHOLD_MS,
     canvas,
