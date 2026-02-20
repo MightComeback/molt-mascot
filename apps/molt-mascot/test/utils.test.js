@@ -764,14 +764,56 @@ describe("formatCloseDetail", () => {
     expect(formatCloseDetail(1001, multiLine)).toBe("server shutting down please reconnect later (1001)");
   });
 
-  it("WS_CLOSE_CODE_LABELS covers common codes", () => {
+  it("formats all application-specific close codes (4000-4014)", () => {
+    expect(formatCloseDetail(4004, "")).toBe("not found (4004)");
+    expect(formatCloseDetail(4005, null)).toBe("already connected (4005)");
+    expect(formatCloseDetail(4007, "")).toBe("invalid payload (4007)");
+    expect(formatCloseDetail(4008, null)).toBe("request timeout (4008)");
+    expect(formatCloseDetail(4011, "")).toBe("reconnect required (4011)");
+    expect(formatCloseDetail(4012, null)).toBe("invalid version (4012)");
+    expect(formatCloseDetail(4013, "")).toBe("invalid intent (4013)");
+  });
+
+  it("WS_CLOSE_CODE_LABELS covers all defined codes", () => {
+    // IANA standard codes
     expect(WS_CLOSE_CODE_LABELS[1000]).toBe("normal");
+    expect(WS_CLOSE_CODE_LABELS[1001]).toBe("going away");
+    expect(WS_CLOSE_CODE_LABELS[1002]).toBe("protocol error");
+    expect(WS_CLOSE_CODE_LABELS[1003]).toBe("unsupported data");
+    expect(WS_CLOSE_CODE_LABELS[1005]).toBe("no status");
     expect(WS_CLOSE_CODE_LABELS[1006]).toBe("abnormal closure");
+    expect(WS_CLOSE_CODE_LABELS[1007]).toBe("invalid payload");
+    expect(WS_CLOSE_CODE_LABELS[1008]).toBe("policy violation");
+    expect(WS_CLOSE_CODE_LABELS[1009]).toBe("message too big");
+    expect(WS_CLOSE_CODE_LABELS[1010]).toBe("missing extension");
+    expect(WS_CLOSE_CODE_LABELS[1011]).toBe("internal error");
+    expect(WS_CLOSE_CODE_LABELS[1012]).toBe("service restart");
+    expect(WS_CLOSE_CODE_LABELS[1013]).toBe("try again later");
+    expect(WS_CLOSE_CODE_LABELS[1014]).toBe("bad gateway");
     expect(WS_CLOSE_CODE_LABELS[1015]).toBe("TLS handshake failed");
-    // Application-specific range (4000-4999)
+    // Application-specific range (4000-4014)
+    expect(WS_CLOSE_CODE_LABELS[4000]).toBe("unknown error");
     expect(WS_CLOSE_CODE_LABELS[4001]).toBe("auth failed");
+    expect(WS_CLOSE_CODE_LABELS[4002]).toBe("rate limited");
+    expect(WS_CLOSE_CODE_LABELS[4003]).toBe("forbidden");
+    expect(WS_CLOSE_CODE_LABELS[4004]).toBe("not found");
+    expect(WS_CLOSE_CODE_LABELS[4005]).toBe("already connected");
     expect(WS_CLOSE_CODE_LABELS[4006]).toBe("session replaced");
+    expect(WS_CLOSE_CODE_LABELS[4007]).toBe("invalid payload");
+    expect(WS_CLOSE_CODE_LABELS[4008]).toBe("request timeout");
+    expect(WS_CLOSE_CODE_LABELS[4009]).toBe("session expired");
     expect(WS_CLOSE_CODE_LABELS[4010]).toBe("server restart");
+    expect(WS_CLOSE_CODE_LABELS[4011]).toBe("reconnect required");
+    expect(WS_CLOSE_CODE_LABELS[4012]).toBe("invalid version");
+    expect(WS_CLOSE_CODE_LABELS[4013]).toBe("invalid intent");
+    expect(WS_CLOSE_CODE_LABELS[4014]).toBe("disallowed intent");
+  });
+
+  it("every WS_CLOSE_CODE_LABELS entry produces a valid formatCloseDetail result", () => {
+    for (const [code, label] of Object.entries(WS_CLOSE_CODE_LABELS)) {
+      const result = formatCloseDetail(Number(code), "");
+      expect(result).toBe(`${label} (${code})`);
+    }
   });
 });
 
