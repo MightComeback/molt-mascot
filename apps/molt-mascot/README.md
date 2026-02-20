@@ -60,8 +60,9 @@ When running the Electron app standalone, you can configure it via environment v
 | Variable | Description | Default |
 |---|---|---|
 | `MOLT_MASCOT_ALIGN` | Screen position (`bottom-right`, `top-left`, etc.) | `bottom-right` |
-| `MOLT_MASCOT_WIDTH` | Window width in pixels | `240` |
-| `MOLT_MASCOT_HEIGHT` | Window height in pixels | `200` |
+| `MOLT_MASCOT_SIZE` | Size preset (`small`, `medium`, `large`, `xlarge`) | `medium` |
+| `MOLT_MASCOT_WIDTH` | Window width in pixels (overridden by `SIZE`) | `240` |
+| `MOLT_MASCOT_HEIGHT` | Window height in pixels (overridden by `SIZE`) | `200` |
 | `MOLT_MASCOT_PADDING` | Padding from screen edge in pixels | `24` |
 | `MOLT_MASCOT_OPACITY` | Opacity (0.0 to 1.0) | `1.0` |
 | `MOLT_MASCOT_CLICKTHROUGH` (or `MOLT_MASCOT_CLICK_THROUGH`) | Start in click-through (ghost) mode (`1`/`true` to enable) | `0` |
@@ -140,6 +141,7 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--opacity <0.0-1.0>` | Window opacity (overrides env/saved prefs) |
 | `--padding <px>` | Edge padding in pixels (overrides env/saved prefs) |
 | `--debug` | Open DevTools on launch |
+| `--disable-gpu` | Disable hardware acceleration (useful on VMs, remote desktops, or Wayland) |
 | `--no-tray` | Disable system tray icon (useful on Linux DEs without tray support) |
 | `--reset-prefs` | Clear saved preferences and start fresh |
 | `--list-prefs` | Print saved preferences and exit |
