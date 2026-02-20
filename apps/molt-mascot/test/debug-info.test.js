@@ -408,6 +408,21 @@ describe("buildDebugInfo", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Latency:");
   });
 
+  it("includes latency stats when latencyStats has multiple samples", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, samples: 30 } });
+    expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms (30 samples)");
+  });
+
+  it("omits latency stats when only 1 sample (not useful)", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 10, max: 10, avg: 10, samples: 1 } });
+    expect(info).not.toContain("Latency stats");
+  });
+
+  it("omits latency stats when null", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: null });
+    expect(info).not.toContain("Latency stats");
+  });
+
   it("includes active agents/tools line when counts are non-zero", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 2, activeTools: 3 });
     expect(info).toContain("Active: 2 agents, 3 tools");

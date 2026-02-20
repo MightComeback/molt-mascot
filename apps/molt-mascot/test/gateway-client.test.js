@@ -562,4 +562,64 @@ describe('GatewayClient', () => {
       expect(ws._sent.length).toBe(sentBefore + 1);
     });
   });
+
+  describe('latencyStats', () => {
+    it('returns null when no samples', () => {
+      const client = new GatewayClient();
+      expect(client.latencyStats).toBeNull();
+    });
+
+    it('computes min/max/avg from latency buffer', () => {
+      const client = new GatewayClient();
+      client._latencyBuffer = [10, 20, 30];
+      const stats = client.latencyStats;
+      expect(stats).toEqual({ min: 10, max: 30, avg: 20, samples: 3 });
+    });
+
+    it('rounds fractional averages', () => {
+      const client = new GatewayClient();
+      client._latencyBuffer = [10, 11];
+      const stats = client.latencyStats;
+      expect(stats.avg).toBe(11); // 10.5 rounds to 11
+    });
+
+    it('is included in getStatus()', () => {
+      const client = new GatewayClient();
+      client._latencyBuffer = [5, 15];
+      const status = client.getStatus();
+      expect(status.latencyStats).toEqual({ min: 5, max: 15, avg: 10, samples: 2 });
+    });
+
+    it('is cleared on cleanup', () => {
+      const client = new GatewayClient();
+      client._latencyBuffer = [10, 20, 30];
+      client._cleanup();
+      expect(client.latencyStats).toBeNull();
+    });
+
+    it('accumulates from plugin state responses', () => {
+      const client = new GatewayClient();
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const connectFrame = JSON.parse(ws._sent[0]);
+      ws._message({ type: 'res', id: connectFrame.id, ok: true, payload: { type: 'hello-ok' } });
+      // First plugin state response
+      const req1 = JSON.parse(ws._sent[1]);
+      ws._message({ type: 'res', id: req1.id, ok: true, payload: { ok: true, state: { mode: 'idle' } } });
+      expect(client._latencyBuffer.length).toBe(1);
+      expect(client.latencyStats.samples).toBe(1);
+    });
+
+    it('caps buffer at max size', () => {
+      const client = new GatewayClient();
+      client._latencyBufferMax = 3;
+      client._latencyBuffer = [10, 20, 30];
+      // Simulate adding one more
+      client._latencyBuffer.shift();
+      client._latencyBuffer.push(40);
+      expect(client._latencyBuffer).toEqual([20, 30, 40]);
+      expect(client.latencyStats).toEqual({ min: 20, max: 40, avg: 30, samples: 3 });
+    });
+  });
 });

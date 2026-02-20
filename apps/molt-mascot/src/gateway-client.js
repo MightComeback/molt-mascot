@@ -79,6 +79,10 @@ export class GatewayClient {
     // this in tooltips/debug info to diagnose gateway responsiveness.
     /** @type {number|null} Most recent plugin state poll round-trip time in ms. */
     this.latencyMs = null;
+    /** @private Circular buffer for latency history (rolling window for min/max/avg). */
+    this._latencyBuffer = [];
+    /** @private Max entries in the latency ring buffer. ~60 samples = ~1 min at 1s poll. */
+    this._latencyBufferMax = 60;
     /** @private */
     this._pluginStateSentAt = 0;
 
@@ -346,6 +350,11 @@ export class GatewayClient {
         // Track round-trip latency for diagnostics
         if (this._pluginStateSentAt > 0) {
           this.latencyMs = Date.now() - this._pluginStateSentAt;
+          // Push into ring buffer for min/max/avg stats
+          if (this._latencyBuffer.length >= this._latencyBufferMax) {
+            this._latencyBuffer.shift();
+          }
+          this._latencyBuffer.push(this.latencyMs);
         }
         this.onPluginState?.(msg.payload.state);
         return;
@@ -519,6 +528,7 @@ export class GatewayClient {
     this._pluginStateLastSentAt = 0;
     this._pluginStateSentAt = 0;
     this.latencyMs = null;
+    this._latencyBuffer = [];
 
     // Notify consumers to clear cached plugin config (clickThrough, alignment,
     // etc.) so stale values don't persist across reconnections.
@@ -599,6 +609,32 @@ export class GatewayClient {
   }
 
   /**
+   * Compute min/max/avg latency from the rolling buffer.
+   * Returns null if no samples are available.
+   *
+   * @returns {{ min: number, max: number, avg: number, samples: number } | null}
+   */
+  get latencyStats() {
+    const buf = this._latencyBuffer;
+    if (!buf || buf.length === 0) return null;
+    let min = Infinity;
+    let max = -Infinity;
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const v = buf[i];
+      if (v < min) min = v;
+      if (v > max) max = v;
+      sum += v;
+    }
+    return {
+      min: Math.round(min),
+      max: Math.round(max),
+      avg: Math.round(sum / buf.length),
+      samples: buf.length,
+    };
+  }
+
+  /**
    * Timestamp (epoch ms) of the last WebSocket message received, or 0 if none.
    * Useful for diagnosing stale connections: consumers can compare this against
    * Date.now() to detect gaps before the stale-check timer triggers a reconnect.
@@ -625,6 +661,7 @@ export class GatewayClient {
       hasPlugin: this.hasPlugin,
       pluginStateMethod: this.pluginStateMethod,
       latencyMs: this.latencyMs,
+      latencyStats: this.latencyStats,
       wsReadyState: this.wsReadyState,
       reconnectAttempt: this._reconnectAttempt,
       sessionConnectCount: this.sessionConnectCount,
