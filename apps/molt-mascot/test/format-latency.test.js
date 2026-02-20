@@ -4,6 +4,8 @@ import { formatLatency } from '../src/format-latency.cjs';
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
     expect(formatLatency(0)).toBe('< 1ms');
+    expect(formatLatency(0.1)).toBe('< 1ms');
+    expect(formatLatency(0.999)).toBe('< 1ms');
   });
 
   it('millisecond range returns rounded "Xms"', () => {
@@ -16,7 +18,7 @@ describe('formatLatency (canonical source)', () => {
     expect(formatLatency(1.4)).toBe('1ms');
     expect(formatLatency(1.6)).toBe('2ms');
     expect(formatLatency(3.7)).toBe('4ms');
-    expect(formatLatency(0.4)).toBe('0ms');
+    expect(formatLatency(0.4)).toBe('< 1ms');
   });
 
   it('seconds range returns "X.Ys"', () => {
