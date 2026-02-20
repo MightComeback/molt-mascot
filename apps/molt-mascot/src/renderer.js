@@ -194,6 +194,44 @@ let pluginStartedAt = null;
 let pluginActiveAgents = 0;
 let pluginActiveTools = 0;
 
+// Rolling latency buffer for min/max/avg diagnostics in debug info.
+// Keeps the last ~60 samples (one per second via the plugin poller).
+const LATENCY_BUFFER_MAX = 60;
+const _latencyBuffer = [];
+
+/**
+ * Push a latency sample into the rolling buffer.
+ * @param {number} ms - Round-trip latency in milliseconds
+ */
+function pushLatencySample(ms) {
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return;
+  _latencyBuffer.push(ms);
+  if (_latencyBuffer.length > LATENCY_BUFFER_MAX) _latencyBuffer.shift();
+}
+
+/**
+ * Compute min/max/avg latency from the rolling buffer.
+ * @returns {{ min: number, max: number, avg: number, samples: number } | null}
+ */
+function getLatencyStats() {
+  if (_latencyBuffer.length === 0) return null;
+  let min = Infinity;
+  let max = -Infinity;
+  let sum = 0;
+  for (let i = 0; i < _latencyBuffer.length; i++) {
+    const v = _latencyBuffer[i];
+    if (v < min) min = v;
+    if (v > max) max = v;
+    sum += v;
+  }
+  return {
+    min: Math.round(min),
+    max: Math.round(max),
+    avg: Math.round(sum / _latencyBuffer.length),
+    samples: _latencyBuffer.length,
+  };
+}
+
 // Centralized plugin state synchronizer (change-detection + dispatch).
 const _pluginSync = createPluginSync({
   onClickThrough(v) {
@@ -541,6 +579,7 @@ function resetConnectionState() {
   pluginStateLastSentAt = 0;
   pluginStateSentAt = 0;
   latencyMs = null;
+  _latencyBuffer.length = 0;
   connectedSince = null;
   connectedUrl = '';
   lastCloseDetail = '';
@@ -825,6 +864,7 @@ function connect(cfg) {
       // Track round-trip latency for diagnostics
       if (pluginStateSentAt > 0) {
         latencyMs = Date.now() - pluginStateSentAt;
+        pushLatencySample(latencyMs);
       }
       const nextMode = msg.payload.state.mode;
       const nextTool = msg.payload.state.currentTool || '';
@@ -1265,6 +1305,7 @@ function buildDebugInfo() {
     activeTools: pluginActiveTools,
     firstConnectedAt,
     lastMessageAt,
+    latencyStats: getLatencyStats(),
   });
 }
 
