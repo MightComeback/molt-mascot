@@ -158,6 +158,7 @@ function renderTraySprite(scale, opts) {
  * @param {number} [params.modeDurationSec] - How long in current mode (seconds); shown for non-idle modes
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (for app stability diagnostics)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (shows reconnect count when >1)
+ * @param {number} [params.sessionAttemptCount] - Total connection attempts since app launch (shows failed attempts when > sessionConnectCount)
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure (1006)")
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown when disconnected)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose which endpoint is failing)
@@ -169,7 +170,7 @@ function renderTraySprite(scale, opts) {
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion } = params;
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
   const modeEmoji = MODE_EMOJI;
@@ -209,9 +210,12 @@ function buildTrayTooltip(params) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
   }
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-    parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}`);
+    const attemptSuffix = (typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount)
+      ? `, ${sessionAttemptCount - sessionConnectCount} failed`
+      : '';
+    parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}${attemptSuffix}`);
   }
   return parts.join(' · ');
 }
 
-module.exports = { renderTraySprite, buildTrayTooltip, formatLatency, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
+module.exports = { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };

@@ -703,6 +703,7 @@ app.whenReady().then(async () => {
       modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
       processUptimeS: process.uptime(),
       sessionConnectCount,
+      sessionAttemptCount,
       toolCalls: currentToolCalls,
       toolErrors: currentToolErrors,
       lastCloseDetail: currentCloseDetail,
@@ -882,6 +883,7 @@ app.whenReady().then(async () => {
   let currentToolCalls = 0;
   let currentToolErrors = 0;
   let sessionConnectCount = 0;
+  let sessionAttemptCount = 0;
   let currentCloseDetail = null;
   let currentReconnectAttempt = 0;
   let currentTargetUrl = null;
@@ -890,7 +892,7 @@ app.whenReady().then(async () => {
   let currentPluginVersion = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -910,6 +912,7 @@ app.whenReady().then(async () => {
 
     // Use the renderer's authoritative sessionConnectCount instead of tracking locally.
     if (typeof sessionConnectCountVal === 'number' && sessionConnectCountVal >= 0) sessionConnectCount = sessionConnectCountVal;
+    if (typeof sessionAttemptCountVal === 'number' && sessionAttemptCountVal >= 0) sessionAttemptCount = sessionAttemptCountVal;
 
     // Track target URL for tray tooltip (shows which endpoint is being connected to when disconnected).
     if (typeof targetUrl === 'string' && targetUrl) currentTargetUrl = targetUrl;

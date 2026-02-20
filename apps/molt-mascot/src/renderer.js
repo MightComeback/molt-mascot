@@ -387,6 +387,7 @@ function syncPill() {
       activeTools: pluginActiveTools || 0,
       pluginVersion: pluginVersion || null,
       sessionConnectCount,
+      sessionAttemptCount,
     });
   }
 }

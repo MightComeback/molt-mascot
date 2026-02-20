@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { renderTraySprite, buildTrayTooltip, formatLatency, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
+import { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS } from '../src/tray-icon.cjs';
+import { formatLatency } from '../src/format-latency.cjs';
 
 describe('tray-icon', () => {
   describe('TRAY_SPRITE', () => {
@@ -341,6 +342,17 @@ describe('tray-icon', () => {
       const tip = buildTrayTooltip({ ...base, sessionConnectCount: 2 });
       expect(tip).toContain('↻1 reconnect');
       expect(tip).not.toContain('reconnects');
+    });
+
+    it('shows failed attempt count when sessionAttemptCount > sessionConnectCount', () => {
+      const tip = buildTrayTooltip({ ...base, sessionConnectCount: 4, sessionAttemptCount: 7 });
+      expect(tip).toContain('↻3 reconnects, 3 failed');
+    });
+
+    it('omits failed count when sessionAttemptCount equals sessionConnectCount', () => {
+      const tip = buildTrayTooltip({ ...base, sessionConnectCount: 3, sessionAttemptCount: 3 });
+      expect(tip).toContain('↻2 reconnects');
+      expect(tip).not.toContain('failed');
     });
 
     it('omits reconnect count when sessionConnectCount is 0 or 1', () => {
