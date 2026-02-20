@@ -33,6 +33,7 @@ __export(index_exports, {
   default: () => register,
   formatBytes: () => formatBytes,
   formatDuration: () => formatDuration,
+  formatElapsed: () => formatElapsed,
   id: () => id,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -44,7 +45,7 @@ module.exports = __toCommonJS(index_exports);
 // package.json
 var package_default = {
   name: "@molt/mascot-plugin",
-  version: "0.1.36",
+  version: "0.1.37",
   description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
@@ -74,6 +75,7 @@ var package_default = {
     build: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
     dev: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --watch",
     test: "bun test",
+    typecheck: "tsc --noEmit",
     lint: "oxlint .",
     prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`
   },
@@ -191,6 +193,12 @@ function formatDuration(seconds) {
   const remD = d % 7;
   return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
 }
+function formatElapsed(since, now) {
+  if (typeof since !== "number" || typeof now !== "number" || !Number.isFinite(since) || !Number.isFinite(now)) {
+    return "0s";
+  }
+  return formatDuration(Math.max(0, Math.round((now - since) / 1e3)));
+}
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
@@ -236,8 +244,11 @@ var ERROR_PREFIXES = [
   "curl:",
   "wget:",
   "npm:",
+  "npx:",
   "pnpm:",
+  "pnpx:",
   "yarn:",
+  "bunx:",
   "hakky:",
   "hakky-tools:",
   "clawd:",
@@ -249,7 +260,9 @@ var ERROR_PREFIXES = [
   "deno:",
   // Infrastructure tools
   "docker:",
+  "podman:",
   "kubectl:",
+  "helm:",
   "terraform:",
   "ansible:",
   "make:",
@@ -260,6 +273,13 @@ var ERROR_PREFIXES = [
   "ffmpeg:",
   "python:",
   "python3:",
+  "ruby:",
+  "php:",
+  "perl:",
+  "elixir:",
+  "mix:",
+  "bundle:",
+  "gem:",
   "go:",
   "rustc:",
   "cargo:",
@@ -274,18 +294,41 @@ var ERROR_PREFIXES = [
   "zig:",
   "esbuild:",
   "vite:",
+  "swift:",
+  "swc:",
+  "biome:",
+  "oxlint:",
+  "eslint:",
+  "prettier:",
+  "turbo:",
+  "nx:",
   // Browser automation
   "browser:",
   "playwright:",
   "chrome:",
   "firefox:",
   "safari:",
+  // .NET CLI
+  "dotnet:",
   // Cloud CLIs
   "aws:",
   "gcloud:",
   "az:",
   "gsutil:",
   "pip:",
+  "pip3:",
+  "uv:",
+  "uvx:",
+  "poetry:",
+  "pdm:",
+  "rye:",
+  "hatch:",
+  "conda:",
+  "mamba:",
+  "pixi:",
+  "wrangler:",
+  "miniflare:",
+  "workerd:",
   // OpenClaw specific
   "cron:",
   "nodes:"
@@ -294,6 +337,10 @@ var ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
   "i"
 );
+var ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
+var NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
+var GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
+var IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
   let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
@@ -304,10 +351,6 @@ function cleanErrorString(s) {
   str = str.replace(/^thread\s+'[^']*'\s+panicked\s+at\s+\S+:\d+(?::\d+)?:\s*/i, "").trim();
   str = str.replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1").trim();
   str = str.replace(/^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i, "").trim();
-  const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
-  const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
-  const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
-  const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -619,6 +662,8 @@ function register(api) {
     }
   };
   registerAlias("state", (_params, { respond }) => {
+    state.activeAgents = activeAgents.size;
+    state.activeTools = getToolDepth();
     respond(true, { ok: true, state });
   });
   const resetInternalState = () => {
@@ -628,6 +673,8 @@ function register(api) {
     delete state.currentTool;
     state.toolCalls = 0;
     state.toolErrors = 0;
+    state.activeAgents = 0;
+    state.activeTools = 0;
     agentToolStacks.clear();
     agentLastToolTs.clear();
     activeAgents.clear();
@@ -819,6 +866,7 @@ function register(api) {
   coerceSize,
   formatBytes,
   formatDuration,
+  formatElapsed,
   id,
   successRate,
   summarizeToolResultMessage,

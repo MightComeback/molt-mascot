@@ -206,6 +206,22 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
+ * used across tooltip builders, debug info, and tray icon code.
+ *
+ * @param since - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch)
+ * @returns Formatted duration string (e.g. "5m 30s")
+ */
+export function formatElapsed(since: number, now: number): string {
+  if (typeof since !== 'number' || typeof now !== 'number' || !Number.isFinite(since) || !Number.isFinite(now)) {
+    return '0s';
+  }
+  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).

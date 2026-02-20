@@ -33,6 +33,10 @@ type State = {
     toolErrors?: number;
     /** Epoch ms when the plugin was registered (for uptime calculation). */
     startedAt?: number;
+    /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
+    activeAgents?: number;
+    /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
+    activeTools?: number;
 };
 interface PluginApi {
     id?: string;
@@ -87,6 +91,16 @@ declare function formatBytes(bytes: number): string;
  */
 declare function formatDuration(seconds: number): string;
 /**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
+ * used across tooltip builders, debug info, and tray icon code.
+ *
+ * @param since - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch)
+ * @returns Formatted duration string (e.g. "5m 30s")
+ */
+declare function formatElapsed(since: number, now: number): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -125,4 +139,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };

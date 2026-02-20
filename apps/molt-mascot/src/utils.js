@@ -12,8 +12,8 @@ export function coerceDelayMs(v, fallback) {
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { truncate, cleanErrorString, formatDuration, formatBytes, successRate } from '@molt/mascot-plugin';
-export { truncate, cleanErrorString, formatDuration, formatBytes, successRate };
+import { truncate, cleanErrorString, formatDuration, formatBytes, successRate, formatElapsed } from '@molt/mascot-plugin';
+export { truncate, cleanErrorString, formatDuration, formatBytes, successRate, formatElapsed };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
@@ -329,22 +329,6 @@ export function formatCloseDetail(code, reason) {
     return `code ${code}`;
   }
   return '';
-}
-
-/**
- * Format the elapsed time since a past timestamp as a human-readable duration.
- * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
- * used across buildTooltip, buildDebugInfo, and other time-since calculations.
- *
- * @param {number} since - Past timestamp (ms)
- * @param {number} now - Current timestamp (ms)
- * @returns {string} Formatted duration string (e.g. "5m 30s")
- */
-export function formatElapsed(since, now) {
-  if (typeof since !== 'number' || typeof now !== 'number' || !Number.isFinite(since) || !Number.isFinite(now)) {
-    return '0s';
-  }
-  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
 }
 
 /**

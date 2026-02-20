@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1245,6 +1245,25 @@ describe("utils", () => {
     // Null/undefined errorCount treated as 0
     expect(successRate(10, null as any)).toBe(100);
     expect(successRate(10, undefined as any)).toBe(100);
+  });
+
+  it("formatElapsed", () => {
+    const now = 1000000;
+    expect(formatElapsed(now - 45000, now)).toBe("45s");
+    expect(formatElapsed(now - 90000, now)).toBe("1m 30s");
+    expect(formatElapsed(now - 3600000, now)).toBe("1h");
+    // Zero elapsed
+    expect(formatElapsed(5000, 5000)).toBe("0s");
+    // Since in the future (negative elapsed clamps to 0)
+    expect(formatElapsed(2000, 1000)).toBe("0s");
+    // Non-number inputs
+    expect(formatElapsed(null as any, 1000)).toBe("0s");
+    expect(formatElapsed(undefined as any, 1000)).toBe("0s");
+    expect(formatElapsed(1000, null as any)).toBe("0s");
+    // Non-finite inputs
+    expect(formatElapsed(NaN, 1000)).toBe("0s");
+    expect(formatElapsed(Infinity, 1000)).toBe("0s");
+    expect(formatElapsed(1000, -Infinity)).toBe("0s");
   });
 
   it("CONTENT_TOOLS is a non-empty ReadonlySet containing core tools", () => {
