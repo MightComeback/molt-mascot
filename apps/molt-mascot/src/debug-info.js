@@ -233,7 +233,6 @@ export function buildDebugInfo(params) {
   // Connection uptime percentage: how much of the process lifetime was spent connected.
   // Helps diagnose flaky connections at a glance (e.g. "connected 23% of the time" → fix your network).
   if (typeof processUptimeS === 'number' && processUptimeS > 0 && typeof firstConnectedAt === 'number' && firstConnectedAt > 0) {
-    const processStartMs = now - processUptimeS * 1000;
     // Total connected time = (first connected → now) minus estimated disconnected time.
     // When currently connected, connectedSince gives the start of the current session.
     // Without precise per-session tracking, we approximate: total uptime minus time before

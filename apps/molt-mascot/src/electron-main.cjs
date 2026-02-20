@@ -5,7 +5,7 @@ const fs = require('fs');
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
-const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, resolveSizePreset } = require('./size-presets.cjs');
+const { SIZE_PRESETS, DEFAULT_SIZE_INDEX } = require('./size-presets.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
 const APP_VERSION = require('../package.json').version;
