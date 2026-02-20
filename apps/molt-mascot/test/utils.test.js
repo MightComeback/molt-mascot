@@ -20,6 +20,7 @@ import {
   successRate,
   formatBytes,
   formatLatency,
+  MODE_EMOJI,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -870,5 +871,22 @@ describe("formatLatency", () => {
     expect(formatLatency(undefined)).toBe("–");
     expect(formatLatency(null)).toBe("–");
     expect(formatLatency("50")).toBe("–");
+  });
+});
+
+describe("MODE_EMOJI", () => {
+  it("is a frozen object with expected mode keys", () => {
+    expect(Object.isFrozen(MODE_EMOJI)).toBe(true);
+    expect(MODE_EMOJI.thinking).toBe("🧠");
+    expect(MODE_EMOJI.tool).toBe("🔧");
+    expect(MODE_EMOJI.error).toBe("❌");
+    expect(MODE_EMOJI.connecting).toBe("🔄");
+    expect(MODE_EMOJI.disconnected).toBe("⚡");
+    expect(MODE_EMOJI.connected).toBe("✅");
+    expect(MODE_EMOJI.sleeping).toBe("💤");
+  });
+
+  it("does not include idle (idle has no emoji indicator)", () => {
+    expect(MODE_EMOJI.idle).toBeUndefined();
   });
 });

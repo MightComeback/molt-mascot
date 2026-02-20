@@ -1,4 +1,4 @@
-import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 
@@ -1268,7 +1268,7 @@ function showContextMenu(e) {
   // Build a status summary line for the context menu header
   const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   const isSleepingCtx = currentMode === Mode.idle && modeDur > SLEEP_THRESHOLD_S;
-  const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
+  const modeEmoji = MODE_EMOJI;
   const emojiKey = isSleepingCtx ? 'sleeping' : currentMode;
   const emoji = modeEmoji[emojiKey] ? `${modeEmoji[emojiKey]} ` : '';
   let modeLabel = isSleepingCtx ? `${emoji}Sleeping` : `${emoji}${capitalize(currentMode)}`;

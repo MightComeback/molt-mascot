@@ -367,3 +367,4 @@ export const PLUGIN_RESET_METHODS = [
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';
+export { MODE_EMOJI } from './mode-emoji.cjs';

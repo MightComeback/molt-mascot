@@ -7,6 +7,7 @@
 
 const { formatDuration, successRate } = require('@molt/mascot-plugin');
 const { formatLatency } = require('./format-latency.cjs');
+const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
@@ -171,7 +172,7 @@ function buildTrayTooltip(params) {
   const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion } = params;
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
-  const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
+  const modeEmoji = MODE_EMOJI;
   const modeLabel = mode || 'idle';
   if (modeLabel !== 'idle') {
     let modePart = `${modeEmoji[modeLabel] || '●'} ${modeLabel}`;
