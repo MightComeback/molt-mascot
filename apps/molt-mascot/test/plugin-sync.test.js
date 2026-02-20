@@ -226,6 +226,25 @@ describe('createPluginSync', () => {
     expect(onActiveTools).toHaveBeenCalledWith(0);
   });
 
+  it('syncs currentTool including empty string (cleared)', () => {
+    const onCurrentTool = mock(() => {});
+    const ps = createPluginSync({ onCurrentTool });
+
+    // Non-empty tool name
+    const changed = ps.sync({ currentTool: 'web_search' });
+    expect(onCurrentTool).toHaveBeenCalledWith('web_search');
+    expect(changed).toContain('currentTool');
+
+    // Same value — no callback
+    onCurrentTool.mockClear();
+    ps.sync({ currentTool: 'web_search' });
+    expect(onCurrentTool).not.toHaveBeenCalled();
+
+    // Cleared to empty string (tool finished)
+    ps.sync({ currentTool: '' });
+    expect(onCurrentTool).toHaveBeenCalledWith('');
+  });
+
   it('rejects negative activeAgents/activeTools', () => {
     const onActiveAgents = mock(() => {});
     const ps = createPluginSync({ onActiveAgents });

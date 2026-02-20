@@ -44,6 +44,7 @@ const SYNC_PROPS = [
   ['startedAt',    'number',  'onStartedAt'],
   ['activeAgents', 'number',  'onActiveAgents'],
   ['activeTools',  'number',  'onActiveTools'],
+  ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true }],
 ];
 
 /** Build a fresh cache object with all tracked keys set to null. */
@@ -67,6 +68,7 @@ function emptyCache() {
  * @param {function} [callbacks.onToolCalls]    - Called with (number) when toolCalls changes.
  * @param {function} [callbacks.onToolErrors]   - Called with (number) when toolErrors changes.
  * @param {function} [callbacks.onStartedAt]    - Called with (number) when startedAt changes.
+ * @param {function} [callbacks.onCurrentTool]  - Called with (string) when currentTool changes ('' when cleared).
  * @returns {{ sync: function, reset: function, last: function }}
  */
 export function createPluginSync(callbacks = {}) {
@@ -83,11 +85,13 @@ export function createPluginSync(callbacks = {}) {
     if (!state) return [];
     const changed = [];
 
-    for (const [key, expectedType, cbName] of SYNC_PROPS) {
+    for (const entry of SYNC_PROPS) {
+      const [key, expectedType, cbName, opts] = entry;
       const val = state[key];
       if (typeof val !== expectedType) continue;
-      // String properties must be non-empty to count as a valid update.
-      if (expectedType === 'string' && !val) continue;
+      // String properties must be non-empty to count as a valid update,
+      // unless allowEmpty is set (e.g. currentTool clears to '' when idle).
+      if (expectedType === 'string' && !val && !opts?.allowEmpty) continue;
       // NaN/Infinity guard: only finite numbers are valid state values.
       if (expectedType === 'number' && !Number.isFinite(val)) continue;
       // Domain-specific validation (e.g. opacity 0-1, padding >= 0).
