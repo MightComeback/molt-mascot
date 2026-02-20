@@ -423,6 +423,51 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Active:");
   });
 
+  it("shows first connected time when connected and flappy (sessionConnectCount > 1)", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 120000, // connected 2m ago
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      firstConnectedAt: NOW - 3600000, // first connected 1h ago
+      sessionConnectCount: 3,
+    });
+    expect(info).toContain("First connected: 1h ago");
+  });
+
+  it("omits first connected time when sessionConnectCount <= 1 (no reconnects)", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 120000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      firstConnectedAt: NOW - 3600000,
+      sessionConnectCount: 1,
+    });
+    expect(info).not.toContain("First connected");
+  });
+
+  it("omits first connected time when not connected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      firstConnectedAt: NOW - 3600000,
+      sessionConnectCount: 3,
+    });
+    expect(info).not.toContain("First connected");
+  });
+
+  it("omits first connected time when null", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 120000,
+      connectedUrl: "ws://localhost:18789",
+      wsReadyState: 1,
+      firstConnectedAt: null,
+      sessionConnectCount: 3,
+    });
+    expect(info).not.toContain("First connected");
+  });
+
   it("includes arch in Platform line when provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, arch: "arm64" });
     expect(info).toContain("Platform: MacIntel arm64");

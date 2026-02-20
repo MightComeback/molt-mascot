@@ -63,6 +63,8 @@ export class GatewayClient {
     this.sessionConnectCount = 0;
     /** Total connection attempts since client creation (including failures). */
     this.sessionAttemptCount = 0;
+    /** Timestamp of the very first successful handshake (null if never connected). */
+    this.firstConnectedAt = null;
 
     // Stale connection detection
     this._lastMessageAt = 0;
@@ -300,6 +302,7 @@ export class GatewayClient {
         this._reconnectAttempt = 0;
         this.sessionConnectCount += 1;
         this.connectedSince = Date.now();
+        if (this.firstConnectedAt === null) this.firstConnectedAt = this.connectedSince;
         this.connectedUrl = url || '';
         this._startStaleCheck();
 
@@ -607,6 +610,7 @@ export class GatewayClient {
       isConnected: this.isConnected,
       isDestroyed: this._destroyed,
       connectedSince: this.connectedSince,
+      firstConnectedAt: this.firstConnectedAt,
       connectedUrl: this.connectedUrl,
       targetUrl: this.targetUrl,
       hasPlugin: this.hasPlugin,

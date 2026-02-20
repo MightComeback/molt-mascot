@@ -48,6 +48,7 @@
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
+ * @param {number|null} [params.firstConnectedAt] - Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
  * @param {string} [params.arch] - CPU architecture (e.g. 'arm64', 'x64') — useful for diagnosing Electron compatibility issues
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
@@ -106,6 +107,7 @@ export function buildDebugInfo(params) {
     activeTools,
     arch,
     pluginResetMethod,
+    firstConnectedAt,
     now: nowOverride,
   } = params;
 
@@ -122,6 +124,11 @@ export function buildDebugInfo(params) {
   lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
   if (connectedSince) {
     lines.push(`Uptime: ${formatElapsed(connectedSince, now)} (since ${new Date(connectedSince).toISOString()})`);
+    // Show first-ever connection time when the connection has flapped (reconnected at least once).
+    // Helps diagnose "app running for 8h but current uptime is only 2m" scenarios.
+    if (typeof firstConnectedAt === 'number' && firstConnectedAt > 0 && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+      lines.push(`First connected: ${formatElapsed(firstConnectedAt, now)} ago (at ${new Date(firstConnectedAt).toISOString()})`);
+    }
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     // Show last disconnect even when connected — helps debug flaky connections

@@ -87,6 +87,7 @@ describe('GatewayClient', () => {
       expect(status.isConnected).toBe(false);
       expect(status.isDestroyed).toBe(false);
       expect(status.connectedSince).toBeNull();
+      expect(status.firstConnectedAt).toBeNull();
       expect(status.hasPlugin).toBe(false);
       expect(status.sessionConnectCount).toBe(0);
       expect(status.sessionAttemptCount).toBe(0);
