@@ -187,7 +187,7 @@ Options:
                          Values: bottom-right, bottom-left, top-right, top-left,
                          bottom-center, top-center, center-left, center-right, center
   --size <preset>        Size preset (overrides env/saved prefs)
-                         Values: small, medium, large, xlarge
+                         Values: tiny, small, medium, large, xlarge
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --click-through        Start in ghost mode (click-through)
@@ -208,7 +208,7 @@ Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
   MOLT_MASCOT_GATEWAY_TOKEN   Gateway auth token
   MOLT_MASCOT_ALIGN           Window alignment (bottom-right, top-left, center, etc.)
-  MOLT_MASCOT_SIZE            Size preset (small, medium, large, xlarge; default: medium)
+  MOLT_MASCOT_SIZE            Size preset (tiny, small, medium, large, xlarge; default: medium)
   MOLT_MASCOT_PADDING         Edge padding in pixels (default: 24)
   MOLT_MASCOT_WIDTH           Window width in pixels (default: 240)
   MOLT_MASCOT_HEIGHT          Window height in pixels (default: 200)

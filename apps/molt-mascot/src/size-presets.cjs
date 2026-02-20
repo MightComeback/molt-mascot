@@ -7,6 +7,7 @@
  */
 
 const SIZE_PRESETS = Object.freeze([
+  Object.freeze({ label: 'tiny',   width: 120, height: 100 }),
   Object.freeze({ label: 'small',  width: 160, height: 140 }),
   Object.freeze({ label: 'medium', width: 240, height: 200 }),
   Object.freeze({ label: 'large',  width: 360, height: 300 }),
@@ -14,7 +15,7 @@ const SIZE_PRESETS = Object.freeze([
 ]);
 
 /** Default size preset index (medium). */
-const DEFAULT_SIZE_INDEX = 1;
+const DEFAULT_SIZE_INDEX = 2;
 
 /**
  * Look up a size preset by label (case-insensitive).

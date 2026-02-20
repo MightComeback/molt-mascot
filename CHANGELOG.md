@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `tiny` size preset (120×100) for minimal screen footprint
 - `--min-protocol` and `--max-protocol` CLI flags for Gateway protocol version negotiation
 - Active agents/tools count in pill tooltip and debug info
 - Context menu fade-in animation with `prefers-reduced-motion` support
