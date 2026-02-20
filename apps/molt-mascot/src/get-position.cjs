@@ -1,19 +1,10 @@
 /**
  * Canonical set of valid alignment values.
- * Shared across CLI --help, context menu, and position computation so there's
- * a single source of truth for supported alignments.
+ * Delegated to the plugin package (single source of truth) so the Electron
+ * main process, renderer, and plugin never drift.
  */
-const VALID_ALIGNMENTS = Object.freeze([
-  'bottom-right',
-  'bottom-left',
-  'top-right',
-  'top-left',
-  'bottom-center',
-  'top-center',
-  'center-left',
-  'center-right',
-  'center',
-]);
+const { allowedAlignments } = require('@molt/mascot-plugin');
+const VALID_ALIGNMENTS = Object.freeze([...allowedAlignments]);
 
 /**
  * Check whether a string is a recognized alignment value (case-insensitive).
