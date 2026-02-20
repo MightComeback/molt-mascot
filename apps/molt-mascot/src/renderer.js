@@ -308,9 +308,12 @@ function showCopiedFeedback() {
  * @param {number} [durationMs=700] - How long to show the feedback
  * @param {string} [pillClass='pill--idle'] - CSS class for the pill during feedback
  */
-function showTransientFeedback(text, durationMs = 700, pillClass = 'pill--idle') {
+function showTransientFeedback(text, durationMs = 700, pillClass) {
   pill.textContent = text;
-  pill.className = pillClass;
+  // Preserve the current pill color when no explicit class is given,
+  // so feedback like "Opacity 80%" doesn't flash to idle-green while
+  // the mascot is in thinking/error/tool mode.
+  if (pillClass !== undefined) pill.className = pillClass;
   copiedUntil = Date.now() + durationMs;
 }
 
