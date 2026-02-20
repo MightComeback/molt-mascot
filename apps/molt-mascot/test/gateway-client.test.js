@@ -611,6 +611,23 @@ describe('GatewayClient', () => {
       expect(client.latencyStats.samples).toBe(1);
     });
 
+    it('refreshPluginState clears guards so request is not dropped', () => {
+      const client = new GatewayClient();
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const connectFrame = JSON.parse(ws._sent[0]);
+      ws._message({ type: 'res', id: connectFrame.id, ok: true, payload: { type: 'hello-ok' } });
+      // Initial plugin state request sent automatically
+      const sentBefore = ws._sent.length;
+      // Simulate pending state (as if the first request hasn't returned yet)
+      client._pluginStatePending = true;
+      client._pluginStateLastSentAt = Date.now();
+      // Without the fix, refreshPluginState would be silently dropped
+      client.refreshPluginState();
+      expect(ws._sent.length).toBeGreaterThan(sentBefore);
+    });
+
     it('caps buffer at max size', () => {
       const client = new GatewayClient();
       client._latencyBufferMax = 3;
