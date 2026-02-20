@@ -142,6 +142,8 @@ Options:
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
   --disable-gpu          Disable hardware acceleration (useful on VMs, Wayland, remote desktops)
+  --min-protocol <n>     Minimum Gateway protocol version (default: 2)
+  --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --list-prefs           Print saved preferences and exit
   --reset-prefs          Clear saved preferences and start fresh
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)

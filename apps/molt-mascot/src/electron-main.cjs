@@ -95,6 +95,12 @@ if (cliAlign) process.env.MOLT_MASCOT_ALIGN = cliAlign;
 if (cliOpacity) process.env.MOLT_MASCOT_OPACITY = cliOpacity;
 if (cliPadding) process.env.MOLT_MASCOT_PADDING = cliPadding;
 
+// CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
+const cliMinProtocol = parseCliArg('--min-protocol');
+const cliMaxProtocol = parseCliArg('--max-protocol');
+if (cliMinProtocol) process.env.MOLT_MASCOT_MIN_PROTOCOL = cliMinProtocol;
+if (cliMaxProtocol) process.env.MOLT_MASCOT_MAX_PROTOCOL = cliMaxProtocol;
+
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
 if (process.argv.includes('--reset-prefs')) {
@@ -173,6 +179,8 @@ Options:
                          remote desktops, or Wayland compositors)
   --no-tray              Disable system tray icon (useful on Linux DEs
                          without tray support, e.g. GNOME)
+  --min-protocol <n>     Minimum Gateway protocol version (default: 2)
+  --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
 
@@ -190,6 +198,8 @@ Environment variables:
   MOLT_MASCOT_IDLE_DELAY_MS      Delay before returning to idle after activity (default: 800)
   MOLT_MASCOT_ERROR_HOLD_MS      How long to show error state before reverting (default: 5000)
   MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
+  MOLT_MASCOT_MIN_PROTOCOL    Minimum Gateway protocol version (default: 2)
+  MOLT_MASCOT_MAX_PROTOCOL    Maximum Gateway protocol version (default: 3)
   MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 

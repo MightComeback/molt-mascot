@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `--min-protocol` and `--max-protocol` CLI flags for Gateway protocol version negotiation
 - Active agents/tools count in pill tooltip and debug info
 - Context menu fade-in animation with `prefers-reduced-motion` support
 - `MOLT_MASCOT_SIZE` env var for size preset (parity with `MOLT_MASCOT_ALIGN`)
