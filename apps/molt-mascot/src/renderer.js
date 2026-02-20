@@ -1524,6 +1524,9 @@ document.addEventListener('visibilitychange', () => {
     // rather than potentially skipping if the second/minute counter happens to match.
     lastPillSec = -1;
     lastPillMin = -1;
+    // Flush stale timestamps from the FPS ring buffer so the counter doesn't
+    // report inflated/deflated values for the first second after un-hiding.
+    _fpsCounter.reset();
     startAnimation();
     // Immediately refresh plugin state so the UI catches up after being hidden.
     // The 1s poller skips ticks while hidden, so without this the pill would
