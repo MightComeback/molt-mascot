@@ -94,6 +94,16 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Saved URL: ws://localhost:9999");
   });
 
+  it("shows target URL when disconnected", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, targetUrl: "ws://10.0.0.5:18789" });
+    expect(info).toContain("Target URL: ws://10.0.0.5:18789");
+  });
+
+  it("omits target URL when connected", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, connectedSince: Date.now() - 60000, connectedUrl: "ws://localhost:18789", targetUrl: "ws://localhost:18789" });
+    expect(info).not.toContain("Target URL");
+  });
+
   it("shows plugin info when active", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

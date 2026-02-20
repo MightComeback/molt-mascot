@@ -33,6 +33,7 @@
  * @param {string} [params.pluginVersion] - Plugin version string
  * @param {number} [params.wsReadyState] - WebSocket readyState
  * @param {string} [params.savedUrl] - Saved config URL (shown when disconnected)
+ * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {string} [params.platform] - navigator.platform
  * @param {number} [params.devicePixelRatio] - window.devicePixelRatio
  * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} [params.memory] - performance.memory
@@ -92,6 +93,7 @@ export function buildDebugInfo(params) {
     pluginVersion,
     wsReadyState,
     savedUrl,
+    targetUrl,
     platform,
     devicePixelRatio,
     memory,
@@ -158,6 +160,7 @@ export function buildDebugInfo(params) {
     if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
     if (lastCloseDetail) lines.push(`Close reason: ${lastCloseDetail}`);
     if (savedUrl) lines.push(`Saved URL: ${savedUrl}`);
+    if (typeof targetUrl === 'string' && targetUrl) lines.push(`Target URL: ${targetUrl}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
   if (hasPlugin) {
