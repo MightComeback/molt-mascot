@@ -238,6 +238,10 @@ const _pluginSync = createPluginSync({
 // redundant IPC and to enable sleeping-state tray icon dot.
 let _lastReportedMode = 'idle';
 let _lastReportedTool = '';
+// Timestamp of last tray state IPC to ensure periodic refresh of stats
+// (latency, toolCalls, sessionConnectCount, etc.) even when mode/tool are unchanged.
+let _lastTrayIpcAt = 0;
+const _TRAY_IPC_INTERVAL_MS = 5000;
 
 // Guard: while > 0, syncPill() skips updates so clipboard "Copied!" feedback stays visible.
 let copiedUntil = 0;
@@ -359,9 +363,15 @@ function syncPill() {
   // so the tray icon status dot and tooltip reflect the visual state.
   const effectiveMode = isSleeping ? 'sleeping' : currentMode;
   const effectiveTool = currentTool || '';
-  if (effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool) {
+  const now = Date.now();
+  const modeOrToolChanged = effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool;
+  // Periodically refresh tray stats (latency, toolCalls, sessionConnectCount, etc.)
+  // even when mode/tool are unchanged, so the tray tooltip stays accurate.
+  const periodicRefresh = now - _lastTrayIpcAt >= _TRAY_IPC_INTERVAL_MS;
+  if (modeOrToolChanged || periodicRefresh) {
     _lastReportedMode = effectiveMode;
     _lastReportedTool = effectiveTool;
+    _lastTrayIpcAt = now;
     if (window.moltMascot?.updateMode) window.moltMascot.updateMode({
       mode: effectiveMode,
       latency: latencyMs,
@@ -375,6 +385,7 @@ function syncPill() {
       activeAgents: pluginActiveAgents || 0,
       activeTools: pluginActiveTools || 0,
       pluginVersion: pluginVersion || null,
+      sessionConnectCount,
     });
   }
 }

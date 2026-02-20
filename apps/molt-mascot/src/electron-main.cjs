@@ -883,7 +883,7 @@ app.whenReady().then(async () => {
   let currentPluginVersion = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -900,6 +900,9 @@ app.whenReady().then(async () => {
     if (typeof closeDetail === 'string' && closeDetail) currentCloseDetail = closeDetail;
     else if (closeDetail === null) currentCloseDetail = null;
     if (typeof reconnectAttemptVal === 'number' && reconnectAttemptVal >= 0) currentReconnectAttempt = reconnectAttemptVal;
+
+    // Use the renderer's authoritative sessionConnectCount instead of tracking locally.
+    if (typeof sessionConnectCountVal === 'number' && sessionConnectCountVal >= 0) sessionConnectCount = sessionConnectCountVal;
 
     // Track target URL for tray tooltip (shows which endpoint is being connected to when disconnected).
     if (typeof targetUrl === 'string' && targetUrl) currentTargetUrl = targetUrl;
@@ -928,7 +931,7 @@ app.whenReady().then(async () => {
       // Track connection start for uptime display in tray tooltip.
       if (mode === 'connected') {
         connectedSinceMs = Date.now();
-        sessionConnectCount += 1;
+        // sessionConnectCount is now synced from the renderer's authoritative value.
         currentCloseDetail = null;
         currentReconnectAttempt = 0;
       } else if (mode === 'disconnected' || mode === 'connecting') {
