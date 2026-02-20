@@ -287,6 +287,10 @@ describe("utils", () => {
     expect(cleanErrorString("mix: Could not find task 'phx.server'")).toBe("Could not find task 'phx.server'");
     expect(cleanErrorString("bundle: command not found: rails")).toBe("command not found: rails");
     expect(cleanErrorString("gem: ERROR: While executing gem")).toBe("While executing gem");
+    // Swift runtime
+    expect(cleanErrorString("swift: error: no such module 'Foundation'")).toBe("no such module 'Foundation'");
+    // .NET CLI
+    expect(cleanErrorString("dotnet: error: Project file does not exist")).toBe("Project file does not exist");
   });
 
   it("summarizeToolResultMessage", () => {

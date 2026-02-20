@@ -305,6 +305,7 @@ export const ERROR_PREFIXES = [
   "zig:",
   "esbuild:",
   "vite:",
+  "swift:",
   "swc:",
   "biome:",
   "oxlint:",
@@ -318,6 +319,8 @@ export const ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
+  // .NET CLI
+  "dotnet:",
   // Cloud CLIs
   "aws:",
   "gcloud:",
