@@ -164,6 +164,7 @@ export function buildDebugInfo(params) {
     }
   }
   if (isPollingPaused) lines.push('Polling: paused');
+  else if (hasPlugin) lines.push('Polling: active');
   if (typeof latencyMs === 'number' && latencyMs >= 0) lines.push(`Latency: ${formatLatency(latencyMs)}`);
   if (pluginToolCalls > 0) {
     const rateSuffix = pluginToolErrors > 0

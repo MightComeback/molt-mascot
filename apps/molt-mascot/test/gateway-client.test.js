@@ -93,6 +93,8 @@ describe('GatewayClient', () => {
       expect(status.sessionAttemptCount).toBe(0);
       expect(status.latencyMs).toBeNull();
       expect(typeof status.reconnectAttempt).toBe('number');
+      expect(status.pluginPollerStarted).toBe(false);
+      expect(status.pollingPaused).toBe(false);
       // Ensure it's JSON-serializable (no circular refs, no functions)
       const json = JSON.stringify(status);
       expect(typeof json).toBe('string');

@@ -373,9 +373,14 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Polling: paused");
   });
 
-  it("omits polling line when isPollingPaused is false or undefined", () => {
+  it("omits polling line when isPollingPaused is false and no plugin", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS, isPollingPaused: false })).not.toContain("Polling:");
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Polling:");
+  });
+
+  it("shows 'Polling: active' when plugin is active and not paused", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, hasPlugin: true, isPollingPaused: false });
+    expect(info).toContain("Polling: active");
   });
 
   it("shows plain 'idle' when idle duration is below sleep threshold", () => {
