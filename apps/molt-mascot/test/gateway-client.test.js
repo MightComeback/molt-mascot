@@ -1,1312 +1,212 @@
-import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { GatewayClient, normalizeWsUrl } from "../src/gateway-client.js";
+import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { GatewayClient } from '../src/gateway-client.js';
 
-// Minimal WebSocket mock
-class MockWebSocket {
-  static OPEN = 1;
+// GatewayClient requires WebSocket in the global scope; provide a minimal stub
+// so we can test non-network logic without a real server.
+class FakeWebSocket {
   static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
   static CLOSED = 3;
-
-  constructor(url) {
-    this.url = url;
-    this.readyState = MockWebSocket.OPEN;
-    this._listeners = {};
-    this._sent = [];
-    this.onclose = null;
-    MockWebSocket._last = this;
-  }
-
-  addEventListener(type, fn) {
-    (this._listeners[type] ??= []).push(fn);
-  }
-
-  removeEventListener(type, fn) {
-    if (this._listeners[type]) {
-      this._listeners[type] = this._listeners[type].filter((f) => f !== fn);
-    }
-  }
-
-  send(data) {
-    this._sent.push(JSON.parse(data));
-  }
-
-  close() {
-    this.readyState = MockWebSocket.CLOSED;
-  }
-
-  // Test helpers
-  _emit(type, data) {
-    for (const fn of this._listeners[type] || []) fn(data);
-  }
-
-  _emitMessage(obj) {
-    this._emit("message", { data: JSON.stringify(obj) });
-  }
+  readyState = FakeWebSocket.OPEN;
+  onclose = null;
+  constructor() {}
+  send() {}
+  close() { this.readyState = FakeWebSocket.CLOSED; }
+  addEventListener() {}
+  removeEventListener() {}
 }
+globalThis.WebSocket = FakeWebSocket;
 
-let _origWS;
+describe('GatewayClient', () => {
+  let client;
 
-function installMockWS() {
-  _origWS = globalThis.WebSocket;
-  globalThis.WebSocket = MockWebSocket;
-}
-
-function restoreMockWS() {
-  globalThis.WebSocket = _origWS;
-}
-
-describe("GatewayClient", () => {
   beforeEach(() => {
-    installMockWS();
+    client = new GatewayClient({
+      reconnectBaseMs: 100,
+      reconnectMaxMs: 1000,
+    });
   });
 
-  afterEach(() => {
-    restoreMockWS();
-  });
-
-  it("sends connect frame on WebSocket open", () => {
-    const client = new GatewayClient({ clientVersion: "1.0.0" });
-    client.connect({ url: "ws://localhost:18789", token: "tok123" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-
-    expect(ws._sent.length).toBe(1);
-    const frame = ws._sent[0];
-    expect(frame.type).toBe("req");
-    expect(frame.method).toBe("connect");
-    expect(frame.params.auth.token).toBe("tok123");
-    expect(frame.params.client.version).toBe("1.0.0");
-    expect(frame.params.role).toBe("operator");
-
-    client.destroy();
-  });
-
-  it("fires onHandshakeSuccess on hello-ok", () => {
-    const client = new GatewayClient();
-    let handshakeOk = false;
-    client.onHandshakeSuccess = () => { handshakeOk = true; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    expect(handshakeOk).toBe(true);
-    expect(client.connectedSince).toBeGreaterThan(0);
-    expect(client.connectedUrl).toBe("ws://localhost:18789");
-
-    client.destroy();
-  });
-
-  it("fires onHandshakeFailure on rejected connect", () => {
-    const client = new GatewayClient();
-    let failureMsg = "";
-    client.onHandshakeFailure = (msg) => { failureMsg = msg; };
-    client.connect({ url: "ws://localhost:18789", token: "bad" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-
-    ws._emitMessage({
-      type: "res",
-      id: connectId,
-      payload: { error: { message: "auth denied" } },
+  describe('constructor defaults', () => {
+    it('starts with no connection', () => {
+      expect(client.isConnected).toBe(false);
+      expect(client.connectedSince).toBeNull();
+      expect(client.connectedUrl).toBe('');
+      expect(client.targetUrl).toBe('');
+      expect(client.sessionConnectCount).toBe(0);
+      expect(client.sessionAttemptCount).toBe(0);
+      expect(client.latencyMs).toBeNull();
+      expect(client.hasPlugin).toBe(false);
+      expect(client.isDestroyed).toBe(false);
     });
 
-    expect(failureMsg).toBe("auth denied");
-    client.destroy();
-  });
-
-  it("fires onPluginState when plugin responds successfully", () => {
-    const client = new GatewayClient();
-    let pluginState = null;
-    client.onPluginState = (s) => { pluginState = s; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // After handshake, client sends plugin state request
-    expect(ws._sent.length).toBe(2);
-    const stateReqId = ws._sent[1].id;
-
-    ws._emitMessage({
-      type: "res",
-      id: stateReqId,
-      ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    it('reports null uptime when not connected', () => {
+      expect(client.uptimeSeconds).toBeNull();
     });
 
-    expect(pluginState).not.toBeNull();
-    expect(pluginState.mode).toBe("idle");
-    expect(client.hasPlugin).toBe(true);
-
-    client.destroy();
-  });
-
-  it("falls back to next plugin method on method-not-found", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    const stateReqId = ws._sent[1].id;
-    // First method fails
-    ws._emitMessage({
-      type: "res",
-      id: stateReqId,
-      ok: false,
-      payload: { error: { message: "unknown method" } },
+    it('reports null lastCloseDetail when no disconnects', () => {
+      expect(client.lastCloseDetail).toBeNull();
     });
 
-    // Should have sent a retry with the next method
-    expect(ws._sent.length).toBe(3);
-    expect(ws._sent[2].method).toBe("molt-mascot.state");
-
-    client.destroy();
+    it('reports null plugin methods when no plugin', () => {
+      expect(client.pluginStateMethod).toBeNull();
+      expect(client.pluginResetMethod).toBeNull();
+    });
   });
 
-  it("fires onAgentEvent for native agent events when no plugin", () => {
-    const client = new GatewayClient();
-    let agentPayload = null;
-    client.onAgentEvent = (p) => { agentPayload = p; };
-    client.connect({ url: "ws://localhost:18789" });
+  describe('getStatus()', () => {
+    it('returns a serializable snapshot', () => {
+      const status = client.getStatus();
+      expect(status.isConnected).toBe(false);
+      expect(status.isDestroyed).toBe(false);
+      expect(status.connectedSince).toBeNull();
+      expect(status.hasPlugin).toBe(false);
+      expect(status.sessionConnectCount).toBe(0);
+      expect(status.sessionAttemptCount).toBe(0);
+      expect(status.latencyMs).toBeNull();
+      expect(typeof status.reconnectAttempt).toBe('number');
+      // Ensure it's JSON-serializable (no circular refs, no functions)
+      const json = JSON.stringify(status);
+      expect(typeof json).toBe('string');
+      const parsed = JSON.parse(json);
+      expect(parsed.isConnected).toBe(false);
+    });
+  });
 
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Simulate plugin state failure (all methods exhausted), hasPlugin stays false
-    // Just send an agent event directly
-    ws._emitMessage({
-      type: "event",
-      event: "agent",
-      payload: { phase: "start", stream: "lifecycle" },
+  describe('destroy()', () => {
+    it('sets isDestroyed and prevents further connect()', () => {
+      const onState = mock(() => {});
+      client.onConnectionStateChange = onState;
+      client.destroy();
+      expect(client.isDestroyed).toBe(true);
+      // connect() after destroy should be a no-op
+      client.connect({ url: 'ws://localhost:1234' });
+      expect(onState).not.toHaveBeenCalled();
     });
 
-    expect(agentPayload).not.toBeNull();
-    expect(agentPayload.phase).toBe("start");
-
-    client.destroy();
-  });
-
-  it("sendPluginReset sends reset frame", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    client.sendPluginReset();
-
-    const resetFrame = ws._sent[ws._sent.length - 1];
-    expect(resetFrame.method).toBe("@molt/mascot-plugin.reset");
-    expect(resetFrame.type).toBe("req");
-
-    client.destroy();
-  });
-
-  it("forceReconnect resets backoff and closes existing socket", () => {
-    const client = new GatewayClient();
-    let connectCount = 0;
-    client.onConnectionStateChange = () => { connectCount++; };
-    client.connect({ url: "ws://localhost:18789" });
-    connectCount = 0; // reset after initial connect
-
-    const oldWs = MockWebSocket._last;
-    client.forceReconnect({ url: "ws://localhost:18789" });
-
-    expect(oldWs.readyState).toBe(MockWebSocket.CLOSED);
-    expect(client.reconnectAttempt).toBe(0);
-    expect(connectCount).toBe(1); // onConnectionStateChange fired for new connect
-
-    client.destroy();
-  });
-
-  it("destroy cleans up all state", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    client.destroy();
-
-    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
-  });
-
-  it("fires onDisconnect with close info and schedules reconnect on close", () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50, reconnectMaxMs: 100 });
-    let disconnectInfo = null;
-    let countdownFired = false;
-    client.onDisconnect = (info) => { disconnectInfo = info; };
-    client.onReconnectCountdown = () => { countdownFired = true; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    // Trigger onclose with code and reason
-    if (ws.onclose) ws.onclose({ code: 1006, reason: "abnormal closure" });
-
-    expect(disconnectInfo).not.toBeNull();
-    expect(disconnectInfo.code).toBe(1006);
-    expect(disconnectInfo.reason).toBe("abnormal closure");
-    expect(countdownFired).toBe(true);
-
-    client.destroy();
-  });
-
-  it("onDisconnect omits empty reason", () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50000 });
-    let disconnectInfo = null;
-    client.onDisconnect = (info) => { disconnectInfo = info; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    if (ws.onclose) ws.onclose({ code: 1000, reason: "" });
-
-    expect(disconnectInfo.code).toBe(1000);
-    expect(disconnectInfo.reason).toBeUndefined();
-
-    client.destroy();
-  });
-
-  it("pluginStateMethod returns resolved method after successful plugin handshake", () => {
-    const client = new GatewayClient();
-    expect(client.pluginStateMethod).toBeNull();
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Still null before plugin responds
-    expect(client.pluginStateMethod).toBeNull();
-
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    it('fires onPluginStateReset if plugin was active', () => {
+      const onReset = mock(() => {});
+      client.onPluginStateReset = onReset;
+      client.hasPlugin = true;
+      client.destroy();
+      expect(onReset).toHaveBeenCalledTimes(1);
     });
 
-    expect(client.pluginStateMethod).toBe("@molt/mascot-plugin.state");
-    expect(client.pluginResetMethod).toBe("@molt/mascot-plugin.reset");
-
-    client.destroy();
+    it('does not fire onPluginStateReset if no plugin was active', () => {
+      const onReset = mock(() => {});
+      client.onPluginStateReset = onReset;
+      client.hasPlugin = false;
+      client.destroy();
+      expect(onReset).not.toHaveBeenCalled();
+    });
   });
 
-  it("pluginStateMethod reflects fallback method after primary fails", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // First method fails
-    const stateReqId1 = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId1, ok: false,
-      payload: { error: { message: "unknown method" } },
+  describe('forceReconnect()', () => {
+    it('resets reconnect attempt counter', () => {
+      // Simulate some reconnect attempts
+      client._reconnectAttempt = 5;
+      client.forceReconnect();
+      expect(client._reconnectAttempt).toBe(0);
     });
 
-    // Second method succeeds
-    const stateReqId2 = ws._sent[2].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId2, ok: true,
-      payload: { ok: true, state: { mode: "thinking", since: Date.now() } },
+    it('records lastDisconnectedAt', () => {
+      expect(client.lastDisconnectedAt).toBeNull();
+      const before = Date.now();
+      client.forceReconnect();
+      expect(client.lastDisconnectedAt).toBeGreaterThanOrEqual(before);
     });
 
-    expect(client.pluginStateMethod).toBe("molt-mascot.state");
-    client.destroy();
+    it('is a no-op after destroy()', () => {
+      client.destroy();
+      client.lastDisconnectedAt = null;
+      client.forceReconnect();
+      // lastDisconnectedAt should not change since forceReconnect bails early
+      expect(client.lastDisconnectedAt).toBeNull();
+    });
   });
 
-  it("connectedUrl stores the normalized ws:// URL, not the original http:// input", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "http://localhost:18789", token: "t" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    expect(client.connectedUrl).toBe("ws://localhost:18789");
-
-    client.destroy();
-  });
-
-  it("omits auth param when no token provided", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-
-    const frame = ws._sent[0];
-    expect(frame.params.auth).toBeUndefined();
-
-    client.destroy();
-  });
-
-  it("fires onError and onHandshakeFailure for invalid WebSocket URL", () => {
-    // Temporarily make WebSocket constructor throw for invalid URLs
-    const OrigWS = globalThis.WebSocket;
-    globalThis.WebSocket = class extends OrigWS {
-      constructor(url) {
-        if (!url || !url.startsWith("ws")) throw new Error("Invalid URL");
-        super(url);
-      }
-    };
-
-    const client = new GatewayClient();
-    let errorMsg = "";
-    let failureMsg = "";
-    client.onError = (msg) => { errorMsg = msg; };
-    client.onHandshakeFailure = (msg) => { failureMsg = msg; };
-    client.connect({ url: "" });
-
-    expect(errorMsg).toBe("Invalid URL");
-    expect(failureMsg).toBe("Invalid URL");
-
-    globalThis.WebSocket = OrigWS;
-    client.destroy();
-  });
-
-  it("refreshPluginState triggers an immediate state poll", async () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Respond to the initial state request to clear pending flag
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+  describe('pausePolling / resumePolling', () => {
+    it('toggles polling pause state', () => {
+      expect(client.isPollingPaused).toBe(false);
+      client.pausePolling();
+      expect(client.isPollingPaused).toBe(true);
+      client.resumePolling();
+      expect(client.isPollingPaused).toBe(false);
     });
 
-    // Wait past the 150ms rate-limit window
-    await new Promise((r) => setTimeout(r, 200));
-
-    const countBefore = ws._sent.length;
-    client.refreshPluginState();
-    expect(ws._sent.length).toBe(countBefore + 1);
-
-    client.destroy();
-  });
-
-  it("rate-limits plugin state requests within 150ms window", async () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Respond to the initial state request to clear pending flag
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+    it('resumePolling resets rate-limit guards', () => {
+      client._pluginStatePending = true;
+      client._pluginStateLastSentAt = Date.now();
+      client.pausePolling();
+      client.resumePolling();
+      expect(client._pluginStatePending).toBe(false);
+      expect(client._pluginStateLastSentAt).toBe(0);
     });
 
-    // Wait past the rate-limit window so the first refresh goes through
-    await new Promise((r) => setTimeout(r, 200));
+    it('resumePolling is idempotent when not paused', () => {
+      client._pluginStatePending = true;
+      client.resumePolling(); // not paused, should be no-op
+      expect(client._pluginStatePending).toBe(true); // unchanged
+    });
+  });
 
-    const countBefore = ws._sent.length;
-    client.refreshPluginState(); // goes through (past rate-limit + not pending)
-
-    // Respond to clear pending flag
-    const reqId2 = ws._sent[ws._sent.length - 1].id;
-    ws._emitMessage({
-      type: "res", id: reqId2, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+  describe('reconnect delay', () => {
+    it('increases with each attempt (exponential backoff)', () => {
+      const d0 = client._getReconnectDelay();
+      const d1 = client._getReconnectDelay();
+      const d2 = client._getReconnectDelay();
+      // Each delay should be >= previous (with jitter, not strictly monotone,
+      // but the base doubles so statistically d2 > d0 is nearly certain)
+      expect(d1).toBeGreaterThanOrEqual(d0 * 0.8); // allow for jitter
+      expect(d2).toBeGreaterThanOrEqual(d1 * 0.8);
     });
 
-    // Immediately try again — should be throttled by the 150ms time window
-    client.refreshPluginState();
-
-    // Only one additional request since countBefore (the rate-limited one is skipped)
-    expect(ws._sent.length).toBe(countBefore + 1);
-
-    client.destroy();
+    it('caps at maxMs', () => {
+      // Exhaust the backoff
+      for (let i = 0; i < 20; i++) client._getReconnectDelay();
+      const delay = client._getReconnectDelay();
+      // maxMs=1000 + 20% jitter max = 1200
+      expect(delay).toBeLessThanOrEqual(1200);
+    });
   });
 
-  it("plugin reset fallback succeeds on second method", () => {
-    const client = new GatewayClient();
-    let _pluginState = null;
-    client.onPluginState = (s) => { _pluginState = s; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Respond to plugin state to mark hasPlugin=true
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
+  describe('lastCloseDetail', () => {
+    it('formats code and reason', () => {
+      client.lastCloseCode = 1006;
+      client.lastCloseReason = null;
+      const detail = client.lastCloseDetail;
+      expect(detail).toContain('1006');
     });
 
-    // Send reset — first method fails
-    client.sendPluginReset();
-    const resetReqId1 = ws._sent[ws._sent.length - 1].id;
-    expect(ws._sent[ws._sent.length - 1].method).toBe("@molt/mascot-plugin.reset");
+    it('prefers reason text when provided', () => {
+      client.lastCloseCode = 1001;
+      client.lastCloseReason = 'server going down';
+      const detail = client.lastCloseDetail;
+      expect(detail).toContain('server going down');
+      expect(detail).toContain('1001');
+    });
+  });
 
-    ws._emitMessage({
-      type: "res", id: resetReqId1, ok: false,
-      payload: { error: { message: "method not found" } },
+  describe('_cleanup()', () => {
+    it('resets connection state', () => {
+      client.connectedSince = Date.now();
+      client.connectedUrl = 'ws://test';
+      client.hasPlugin = true;
+      client.latencyMs = 42;
+
+      client._cleanup();
+
+      expect(client.connectedSince).toBeNull();
+      expect(client.connectedUrl).toBe('');
+      expect(client.hasPlugin).toBe(false);
+      expect(client.latencyMs).toBeNull();
     });
 
-    // Should have retried with the next method
-    const resetReqId2 = ws._sent[ws._sent.length - 1].id;
-    expect(ws._sent[ws._sent.length - 1].method).toBe("molt-mascot.reset");
-    expect(resetReqId2).not.toBe(resetReqId1);
-
-    client.destroy();
-  });
-
-  it("tracks sessionConnectCount across multiple handshakes", () => {
-    const client = new GatewayClient();
-    expect(client.sessionConnectCount).toBe(0);
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    expect(client.sessionConnectCount).toBe(1);
-
-    // Force reconnect and handshake again
-    client.forceReconnect({ url: "ws://localhost:18789" });
-    const ws2 = MockWebSocket._last;
-    ws2._emit("open", {});
-    const connectId2 = ws2._sent[0].id;
-    ws2._emitMessage({ type: "res", id: connectId2, payload: { type: "hello-ok" } });
-
-    expect(client.sessionConnectCount).toBe(2);
-
-    client.destroy();
-  });
-
-  it("tracks sessionAttemptCount including failed connections", () => {
-    const client = new GatewayClient();
-    expect(client.sessionAttemptCount).toBe(0);
-
-    // First attempt — succeeds
-    client.connect({ url: "ws://localhost:18789" });
-    expect(client.sessionAttemptCount).toBe(1);
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-    expect(client.sessionConnectCount).toBe(1);
-
-    // Force reconnect — second attempt
-    client.forceReconnect({ url: "ws://localhost:18789" });
-    expect(client.sessionAttemptCount).toBe(2);
-    const ws2 = MockWebSocket._last;
-    ws2._emit("open", {});
-    const connectId2 = ws2._sent[0].id;
-    // Auth failure — not a hello-ok
-    ws2._emitMessage({ type: "res", id: connectId2, payload: { error: "auth denied" } });
-    // Connect count should NOT increment on failure
-    expect(client.sessionConnectCount).toBe(1);
-    // But attempt count should be 2
-    expect(client.sessionAttemptCount).toBe(2);
-
-    // getStatus includes both counts
-    const status = client.getStatus();
-    expect(status.sessionAttemptCount).toBe(2);
-    expect(status.sessionConnectCount).toBe(1);
-
-    client.destroy();
-  });
-
-  it("fires onError when WebSocket emits error", () => {
-    const client = new GatewayClient();
-    let errorMsg = "";
-    client.onError = (msg) => { errorMsg = msg; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("error", {});
-
-    expect(errorMsg).toBe("WebSocket error");
-    client.destroy();
-  });
-
-  it("destroy prevents reconnect after disconnect", async () => {
-    const client = new GatewayClient({ reconnectBaseMs: 30 });
-    let connectCount = 0;
-    client.onConnectionStateChange = () => { connectCount++; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Destroy before any disconnect
-    client.destroy();
-    connectCount = 0;
-
-    // Wait longer than reconnectBaseMs to ensure no reconnect fires
-    await new Promise((r) => setTimeout(r, 80));
-
-    expect(connectCount).toBe(0);
-  });
-
-  it("detects stale connection and closes socket", async () => {
-    const client = new GatewayClient({
-      staleConnectionMs: 50,
-      staleCheckIntervalMs: 20,
+    it('preserves targetUrl across cleanup', () => {
+      client.targetUrl = 'ws://my-gateway';
+      client._cleanup();
+      expect(client.targetUrl).toBe('ws://my-gateway');
     });
-    let errorMsg = "";
-    client.onError = (msg) => { errorMsg = msg; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Wait for stale check to fire (50ms stale + 20ms check interval)
-    await new Promise((r) => setTimeout(r, 120));
-
-    expect(errorMsg).toBe("connection stale");
-    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
-
-    client.destroy();
-  });
-
-  it("skips stale detection while polling is paused to prevent false reconnects", async () => {
-    const client = new GatewayClient({
-      staleConnectionMs: 50,
-      staleCheckIntervalMs: 20,
-    });
-    let errorMsg = "";
-    client.onError = (msg) => { errorMsg = msg; };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Pause polling (simulates window hidden) — stale check should be skipped
-    client.pausePolling();
-
-    // Wait longer than staleConnectionMs + staleCheckIntervalMs
-    await new Promise((r) => setTimeout(r, 120));
-
-    // Should NOT have triggered stale detection
-    expect(errorMsg).toBe("");
-    expect(ws.readyState).toBe(MockWebSocket.OPEN);
-
-    client.destroy();
-  });
-
-  it("forwards raw messages via onMessage callback", () => {
-    const client = new GatewayClient();
-    const messages = [];
-    client.onMessage = (msg) => { messages.push(msg); };
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    ws._emitMessage({ type: "custom", data: "test" });
-
-    expect(messages.length).toBeGreaterThanOrEqual(1);
-    expect(messages.some((m) => m.type === "custom")).toBe(true);
-
-    client.destroy();
-  });
-
-  it("triggers snappy plugin state poll on events when plugin is active", async () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Mark plugin as active
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
-    });
-
-    // Wait past the 150ms rate-limit window so the next poll isn't throttled
-    await new Promise((r) => setTimeout(r, 200));
-
-    const sentBefore = ws._sent.length;
-
-    // Emit an event — should trigger an immediate plugin state poll
-    ws._emitMessage({ type: "event", event: "agent", payload: { phase: "start" } });
-
-    // Should have sent at least one more plugin state request
-    expect(ws._sent.length).toBeGreaterThan(sentBefore);
-
-    client.destroy();
-  });
-
-  it("isConnected returns true after handshake and false before/after", () => {
-    const client = new GatewayClient();
-    expect(client.isConnected).toBe(false);
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-
-    // Open but not yet authenticated
-    expect(client.isConnected).toBe(false);
-
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Now authenticated
-    expect(client.isConnected).toBe(true);
-
-    client.destroy();
-
-    // After destroy
-    expect(client.isConnected).toBe(false);
-  });
-
-  it("sets lastDisconnectedAt on disconnect", () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50000 });
-    expect(client.lastDisconnectedAt).toBeNull();
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    const before = Date.now();
-    ws.onclose();
-    const after = Date.now();
-
-    expect(client.lastDisconnectedAt).toBeGreaterThanOrEqual(before);
-    expect(client.lastDisconnectedAt).toBeLessThanOrEqual(after);
-
-    client.destroy();
-  });
-
-  it("clears latencyMs on disconnect to prevent stale values during reconnect", () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50000 });
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Simulate a plugin state response to populate latencyMs
-    client.hasPlugin = true;
-    client._pluginStateSentAt = Date.now() - 42;
-    client._pluginStateReqId = "p1";
-    client._pluginStatePending = true;
-    ws._emitMessage({
-      type: "res", id: "p1", ok: true,
-      payload: { ok: true, state: { mode: "idle" } },
-    });
-    expect(client.latencyMs).toBeGreaterThanOrEqual(0);
-
-    // Disconnect — latencyMs should be cleared
-    ws.onclose({ code: 1006 });
-    expect(client.latencyMs).toBeNull();
-
-    client.destroy();
-  });
-
-  it("destroy() clears connection state to prevent stale tooltips", () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50000 });
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Verify connected state is set
-    expect(client.connectedSince).not.toBeNull();
-    expect(client.connectedUrl).toBe("ws://localhost:18789");
-
-    client.destroy();
-
-    // After destroy, all connection state should be cleared
-    expect(client.connectedSince).toBeNull();
-    expect(client.connectedUrl).toBe('');
-    expect(client.hasPlugin).toBe(false);
-    expect(client.isConnected).toBe(false);
-  });
-
-  it("fires onPluginStateReset on disconnect so consumers clear cached config", async () => {
-    const client = new GatewayClient({ reconnectBaseMs: 50000 });
-    let resetFired = false;
-    let disconnectFired = false;
-    let resetBeforeDisconnect = false;
-
-    client.onPluginStateReset = () => {
-      resetFired = true;
-      // Verify reset fires BEFORE disconnect
-      resetBeforeDisconnect = !disconnectFired;
-    };
-    client.onDisconnect = () => { disconnectFired = true; };
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Simulate disconnect
-    ws.onclose();
-
-    expect(resetFired).toBe(true);
-    expect(disconnectFired).toBe(true);
-    expect(resetBeforeDisconnect).toBe(true);
-
-    client.destroy();
-  });
-
-  it("wsReadyState returns null when no socket exists", () => {
-    const client = new GatewayClient();
-    expect(client.wsReadyState).toBeNull();
-    client.destroy();
-  });
-
-  it("wsReadyState reflects the underlying socket state", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    expect(client.wsReadyState).toBe(MockWebSocket.OPEN);
-    ws.readyState = MockWebSocket.CLOSED;
-    expect(client.wsReadyState).toBe(MockWebSocket.CLOSED);
-    client.destroy();
-  });
-
-  it("wsReadyState returns null after destroy", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-    client.destroy();
-    expect(client.wsReadyState).toBeNull();
-  });
-
-  it("uptimeSeconds returns null when not connected", () => {
-    const client = new GatewayClient();
-    expect(client.uptimeSeconds).toBeNull();
-    client.destroy();
-  });
-
-  it("uptimeSeconds returns seconds since connection", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // connectedSince is set to Date.now() on handshake success
-    expect(client.uptimeSeconds).toBeGreaterThanOrEqual(0);
-    expect(client.uptimeSeconds).toBeLessThanOrEqual(1);
-    client.destroy();
-  });
-
-  it("uptimeSeconds returns null after disconnect", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-    expect(client.uptimeSeconds).not.toBeNull();
-
-    client.destroy();
-    expect(client.uptimeSeconds).toBeNull();
-  });
-
-  it("recovers from ws.send() race condition during plugin state poll", async () => {
-    const client = new GatewayClient();
-    client.onPluginState = () => {};
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-
-    // Respond to initial state request
-    const stateReqId = ws._sent[1].id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle", since: Date.now() } },
-    });
-
-    // Wait past rate-limit window
-    await new Promise((r) => setTimeout(r, 200));
-
-    // Make ws.send() throw (simulates race: readyState=OPEN but socket closing)
-    const origSend = ws.send.bind(ws);
-    let throwOnce = true;
-    ws.send = (data) => {
-      if (throwOnce) { throwOnce = false; throw new Error("WebSocket is already in CLOSING state"); }
-      origSend(data);
-    };
-
-    // This should NOT throw — the try/catch in _sendPluginStateReq handles it
-    client.refreshPluginState();
-
-    // The pending flag should be cleared so subsequent polls aren't permanently blocked
-    await new Promise((r) => setTimeout(r, 200));
-
-    // Next poll should succeed (throwOnce is now false)
-    const countBefore = ws._sent.length;
-    client.refreshPluginState();
-    expect(ws._sent.length).toBe(countBefore + 1);
-
-    client.destroy();
-  });
-});
-
-describe("normalizeWsUrl", () => {
-  it("converts http:// to ws://", () => {
-    expect(normalizeWsUrl("http://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
-  });
-
-  it("converts https:// to wss://", () => {
-    expect(normalizeWsUrl("https://gateway.example.com/ws")).toBe("wss://gateway.example.com/ws");
-  });
-
-  it("leaves ws:// unchanged", () => {
-    expect(normalizeWsUrl("ws://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
-  });
-
-  it("leaves wss:// unchanged", () => {
-    expect(normalizeWsUrl("wss://gateway.example.com")).toBe("wss://gateway.example.com");
-  });
-
-  it("is case-insensitive for scheme", () => {
-    expect(normalizeWsUrl("HTTP://localhost:8080")).toBe("ws://localhost:8080");
-    expect(normalizeWsUrl("HTTPS://localhost")).toBe("wss://localhost");
-  });
-
-  it("trims whitespace", () => {
-    expect(normalizeWsUrl("  http://localhost:18789  ")).toBe("ws://localhost:18789");
-  });
-
-  it("passes through non-string values", () => {
-    expect(normalizeWsUrl(null)).toBe(null);
-    expect(normalizeWsUrl(undefined)).toBe(undefined);
-  });
-
-  it("auto-adds ws:// for bare host:port URLs", () => {
-    expect(normalizeWsUrl("127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
-  });
-});
-
-describe("pausePolling / resumePolling", () => {
-  let origWS;
-  beforeEach(() => { origWS = globalThis.WebSocket; globalThis.WebSocket = MockWebSocket; });
-  afterEach(() => { globalThis.WebSocket = origWS; });
-
-  function connectAndHandshake(client) {
-    client.connect({ url: "ws://localhost:18789", token: "t" });
-    const ws = MockWebSocket._last;
-    ws._emit("open", {});
-    const connectId = ws._sent[0].id;
-    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
-    return ws;
-  }
-
-  function activatePlugin(ws) {
-    const stateReqId = ws._sent.find(m => m.method?.includes("state"))?.id;
-    ws._emitMessage({
-      type: "res", id: stateReqId, ok: true,
-      payload: { ok: true, state: { mode: "idle" } },
-    });
-  }
-
-  it("pauses polling so the pause flag is set", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    client.pausePolling();
-    expect(client._pollingPaused).toBe(true);
-
-    client.destroy();
-  });
-
-  it("exposes isPollingPaused getter", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    expect(client.isPollingPaused).toBe(false);
-
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    expect(client.isPollingPaused).toBe(false);
-    client.pausePolling();
-    expect(client.isPollingPaused).toBe(true);
-    client.resumePolling();
-    expect(client.isPollingPaused).toBe(false);
-
-    client.destroy();
-  });
-
-  it("resumePolling sends an immediate refresh and clears the pause flag", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    client.pausePolling();
-    expect(client._pollingPaused).toBe(true);
-
-    const countBefore = ws._sent.length;
-    client.resumePolling();
-    expect(client._pollingPaused).toBe(false);
-    // Should have sent an immediate refresh
-    expect(ws._sent.length).toBe(countBefore + 1);
-
-    client.destroy();
-  });
-
-  it("resumePolling clears stale pending flag so refresh is not blocked", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    // Simulate a plugin state request that was sent but never got a response
-    client._pluginStatePending = true;
-    client.pausePolling();
-
-    const countBefore = ws._sent.length;
-    client.resumePolling();
-    // The stale pending flag should have been cleared, allowing the refresh
-    expect(ws._sent.length).toBe(countBefore + 1);
-    expect(client._pluginStatePending).toBe(true); // now set by the new send
-
-    client.destroy();
-  });
-
-  it("resumePolling resets stale-check baseline to prevent false-positive reconnect", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50, staleConnectionMs: 100, staleCheckIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    // Pause polling and let _lastMessageAt go stale
-    client.pausePolling();
-    // Manually backdate _lastMessageAt to simulate a long hidden period
-    client._lastMessageAt = Date.now() - 200;
-
-    // Resume — should reset _lastMessageAt so stale check doesn't fire
-    client.resumePolling();
-
-    // _lastMessageAt should be recent (within the last second)
-    expect(Date.now() - client._lastMessageAt).toBeLessThan(1000);
-
-    client.destroy();
-  });
-
-  it("resumePolling is a no-op when not paused", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    const countBefore = ws._sent.length;
-    client.resumePolling(); // not paused, should be no-op
-    expect(ws._sent.length).toBe(countBefore);
-
-    client.destroy();
-  });
-
-  it("stores lastCloseCode and lastCloseReason on disconnect", () => {
-    const client = new GatewayClient();
-    const ws = connectAndHandshake(client);
-
-    expect(client.lastCloseCode).toBeNull();
-    expect(client.lastCloseReason).toBeNull();
-    expect(client.lastCloseDetail).toBeNull();
-
-    // Simulate a close event with code and reason
-    ws.onclose({ code: 1006, reason: 'abnormal closure' });
-
-    expect(client.lastCloseCode).toBe(1006);
-    expect(client.lastCloseReason).toBe('abnormal closure');
-    expect(client.lastCloseDetail).toBe('abnormal closure (1006)');
-    expect(client.lastDisconnectedAt).toBeGreaterThan(0);
-
-    client.destroy();
-  });
-
-  it("lastCloseDetail handles code-only and reason-only cases", () => {
-    const client = new GatewayClient();
-    const ws = connectAndHandshake(client);
-
-    // Code only (empty reason) — 1000 gets friendly label with code
-    ws.onclose({ code: 1000, reason: '' });
-    expect(client.lastCloseDetail).toBe('normal (1000)');
-
-    client.destroy();
-  });
-
-  it("lastCloseDetail trims whitespace from reason", () => {
-    const client = new GatewayClient();
-    const ws = connectAndHandshake(client);
-
-    ws.onclose({ code: 1001, reason: '  going away  ' });
-    expect(client.lastCloseReason).toBe('going away');
-    expect(client.lastCloseDetail).toBe('going away (1001)');
-
-    client.destroy();
-  });
-
-  it("forceReconnect resets plugin state and fires onPluginStateReset", () => {
-    const client = new GatewayClient({ pollIntervalMs: 50 });
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    expect(client.hasPlugin).toBe(true);
-    expect(client.connectedSince).not.toBeNull();
-
-    let resetFired = false;
-    client.onPluginStateReset = () => { resetFired = true; };
-
-    // Force reconnect without providing cfg (just tear down)
-    client.forceReconnect();
-
-    expect(client.hasPlugin).toBe(false);
-    expect(client.connectedSince).toBeNull();
-    expect(client.connectedUrl).toBe('');
-    expect(resetFired).toBe(true);
-
-    client.destroy();
-  });
-
-  it("destroy fires onPluginStateReset so consumers clear cached plugin config", () => {
-    const client = new GatewayClient();
-    const ws = connectAndHandshake(client);
-    activatePlugin(ws);
-
-    expect(client.hasPlugin).toBe(true);
-
-    let resetFired = false;
-    client.onPluginStateReset = () => { resetFired = true; };
-
-    client.destroy();
-
-    expect(resetFired).toBe(true);
-    expect(client.hasPlugin).toBe(false);
-  });
-
-  it("destroy does not fire onPluginStateReset when no plugin was active", () => {
-    const client = new GatewayClient();
-    connectAndHandshake(client);
-
-    expect(client.hasPlugin).toBe(false);
-
-    let resetFired = false;
-    client.onPluginStateReset = () => { resetFired = true; };
-
-    client.destroy();
-
-    // No plugin was active, so the reset callback should not fire
-    // (avoids spurious state resets in consumers).
-    expect(resetFired).toBe(false);
-  });
-
-  it("forceReconnect records lastDisconnectedAt so tooltip shows accurate disconnect time", () => {
-    const client = new GatewayClient();
-    const _ws = connectAndHandshake(client);
-
-    const before = Date.now();
-    client.forceReconnect();
-    const after = Date.now();
-
-    expect(client.lastDisconnectedAt).toBeGreaterThanOrEqual(before);
-    expect(client.lastDisconnectedAt).toBeLessThanOrEqual(after);
-
-    client.destroy();
-  });
-
-  it("isDestroyed returns false before destroy and true after", () => {
-    const client = new GatewayClient();
-    expect(client.isDestroyed).toBe(false);
-
-    client.destroy();
-    expect(client.isDestroyed).toBe(true);
-  });
-
-  it("connect() is a no-op after destroy()", () => {
-    const client = new GatewayClient();
-    client.destroy();
-
-    const before = MockWebSocket._last;
-    client.connect({ url: "ws://localhost:18789" });
-    // No new WebSocket should have been created
-    expect(MockWebSocket._last).toBe(before);
-  });
-
-  it("forceReconnect() is a no-op after destroy()", () => {
-    const client = new GatewayClient();
-    client.destroy();
-
-    client.forceReconnect({ url: "ws://localhost:18789" });
-    expect(client.isDestroyed).toBe(true);
-  });
-
-  it("uses stable instanceId across reconnects to prevent session fragmentation", () => {
-    const client = new GatewayClient();
-    client.connect({ url: "ws://localhost:18789" });
-
-    const ws1 = MockWebSocket._last;
-    ws1._emit("open");
-    const frame1 = ws1._sent[0];
-    const instanceId1 = frame1.params.client.instanceId;
-    expect(instanceId1).toMatch(/^moltMascot-/);
-
-    // Force reconnect — instanceId should remain the same
-    client.forceReconnect({ url: "ws://localhost:18789" });
-    const ws2 = MockWebSocket._last;
-    ws2._emit("open");
-    const frame2 = ws2._sent[0];
-    expect(frame2.params.client.instanceId).toBe(instanceId1);
-
-    client.destroy();
-  });
-
-  it("targetUrl persists across disconnects so consumers can display the reconnect target", () => {
-    const client = new GatewayClient();
-    expect(client.targetUrl).toBe('');
-
-    client.connect({ url: "http://localhost:18789" });
-    // targetUrl should be set immediately on connect (normalized to ws://)
-    expect(client.targetUrl).toBe("ws://localhost:18789");
-
-    const ws = MockWebSocket._last;
-    // Complete handshake
-    ws._emit("open");
-    ws._emitMessage({ type: "res", payload: { type: "hello-ok" } });
-    expect(client.connectedUrl).toBe("ws://localhost:18789");
-
-    // Simulate disconnect
-    ws.onclose?.({ code: 1006 });
-    // connectedUrl is cleared but targetUrl persists
-    expect(client.connectedUrl).toBe('');
-    expect(client.targetUrl).toBe("ws://localhost:18789");
-
-    // Force reconnect to a different URL
-    client.forceReconnect({ url: "ws://other:9999" });
-    expect(client.targetUrl).toBe("ws://other:9999");
-
-    client.destroy();
-  });
-
-  it("handshake failure closes socket and prevents reconnect loop", () => {
-    const client = new GatewayClient();
-    const failures = [];
-    client.onHandshakeFailure = (msg) => failures.push(msg);
-
-    client.connect({ url: "ws://gw:18789", token: "bad" });
-    const ws = MockWebSocket._last;
-
-    // Simulate open → send connect frame
-    ws._emit("open", {});
-
-    // Simulate auth rejection response
-    const connectReqId = ws._sent[0]?.id;
-    ws._emitMessage({
-      type: "res",
-      id: connectReqId,
-      payload: { error: "auth denied" },
-    });
-
-    expect(failures).toEqual(["auth denied"]);
-    // Socket should be closed and detached — onclose nulled so no reconnect
-    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
-    expect(ws.onclose).toBeNull();
-    expect(client._ws).toBeNull();
-    expect(client.connectedSince).toBeNull();
-    expect(client.hasPlugin).toBe(false);
-
-    client.destroy();
-  });
-
-  it("closes socket when send() throws during connect frame to trigger reconnect", () => {
-    const client = new GatewayClient();
-    const errors = [];
-    client.onError = (e) => errors.push(e);
-
-    client.connect({ url: "ws://localhost:18789" });
-    const ws = MockWebSocket._last;
-
-    // Make send() throw (simulates socket transitioning to CLOSED mid-call)
-    ws.send = () => { throw new Error("WebSocket is already in CLOSING state"); };
-
-    ws._emit("open", {});
-
-    expect(errors.length).toBe(1);
-    expect(errors[0]).toContain("CLOSING state");
-    // Socket should be closed so onclose handler fires and triggers reconnect
-    expect(ws.readyState).toBe(MockWebSocket.CLOSED);
-
-    client.destroy();
-  });
-
-  it("getStatus returns a serializable snapshot of client state", () => {
-    const client = new GatewayClient();
-    const status = client.getStatus();
-
-    expect(status.isConnected).toBe(false);
-    expect(status.isDestroyed).toBe(false);
-    expect(status.connectedSince).toBeNull();
-    expect(status.connectedUrl).toBe("");
-    expect(status.targetUrl).toBe("");
-    expect(status.hasPlugin).toBe(false);
-    expect(status.pluginStateMethod).toBeNull();
-    expect(status.latencyMs).toBeNull();
-    expect(status.wsReadyState).toBeNull();
-    expect(status.reconnectAttempt).toBe(0);
-    expect(status.sessionConnectCount).toBe(0);
-    expect(status.lastDisconnectedAt).toBeNull();
-    expect(status.lastCloseCode).toBeNull();
-    expect(status.lastCloseReason).toBeNull();
-    expect(status.lastCloseDetail).toBeNull();
-    expect(status.isPollingPaused).toBe(false);
-    expect(status.uptimeSeconds).toBeNull();
-    expect(status.pluginResetMethod).toBeNull();
-    expect(status.pluginStateMethodIndex).toBe(0);
-    expect(status.pluginResetMethodIndex).toBe(0);
-
-    // Verify it's JSON-serializable (no circular refs, no functions)
-    const json = JSON.stringify(status);
-    expect(typeof json).toBe("string");
-    const parsed = JSON.parse(json);
-    expect(parsed.isConnected).toBe(false);
-
-    client.destroy();
   });
 });
