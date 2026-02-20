@@ -348,6 +348,7 @@ function syncPill() {
     latencyMs,
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
+    targetUrl: !connectedSince ? (gwClient?.targetUrl || loadCfg()?.url || undefined) : undefined,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status

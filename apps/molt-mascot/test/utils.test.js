@@ -620,6 +620,21 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip).not.toMatch(/\d+ agents?/);
   });
+
+  it("shows targetUrl when disconnected", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, targetUrl: "ws://127.0.0.1:18789" });
+    expect(tip).toContain("→ ws://127.0.0.1:18789");
+  });
+
+  it("omits targetUrl when connected", () => {
+    const tip = buildTooltip({ displayMode: "connected", durationSec: 10, connectedSince: Date.now() - 5000, targetUrl: "ws://127.0.0.1:18789" });
+    expect(tip).not.toContain("→ ws://127.0.0.1:18789");
+  });
+
+  it("omits targetUrl when not provided", () => {
+    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10 });
+    expect(tip).not.toContain("→");
+  });
 });
 
 describe("normalizeWsUrl", () => {

@@ -143,6 +143,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
+ * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -171,6 +172,7 @@ export function buildTooltip(params) {
     latencyMs,
     activeAgents = 0,
     activeTools = 0,
+    targetUrl,
     now: nowOverride,
   } = params;
 
@@ -189,6 +191,8 @@ export function buildTooltip(params) {
     tip += ` · disconnected ${formatElapsed(lastDisconnectedAt, now)} ago`;
   }
   if (reconnectAttempt > 0 && !connectedSince) tip += ` · retry #${reconnectAttempt}`;
+  // Show target URL when disconnected to help diagnose which endpoint is failing.
+  if (typeof targetUrl === 'string' && targetUrl && !connectedSince) tip += ` · → ${targetUrl}`;
   // Show close reason when disconnected, or when connected but the connection has flapped
   // (helps diagnose why the last disconnect happened without opening debug info).
   if (lastCloseDetail && (!connectedSince || (typeof sessionConnectCount === 'number' && sessionConnectCount > 1))) {
