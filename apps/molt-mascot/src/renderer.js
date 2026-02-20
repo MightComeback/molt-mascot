@@ -468,6 +468,7 @@ window.__moltMascotGetState = () => ({
   pluginToolErrors,
   pluginStartedAt,
   sessionConnectCount,
+  firstConnectedAt,
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
   latencyMs,
@@ -499,6 +500,7 @@ let connectedUrl = '';        // URL of the current gateway connection
 let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
 let lastCloseDetail = '';      // Close reason/code from the last WebSocket disconnect
 let sessionConnectCount = 0;   // Total successful handshakes since app launch (diagnoses flappy connections)
+let firstConnectedAt = null;   // Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
 let sessionAttemptCount = 0;   // Total connection attempts since app launch (including failures)
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
@@ -732,6 +734,7 @@ function connect(cfg) {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       sessionConnectCount += 1;
       connectedSince = Date.now();
+      if (firstConnectedAt === null) firstConnectedAt = connectedSince;
       lastCloseDetail = '';
       connectedUrl = cfg.url || '';
       startStaleCheck();
@@ -1245,6 +1248,7 @@ function buildDebugInfo() {
     latencyMs,
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
+    firstConnectedAt,
   });
 }
 
