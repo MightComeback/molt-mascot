@@ -137,6 +137,12 @@ export function show(items, { x, y }) {
     if (!menu.contains(ev.target)) cleanup();
   };
 
+  // Scroll-to-dismiss: scrolling outside the menu dismisses it (macOS native behavior).
+  // Uses { passive: true } since we don't need to prevent scroll, just react to it.
+  const onWheel = (ev) => {
+    if (!menu.contains(ev.target)) cleanup();
+  };
+
   const onKey = (ev) => {
     if (ev.key === 'Escape') { cleanup(); return; }
     if (ev.key === 'ArrowDown') { ev.preventDefault(); focusNext(); return; }
@@ -171,6 +177,7 @@ export function show(items, { x, y }) {
     menu.remove();
     document.removeEventListener('click', onOutsideClick, true);
     document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener('wheel', onWheel, true);
     window.removeEventListener('blur', cleanup);
     activeCleanup = null;
     // Restore focus to the element that opened the menu (WAI-ARIA best practice).
@@ -189,6 +196,7 @@ export function show(items, { x, y }) {
     if (activeCleanup !== cleanup) return;
     document.addEventListener('click', onOutsideClick, true);
     document.addEventListener('keydown', onKey, true);
+    document.addEventListener('wheel', onWheel, { capture: true, passive: true });
     window.addEventListener('blur', cleanup);
   }, 0);
 

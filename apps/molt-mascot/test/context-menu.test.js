@@ -357,6 +357,30 @@ describe("context-menu", () => {
     expect(document.body._children.length).toBe(0);
   });
 
+  it("scroll wheel outside menu dismisses it", async () => {
+    ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(document.body._children.length).toBe(1);
+
+    const wheelHandlers = document._listeners["wheel"] || [];
+    // Simulate wheel event outside the menu (target is not a child of the menu)
+    const outsideTarget = makeElement("div");
+    wheelHandlers.forEach((fn) => fn({ target: outsideTarget }));
+    expect(document.body._children.length).toBe(0);
+  });
+
+  it("scroll wheel inside menu does not dismiss it", async () => {
+    const menu = ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(document.body._children.length).toBe(1);
+
+    const wheelHandlers = document._listeners["wheel"] || [];
+    // Simulate wheel event on a child of the menu
+    wheelHandlers.forEach((fn) => fn({ target: menu._children[0] }));
+    expect(document.body._children.length).toBe(1);
+    ctxMenu.dismiss();
+  });
+
   it("type-ahead jumps to matching menu item by first letter", async () => {
     const menu = ctxMenu.show(
       [
