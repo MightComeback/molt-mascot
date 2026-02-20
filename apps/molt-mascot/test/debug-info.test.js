@@ -349,6 +349,16 @@ describe("buildDebugInfo", () => {
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Session connects");
   });
 
+  it("shows attempt count alongside connect count when attempts exceed connects", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 3, sessionAttemptCount: 7 });
+    expect(info).toContain("Session connects: 3 (reconnected 2×, 7 attempts)");
+  });
+
+  it("omits attempt count when it equals connect count (no failures)", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 3, sessionAttemptCount: 3 });
+    expect(info).not.toContain("attempts");
+  });
+
   it("shows 'idle (sleeping)' when idle duration exceeds sleep threshold", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,

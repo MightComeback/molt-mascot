@@ -510,6 +510,40 @@ describe("GatewayClient", () => {
     client.destroy();
   });
 
+  it("tracks sessionAttemptCount including failed connections", () => {
+    const client = new GatewayClient();
+    expect(client.sessionAttemptCount).toBe(0);
+
+    // First attempt — succeeds
+    client.connect({ url: "ws://localhost:18789" });
+    expect(client.sessionAttemptCount).toBe(1);
+    const ws = MockWebSocket._last;
+    ws._emit("open", {});
+    const connectId = ws._sent[0].id;
+    ws._emitMessage({ type: "res", id: connectId, payload: { type: "hello-ok" } });
+    expect(client.sessionConnectCount).toBe(1);
+
+    // Force reconnect — second attempt
+    client.forceReconnect({ url: "ws://localhost:18789" });
+    expect(client.sessionAttemptCount).toBe(2);
+    const ws2 = MockWebSocket._last;
+    ws2._emit("open", {});
+    const connectId2 = ws2._sent[0].id;
+    // Auth failure — not a hello-ok
+    ws2._emitMessage({ type: "res", id: connectId2, payload: { error: "auth denied" } });
+    // Connect count should NOT increment on failure
+    expect(client.sessionConnectCount).toBe(1);
+    // But attempt count should be 2
+    expect(client.sessionAttemptCount).toBe(2);
+
+    // getStatus includes both counts
+    const status = client.getStatus();
+    expect(status.sessionAttemptCount).toBe(2);
+    expect(status.sessionConnectCount).toBe(1);
+
+    client.destroy();
+  });
+
   it("fires onError when WebSocket emits error", () => {
     const client = new GatewayClient();
     let errorMsg = "";

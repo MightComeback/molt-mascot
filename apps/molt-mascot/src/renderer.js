@@ -499,6 +499,7 @@ let connectedUrl = '';        // URL of the current gateway connection
 let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
 let lastCloseDetail = '';      // Close reason/code from the last WebSocket disconnect
 let sessionConnectCount = 0;   // Total successful handshakes since app launch (diagnoses flappy connections)
+let sessionAttemptCount = 0;   // Total connection attempts since app launch (including failures)
 const RECONNECT_BASE_MS = 1500;
 const RECONNECT_MAX_MS = 30000;
 
@@ -631,6 +632,7 @@ function nextId(prefix) {
 }
 
 function connect(cfg) {
+  sessionAttemptCount++;
   setup.hidden = true;
   currentMode = Mode.connecting;
   modeSince = Date.now();
@@ -1238,6 +1240,7 @@ function buildDebugInfo() {
     processUptimeS: window.moltMascot?.processUptimeS?.(),
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     sessionConnectCount,
+    sessionAttemptCount,
     isPollingPaused: document.hidden,
     latencyMs,
     activeAgents: pluginActiveAgents,

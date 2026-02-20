@@ -61,6 +61,8 @@ export class GatewayClient {
     this.lastCloseReason = null;
     /** Total successful handshakes since client creation (diagnoses flappy connections). */
     this.sessionConnectCount = 0;
+    /** Total connection attempts since client creation (including failures). */
+    this.sessionAttemptCount = 0;
 
     // Stale connection detection
     this._lastMessageAt = 0;
@@ -210,6 +212,7 @@ export class GatewayClient {
    */
   connect(cfg) {
     if (this._destroyed) return;
+    this.sessionAttemptCount++;
     this.onConnectionStateChange?.('connecting');
 
     if (this._reconnectCountdownTimer) {
@@ -612,6 +615,7 @@ export class GatewayClient {
       wsReadyState: this.wsReadyState,
       reconnectAttempt: this._reconnectAttempt,
       sessionConnectCount: this.sessionConnectCount,
+      sessionAttemptCount: this.sessionAttemptCount,
       lastDisconnectedAt: this.lastDisconnectedAt,
       lastCloseCode: this.lastCloseCode,
       lastCloseReason: this.lastCloseReason,

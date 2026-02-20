@@ -43,6 +43,7 @@
  * @param {number} [params.processUptimeS] - Electron process uptime in seconds (process.uptime())
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (process.memoryUsage().rss)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
+ * @param {number} [params.sessionAttemptCount] - Total connection attempts since app launch (including failures)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
@@ -98,6 +99,7 @@ export function buildDebugInfo(params) {
     processUptimeS,
     processMemoryRssBytes,
     sessionConnectCount,
+    sessionAttemptCount,
     isPollingPaused,
     latencyMs,
     activeAgents,
@@ -201,7 +203,10 @@ export function buildDebugInfo(params) {
     lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}`);
   }
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×)`);
+    const attemptStr = typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount
+      ? `, ${sessionAttemptCount} attempts`
+      : '';
+    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr})`);
   }
   return lines.join('\n');
 }
