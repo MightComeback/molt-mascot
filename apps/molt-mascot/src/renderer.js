@@ -1251,6 +1251,7 @@ function showContextMenu(e) {
 
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
   const modKey = isMac ? '⌘' : 'Ctrl';
+  const altKey = isMac ? '⌥' : 'Alt+';
 
   // Build a status summary line for the context menu header
   const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -1349,7 +1350,7 @@ function showContextMenu(e) {
     { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
       if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
     }},
-    { label: 'Quit', hint: `${modKey}⌥Q`, action: () => {
+    { label: 'Quit', hint: `${modKey}${altKey}Q`, action: () => {
       if (window.moltMascot?.quit) window.moltMascot.quit();
       else window.close();
     }},
