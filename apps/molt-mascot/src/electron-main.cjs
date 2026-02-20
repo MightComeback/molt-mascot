@@ -693,6 +693,7 @@ app.whenReady().then(async () => {
       targetUrl: currentTargetUrl,
       activeAgents: currentActiveAgents,
       activeTools: currentActiveTools,
+      pluginVersion: currentPluginVersion,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -869,9 +870,10 @@ app.whenReady().then(async () => {
   let currentTargetUrl = null;
   let currentActiveAgents = 0;
   let currentActiveTools = 0;
+  let currentPluginVersion = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -879,6 +881,7 @@ app.whenReady().then(async () => {
     if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
     if (typeof activeAgents === 'number' && activeAgents >= 0) currentActiveAgents = activeAgents;
     if (typeof activeTools === 'number' && activeTools >= 0) currentActiveTools = activeTools;
+    if (typeof pluginVersionVal === 'string' && pluginVersionVal) currentPluginVersion = pluginVersionVal;
     // Always update latency when provided (even if mode unchanged).
     if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
     else if (latency === null || latency === undefined) currentLatencyMs = null;

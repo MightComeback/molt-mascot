@@ -162,11 +162,13 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose which endpoint is failing)
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
+ * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools } = params;
-  const parts = [`Molt Mascot v${appVersion}`];
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion } = params;
+  const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
+  const parts = [verLabel];
   const modeEmoji = { thinking: '🧠', tool: '🔧', error: '❌', connecting: '🔄', disconnected: '⚡', connected: '✅', sleeping: '💤' };
   const modeLabel = mode || 'idle';
   if (modeLabel !== 'idle') {

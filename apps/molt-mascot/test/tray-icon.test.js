@@ -216,6 +216,17 @@ describe('tray-icon', () => {
       expect(tip).not.toContain('🔅');
     });
 
+    it('shows plugin version alongside app version when provided', () => {
+      const tip = buildTrayTooltip({ ...base, pluginVersion: '0.5.2' });
+      expect(tip).toContain('Molt Mascot v1.2.3 (plugin v0.5.2)');
+    });
+
+    it('omits plugin version when not provided', () => {
+      const tip = buildTrayTooltip(base);
+      expect(tip).toContain('Molt Mascot v1.2.3');
+      expect(tip).not.toContain('plugin');
+    });
+
     it('shows mode emoji for non-idle modes', () => {
       expect(buildTrayTooltip({ ...base, mode: 'thinking' })).toContain('🧠 thinking');
       expect(buildTrayTooltip({ ...base, mode: 'tool' })).toContain('🔧 tool');
