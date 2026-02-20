@@ -40,6 +40,10 @@ export function dismiss() {
 export function show(items, { x, y }) {
   dismiss();
 
+  // Capture the element that had focus before the menu opened so we can
+  // restore it on dismiss (WAI-ARIA menu best practice — prevents focus loss).
+  const previouslyFocused = document.activeElement;
+
   const menu = document.createElement('div');
   menu.id = 'molt-ctx';
   menu.setAttribute('role', 'menu');
@@ -169,6 +173,11 @@ export function show(items, { x, y }) {
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('blur', cleanup);
     activeCleanup = null;
+    // Restore focus to the element that opened the menu (WAI-ARIA best practice).
+    // Without this, focus is lost to <body> after dismiss, breaking keyboard flow.
+    if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+      try { previouslyFocused.focus({ preventScroll: true }); } catch {}
+    }
   }
 
   activeCleanup = cleanup;

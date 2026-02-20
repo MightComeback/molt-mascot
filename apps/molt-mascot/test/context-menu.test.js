@@ -565,6 +565,60 @@ describe("context-menu", () => {
     ctxMenu.dismiss();
   });
 
+  it("restores focus to previously focused element on dismiss", async () => {
+    // Simulate a focused element before opening the menu
+    const button = makeElement("button");
+    button._focused = false;
+    button.focus = (opts) => { button._focused = true; button._focusOpts = opts; };
+    document.body.appendChild(button);
+    // Set activeElement to the button
+    document.activeElement = button;
+
+    ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+
+    ctxMenu.dismiss();
+    expect(button._focused).toBe(true);
+    expect(button._focusOpts).toEqual({ preventScroll: true });
+
+    // Cleanup
+    delete document.activeElement;
+  });
+
+  it("restores focus after Escape key dismisses menu", async () => {
+    const trigger = makeElement("canvas");
+    trigger._focused = false;
+    trigger.focus = () => { trigger._focused = true; };
+    document.body.appendChild(trigger);
+    document.activeElement = trigger;
+
+    ctxMenu.show([{ label: "Go", action: () => {} }], { x: 0, y: 0 });
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    keyHandlers.forEach((fn) => fn({ key: "Escape", preventDefault() {} }));
+    expect(trigger._focused).toBe(true);
+
+    delete document.activeElement;
+  });
+
+  it("restores focus after clicking a menu item", () => {
+    const trigger = makeElement("span");
+    trigger._focused = false;
+    trigger.focus = () => { trigger._focused = true; };
+    document.body.appendChild(trigger);
+    document.activeElement = trigger;
+
+    const menu = ctxMenu.show(
+      [{ label: "Do it", action: () => {} }],
+      { x: 0, y: 0 }
+    );
+    menu._children[0].click();
+    expect(trigger._focused).toBe(true);
+
+    delete document.activeElement;
+  });
+
   it("keyboard navigation moves DOM focus to the active item", async () => {
     const menu = ctxMenu.show([
       { label: "Alpha", action: () => {} },
