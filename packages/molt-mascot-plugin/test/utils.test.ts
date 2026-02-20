@@ -261,6 +261,10 @@ describe("utils", () => {
     expect(cleanErrorString("prettier: SyntaxError: Unexpected token")).toBe("Unexpected token");
     expect(cleanErrorString("turbo: error: could not find turbo.json")).toBe("could not find turbo.json");
     expect(cleanErrorString("nx: Cannot find project 'app'")).toBe("Cannot find project 'app'");
+    // Package runner prefixes (npx, pnpx, bunx)
+    expect(cleanErrorString("npx: command not found")).toBe("command not found");
+    expect(cleanErrorString("pnpx: command not found")).toBe("command not found");
+    expect(cleanErrorString("bunx: failed to resolve 'missing-pkg'")).toBe("failed to resolve 'missing-pkg'");
   });
 
   it("summarizeToolResultMessage", () => {
