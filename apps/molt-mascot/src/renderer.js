@@ -1387,6 +1387,22 @@ function showContextMenu(e) {
 pill.addEventListener('contextmenu', showContextMenu);
 canvas.addEventListener('contextmenu', showContextMenu);
 
+// Keyboard accessibility on the canvas: Enter/Space opens context menu,
+// matching the double-click → ghost toggle is too destructive for accidental
+// key presses, so we open the context menu instead (consistent with pill behavior).
+canvas.addEventListener('keydown', (e) => {
+  const isActivate = e.key === 'Enter' || e.key === ' ';
+  const isContextKey = (e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu';
+  if (!isActivate && !isContextKey) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  showContextMenu({
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+    preventDefault() {},
+  });
+});
+
 // boot
 if (isCapture) {
   setup.hidden = true;
