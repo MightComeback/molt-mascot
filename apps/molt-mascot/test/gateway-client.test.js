@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { GatewayClient } from '../src/gateway-client.js';
 
 // GatewayClient requires WebSocket in the global scope; provide a controllable stub
@@ -52,6 +52,13 @@ describe('GatewayClient', () => {
       reconnectBaseMs: 100,
       reconnectMaxMs: 1000,
     });
+  });
+
+  // Clean up pending timers (reconnect, countdown, stale-check, poller) to prevent
+  // leaking into subsequent tests — e.g. a reconnect timer from "fires onDisconnect"
+  // can overwrite FakeWebSocket._last during the "firstConnectedAt" test's async wait.
+  afterEach(() => {
+    client.destroy();
   });
 
   describe('constructor defaults', () => {
@@ -406,7 +413,7 @@ describe('GatewayClient', () => {
 
       // Disconnect and reconnect
       ws1._close(1006);
-      // Wait for reconnect timer (base=100ms + jitter)
+      // Wait for reconnect timer (base=100ms + up to 20% jitter = max ~120ms)
       await new Promise(r => setTimeout(r, 250));
       const ws2 = FakeWebSocket._last;
       if (ws2 && ws2 !== ws1) {
