@@ -87,6 +87,20 @@ describe("utils", () => {
     expect(formatBytes(Infinity)).toBe("0 B");
   });
 
+  it("successRate", () => {
+    expect(successRate(0, 0)).toBeNull();
+    expect(successRate(10, 0)).toBe(100);
+    expect(successRate(10, 2)).toBe(80);
+    expect(successRate(10, 10)).toBe(0);
+    expect(successRate(3, 1)).toBe(67);
+    // Edge: errorCount > totalCalls (clamped)
+    expect(successRate(5, 50)).toBe(0);
+    // Edge: negative totalCalls
+    expect(successRate(-1, 0)).toBeNull();
+    // Edge: undefined/NaN errorCount treated as 0
+    expect(successRate(10, NaN)).toBe(100);
+  });
+
   it("coerceBoolean", () => {
     // Actual booleans pass through
     expect(coerceBoolean(true, false)).toBe(true);
@@ -265,6 +279,14 @@ describe("utils", () => {
     expect(cleanErrorString("npx: command not found")).toBe("command not found");
     expect(cleanErrorString("pnpx: command not found")).toBe("command not found");
     expect(cleanErrorString("bunx: failed to resolve 'missing-pkg'")).toBe("failed to resolve 'missing-pkg'");
+    // Ruby/PHP/Perl/Elixir ecosystem
+    expect(cleanErrorString("ruby: No such file or directory -- script.rb")).toBe("No such file or directory -- script.rb");
+    expect(cleanErrorString("php: Parse error: syntax error")).toBe("Parse error: syntax error");
+    expect(cleanErrorString("perl: warning: Setting locale failed")).toBe("Setting locale failed");
+    expect(cleanErrorString("elixir: ** (CompileError) lib/app.ex:1")).toBe("** (CompileError) lib/app.ex:1");
+    expect(cleanErrorString("mix: Could not find task 'phx.server'")).toBe("Could not find task 'phx.server'");
+    expect(cleanErrorString("bundle: command not found: rails")).toBe("command not found: rails");
+    expect(cleanErrorString("gem: ERROR: While executing gem")).toBe("While executing gem");
   });
 
   it("summarizeToolResultMessage", () => {
