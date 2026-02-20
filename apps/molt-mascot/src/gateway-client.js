@@ -630,7 +630,6 @@ export class GatewayClient {
       pluginStateMethodIndex: this._pluginStateMethodIndex,
       pluginResetMethodIndex: this._pluginResetMethodIndex,
       pluginPollerStarted: this._pluginPollerStarted,
-      pollingPaused: this._pollingPaused,
     };
   }
 
