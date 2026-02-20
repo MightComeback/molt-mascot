@@ -382,6 +382,120 @@ describe('GatewayClient', () => {
     });
   });
 
+  describe('uptimeSeconds', () => {
+    it('returns seconds since connection', () => {
+      client.connectedSince = Date.now() - 5000;
+      const uptime = client.uptimeSeconds;
+      expect(uptime).toBeGreaterThanOrEqual(4);
+      expect(uptime).toBeLessThanOrEqual(6);
+    });
+  });
+
+  describe('firstConnectedAt', () => {
+    it('is set on first handshake and preserved across reconnects', async () => {
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws1 = FakeWebSocket._last;
+      ws1._open();
+      const f1 = JSON.parse(ws1._sent[0]);
+      ws1._message({ type: 'res', id: f1.id, ok: true, payload: { type: 'hello-ok' } });
+      const firstTs = client.firstConnectedAt;
+      expect(firstTs).not.toBeNull();
+      expect(client.sessionConnectCount).toBe(1);
+
+      // Disconnect and reconnect
+      ws1._close(1006);
+      // Wait for reconnect timer (base=100ms + jitter)
+      await new Promise(r => setTimeout(r, 250));
+      const ws2 = FakeWebSocket._last;
+      if (ws2 && ws2 !== ws1) {
+        ws2._open();
+        const f2 = JSON.parse(ws2._sent[0]);
+        ws2._message({ type: 'res', id: f2.id, ok: true, payload: { type: 'hello-ok' } });
+        expect(client.firstConnectedAt).toBe(firstTs);
+        expect(client.sessionConnectCount).toBe(2);
+      }
+    });
+  });
+
+  describe('connect() error handling', () => {
+    it('handles synchronous WebSocket constructor error gracefully', () => {
+      const OrigWS = globalThis.WebSocket;
+      globalThis.WebSocket = function() { throw new Error('Invalid URL'); };
+      try {
+        const onError = mock(() => {});
+        const onFailure = mock(() => {});
+        client.onError = onError;
+        client.onHandshakeFailure = onFailure;
+        client.connect({ url: '' });
+        expect(onError).toHaveBeenCalled();
+        expect(onFailure).toHaveBeenCalled();
+      } finally {
+        globalThis.WebSocket = OrigWS;
+      }
+    });
+
+    it('handles send failure during WebSocket open', () => {
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      // Override send to throw (simulates socket closing between open and send)
+      ws.send = () => { throw new Error('Socket closed'); };
+      const onError = mock(() => {});
+      client.onError = onError;
+      ws._open();
+      expect(onError).toHaveBeenCalled();
+    });
+  });
+
+  describe('plugin reset method fallback', () => {
+    it('falls back through reset method aliases on missing method', () => {
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const connectFrame = JSON.parse(ws._sent[0]);
+      ws._message({ type: 'res', id: connectFrame.id, ok: true, payload: { type: 'hello-ok' } });
+      // Complete plugin discovery
+      const stateReq = JSON.parse(ws._sent[1]);
+      ws._message({ type: 'res', id: stateReq.id, ok: true, payload: { ok: true, state: { mode: 'idle' } } });
+
+      // Send reset
+      client.sendPluginReset();
+      const resetReq1 = JSON.parse(ws._sent[ws._sent.length - 1]);
+      const resetId1 = resetReq1.id;
+      const resetMethod1 = resetReq1.method;
+
+      // Respond with method not found
+      ws._message({ type: 'res', id: resetId1, ok: false, payload: { error: { code: -32601, message: 'Method not found' } } });
+
+      // Should have sent a fallback with the next method alias
+      const resetReq2 = JSON.parse(ws._sent[ws._sent.length - 1]);
+      expect(resetReq2.method).not.toBe(resetMethod1);
+      expect(resetReq2.method).toContain('reset');
+    });
+  });
+
+  describe('event-triggered plugin refresh', () => {
+    it('sends immediate state refresh on agent events when plugin active', () => {
+      const onPlugin = mock(() => {});
+      client.onPluginState = onPlugin;
+      client.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const connectFrame = JSON.parse(ws._sent[0]);
+      ws._message({ type: 'res', id: connectFrame.id, ok: true, payload: { type: 'hello-ok' } });
+      const stateReq = JSON.parse(ws._sent[1]);
+      ws._message({ type: 'res', id: stateReq.id, ok: true, payload: { ok: true, state: { mode: 'idle' } } });
+
+      // Reset rate limit
+      client._pluginStatePending = false;
+      client._pluginStateLastSentAt = 0;
+      const sentBefore = ws._sent.length;
+
+      // Send an agent event — should trigger a state refresh
+      ws._message({ type: 'event', event: 'agent', payload: { phase: 'start' } });
+      expect(ws._sent.length).toBe(sentBefore + 1);
+    });
+  });
+
   describe('sendPluginReset()', () => {
     it('sends reset request when connected', () => {
       client.connect({ url: 'ws://localhost:9999' });
