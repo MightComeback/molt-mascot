@@ -125,6 +125,14 @@ if (cliPadding) {
     process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
   }
 }
+if (cliSize) {
+  const { findSizePreset } = require('./size-presets.cjs');
+  if (findSizePreset(cliSize)) {
+    process.env.MOLT_MASCOT_SIZE = cliSize.trim().toLowerCase();
+  } else {
+    process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${SIZE_PRESETS.map((s) => s.label).join(', ')})\n`);
+  }
+}
 
 // CLI flags for boolean appearance toggles (override env vars).
 if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
@@ -632,15 +640,8 @@ app.whenReady().then(async () => {
     const envSizeIdx = sizeCycle.findIndex((s) => s.label === envSize);
     if (envSizeIdx >= 0) sizeIndex = envSizeIdx;
   }
-  // CLI --size overrides env var and saved preference.
-  if (cliSize) {
-    const cliSizeIdx = sizeCycle.findIndex((s) => s.label === cliSize.trim().toLowerCase());
-    if (cliSizeIdx >= 0) {
-      sizeIndex = cliSizeIdx;
-    } else {
-      process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${sizeCycle.map((s) => s.label).join(', ')})\n`);
-    }
-  }
+  // CLI --size is validated early and sets MOLT_MASCOT_SIZE, so the env var
+  // lookup above already handles it. No separate cliSize block needed.
 
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
