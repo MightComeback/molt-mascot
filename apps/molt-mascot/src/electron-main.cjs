@@ -129,6 +129,13 @@ if (process.argv.includes('--list-prefs')) {
   process.exit(0);
 }
 
+// CLI flags: --disable-gpu disables hardware acceleration.
+// Useful on VMs, remote desktops, or Wayland compositors where GPU acceleration
+// causes rendering artifacts, blank windows, or crashes.
+if (process.argv.includes('--disable-gpu') || isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_GPU)) {
+  app.disableHardwareAcceleration();
+}
+
 // CLI flags: --debug opens DevTools on launch for easier development.
 const cliDebug = process.argv.includes('--debug');
 
@@ -162,6 +169,8 @@ Options:
   --opacity <0.0-1.0>    Window opacity (overrides env/saved prefs)
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --debug                Open DevTools on launch
+  --disable-gpu          Disable hardware acceleration (useful on VMs,
+                         remote desktops, or Wayland compositors)
   --no-tray              Disable system tray icon (useful on Linux DEs
                          without tray support, e.g. GNOME)
   --reset-prefs          Clear saved preferences and start fresh
@@ -181,6 +190,7 @@ Environment variables:
   MOLT_MASCOT_IDLE_DELAY_MS      Delay before returning to idle after activity (default: 800)
   MOLT_MASCOT_ERROR_HOLD_MS      How long to show error state before reverting (default: 5000)
   MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
+  MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):
