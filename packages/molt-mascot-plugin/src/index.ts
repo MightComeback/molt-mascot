@@ -129,6 +129,26 @@ export function coerceAlignment(
 }
 
 /**
+ * Coerce a value to a valid opacity (0–1).
+ * Accepts numbers and numeric strings. Returns fallback for invalid/out-of-range values.
+ */
+export function coerceOpacity(v: unknown, fallback: number): number {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return fallback;
+}
+
+/**
+ * Coerce a value to a valid padding (>= 0).
+ * Accepts numbers and numeric strings. Returns fallback for invalid/negative values.
+ */
+export function coercePadding(v: unknown, fallback: number): number {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0) return n;
+  return fallback;
+}
+
+/**
  * Compute a success-rate percentage from total calls and error count.
  * Returns null if totalCalls is 0 (avoids division by zero).
  *
@@ -721,13 +741,8 @@ export default function register(api: PluginApi) {
   const clickThrough = coerceBoolean(cfg.clickThrough, false);
   const hideText = coerceBoolean(cfg.hideText, false);
 
-  // Padding must be >= 0
-  const paddingNum = coerceNumber(cfg.padding, 24);
-  const padding = paddingNum >= 0 ? paddingNum : 24;
-
-  // Opacity must be 0-1 (allow strings too, via coerceNumber)
-  const opacityNum = coerceNumber(cfg.opacity, 1);
-  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
+  const padding = coercePadding(cfg.padding, 24);
+  const opacity = coerceOpacity(cfg.opacity, 1);
 
   const size = coerceSize(cfg.size, "medium");
 

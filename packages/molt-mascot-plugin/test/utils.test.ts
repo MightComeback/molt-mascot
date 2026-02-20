@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, coerceSize, coerceAlignment, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, coerceSize, coerceAlignment, coerceOpacity, coercePadding, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1016,6 +1016,32 @@ describe("utils", () => {
     expect(coerceAlignment("invalid", "bottom-right")).toBe("bottom-right");
     expect(coerceAlignment(123, "top-right")).toBe("top-right");
     expect(coerceAlignment(undefined, "center-left")).toBe("center-left");
+  });
+
+  it("coerceOpacity returns valid opacity and falls back for invalid values", () => {
+    expect(coerceOpacity(0.5, 1)).toBe(0.5);
+    expect(coerceOpacity(0, 1)).toBe(0);
+    expect(coerceOpacity(1, 0.5)).toBe(1);
+    expect(coerceOpacity("0.7", 1)).toBe(0.7);
+    expect(coerceOpacity(-0.1, 1)).toBe(1);
+    expect(coerceOpacity(1.1, 1)).toBe(1);
+    expect(coerceOpacity("abc", 1)).toBe(1);
+    expect(coerceOpacity(undefined, 1)).toBe(1);
+    expect(coerceOpacity(null, 0.5)).toBe(0.5);
+    expect(coerceOpacity(Infinity, 1)).toBe(1);
+    expect(coerceOpacity(NaN, 1)).toBe(1);
+  });
+
+  it("coercePadding returns valid padding and falls back for invalid values", () => {
+    expect(coercePadding(24, 10)).toBe(24);
+    expect(coercePadding(0, 10)).toBe(0);
+    expect(coercePadding("16", 10)).toBe(16);
+    expect(coercePadding(-1, 24)).toBe(24);
+    expect(coercePadding("abc", 24)).toBe(24);
+    expect(coercePadding(undefined, 24)).toBe(24);
+    expect(coercePadding(null, 24)).toBe(24);
+    expect(coercePadding(Infinity, 24)).toBe(24);
+    expect(coercePadding(100, 24)).toBe(100);
   });
 
   it("infrastructure error on tool end enters error mode with tool name prefix", async () => {
