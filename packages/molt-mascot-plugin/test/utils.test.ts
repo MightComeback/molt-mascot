@@ -291,6 +291,17 @@ describe("utils", () => {
     expect(cleanErrorString("swift: error: no such module 'Foundation'")).toBe("no such module 'Foundation'");
     // .NET CLI
     expect(cleanErrorString("dotnet: error: Project file does not exist")).toBe("Project file does not exist");
+    // Python ecosystem tools (pip3, uv, poetry, conda, etc.)
+    expect(cleanErrorString("pip3: No matching distribution found for foo")).toBe("No matching distribution found for foo");
+    expect(cleanErrorString("uv: error: No solution found")).toBe("No solution found");
+    expect(cleanErrorString("uvx: error: Package 'missing' not found")).toBe("Package 'missing' not found");
+    expect(cleanErrorString("poetry: command not found")).toBe("command not found");
+    expect(cleanErrorString("pdm: No matching version found")).toBe("No matching version found");
+    expect(cleanErrorString("rye: error: failed to download")).toBe("failed to download");
+    expect(cleanErrorString("hatch: error: Environment 'test' not found")).toBe("Environment 'test' not found");
+    expect(cleanErrorString("conda: PackagesNotFoundError: missing")).toBe("missing");
+    expect(cleanErrorString("mamba: error: libmamba Could not solve")).toBe("libmamba Could not solve");
+    expect(cleanErrorString("pixi: error: No task named 'build'")).toBe("No task named 'build'");
   });
 
   it("summarizeToolResultMessage", () => {
