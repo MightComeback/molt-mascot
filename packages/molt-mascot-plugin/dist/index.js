@@ -29,6 +29,8 @@ __export(index_exports, {
   coerceAlignment: () => coerceAlignment,
   coerceBoolean: () => coerceBoolean,
   coerceNumber: () => coerceNumber,
+  coerceOpacity: () => coerceOpacity,
+  coercePadding: () => coercePadding,
   coerceSize: () => coerceSize,
   default: () => register,
   formatBytes: () => formatBytes,
@@ -45,7 +47,7 @@ module.exports = __toCommonJS(index_exports);
 // package.json
 var package_default = {
   name: "@molt/mascot-plugin",
-  version: "0.1.37",
+  version: "0.2.0",
   description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
@@ -143,6 +145,16 @@ function coerceAlignment(v, fallback) {
   if (typeof v === "string" && allowedAlignments.includes(v)) {
     return v;
   }
+  return fallback;
+}
+function coerceOpacity(v, fallback) {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return fallback;
+}
+function coercePadding(v, fallback) {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0) return n;
   return fallback;
 }
 function successRate(totalCalls, errorCount) {
@@ -538,10 +550,8 @@ function register(api) {
   const alignment = coerceAlignment(cfg.alignment, "bottom-right");
   const clickThrough = coerceBoolean(cfg.clickThrough, false);
   const hideText = coerceBoolean(cfg.hideText, false);
-  const paddingNum = coerceNumber(cfg.padding, 24);
-  const padding = paddingNum >= 0 ? paddingNum : 24;
-  const opacityNum = coerceNumber(cfg.opacity, 1);
-  const opacity = opacityNum >= 0 && opacityNum <= 1 ? opacityNum : 1;
+  const padding = coercePadding(cfg.padding, 24);
+  const opacity = coerceOpacity(cfg.opacity, 1);
   const size = coerceSize(cfg.size, "medium");
   const startedAt = Date.now();
   const state = {
@@ -863,6 +873,8 @@ function register(api) {
   coerceAlignment,
   coerceBoolean,
   coerceNumber,
+  coerceOpacity,
+  coercePadding,
   coerceSize,
   formatBytes,
   formatDuration,

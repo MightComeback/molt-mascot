@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-20
+
 ### Added
 - `MOLT_MASCOT_REDUCED_MOTION` env var to force reduced motion without changing OS preferences (useful for CI, headless, embedded deployments)
 - Scroll-to-dismiss for context menu (scrolling outside the menu closes it, matching macOS native behavior)

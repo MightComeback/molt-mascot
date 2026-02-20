@@ -69,6 +69,16 @@ declare const allowedSizes: Size[];
 declare function coerceSize(v: unknown, fallback: Size): Size;
 declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
 /**
+ * Coerce a value to a valid opacity (0–1).
+ * Accepts numbers and numeric strings. Returns fallback for invalid/out-of-range values.
+ */
+declare function coerceOpacity(v: unknown, fallback: number): number;
+/**
+ * Coerce a value to a valid padding (>= 0).
+ * Accepts numbers and numeric strings. Returns fallback for invalid/negative values.
+ */
+declare function coercePadding(v: unknown, fallback: number): number;
+/**
  * Compute a success-rate percentage from total calls and error count.
  * Returns null if totalCalls is 0 (avoids division by zero).
  *
@@ -139,4 +149,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceSize, register as default, formatBytes, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };
