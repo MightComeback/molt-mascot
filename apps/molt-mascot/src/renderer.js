@@ -1264,6 +1264,7 @@ function buildDebugInfo() {
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
     firstConnectedAt,
+    lastMessageAt,
   });
 }
 
