@@ -178,6 +178,8 @@ Environment variables:
   MOLT_MASCOT_OPACITY         Window opacity 0.0-1.0 (default: 1.0)
   MOLT_MASCOT_CLICK_THROUGH   Enable ghost mode (1/true/yes)
   MOLT_MASCOT_HIDE_TEXT        Hide HUD text pill (1/true/yes)
+  MOLT_MASCOT_IDLE_DELAY_MS      Delay before returning to idle after activity (default: 800)
+  MOLT_MASCOT_ERROR_HOLD_MS      How long to show error state before reverting (default: 5000)
   MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
