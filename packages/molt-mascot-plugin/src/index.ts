@@ -7,7 +7,7 @@ export const version = pkg.version;
 
 export type Mode = "idle" | "thinking" | "tool" | "error";
 
-export type Size = "small" | "medium" | "large" | "xlarge";
+export type Size = "tiny" | "small" | "medium" | "large" | "xlarge";
 
 export type PluginConfig = {
   idleDelayMs?: number;
@@ -109,7 +109,7 @@ export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center",
 ];
 
-export const allowedSizes: Size[] = ["small", "medium", "large", "xlarge"];
+export const allowedSizes: Size[] = ["tiny", "small", "medium", "large", "xlarge"];
 
 export function coerceSize(v: unknown, fallback: Size): Size {
   if (typeof v === "string" && (allowedSizes as string[]).includes(v)) {

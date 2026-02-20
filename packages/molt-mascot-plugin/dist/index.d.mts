@@ -1,7 +1,7 @@
 declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
-type Size = "small" | "medium" | "large" | "xlarge";
+type Size = "tiny" | "small" | "medium" | "large" | "xlarge";
 type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;

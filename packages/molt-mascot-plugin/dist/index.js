@@ -132,7 +132,7 @@ var allowedAlignments = [
   "center-right",
   "center"
 ];
-var allowedSizes = ["small", "medium", "large", "xlarge"];
+var allowedSizes = ["tiny", "small", "medium", "large", "xlarge"];
 function coerceSize(v, fallback) {
   if (typeof v === "string" && allowedSizes.includes(v)) {
     return v;
