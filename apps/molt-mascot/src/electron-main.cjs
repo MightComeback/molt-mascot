@@ -236,6 +236,12 @@ if (process.argv.includes('--status')) {
   })();
   const gatewayUrl = process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || '(not set)';
   const hasToken = !!(process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN);
+  const resolvedPadding = (() => {
+    const envVal = Number(process.env.MOLT_MASCOT_PADDING);
+    if (Number.isFinite(envVal) && envVal >= 0) return `${envVal}px`;
+    if (typeof prefs.padding === 'number' && prefs.padding >= 0) return `${prefs.padding}px`;
+    return '24px';
+  })();
   const clickThroughResolved = isTruthyEnv(process.env.MOLT_MASCOT_CLICK_THROUGH || process.env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
   const hideTextResolved = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
   const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
@@ -248,6 +254,7 @@ Config (resolved):
   Gateway token:  ${hasToken ? '(set)' : '(not set)'}
   Alignment:      ${resolvedAlign}
   Size:           ${resolvedSize}
+  Padding:        ${resolvedPadding}
   Opacity:        ${resolvedOpacity}
   Ghost mode:     ${clickThroughResolved}
   Hide text:      ${hideTextResolved}
