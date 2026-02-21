@@ -8,6 +8,7 @@ describe('createPluginSync', () => {
       onClickThrough: (v) => { calls.clickThrough = v; },
       onAlignment: (v) => { calls.alignment = v; },
       onOpacity: (v) => { calls.opacity = v; },
+      onPadding: (v) => { calls.padding = v; },
       onSize: (v) => { calls.size = v; },
       onHideText: (v) => { calls.hideText = v; },
       onVersion: (v) => { calls.version = v; },
@@ -23,6 +24,7 @@ describe('createPluginSync', () => {
       clickThrough: true,
       alignment: 'top-left',
       opacity: 0.8,
+      padding: 16,
       size: 'large',
       hideText: false,
       version: '1.0.0',
@@ -37,6 +39,7 @@ describe('createPluginSync', () => {
     expect(calls.clickThrough).toBe(true);
     expect(calls.alignment).toBe('top-left');
     expect(calls.opacity).toBe(0.8);
+    expect(calls.padding).toBe(16);
     expect(calls.size).toBe('large');
     expect(calls.hideText).toBe(false);
     expect(calls.version).toBe('1.0.0');
@@ -47,7 +50,7 @@ describe('createPluginSync', () => {
     expect(calls.activeTools).toBe(3);
     expect(calls.currentTool).toBe('web_fetch');
     expect(changed).toEqual([
-      'clickThrough', 'alignment', 'opacity', 'size', 'hideText',
+      'clickThrough', 'alignment', 'opacity', 'padding', 'size', 'hideText',
       'version', 'toolCalls', 'toolErrors', 'startedAt',
       'activeAgents', 'activeTools', 'currentTool',
     ]);
