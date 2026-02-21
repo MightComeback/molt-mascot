@@ -1007,6 +1007,10 @@ describe("utils", () => {
     expect(coerceSize(42, "medium")).toBe("medium");
     expect(coerceSize(undefined, "large")).toBe("large");
     expect(coerceSize(null, "small")).toBe("small");
+    // Case-insensitive + trimming
+    expect(coerceSize("SMALL", "medium")).toBe("small");
+    expect(coerceSize("Large", "medium")).toBe("large");
+    expect(coerceSize("  xlarge  ", "medium")).toBe("xlarge");
   });
 
   it("coerceAlignment returns valid alignments and falls back for invalid values", () => {
@@ -1016,6 +1020,10 @@ describe("utils", () => {
     expect(coerceAlignment("invalid", "bottom-right")).toBe("bottom-right");
     expect(coerceAlignment(123, "top-right")).toBe("top-right");
     expect(coerceAlignment(undefined, "center-left")).toBe("center-left");
+    // Case-insensitive + trimming
+    expect(coerceAlignment("TOP-LEFT", "bottom-right")).toBe("top-left");
+    expect(coerceAlignment("Bottom-Right", "top-left")).toBe("bottom-right");
+    expect(coerceAlignment("  center  ", "top-left")).toBe("center");
   });
 
   it("coerceOpacity returns valid opacity and falls back for invalid values", () => {

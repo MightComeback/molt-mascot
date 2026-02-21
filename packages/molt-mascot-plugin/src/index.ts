@@ -112,8 +112,9 @@ export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
 export const allowedSizes: Size[] = ["tiny", "small", "medium", "large", "xlarge"];
 
 export function coerceSize(v: unknown, fallback: Size): Size {
-  if (typeof v === "string" && (allowedSizes as string[]).includes(v)) {
-    return v as Size;
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if ((allowedSizes as string[]).includes(lower)) return lower as Size;
   }
   return fallback;
 }
@@ -122,8 +123,9 @@ export function coerceAlignment(
   v: unknown,
   fallback: NonNullable<PluginConfig["alignment"]>
 ): NonNullable<PluginConfig["alignment"]> {
-  if (typeof v === "string" && (allowedAlignments as string[]).includes(v)) {
-    return v as NonNullable<PluginConfig["alignment"]>;
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if ((allowedAlignments as string[]).includes(lower)) return lower as NonNullable<PluginConfig["alignment"]>;
   }
   return fallback;
 }
