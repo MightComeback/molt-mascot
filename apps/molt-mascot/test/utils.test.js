@@ -20,6 +20,8 @@ import {
   successRate,
   formatBytes,
   formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
   MODE_EMOJI,
 } from "../src/utils.js";
 
@@ -949,6 +951,40 @@ describe("formatLatency", () => {
     expect(formatLatency(undefined)).toBe("–");
     expect(formatLatency(null)).toBe("–");
     expect(formatLatency("50")).toBe("–");
+  });
+});
+
+describe("connectionQuality", () => {
+  it("categorizes latency into quality labels", () => {
+    expect(connectionQuality(0)).toBe("excellent");
+    expect(connectionQuality(49)).toBe("excellent");
+    expect(connectionQuality(50)).toBe("good");
+    expect(connectionQuality(149)).toBe("good");
+    expect(connectionQuality(150)).toBe("fair");
+    expect(connectionQuality(499)).toBe("fair");
+    expect(connectionQuality(500)).toBe("poor");
+    expect(connectionQuality(9999)).toBe("poor");
+  });
+
+  it("returns null for invalid inputs", () => {
+    expect(connectionQuality(-1)).toBeNull();
+    expect(connectionQuality(NaN)).toBeNull();
+    expect(connectionQuality(Infinity)).toBeNull();
+  });
+});
+
+describe("connectionQualityEmoji", () => {
+  it("maps quality labels to colored circle emojis", () => {
+    expect(connectionQualityEmoji("excellent")).toBe("🟢");
+    expect(connectionQualityEmoji("good")).toBe("🟡");
+    expect(connectionQualityEmoji("fair")).toBe("🟠");
+    expect(connectionQualityEmoji("poor")).toBe("🔴");
+  });
+
+  it("returns empty string for null or unknown values", () => {
+    expect(connectionQualityEmoji(null)).toBe("");
+    expect(connectionQualityEmoji(undefined)).toBe("");
+    expect(connectionQualityEmoji("unknown")).toBe("");
   });
 });
 
