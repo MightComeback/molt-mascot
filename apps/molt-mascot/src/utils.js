@@ -17,8 +17,8 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, successRate, f
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency } from './format-latency.cjs';
-export { formatLatency };
+import { formatLatency, connectionQuality } from './format-latency.cjs';
+export { formatLatency, connectionQuality };
 
 /**
  * Capitalize the first character of a string.

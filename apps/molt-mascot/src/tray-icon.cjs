@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, successRate } = require('@molt/mascot-plugin');
-const { formatLatency } = require('./format-latency.cjs');
+const { formatLatency, connectionQuality } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -204,6 +204,12 @@ function buildTrayTooltip(params) {
     if (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
       latencyPart += ` (med ${formatLatency(latencyStats.median)})`;
     }
+    // Append a quality label when median stats are available (more stable than instant latency).
+    const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)
+      ? latencyStats.median
+      : latencyMs;
+    const quality = connectionQuality(qualitySource);
+    if (quality) latencyPart += ` [${quality}]`;
     parts.push(latencyPart);
   }
   // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections

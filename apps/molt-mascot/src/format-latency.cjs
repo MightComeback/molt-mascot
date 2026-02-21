@@ -18,4 +18,27 @@ function formatLatency(ms) {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-module.exports = { formatLatency };
+/**
+ * Categorize a latency value into a human-readable quality label.
+ * Useful for at-a-glance connection assessment in tooltips and debug info
+ * without requiring users to interpret raw millisecond values.
+ *
+ * Thresholds are calibrated for WebSocket round-trip times to a local
+ * or near-local Gateway (not internet-scale RTTs):
+ * - < 50ms  → "excellent" (typical local/LAN)
+ * - < 150ms → "good" (Wi-Fi, same region)
+ * - < 500ms → "fair" (cross-region, congested)
+ * - ≥ 500ms → "poor" (needs investigation)
+ *
+ * @param {number} ms - Latency in milliseconds
+ * @returns {string|null} Quality label, or null if latency is invalid/unavailable
+ */
+function connectionQuality(ms) {
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return null;
+  if (ms < 50) return 'excellent';
+  if (ms < 150) return 'good';
+  if (ms < 500) return 'fair';
+  return 'poor';
+}
+
+module.exports = { formatLatency, connectionQuality };
