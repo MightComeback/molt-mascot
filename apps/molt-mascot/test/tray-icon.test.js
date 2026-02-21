@@ -315,6 +315,17 @@ describe('tray-icon', () => {
       expect(tip).not.toContain('(med');
     });
 
+    it('includes p95 alongside median when tail latency is notable (p95 > 2× median)', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 200, avg: 55, median: 38, p95: 180, samples: 20 } });
+      expect(tip).toContain('med 38ms, p95 180ms');
+    });
+
+    it('omits p95 when tail latency is not notable (p95 <= 2× median)', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, median: 38, p95: 60, samples: 20 } });
+      expect(tip).toContain('(med 38ms)');
+      expect(tip).not.toContain('p95');
+    });
+
     it('omits latency when null or undefined', () => {
       expect(buildTrayTooltip({ ...base, latencyMs: null })).not.toContain('⏱');
       expect(buildTrayTooltip({ ...base })).not.toContain('⏱');

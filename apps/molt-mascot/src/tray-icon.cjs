@@ -169,7 +169,7 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
  * @param {number} [params.pluginStartedAt] - Plugin start timestamp (for uptime display in tooltip)
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
- * @param {{ min: number, max: number, avg: number, median?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
+ * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
@@ -202,7 +202,11 @@ function buildTrayTooltip(params) {
     // Median is more robust than avg against occasional spikes, giving users a clearer picture
     // of typical latency without opening the debug panel.
     if (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-      latencyPart += ` (med ${formatLatency(latencyStats.median)})`;
+      // Show p95 alongside median when tail latency is notable (p95 > 2× median),
+      // indicating intermittent spikes worth investigating.
+      const showP95 = typeof latencyStats.p95 === 'number' && latencyStats.median > 0 && latencyStats.p95 > latencyStats.median * 2;
+      const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : '';
+      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str})`;
     }
     // Append a quality label when median stats are available (more stable than instant latency).
     const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)
