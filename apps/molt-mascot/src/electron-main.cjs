@@ -290,6 +290,8 @@ if (process.argv.includes('--status')) {
       platform: process.platform,
       arch: process.arch,
       electron: process.versions.electron || null,
+      node: process.versions.node || null,
+      chrome: process.versions.chrome || null,
     };
     process.stdout.write(JSON.stringify(status, null, 2) + '\n');
     process.exit(0);
@@ -318,6 +320,8 @@ Timing:
 Preferences file: ${prefsExist ? prefsPath : '(none)'}
 Platform: ${process.platform} ${process.arch}
 Electron: ${process.versions.electron || 'n/a'}
+Node: ${process.versions.node || 'n/a'}
+Chrome: ${process.versions.chrome || 'n/a'}
 `);
   process.exit(0);
 }
