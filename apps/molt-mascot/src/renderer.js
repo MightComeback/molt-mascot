@@ -1397,6 +1397,9 @@ function showContextMenu(e) {
       : `${pluginToolCalls} calls`;
     statusParts.push(statsStr);
   }
+  if (pluginActiveAgents > 0 || pluginActiveTools > 0) {
+    statusParts.push(`${pluginActiveAgents}A ${pluginActiveTools}T`);
+  }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
     statusParts.push(formatLatency(latencyMs));
   }
