@@ -279,6 +279,29 @@ describe('tray-icon', () => {
       expect(tip).toContain('⏱ 42ms');
     });
 
+    it('includes median latency from stats when available', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 10 } });
+      expect(tip).toContain('⏱ 42ms (med 38ms)');
+    });
+
+    it('omits median when latencyStats has only 1 sample', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 42, max: 42, avg: 42, median: 42, samples: 1 } });
+      expect(tip).toContain('⏱ 42ms');
+      expect(tip).not.toContain('(med');
+    });
+
+    it('omits median when latencyStats is null', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: null });
+      expect(tip).toContain('⏱ 42ms');
+      expect(tip).not.toContain('(med');
+    });
+
+    it('omits median when latencyStats has no median field', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, samples: 5 } });
+      expect(tip).toContain('⏱ 42ms');
+      expect(tip).not.toContain('(med');
+    });
+
     it('omits latency when null or undefined', () => {
       expect(buildTrayTooltip({ ...base, latencyMs: null })).not.toContain('⏱');
       expect(buildTrayTooltip({ ...base })).not.toContain('⏱');

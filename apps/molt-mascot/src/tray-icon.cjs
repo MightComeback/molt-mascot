@@ -169,11 +169,12 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
  * @param {number} [params.pluginStartedAt] - Plugin start timestamp (for uptime display in tooltip)
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
+ * @param {{ min: number, max: number, avg: number, median?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -196,7 +197,14 @@ function buildTrayTooltip(params) {
   if (typeof targetUrl === 'string' && targetUrl && !uptimeStr) parts.push(`→ ${targetUrl}`);
   if (typeof lastCloseDetail === 'string' && lastCloseDetail) parts.push(`⚡ ${lastCloseDetail}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
-    parts.push(`⏱ ${formatLatency(latencyMs)}`);
+    let latencyPart = `⏱ ${formatLatency(latencyMs)}`;
+    // Append median from rolling stats when available (>1 sample) for connection quality insight.
+    // Median is more robust than avg against occasional spikes, giving users a clearer picture
+    // of typical latency without opening the debug panel.
+    if (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
+      latencyPart += ` (med ${formatLatency(latencyStats.median)})`;
+    }
+    parts.push(latencyPart);
   }
   // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections
   // before the stale-check timer (15s) triggers a reconnect. Below 5s the latency
