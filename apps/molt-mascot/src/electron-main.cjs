@@ -789,6 +789,7 @@ app.whenReady().then(async () => {
       pluginVersion: currentPluginVersion,
       lastMessageAt: currentLastMessageAt,
       latencyStats: currentLatencyStats,
+      pluginStartedAt: currentPluginStartedAt,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -971,9 +972,10 @@ app.whenReady().then(async () => {
   let currentPluginVersion = null;
   let currentLastMessageAt = null;
   let currentLatencyStats = null;
+  let currentPluginStartedAt = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal, pluginStartedAt: pluginStartedAtVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -1006,6 +1008,10 @@ app.whenReady().then(async () => {
     // Track latency stats for tray tooltip (median + connection quality label).
     if (latencyStatsVal && typeof latencyStatsVal === 'object' && typeof latencyStatsVal.samples === 'number') currentLatencyStats = latencyStatsVal;
     else if (latencyStatsVal === null) currentLatencyStats = null;
+
+    // Track plugin start time for tray tooltip uptime display.
+    if (typeof pluginStartedAtVal === 'number' && pluginStartedAtVal > 0) currentPluginStartedAt = pluginStartedAtVal;
+    else if (pluginStartedAtVal === null) currentPluginStartedAt = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;

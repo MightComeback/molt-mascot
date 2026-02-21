@@ -460,6 +460,7 @@ function syncPill() {
       sessionAttemptCount,
       lastMessageAt: lastMessageAt || null,
       latencyStats: getLatencyStats(),
+      pluginStartedAt: pluginStartedAt || null,
     });
   }
 }
