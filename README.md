@@ -152,6 +152,8 @@ Options:
   --sleep-threshold <s>  Idle seconds before sleep overlay (default: 120)
   --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
   --error-hold <ms>      How long to show error state before reverting (default: 5000)
+  --reduced-motion       Disable animations (bob, blink); overrides OS preference
+  --status               Print resolved config summary and exit
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
   --no-shortcuts         Disable global keyboard shortcuts (use tray/context menu instead)
 ```
