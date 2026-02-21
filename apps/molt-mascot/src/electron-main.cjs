@@ -788,6 +788,7 @@ app.whenReady().then(async () => {
       activeTools: currentActiveTools,
       pluginVersion: currentPluginVersion,
       lastMessageAt: currentLastMessageAt,
+      latencyStats: currentLatencyStats,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -969,9 +970,10 @@ app.whenReady().then(async () => {
   let currentActiveTools = 0;
   let currentPluginVersion = null;
   let currentLastMessageAt = null;
+  let currentLatencyStats = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -1000,6 +1002,10 @@ app.whenReady().then(async () => {
     // Track last WS message timestamp for tray tooltip (stale connection diagnostics).
     if (typeof lastMessageAtVal === 'number' && lastMessageAtVal > 0) currentLastMessageAt = lastMessageAtVal;
     else if (lastMessageAtVal === null) currentLastMessageAt = null;
+
+    // Track latency stats for tray tooltip (median + connection quality label).
+    if (latencyStatsVal && typeof latencyStatsVal === 'object' && typeof latencyStatsVal.samples === 'number') currentLatencyStats = latencyStatsVal;
+    else if (latencyStatsVal === null) currentLatencyStats = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;

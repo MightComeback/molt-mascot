@@ -451,6 +451,7 @@ function syncPill() {
       sessionConnectCount,
       sessionAttemptCount,
       lastMessageAt: lastMessageAt || null,
+      latencyStats: getLatencyStats(),
     });
   }
 }
