@@ -255,6 +255,11 @@ Config (resolved):
   No tray:        ${process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY)}
   No shortcuts:   ${process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS)}
 
+Timing:
+  Sleep threshold: ${(() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? `${v}s` : '120s'; })()}
+  Idle delay:      ${(() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? `${v}ms` : '800ms'; })()}
+  Error hold:      ${(() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? `${v}ms` : '5000ms'; })()}
+
 Preferences file: ${prefsExist ? prefsPath : '(none)'}
 Platform: ${process.platform} ${process.arch}
 Electron: ${process.versions.electron || 'n/a'}
