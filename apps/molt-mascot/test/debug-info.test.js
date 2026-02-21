@@ -419,8 +419,8 @@ describe("buildDebugInfo", () => {
   });
 
   it("includes latency stats when latencyStats has multiple samples", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, samples: 30 } });
-    expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms (30 samples)");
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, samples: 30 } });
+    expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms (30 samples)");
   });
 
   it("omits latency stats when only 1 sample (not useful)", () => {

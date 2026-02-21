@@ -180,7 +180,8 @@ export function buildDebugInfo(params) {
   else if (hasPlugin) lines.push('Polling: active');
   if (typeof latencyMs === 'number' && latencyMs >= 0) lines.push(`Latency: ${formatLatency(latencyMs)}`);
   if (latencyStats && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms (${latencyStats.samples} samples)`);
+    const medianStr = typeof latencyStats.median === 'number' ? `, median ${latencyStats.median}ms` : '';
+    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr} (${latencyStats.samples} samples)`);
   }
   if (pluginToolCalls > 0) {
     const rateSuffix = pluginToolErrors > 0

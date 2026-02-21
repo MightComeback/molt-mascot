@@ -227,10 +227,18 @@ function getLatencyStats() {
     if (v > max) max = v;
     sum += v;
   }
+  // Median is more meaningful than average for latency because it's robust
+  // against outlier spikes (e.g. a single 2s GC pause doesn't skew it).
+  const sorted = _latencyBuffer.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : Math.round(sorted[mid]);
   return {
     min: Math.round(min),
     max: Math.round(max),
     avg: Math.round(sum / _latencyBuffer.length),
+    median,
     samples: _latencyBuffer.length,
   };
 }
