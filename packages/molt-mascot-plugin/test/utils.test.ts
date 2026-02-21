@@ -720,6 +720,13 @@ describe("utils", () => {
     // undefined returns the string "undefined"
     expect(summarizeToolResultMessage(undefined)).toBe("undefined");
 
+    // BigInt primitives are stringified without throwing
+    expect(summarizeToolResultMessage(BigInt(42))).toBe("42");
+    expect(summarizeToolResultMessage(BigInt("99999999999999999999"))).toBe("99999999999999999999");
+
+    // Objects containing BigInt values don't throw during JSON.stringify
+    expect(summarizeToolResultMessage({ error: { code: BigInt(1234) } })).toBe('{"code":"1234"}');
+
     // Top-level arrays (e.g. memory_search, agents_list results)
     expect(summarizeToolResultMessage(["foo", "bar"])).toBe("foo, bar");
     expect(summarizeToolResultMessage([{ text: "a" }, { text: "b" }])).toBe("a, b");

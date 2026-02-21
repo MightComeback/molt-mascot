@@ -538,6 +538,10 @@ export function summarizeToolResultMessage(msg: any): string {
   if (msg === undefined) {
     return "undefined";
   }
+  // BigInt can't be JSON.stringify'd — convert early to avoid downstream throws.
+  if (typeof msg === "bigint") {
+    return truncate(String(msg));
+  }
 
   // Top-level arrays: join text elements for a compact summary.
   // Some tools (e.g. memory_search, agents_list) return arrays directly.
@@ -626,7 +630,9 @@ export function summarizeToolResultMessage(msg: any): string {
     for (const v of toTry) {
       if (!v || typeof v !== "object") continue;
       try {
-        const json = JSON.stringify(v);
+        const json = JSON.stringify(v, (_k, val) =>
+          typeof val === "bigint" ? String(val) : val
+        );
         if (typeof json === "string" && json !== "{}") {
           return truncate(cleanErrorString(json));
         }
