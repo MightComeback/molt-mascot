@@ -226,26 +226,65 @@ if (process.argv.includes('--status')) {
     }
     return SIZE_PRESETS[DEFAULT_SIZE_INDEX].label;
   })();
-  const resolvedOpacity = (() => {
+  const resolvedOpacityNum = (() => {
     const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
-    if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return `${Math.round(envVal * 100)}%`;
+    if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
     if (typeof prefs.opacityIndex === 'number' && prefs.opacityIndex >= 0 && prefs.opacityIndex < OPACITY_CYCLE.length) {
-      return `${Math.round(OPACITY_CYCLE[prefs.opacityIndex] * 100)}%`;
+      return OPACITY_CYCLE[prefs.opacityIndex];
     }
-    return '100%';
+    return 1.0;
   })();
+  const resolvedOpacity = `${Math.round(resolvedOpacityNum * 100)}%`;
   const gatewayUrl = process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || '(not set)';
   const hasToken = !!(process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN);
-  const resolvedPadding = (() => {
+  const resolvedPaddingNum = (() => {
     const envVal = Number(process.env.MOLT_MASCOT_PADDING);
-    if (Number.isFinite(envVal) && envVal >= 0) return `${envVal}px`;
-    if (typeof prefs.padding === 'number' && prefs.padding >= 0) return `${prefs.padding}px`;
-    return '24px';
+    if (Number.isFinite(envVal) && envVal >= 0) return envVal;
+    if (typeof prefs.padding === 'number' && prefs.padding >= 0) return prefs.padding;
+    return 24;
   })();
+  const resolvedPadding = `${resolvedPaddingNum}px`;
   const clickThroughResolved = isTruthyEnv(process.env.MOLT_MASCOT_CLICK_THROUGH || process.env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
   const hideTextResolved = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
+  const reducedMotionResolved = isTruthyEnv(process.env.MOLT_MASCOT_REDUCED_MOTION);
+  const noTrayResolved = process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
+  const noShortcutsResolved = process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
+  const sleepThresholdS = (() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
+  const idleDelayMs = (() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
+  const errorHoldMs = (() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
   const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
   const prefsExist = fs.existsSync(prefsPath);
+
+  // --json flag: output machine-readable JSON (useful for scripting, piping into jq, CI checks).
+  if (process.argv.includes('--json')) {
+    const status = {
+      version: APP_VERSION,
+      config: {
+        gatewayUrl: gatewayUrl === '(not set)' ? null : gatewayUrl,
+        gatewayToken: hasToken,
+        alignment: resolvedAlign,
+        size: resolvedSize,
+        padding: resolvedPaddingNum,
+        opacity: resolvedOpacityNum,
+        clickThrough: clickThroughResolved,
+        hideText: hideTextResolved,
+        reducedMotion: reducedMotionResolved,
+        noTray: noTrayResolved,
+        noShortcuts: noShortcutsResolved,
+      },
+      timing: {
+        sleepThresholdS,
+        idleDelayMs,
+        errorHoldMs,
+      },
+      preferencesFile: prefsExist ? prefsPath : null,
+      platform: process.platform,
+      arch: process.arch,
+      electron: process.versions.electron || null,
+    };
+    process.stdout.write(JSON.stringify(status, null, 2) + '\n');
+    process.exit(0);
+  }
 
   process.stdout.write(`Molt Mascot v${APP_VERSION}
 
@@ -258,14 +297,14 @@ Config (resolved):
   Opacity:        ${resolvedOpacity}
   Ghost mode:     ${clickThroughResolved}
   Hide text:      ${hideTextResolved}
-  Reduced motion: ${isTruthyEnv(process.env.MOLT_MASCOT_REDUCED_MOTION)}
-  No tray:        ${process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY)}
-  No shortcuts:   ${process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS)}
+  Reduced motion: ${reducedMotionResolved}
+  No tray:        ${noTrayResolved}
+  No shortcuts:   ${noShortcutsResolved}
 
 Timing:
-  Sleep threshold: ${(() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? `${v}s` : '120s'; })()}
-  Idle delay:      ${(() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? `${v}ms` : '800ms'; })()}
-  Error hold:      ${(() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? `${v}ms` : '5000ms'; })()}
+  Sleep threshold: ${sleepThresholdS}s
+  Idle delay:      ${idleDelayMs}ms
+  Error hold:      ${errorHoldMs}ms
 
 Preferences file: ${prefsExist ? prefsPath : '(none)'}
 Platform: ${process.platform} ${process.arch}
@@ -336,6 +375,7 @@ Options:
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
   --status               Print resolved config summary and exit
+  --status --json        Print resolved config as JSON and exit
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
