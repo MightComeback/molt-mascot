@@ -438,6 +438,23 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Latency stats");
   });
 
+  it("appends connection quality emoji to latency line", () => {
+    // < 50ms → excellent 🟢
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 25 })).toContain("Latency: 25ms 🟢");
+    // 50–149ms → good 🟡
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 100 })).toContain("Latency: 100ms 🟡");
+    // 150–499ms → fair 🟠
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 300 })).toContain("Latency: 300ms 🟠");
+    // >= 500ms → poor 🔴
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 600 })).toContain("Latency: 600ms 🔴");
+  });
+
+  it("uses median from latency stats for quality label when available", () => {
+    // Instant latency is 10ms (excellent) but median is 200ms (fair) — quality should reflect median
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 5, max: 400, avg: 200, median: 200, samples: 30 } });
+    expect(info).toContain("Latency: 10ms 🟠");
+  });
+
   it("includes active agents/tools line when counts are non-zero", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 2, activeTools: 3 });
     expect(info).toContain("Active: 2 agents, 3 tools");
