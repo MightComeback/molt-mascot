@@ -618,6 +618,16 @@ export class GatewayClient {
   }
 
   /**
+   * Stable client instance ID (generated once per client lifetime).
+   * Prevents duplicate sessions on the gateway after reconnects.
+   * Exposed as a getter so consumers (debug info, tray tooltip) can access
+   * it directly without calling getStatus().
+   */
+  get instanceId() {
+    return this._instanceId;
+  }
+
+  /**
    * Compute min/max/avg latency from the rolling buffer.
    * Returns null if no samples are available.
    *
@@ -681,7 +691,7 @@ export class GatewayClient {
     return {
       isConnected: this.isConnected,
       isDestroyed: this._destroyed,
-      instanceId: this._instanceId,
+      instanceId: this.instanceId,
       connectedSince: this.connectedSince,
       firstConnectedAt: this.firstConnectedAt,
       connectedUrl: this.connectedUrl,

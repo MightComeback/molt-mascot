@@ -90,6 +90,12 @@ describe('GatewayClient', () => {
     it('reports 0 for lastMessageAt when no messages received', () => {
       expect(client.lastMessageAt).toBe(0);
     });
+
+    it('exposes instanceId as a public getter matching getStatus()', () => {
+      expect(typeof client.instanceId).toBe('string');
+      expect(client.instanceId).toMatch(/^moltMascot-/);
+      expect(client.instanceId).toBe(client.getStatus().instanceId);
+    });
   });
 
   describe('getStatus()', () => {
