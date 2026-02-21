@@ -201,6 +201,10 @@ let pluginActiveTools = 0;
 // Keeps the last ~60 samples (one per second via the plugin poller).
 const LATENCY_BUFFER_MAX = 60;
 const _latencyBuffer = [];
+// Cached stats result — invalidated when new samples are pushed.
+// Avoids re-sorting the buffer on every syncPill() tick (~1/s) and
+// getState() call when the underlying data hasn't changed.
+let _latencyStatsCache = null;
 
 /**
  * Push a latency sample into the rolling buffer.
@@ -210,14 +214,17 @@ function pushLatencySample(ms) {
   if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return;
   _latencyBuffer.push(ms);
   if (_latencyBuffer.length > LATENCY_BUFFER_MAX) _latencyBuffer.shift();
+  _latencyStatsCache = null; // invalidate cache
 }
 
 /**
  * Compute min/max/avg latency from the rolling buffer.
- * @returns {{ min: number, max: number, avg: number, samples: number } | null}
+ * Results are cached until the next pushLatencySample() call.
+ * @returns {{ min: number, max: number, avg: number, median: number, samples: number } | null}
  */
 function getLatencyStats() {
   if (_latencyBuffer.length === 0) return null;
+  if (_latencyStatsCache) return _latencyStatsCache;
   let min = Infinity;
   let max = -Infinity;
   let sum = 0;
@@ -234,13 +241,14 @@ function getLatencyStats() {
   const median = sorted.length % 2 === 0
     ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
     : Math.round(sorted[mid]);
-  return {
+  _latencyStatsCache = {
     min: Math.round(min),
     max: Math.round(max),
     avg: Math.round(sum / _latencyBuffer.length),
     median,
     samples: _latencyBuffer.length,
   };
+  return _latencyStatsCache;
 }
 
 // Centralized plugin state synchronizer (change-detection + dispatch).
@@ -610,6 +618,7 @@ function resetConnectionState() {
   pluginStateSentAt = 0;
   latencyMs = null;
   _latencyBuffer.length = 0;
+  _latencyStatsCache = null;
   connectedSince = null;
   connectedUrl = '';
   lastCloseDetail = '';
