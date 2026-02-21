@@ -1344,6 +1344,9 @@ function buildDebugInfo() {
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     sessionConnectCount,
     sessionAttemptCount,
+    connectionSuccessRate: sessionAttemptCount > 0
+      ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+      : null,
     isPollingPaused: document.hidden,
     latencyMs,
     activeAgents: pluginActiveAgents,
