@@ -672,6 +672,16 @@ export class GatewayClient {
   }
 
   /**
+   * Connection success rate as an integer percentage (0-100), or null if no attempts.
+   * Computed from sessionConnectCount / sessionAttemptCount.
+   * Useful for diagnosing flaky connections at a glance (e.g. "50% → half your connects fail").
+   */
+  get connectionSuccessRate() {
+    if (this.sessionAttemptCount <= 0) return null;
+    return Math.round((this.sessionConnectCount / this.sessionAttemptCount) * 100);
+  }
+
+  /**
    * Timestamp (epoch ms) of the last WebSocket message received, or 0 if none.
    * Useful for diagnosing stale connections: consumers can compare this against
    * Date.now() to detect gaps before the stale-check timer triggers a reconnect.
@@ -714,6 +724,7 @@ export class GatewayClient {
       pluginStateMethodIndex: this._pluginStateMethodIndex,
       pluginResetMethodIndex: this._pluginResetMethodIndex,
       pluginPollerStarted: this._pluginPollerStarted,
+      connectionSuccessRate: this.connectionSuccessRate,
       lastMessageAt: this._lastMessageAt || null,
     };
   }

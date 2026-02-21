@@ -598,6 +598,32 @@ describe("connection uptime", () => {
     expect(info).toContain("Connection uptime: ~25%");
   });
 
+  it("shows connection success rate when below 100%", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 90_000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      sessionConnectCount: 3,
+      sessionAttemptCount: 5,
+      connectionSuccessRate: 60,
+    });
+    expect(info).toContain("reconnected 2×");
+    expect(info).toContain("60% success");
+  });
+
+  it("omits connection success rate when 100%", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 90_000,
+      connectedUrl: "ws://127.0.0.1:18789",
+      sessionConnectCount: 3,
+      sessionAttemptCount: 3,
+      connectionSuccessRate: 100,
+    });
+    expect(info).toContain("reconnected 2×");
+    expect(info).not.toContain("% success");
+  });
+
   it("includes instanceId when provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, instanceId: "moltMascot-abc123" });
     expect(info).toContain("Instance: moltMascot-abc123");

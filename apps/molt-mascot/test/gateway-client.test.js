@@ -651,4 +651,34 @@ describe('GatewayClient', () => {
       expect(client.latencyStats).toEqual({ min: 20, max: 40, avg: 30, median: 30, p95: 40, samples: 3 });
     });
   });
+
+  describe('connectionSuccessRate', () => {
+    it('returns null when no attempts', () => {
+      expect(client.connectionSuccessRate).toBeNull();
+    });
+
+    it('returns 100 when all attempts succeed', () => {
+      client.sessionAttemptCount = 5;
+      client.sessionConnectCount = 5;
+      expect(client.connectionSuccessRate).toBe(100);
+    });
+
+    it('returns correct percentage for partial success', () => {
+      client.sessionAttemptCount = 10;
+      client.sessionConnectCount = 7;
+      expect(client.connectionSuccessRate).toBe(70);
+    });
+
+    it('returns 0 when no attempts succeed', () => {
+      client.sessionAttemptCount = 3;
+      client.sessionConnectCount = 0;
+      expect(client.connectionSuccessRate).toBe(0);
+    });
+
+    it('is included in getStatus()', () => {
+      client.sessionAttemptCount = 4;
+      client.sessionConnectCount = 3;
+      expect(client.getStatus().connectionSuccessRate).toBe(75);
+    });
+  });
 });

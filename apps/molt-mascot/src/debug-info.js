@@ -45,6 +45,7 @@
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (process.memoryUsage().rss)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (diagnoses flappy connections)
  * @param {number} [params.sessionAttemptCount] - Total connection attempts since app launch (including failures)
+ * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (min/max/avg/p95 over ~60 samples)
@@ -106,6 +107,7 @@ export function buildDebugInfo(params) {
     processMemoryRssBytes,
     sessionConnectCount,
     sessionAttemptCount,
+    connectionSuccessRate,
     isPollingPaused,
     latencyMs,
     latencyStats,
@@ -242,7 +244,10 @@ export function buildDebugInfo(params) {
     const attemptStr = typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount
       ? `, ${sessionAttemptCount} attempts`
       : '';
-    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr})`);
+    const rateStr = typeof connectionSuccessRate === 'number' && connectionSuccessRate < 100
+      ? `, ${connectionSuccessRate}% success`
+      : '';
+    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr}${rateStr})`);
   }
   // Connection uptime percentage: how much of the process lifetime was spent connected.
   // Helps diagnose flaky connections at a glance (e.g. "connected 23% of the time" → fix your network).
