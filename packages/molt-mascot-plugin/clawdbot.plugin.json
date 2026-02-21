@@ -64,6 +64,7 @@
         "default": "medium",
         "description": "Mascot window size preset",
         "enum": [
+          "tiny",
           "small",
           "medium",
           "large",
