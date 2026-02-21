@@ -212,6 +212,56 @@ if (process.argv.includes('--list-prefs')) {
   process.exit(0);
 }
 
+// CLI flags: --status prints a compact diagnostic summary showing the resolved
+// config (env vars + saved prefs + CLI overrides) and exits. Helps answer
+// "what settings will the mascot actually use?" without launching the GUI.
+if (process.argv.includes('--status')) {
+  const prefs = loadPrefs();
+  const resolvedAlign = cliAlign || process.env.MOLT_MASCOT_ALIGN || prefs.alignment || 'bottom-right';
+  const resolvedSize = (() => {
+    const label = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
+    if (label && VALID_SIZES.includes(label)) return label;
+    if (typeof prefs.sizeIndex === 'number' && prefs.sizeIndex >= 0 && prefs.sizeIndex < SIZE_PRESETS.length) {
+      return SIZE_PRESETS[prefs.sizeIndex].label;
+    }
+    return SIZE_PRESETS[DEFAULT_SIZE_INDEX].label;
+  })();
+  const resolvedOpacity = (() => {
+    const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
+    if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return `${Math.round(envVal * 100)}%`;
+    if (typeof prefs.opacityIndex === 'number' && prefs.opacityIndex >= 0 && prefs.opacityIndex < OPACITY_CYCLE.length) {
+      return `${Math.round(OPACITY_CYCLE[prefs.opacityIndex] * 100)}%`;
+    }
+    return '100%';
+  })();
+  const gatewayUrl = process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || '(not set)';
+  const hasToken = !!(process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN);
+  const clickThroughResolved = isTruthyEnv(process.env.MOLT_MASCOT_CLICK_THROUGH || process.env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
+  const hideTextResolved = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
+  const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
+  const prefsExist = fs.existsSync(prefsPath);
+
+  process.stdout.write(`Molt Mascot v${APP_VERSION}
+
+Config (resolved):
+  Gateway URL:    ${gatewayUrl}
+  Gateway token:  ${hasToken ? '(set)' : '(not set)'}
+  Alignment:      ${resolvedAlign}
+  Size:           ${resolvedSize}
+  Opacity:        ${resolvedOpacity}
+  Ghost mode:     ${clickThroughResolved}
+  Hide text:      ${hideTextResolved}
+  Reduced motion: ${isTruthyEnv(process.env.MOLT_MASCOT_REDUCED_MOTION)}
+  No tray:        ${process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY)}
+  No shortcuts:   ${process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS)}
+
+Preferences file: ${prefsExist ? prefsPath : '(none)'}
+Platform: ${process.platform} ${process.arch}
+Electron: ${process.versions.electron || 'n/a'}
+`);
+  process.exit(0);
+}
+
 // CLI flags: --disable-gpu disables hardware acceleration.
 // Useful on VMs, remote desktops, or Wayland compositors where GPU acceleration
 // causes rendering artifacts, blank windows, or crashes.
@@ -273,6 +323,7 @@ Options:
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
+  --status               Print resolved config summary and exit
 
 Environment variables:
   MOLT_MASCOT_GATEWAY_URL     Gateway WebSocket URL (e.g. ws://127.0.0.1:18789)
