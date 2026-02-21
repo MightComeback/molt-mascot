@@ -577,9 +577,7 @@ window.__moltMascotGetState = () => ({
   activeAgents: pluginActiveAgents,
   activeTools: pluginActiveTools,
   reducedMotion,
-  firstConnectedAt,
   lastMessageAt: lastMessageAt || null,
-  sessionAttemptCount,
   pillText: pill.textContent || '',
   pillClass: pill.className || '',
 });
