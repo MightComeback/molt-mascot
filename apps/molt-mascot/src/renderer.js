@@ -541,9 +541,13 @@ window.__moltMascotGetState = () => ({
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
   latencyMs,
+  latencyStats: getLatencyStats(),
   activeAgents: pluginActiveAgents,
   activeTools: pluginActiveTools,
   reducedMotion,
+  firstConnectedAt,
+  lastMessageAt: lastMessageAt || null,
+  sessionAttemptCount,
   pillText: pill.textContent || '',
   pillClass: pill.className || '',
 });
