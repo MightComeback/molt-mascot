@@ -241,11 +241,16 @@ function getLatencyStats() {
   const median = sorted.length % 2 === 0
     ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
     : Math.round(sorted[mid]);
+  // p95: 95th percentile — reveals tail latency that median/avg hide.
+  // Matches the gateway-client implementation for consistency.
+  const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
+  const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
   _latencyStatsCache = {
     min: Math.round(min),
     max: Math.round(max),
     avg: Math.round(sum / _latencyBuffer.length),
     median,
+    p95,
     samples: _latencyBuffer.length,
   };
   return _latencyStatsCache;
