@@ -83,6 +83,8 @@ export class GatewayClient {
     this._latencyBuffer = [];
     /** @private Max entries in the latency ring buffer. ~60 samples = ~1 min at 1s poll. */
     this._latencyBufferMax = 60;
+    /** @private Cached latencyStats result (invalidated when new samples are added). */
+    this._latencyStatsCache = null;
     /** @private */
     this._pluginStateSentAt = 0;
 
@@ -355,6 +357,7 @@ export class GatewayClient {
             this._latencyBuffer.shift();
           }
           this._latencyBuffer.push(this.latencyMs);
+          this._latencyStatsCache = null; // invalidate cached stats
         }
         this.onPluginState?.(msg.payload.state);
         return;
@@ -534,6 +537,7 @@ export class GatewayClient {
     this._pluginStateSentAt = 0;
     this.latencyMs = null;
     this._latencyBuffer = [];
+    this._latencyStatsCache = null;
 
     // Notify consumers to clear cached plugin config (clickThrough, alignment,
     // etc.) so stale values don't persist across reconnections.
@@ -622,6 +626,10 @@ export class GatewayClient {
   get latencyStats() {
     const buf = this._latencyBuffer;
     if (!buf || buf.length === 0) return null;
+    // Return cached result if available (invalidated when new samples are added).
+    // Avoids re-sorting the buffer on every access within the same poll tick
+    // (tray tooltip, debug info, and renderer all read this per frame).
+    if (this._latencyStatsCache) return this._latencyStatsCache;
     let min = Infinity;
     let max = -Infinity;
     let sum = 0;
@@ -638,13 +646,14 @@ export class GatewayClient {
     const median = sorted.length % 2 === 0
       ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
       : Math.round(sorted[mid]);
-    return {
+    this._latencyStatsCache = {
       min: Math.round(min),
       max: Math.round(max),
       avg: Math.round(sum / buf.length),
       median,
       samples: buf.length,
     };
+    return this._latencyStatsCache;
   }
 
   /**
