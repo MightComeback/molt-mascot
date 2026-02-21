@@ -659,6 +659,7 @@ export class GatewayClient {
     return {
       isConnected: this.isConnected,
       isDestroyed: this._destroyed,
+      instanceId: this._instanceId,
       connectedSince: this.connectedSince,
       firstConnectedAt: this.firstConnectedAt,
       connectedUrl: this.connectedUrl,

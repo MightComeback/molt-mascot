@@ -575,6 +575,16 @@ describe("connection uptime", () => {
     });
     expect(info).toContain("Connection uptime: ~25%");
   });
+
+  it("includes instanceId when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, instanceId: "moltMascot-abc123" });
+    expect(info).toContain("Instance: moltMascot-abc123");
+  });
+
+  it("omits instanceId when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Instance:");
+  });
 });
 
 describe("formatElapsed", () => {

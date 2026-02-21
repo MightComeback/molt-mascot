@@ -53,6 +53,7 @@
  * @param {number|null} [params.firstConnectedAt] - Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps diagnose stale connections before they trip the timeout)
  * @param {string} [params.arch] - CPU architecture (e.g. 'arm64', 'x64') — useful for diagnosing Electron compatibility issues
+ * @param {string} [params.instanceId] - Stable client instance ID (helps diagnose multi-window and duplicate-session issues on the gateway)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -114,6 +115,7 @@ export function buildDebugInfo(params) {
     pluginResetMethod,
     firstConnectedAt,
     lastMessageAt,
+    instanceId,
     now: nowOverride,
   } = params;
 
@@ -243,5 +245,6 @@ export function buildDebugInfo(params) {
     const uptimePercent = Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
     lines.push(`Connection uptime: ~${uptimePercent}%`);
   }
+  if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
   return lines.join('\n');
 }

@@ -119,6 +119,12 @@ describe('GatewayClient', () => {
       const status = client.getStatus();
       expect(status.lastMessageAt).toBeNull();
     });
+
+    it('includes instanceId as a non-empty string', () => {
+      const status = client.getStatus();
+      expect(typeof status.instanceId).toBe('string');
+      expect(status.instanceId).toMatch(/^moltMascot-/);
+    });
   });
 
   describe('destroy()', () => {
