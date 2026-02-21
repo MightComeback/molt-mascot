@@ -12,8 +12,8 @@ export function coerceDelayMs(v, fallback) {
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { truncate, cleanErrorString, formatDuration, formatBytes, successRate, formatElapsed } from '@molt/mascot-plugin';
-export { truncate, cleanErrorString, formatDuration, formatBytes, successRate, formatElapsed };
+import { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, successRate, formatElapsed } from '@molt/mascot-plugin';
+export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, successRate, formatElapsed };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.

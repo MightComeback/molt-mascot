@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, coerceSize, coerceAlignment, coerceOpacity, coercePadding, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, coerceSize, coerceAlignment, coerceOpacity, coercePadding, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -85,6 +85,26 @@ describe("utils", () => {
     expect(formatBytes(-1)).toBe("0 B");
     expect(formatBytes(NaN)).toBe("0 B");
     expect(formatBytes(Infinity)).toBe("0 B");
+  });
+
+  it("formatCount", () => {
+    expect(formatCount(0)).toBe("0");
+    expect(formatCount(1)).toBe("1");
+    expect(formatCount(999)).toBe("999");
+    expect(formatCount(1000)).toBe("1.0K");
+    expect(formatCount(1500)).toBe("1.5K");
+    expect(formatCount(10000)).toBe("10.0K");
+    expect(formatCount(999999)).toBe("1000.0K");
+    expect(formatCount(1000000)).toBe("1.0M");
+    expect(formatCount(1500000)).toBe("1.5M");
+    expect(formatCount(1000000000)).toBe("1.0B");
+    expect(formatCount(1000000000000)).toBe("1.0T");
+    // Edge cases
+    expect(formatCount(-1)).toBe("0");
+    expect(formatCount(NaN)).toBe("0");
+    expect(formatCount(Infinity)).toBe("0");
+    // Fractional rounds to integer below 1000
+    expect(formatCount(99.7)).toBe("100");
   });
 
   it("successRate", () => {

@@ -5,7 +5,7 @@
  * producing an RGBA buffer suitable for Electron's nativeImage.createFromBuffer().
  */
 
-const { formatDuration, formatElapsed, successRate } = require('@molt/mascot-plugin');
+const { formatDuration, formatElapsed, formatCount, successRate } = require('@molt/mascot-plugin');
 const { formatLatency, connectionQuality, connectionQualityEmoji } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
@@ -233,8 +233,8 @@ function buildTrayTooltip(params) {
       ? successRate(toolCalls, toolErrors)
       : null;
     const statsStr = rate !== null
-      ? `${toolCalls} calls, ${toolErrors} err (${rate}% ok)`
-      : `${toolCalls} calls`;
+      ? `${formatCount(toolCalls)} calls, ${formatCount(toolErrors)} err (${rate}% ok)`
+      : `${formatCount(toolCalls)} calls`;
     parts.push(`🔨 ${statsStr}`);
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {

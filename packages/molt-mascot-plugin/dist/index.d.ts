@@ -89,6 +89,13 @@ declare function coercePadding(v: unknown, fallback: number): number;
 declare function successRate(totalCalls: number, errorCount: number): number | null;
 declare function truncate(str: string, limit?: number): string;
 /**
+ * Format a large count into a compact human-readable string.
+ * e.g. 0 → "0", 999 → "999", 1000 → "1.0K", 1500 → "1.5K", 1000000 → "1.0M"
+ * Uses decimal (SI) units. Values below 1000 are returned as plain integers.
+ * Useful for tool call/error counts in tooltips when the mascot runs for extended periods.
+ */
+declare function formatCount(n: number): string;
+/**
  * Format a byte count into a compact human-readable string with appropriate unit.
  * e.g. 0 → "0 B", 1023 → "1023 B", 1536 → "1.5 KB", 1048576 → "1.0 MB"
  * Uses binary units (1 KB = 1024 bytes) consistent with OS conventions.
@@ -149,4 +156,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };

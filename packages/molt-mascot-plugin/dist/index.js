@@ -34,6 +34,7 @@ __export(index_exports, {
   coerceSize: () => coerceSize,
   default: () => register,
   formatBytes: () => formatBytes,
+  formatCount: () => formatCount,
   formatDuration: () => formatDuration,
   formatElapsed: () => formatElapsed,
   id: () => id,
@@ -136,14 +137,16 @@ var allowedAlignments = [
 ];
 var allowedSizes = ["tiny", "small", "medium", "large", "xlarge"];
 function coerceSize(v, fallback) {
-  if (typeof v === "string" && allowedSizes.includes(v)) {
-    return v;
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if (allowedSizes.includes(lower)) return lower;
   }
   return fallback;
 }
 function coerceAlignment(v, fallback) {
-  if (typeof v === "string" && allowedAlignments.includes(v)) {
-    return v;
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if (allowedAlignments.includes(lower)) return lower;
   }
   return fallback;
 }
@@ -174,6 +177,19 @@ function truncate(str, limit = 140) {
     cut = cut.slice(0, lastSpace);
   }
   return cut + "\u2026";
+}
+function formatCount(n) {
+  if (!Number.isFinite(n) || n < 0) return "0";
+  if (n < 1e3) return `${Math.round(n)}`;
+  const units = ["K", "M", "B", "T"];
+  let value = n;
+  for (const unit of units) {
+    value /= 1e3;
+    if (value < 1e3 || unit === "T") {
+      return `${value.toFixed(1)}${unit}`;
+    }
+  }
+  return `${value.toFixed(1)}T`;
 }
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes < 0) return "0 B";
@@ -407,6 +423,9 @@ function summarizeToolResultMessage(msg) {
   if (msg === void 0) {
     return "undefined";
   }
+  if (typeof msg === "bigint") {
+    return truncate(String(msg));
+  }
   if (Array.isArray(msg)) {
     const texts = msg.map(
       (item) => typeof item === "string" ? item : typeof item?.text === "string" ? item.text : typeof item?.name === "string" ? item.name : typeof item?.title === "string" ? item.title : null
@@ -463,7 +482,10 @@ function summarizeToolResultMessage(msg) {
     for (const v of toTry) {
       if (!v || typeof v !== "object") continue;
       try {
-        const json = JSON.stringify(v);
+        const json = JSON.stringify(
+          v,
+          (_k, val) => typeof val === "bigint" ? String(val) : val
+        );
         if (typeof json === "string" && json !== "{}") {
           return truncate(cleanErrorString(json));
         }
@@ -877,6 +899,7 @@ function register(api) {
   coercePadding,
   coerceSize,
   formatBytes,
+  formatCount,
   formatDuration,
   formatElapsed,
   id,
