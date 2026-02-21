@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -86,5 +86,21 @@ describe('connectionQuality', () => {
     expect(connectionQuality(null)).toBeNull();
     expect(connectionQuality(undefined)).toBeNull();
     expect(connectionQuality('42')).toBeNull();
+  });
+});
+
+describe('connectionQualityEmoji', () => {
+  it('maps quality labels to colored circle emojis', () => {
+    expect(connectionQualityEmoji('excellent')).toBe('🟢');
+    expect(connectionQualityEmoji('good')).toBe('🟡');
+    expect(connectionQualityEmoji('fair')).toBe('🟠');
+    expect(connectionQualityEmoji('poor')).toBe('🔴');
+  });
+
+  it('returns empty string for null or unknown values', () => {
+    expect(connectionQualityEmoji(null)).toBe('');
+    expect(connectionQualityEmoji(undefined)).toBe('');
+    expect(connectionQualityEmoji('unknown')).toBe('');
+    expect(connectionQualityEmoji('')).toBe('');
   });
 });

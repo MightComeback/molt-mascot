@@ -277,24 +277,24 @@ describe('tray-icon', () => {
     it('includes latency when provided', () => {
       const tip = buildTrayTooltip({ ...base, latencyMs: 42 });
       expect(tip).toContain('⏱ 42ms');
-      expect(tip).toContain('[excellent]');
+      expect(tip).toContain('🟢');
     });
 
     it('includes median latency from stats when available', () => {
       const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 10 } });
       expect(tip).toContain('⏱ 42ms (med 38ms)');
       // Quality is based on median when stats are available
-      expect(tip).toContain('[excellent]');
+      expect(tip).toContain('🟢');
     });
 
-    it('includes connection quality label based on median latency', () => {
+    it('includes connection quality emoji based on median latency', () => {
       const tip = buildTrayTooltip({ ...base, latencyMs: 200, latencyStats: { min: 100, max: 400, avg: 250, median: 180, samples: 10 } });
-      expect(tip).toContain('[fair]');
+      expect(tip).toContain('🟠');
     });
 
     it('uses instant latency for quality when no median stats', () => {
       const tip = buildTrayTooltip({ ...base, latencyMs: 600 });
-      expect(tip).toContain('[poor]');
+      expect(tip).toContain('🔴');
     });
 
     it('omits median when latencyStats has only 1 sample', () => {

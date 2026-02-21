@@ -41,4 +41,21 @@ function connectionQuality(ms) {
   return 'poor';
 }
 
-module.exports = { formatLatency, connectionQuality };
+/**
+ * Map a connection quality label to a colored circle emoji for at-a-glance
+ * visual feedback in tooltips and tray menus.
+ *
+ * @param {string|null} quality - Quality label from connectionQuality()
+ * @returns {string} Colored circle emoji, or empty string if quality is null/unknown
+ */
+function connectionQualityEmoji(quality) {
+  switch (quality) {
+    case 'excellent': return '🟢';
+    case 'good':      return '🟡';
+    case 'fair':      return '🟠';
+    case 'poor':      return '🔴';
+    default:          return '';
+  }
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji };
