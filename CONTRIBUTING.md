@@ -20,7 +20,11 @@ molt-mascot/
 │   │   ├── tray-icon.cjs      # Pixel-art tray icon renderer with status dot
 │   │   ├── get-position.cjs   # Window positioning (alignment × padding)
 │   │   ├── format-latency.cjs # Shared latency formatter (CJS for tray + ESM re-export)
-│   │   └── is-truthy-env.cjs  # Boolean env var parser
+│   │   ├── is-truthy-env.cjs  # Boolean env var parser
+│   │   ├── mode-emoji.cjs    # Mode → emoji map (shared tray + renderer)
+│   │   ├── size-presets.cjs   # Size preset definitions (dimensions, labels)
+│   │   ├── fps-counter.js     # Rolling FPS counter (ring buffer)
+│   │   └── parse-cli-arg.cjs  # CLI argument parser (--flag value)
 │   └── test/                  # Bun test files (mirrors src/)
 │
 ├── packages/molt-mascot-plugin/  # OpenClaw Gateway plugin
@@ -79,6 +83,27 @@ Plugin state properties (clickThrough, opacity, size, etc.) sync from the Gatewa
 4. **Tests**: Add sync tests in `apps/molt-mascot/test/plugin-sync.test.js` (change detection, validation, reset behavior).
 
 The system is designed so adding a new synced property is a one-liner in `SYNC_PROPS` + a callback — no duplicated if-blocks needed.
+
+## Adding a New CLI Flag
+
+1. **Parse the flag** in `apps/molt-mascot/src/electron-main.cjs`:
+   - Use `parseCliArg('--flag-name')` for flags with values, or `process.argv.includes('--flag')` for booleans.
+   - Validate the value and write to the corresponding `process.env.MOLT_MASCOT_*` var (so preload picks it up).
+   - Emit a warning to stderr for invalid values so users know their input was ignored.
+2. **Add to `--help` output** in `electron-main.cjs` (both the Options and Environment Variables sections).
+3. **Expose via preload** if the renderer needs it: add to the `env` object in `preload.cjs`.
+4. **Document** in `README.md` (CLI flags table + env vars section).
+5. **Test**: add a test in `apps/molt-mascot/test/parse-cli-arg.test.js` if it uses `parseCliArg`.
+
+## Adding a New Mode
+
+1. **Sprite**: Add overlay frames to `sprites.js` → `overlay.<mode>`.
+2. **Drawing**: Add timing entry to `OVERLAY_TIMING` in `draw.js`.
+3. **Emoji**: Add entry to `MODE_EMOJI` in `mode-emoji.cjs`.
+4. **Tray**: Add status dot color to `STATUS_DOT_COLORS` in `tray-icon.cjs`.
+5. **Pill CSS**: Add `.pill--<mode>` class in `index.html` with appropriate color/animation.
+6. **Reduced motion**: Add `animation: none` override in the `@media (prefers-reduced-motion)` block.
+7. **Tests**: Sprite validation, draw tests, mode-emoji coverage, tray tooltip tests.
 
 ## Testing
 
