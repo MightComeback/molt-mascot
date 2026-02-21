@@ -14,7 +14,6 @@ export const palette = {
   h: '#ff8b7f',
   w: '#f8f7ff',
   b: '#101014',
-  s: 'rgba(0,0,0,0.35)',
   g: '#34c759',
   u: '#0a84ff',
   y: '#ffd60a',
