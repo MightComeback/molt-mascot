@@ -426,6 +426,7 @@ function syncPill() {
     pluginStartedAt,
     sessionConnectCount,
     latencyMs,
+    latencyStats: getLatencyStats(),
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
     targetUrl: !connectedSince ? (loadCfg()?.url || undefined) : undefined,

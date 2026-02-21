@@ -607,6 +607,29 @@ describe("buildTooltip", () => {
     expect(tip).toContain("< 1ms");
   });
 
+  it("appends connection quality label from instant latency", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 10 });
+    expect(tip).toContain("[excellent]");
+  });
+
+  it("uses median for quality label when latencyStats available", () => {
+    // Instant latency is 400ms (fair) but median is 30ms (excellent) — should use median
+    const tip = buildTooltip({
+      displayMode: "idle", durationSec: 0, latencyMs: 400,
+      latencyStats: { min: 10, max: 500, avg: 100, median: 30, p95: 450, samples: 10 },
+    });
+    expect(tip).toContain("[excellent]");
+    expect(tip).not.toContain("[fair]");
+  });
+
+  it("falls back to instant latency for quality when stats have 1 sample", () => {
+    const tip = buildTooltip({
+      displayMode: "idle", durationSec: 0, latencyMs: 200,
+      latencyStats: { min: 200, max: 200, avg: 200, median: 200, samples: 1 },
+    });
+    expect(tip).toContain("[fair]");
+  });
+
   it("shows active agents and tools when non-zero", () => {
     const tip = buildTooltip({ displayMode: "thinking", durationSec: 5, activeAgents: 2, activeTools: 3 });
     expect(tip).toContain("2 agents, 3 tools");

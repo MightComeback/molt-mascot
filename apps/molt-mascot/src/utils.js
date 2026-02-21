@@ -144,6 +144,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
+ * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (median used for connection quality label when available)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -170,6 +171,7 @@ export function buildTooltip(params) {
     pluginStartedAt,
     sessionConnectCount = 0,
     latencyMs,
+    latencyStats,
     activeAgents = 0,
     activeTools = 0,
     targetUrl,
@@ -212,7 +214,17 @@ export function buildTooltip(params) {
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
     tip += ` · ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`;
   }
-  if (typeof latencyMs === 'number' && latencyMs >= 0) tip += ` · ${formatLatency(latencyMs)}`;
+  if (typeof latencyMs === 'number' && latencyMs >= 0) {
+    let latencyPart = formatLatency(latencyMs);
+    // Append connection quality label (excellent/good/fair/poor) using median when
+    // available (more stable than instant latency), matching tray tooltip behavior.
+    const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)
+      ? latencyStats.median
+      : latencyMs;
+    const quality = connectionQuality(qualitySource);
+    if (quality) latencyPart += ` [${quality}]`;
+    tip += ` · ${latencyPart}`;
+  }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
