@@ -255,6 +255,13 @@ if (process.argv.includes('--status')) {
   const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
   const prefsExist = fs.existsSync(prefsPath);
 
+  // Resolve window dimensions for diagnostics (size preset → actual pixels).
+  const { findSizePreset } = require('./size-presets.cjs');
+  const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
+  // Custom MOLT_MASCOT_WIDTH/HEIGHT override the preset dimensions.
+  const resolvedWidth = (() => { const v = Number(process.env.MOLT_MASCOT_WIDTH); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.width; })();
+  const resolvedHeight = (() => { const v = Number(process.env.MOLT_MASCOT_HEIGHT); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.height; })();
+
   // --json flag: output machine-readable JSON (useful for scripting, piping into jq, CI checks).
   if (process.argv.includes('--json')) {
     const status = {
@@ -264,6 +271,8 @@ if (process.argv.includes('--status')) {
         gatewayToken: hasToken,
         alignment: resolvedAlign,
         size: resolvedSize,
+        width: resolvedWidth,
+        height: resolvedHeight,
         padding: resolvedPaddingNum,
         opacity: resolvedOpacityNum,
         clickThrough: clickThroughResolved,
@@ -292,7 +301,7 @@ Config (resolved):
   Gateway URL:    ${gatewayUrl}
   Gateway token:  ${hasToken ? '(set)' : '(not set)'}
   Alignment:      ${resolvedAlign}
-  Size:           ${resolvedSize}
+  Size:           ${resolvedSize} (${resolvedWidth}×${resolvedHeight}px)
   Padding:        ${resolvedPadding}
   Opacity:        ${resolvedOpacity}
   Ghost mode:     ${clickThroughResolved}
