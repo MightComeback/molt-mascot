@@ -360,6 +360,14 @@ function syncPill() {
   if (currentMode === Mode.connected) {
     label = 'Connected ✓';
   }
+  if (currentMode === Mode.idle && duration <= SLEEP_THRESHOLD_S && connectedSince) {
+    // Show connection uptime in the pill when idle — gives at-a-glance confirmation
+    // that the gateway link is healthy without hovering for the tooltip.
+    const uptimeSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
+    if (uptimeSec >= 60) {
+      label = `Idle · ↑${formatDuration(uptimeSec)}`;
+    }
+  }
   if (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) {
     label = `Sleeping ${formatDuration(duration)}`;
   }
