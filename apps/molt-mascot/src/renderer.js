@@ -1354,6 +1354,7 @@ function buildDebugInfo() {
     firstConnectedAt,
     lastMessageAt,
     latencyStats: getLatencyStats(),
+    instanceId: INSTANCE_ID,
   });
 }
 
