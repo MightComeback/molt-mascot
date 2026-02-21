@@ -149,6 +149,9 @@ Options:
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --list-prefs           Print saved preferences and exit
   --reset-prefs          Clear saved preferences and start fresh
+  --sleep-threshold <s>  Idle seconds before sleep overlay (default: 120)
+  --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
+  --error-hold <ms>      How long to show error state before reverting (default: 5000)
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
   --no-shortcuts         Disable global keyboard shortcuts (use tray/context menu instead)
 ```
