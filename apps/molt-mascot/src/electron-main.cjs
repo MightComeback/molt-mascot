@@ -127,6 +127,7 @@ if (cliSize) {
 // CLI flags for boolean appearance toggles (override env vars).
 if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
 if (process.argv.includes('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
+if (process.argv.includes('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1';
 
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 const cliMinProtocol = parseCliArg('--min-protocol');
@@ -257,6 +258,7 @@ Options:
   --padding <px>         Edge padding in pixels (overrides env/saved prefs)
   --click-through        Start in ghost mode (click-through)
   --hide-text            Start with HUD text hidden
+  --reduced-motion       Disable animations (bob, blink); overrides OS preference
   --debug                Open DevTools on launch
   --disable-gpu          Disable hardware acceleration (useful on VMs,
                          remote desktops, or Wayland compositors)
