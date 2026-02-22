@@ -32,6 +32,7 @@ Options:
   --max-protocol=<n>      Maximum protocol version (default: 3)
   --ping                  Measure plugin state round-trip latency and exit
   --ping-count=<n>        Number of pings to send (default: 5)
+  --count=<n>             Exit after printing N state changes (--watch mode)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
   --compact               Print JSON on a single line instead of pretty-printed
@@ -157,6 +158,8 @@ let resetReqId: string | null = null;
 let stateMethodIndex = 0;
 let resetMethodIndex = 0;
 let lastWatchJson = "";
+let watchChangeCount = 0;
+const watchMaxChanges = Number(getArg("--count") || 0); // 0 = unlimited
 let watchInterval: ReturnType<typeof setInterval> | null = null;
 const watchPollMs = Number(getArg("--poll-ms") ?? 1000);
 const pingCount = Math.max(1, Number(getArg("--ping-count") ?? 5));
@@ -330,9 +333,17 @@ ws.addEventListener("message", (ev) => {
         const json = JSON.stringify(msg.payload.state);
         if (json !== lastWatchJson) {
           lastWatchJson = json;
+          watchChangeCount++;
           const ts = new Date().toISOString().slice(11, 23);
           const line = compact ? json : JSON.stringify(msg.payload.state, null, 2);
           console.log(compact ? `[${ts}] ${line}` : `--- ${ts} ---\n${line}`);
+          // Exit after N state changes if --count was specified
+          if (watchMaxChanges > 0 && watchChangeCount >= watchMaxChanges) {
+            info(`ws-dump: reached ${watchMaxChanges} change(s), exiting`);
+            if (watchInterval) clearInterval(watchInterval);
+            try { ws.close(); } catch {}
+            return;
+          }
         }
         return;
       }
