@@ -780,6 +780,21 @@ describe('GatewayClient', () => {
       expect(str).toContain('ws://example.com');
     });
 
+    it('shows close detail when disconnected', () => {
+      client.lastCloseCode = 1006;
+      client.lastCloseReason = null;
+      const str = client.toString();
+      expect(str).toContain('disconnected');
+      expect(str).toContain('abnormal closure');
+    });
+
+    it('shows reconnect count when disconnected with flappy connection', () => {
+      client.sessionConnectCount = 4;
+      client._reconnectAttempt = 1;
+      const str = client.toString();
+      expect(str).toContain('↻3');
+    });
+
     it('includes degraded health status when latency is poor', () => {
       client.connectedSince = Date.now();
       client.connectedUrl = 'ws://localhost:18789';

@@ -799,6 +799,9 @@ export class GatewayClient {
       parts.push('disconnected');
       if (this.targetUrl) parts.push(this.targetUrl);
       if (this._reconnectAttempt > 0) parts.push(`retry #${this._reconnectAttempt}`);
+      const detail = this.lastCloseDetail;
+      if (detail) parts.push(detail);
+      if (this.sessionConnectCount > 1) parts.push(`↻${this.sessionConnectCount - 1}`);
     }
     return `GatewayClient<${parts.join(', ')}>`;
   }
