@@ -24,6 +24,7 @@ import {
   connectionQuality,
   connectionQualityEmoji,
   MODE_EMOJI,
+  computeHealthStatus,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1102,5 +1103,85 @@ describe("MODE_EMOJI", () => {
 
   it("includes idle with a neutral dot indicator", () => {
     expect(MODE_EMOJI.idle).toBe("●");
+  });
+});
+
+describe("computeHealthStatus", () => {
+  const now = 1700000000000;
+
+  it("returns unhealthy when not connected", () => {
+    expect(computeHealthStatus({ isConnected: false, now })).toBe("unhealthy");
+  });
+
+  it("returns unhealthy with no arguments", () => {
+    expect(computeHealthStatus()).toBe("unhealthy");
+  });
+
+  it("returns healthy when connected with good latency", () => {
+    expect(computeHealthStatus({ isConnected: true, latencyMs: 20, now })).toBe("healthy");
+  });
+
+  it("returns degraded when latency is poor (>=500ms)", () => {
+    expect(computeHealthStatus({ isConnected: true, latencyMs: 600, now })).toBe("degraded");
+  });
+
+  it("returns degraded when connection is stale (>10s no messages)", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: now - 11000,
+      latencyMs: 20,
+      now,
+    })).toBe("degraded");
+  });
+
+  it("ignores stale check when polling is paused", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: true,
+      lastMessageAt: now - 20000,
+      latencyMs: 20,
+      now,
+    })).toBe("healthy");
+  });
+
+  it("returns degraded when connection success rate is below 80%", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      connectionSuccessRate: 50,
+      latencyMs: 20,
+      now,
+    })).toBe("degraded");
+  });
+
+  it("returns healthy when success rate is 80% or above", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      connectionSuccessRate: 80,
+      latencyMs: 20,
+      now,
+    })).toBe("healthy");
+  });
+
+  it("prefers median from latency stats over instant latency", () => {
+    // Instant latency is fine (20ms) but median is poor (600ms)
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 20,
+      latencyStats: { median: 600, samples: 10 },
+      now,
+    })).toBe("degraded");
+  });
+
+  it("returns healthy when all signals are good", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: now - 1000,
+      latencyMs: 30,
+      latencyStats: { median: 40, samples: 30 },
+      connectionSuccessRate: 95,
+      now,
+    })).toBe("healthy");
   });
 });

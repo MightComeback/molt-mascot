@@ -378,6 +378,43 @@ export const PLUGIN_RESET_METHODS = [
   'moltMascotPlugin.reset',
 ];
 
+/**
+ * Compute an at-a-glance health status from connection state.
+ * Pure function equivalent of GatewayClient.healthStatus getter,
+ * usable by the inline renderer WS logic without importing the full client.
+ *
+ * @param {object} params
+ * @param {boolean} params.isConnected - Whether the gateway connection is active
+ * @param {boolean} [params.isPollingPaused] - Whether polling is paused (e.g. window hidden)
+ * @param {number|null} [params.lastMessageAt] - Epoch ms of last WS message
+ * @param {number|null} [params.latencyMs] - Most recent latency sample
+ * @param {{ median?: number, samples?: number }|null} [params.latencyStats] - Rolling latency stats
+ * @param {number|null} [params.connectionSuccessRate] - Success rate as integer percentage (0-100)
+ * @param {number} [params.now] - Current timestamp (defaults to Date.now())
+ * @returns {"healthy"|"degraded"|"unhealthy"}
+ */
+export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
+  if (!isConnected) return 'unhealthy';
+  const now = nowOverride ?? Date.now();
+
+  // Stale connection check (no messages for >10s while polling is active)
+  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+    if (now - lastMessageAt > 10000) return 'degraded';
+  }
+
+  // Latency quality check
+  const source = resolveQualitySource(latencyMs, latencyStats);
+  if (source !== null) {
+    const quality = connectionQuality(source);
+    if (quality === 'poor') return 'degraded';
+  }
+
+  // Connection success rate check
+  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < 80) return 'degraded';
+
+  return 'healthy';
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';
