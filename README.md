@@ -85,6 +85,7 @@ bun run mascot
 - **Size preset**: `MOLT_MASCOT_SIZE` (values: `tiny`, `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
 - **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
+- **Start hidden**: `MOLT_MASCOT_START_HIDDEN=1` — launch hidden (tray-only); toggle visibility with **Cmd/Ctrl+Shift+V**
 - **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
@@ -154,8 +155,10 @@ Options:
   --error-hold <ms>      How long to show error state before reverting (default: 5000)
   --reduced-motion       Disable animations (bob, blink); overrides OS preference
   --status               Print resolved config summary and exit
+  --start-hidden         Launch hidden (tray-only); toggle with Cmd/Ctrl+Shift+V
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
   --no-shortcuts         Disable global keyboard shortcuts (use tray/context menu instead)
+  --status --json        Print resolved config as JSON (for scripting/CI)
 ```
 
 ## Project Structure
