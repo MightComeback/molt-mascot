@@ -37,13 +37,16 @@ function recalcCanvasScale() {
 }
 
 recalcCanvasScale();
+// Pre-render all sprite frames at the initial scale so the first drawLobster()
+// call hits warm cache (single drawImage) instead of per-pixel fillRect.
+_spriteCache.warmAll(currentScale);
 // Re-check on resize (triggered by Electron setSize via cycleSize).
 // Debounced to avoid redundant recalculations during rapid resize sequences
 // (e.g. display-metrics-changed firing multiple times in quick succession).
 let _resizeTimer = null;
 function _debouncedRecalcScale() {
   if (_resizeTimer) clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(() => { _resizeTimer = null; recalcCanvasScale(); }, 50);
+  _resizeTimer = setTimeout(() => { _resizeTimer = null; recalcCanvasScale(); _spriteCache.warmAll(currentScale); }, 50);
 }
 window.addEventListener('resize', _debouncedRecalcScale);
 
@@ -139,7 +142,7 @@ function showSetup(prefill) {
   }
 }
 
-import { drawLobster as _drawLobster, createBlinkState } from './draw.js';
+import { drawLobster as _drawLobster, createBlinkState, _spriteCache } from './draw.js';
 import { createPluginSync } from './plugin-sync.js';
 
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
