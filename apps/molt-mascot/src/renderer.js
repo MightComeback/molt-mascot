@@ -1,5 +1,6 @@
 import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
+import { buildContextMenuItems } from './context-menu-items.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 import { createFpsCounter } from './fps-counter.js';
 
@@ -1396,114 +1397,63 @@ function showContextMenu(e) {
   e.preventDefault();
 
   const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
-  const modKey = isMac ? '⌘' : 'Ctrl';
-  const altKey = isMac ? '⌥' : 'Alt+';
 
-  // Build a status summary line for the context menu header
-  const modeDur = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  const isSleepingCtx = currentMode === Mode.idle && modeDur > SLEEP_THRESHOLD_S;
-  const modeEmoji = MODE_EMOJI;
-  const emojiKey = isSleepingCtx ? 'sleeping' : currentMode;
-  const emoji = modeEmoji[emojiKey] ? `${modeEmoji[emojiKey]} ` : '';
-  let modeLabel = isSleepingCtx ? `${emoji}Sleeping` : `${emoji}${capitalize(currentMode)}`;
-  if (currentMode === Mode.tool && currentTool) modeLabel = `${modeEmoji.tool} ${truncate(currentTool, 20)}`;
-  if (currentMode === Mode.error && lastErrorMessage) modeLabel = `${modeEmoji.error} ${truncate(lastErrorMessage, 28)}`;
-  const appVer = window.moltMascot?.version;
-  const statusParts = [appVer ? `v${appVer} · ${modeLabel}` : modeLabel];
-  if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
-  if (connectedSince) {
-    let uptimeStr = `↑ ${formatElapsed(connectedSince, Date.now())}`;
-    // Show reconnect count when the connection has flapped (>1 handshake),
-    // so users can spot instability at a glance without opening debug info.
-    if (sessionConnectCount > 1) uptimeStr += ` ↻${sessionConnectCount - 1}`;
-    statusParts.push(uptimeStr);
-  }
-  if (!connectedSince && reconnectAttempt > 0) {
-    statusParts.push(`retry #${reconnectAttempt}`);
-  }
-  if (pluginToolCalls > 0) {
-    const statsStr = pluginToolErrors > 0
-      ? `${formatCount(pluginToolCalls)} calls, ${formatCount(pluginToolErrors)} err (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
-      : `${formatCount(pluginToolCalls)} calls`;
-    statusParts.push(statsStr);
-  }
-  if (pluginActiveAgents > 0 || pluginActiveTools > 0) {
-    statusParts.push(`${pluginActiveAgents}A ${pluginActiveTools}T`);
-  }
-  if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    statusParts.push(formatLatency(latencyMs));
-  }
+  // Use the extracted pure-function builder (single source of truth for labels/layout)
+  const { items: descriptors } = buildContextMenuItems({
+    currentMode,
+    modeSince,
+    currentTool,
+    lastErrorMessage,
+    isClickThrough,
+    isTextHidden,
+    alignment: lastPluginAlignment,
+    sizeLabel: currentSizeLabel,
+    opacity: currentOpacity,
+    connectedSince,
+    reconnectAttempt,
+    sessionConnectCount,
+    pluginToolCalls,
+    pluginToolErrors,
+    pluginActiveAgents,
+    pluginActiveTools,
+    latencyMs,
+    sleepThresholdS: SLEEP_THRESHOLD_S,
+    appVersion: window.moltMascot?.version,
+    isMac,
+  });
 
-  ctxMenu.show([
-    { label: statusParts.join(' · '), disabled: true },
-    { separator: true },
-    { label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}⇧M`, action: () => {
-      if (window.moltMascot?.setClickThrough) {
-        isClickThrough = !isClickThrough;
-        window.moltMascot.setClickThrough(isClickThrough);
-        syncPill();
-      }
-    }},
-    { label: `${isTextHidden ? '✓ ' : ''}Hide Text`, hint: `${modKey}⇧H`, action: () => {
-      if (window.moltMascot?.setHideText) {
-        isTextHidden = !isTextHidden;
-        window.moltMascot.setHideText(isTextHidden);
-        updateHudVisibility();
-      }
-    }},
-    { label: 'Reset State', hint: `${modKey}⇧R`, action: resetState },
-    { label: `Cycle Alignment (${lastPluginAlignment || 'bottom-right'})`, hint: `${modKey}⇧A`, action: () => {
-      if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment();
-    }},
-    { label: 'Snap to Position', hint: `${modKey}⇧S`, action: () => {
-      if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition();
-    }},
-    { label: `Cycle Size (${currentSizeLabel})`, hint: `${modKey}⇧Z`, action: () => {
-      if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize();
-    }},
-    { label: `Opacity (${Math.round(currentOpacity * 100)}%)`, hint: `${modKey}⇧O`, action: () => {
-      if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity();
-    }},
-    { label: 'Copy Status', action: () => {
-      const text = pill.textContent || '';
-      if (text) navigator.clipboard.writeText(text).then(() => {
-        showCopiedFeedback();
-      }).catch(() => {});
-    }},
-    { label: 'Copy Debug Info', hint: `${modKey}⇧I`, action: () => {
-      if (window.moltMascot?.copyDebugInfo) {
-        window.moltMascot.copyDebugInfo();
-        showCopiedFeedback();
-      } else {
-        const text = buildDebugInfo();
-        navigator.clipboard.writeText(text).then(() => {
-          showCopiedFeedback();
-        }).catch(() => {});
-      }
-    }},
-    { label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}⇧C`, action: forceReconnectNow },
-    { label: 'Change Gateway…', action: () => {
-      const cfg = loadCfg();
-      showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' });
-    }},
-    { label: 'Hide Mascot', hint: `${modKey}⇧V`, action: () => {
-      if (window.moltMascot?.hide) window.moltMascot.hide();
-    }},
-    { separator: true },
-    { label: 'About Molt Mascot', action: () => {
-      if (window.moltMascot?.showAbout) window.moltMascot.showAbout();
-    }},
-    { label: 'Open on GitHub…', action: () => {
-      if (window.moltMascot?.openExternal) window.moltMascot.openExternal('https://github.com/MightComeback/molt-mascot');
-    }},
-    { label: 'DevTools', hint: `${modKey}⇧D`, action: () => {
-      if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
-    }},
-    { label: 'Quit', hint: `${modKey}${altKey}Q`, action: () => {
-      if (window.moltMascot?.quit) window.moltMascot.quit();
-      else window.close();
-    }},
-  ], { x: e.clientX, y: e.clientY });
+  // Map descriptor IDs to action callbacks
+  const actions = {
+    ghost: () => { if (window.moltMascot?.setClickThrough) { isClickThrough = !isClickThrough; window.moltMascot.setClickThrough(isClickThrough); syncPill(); } },
+    'hide-text': () => { if (window.moltMascot?.setHideText) { isTextHidden = !isTextHidden; window.moltMascot.setHideText(isTextHidden); updateHudVisibility(); } },
+    reset: resetState,
+    alignment: () => { if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment(); },
+    snap: () => { if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition(); },
+    size: () => { if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize(); },
+    opacity: () => { if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity(); },
+    'copy-status': () => { const text = pill.textContent || ''; if (text) navigator.clipboard.writeText(text).then(() => showCopiedFeedback()).catch(() => {}); },
+    'copy-debug': () => { if (window.moltMascot?.copyDebugInfo) { window.moltMascot.copyDebugInfo(); showCopiedFeedback(); } else { navigator.clipboard.writeText(buildDebugInfo()).then(() => showCopiedFeedback()).catch(() => {}); } },
+    reconnect: forceReconnectNow,
+    'change-gateway': () => { const cfg = loadCfg(); showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' }); },
+    hide: () => { if (window.moltMascot?.hide) window.moltMascot.hide(); },
+    about: () => { if (window.moltMascot?.showAbout) window.moltMascot.showAbout(); },
+    github: () => { if (window.moltMascot?.openExternal) window.moltMascot.openExternal('https://github.com/MightComeback/molt-mascot'); },
+    devtools: () => { if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools(); },
+    quit: () => { if (window.moltMascot?.quit) window.moltMascot.quit(); else window.close(); },
+  };
+
+  // Convert descriptors to context-menu items with action callbacks
+  const menuItems = descriptors.map((d) => {
+    if (d.separator) return { separator: true };
+    return {
+      label: d.label,
+      hint: d.hint,
+      disabled: d.disabled,
+      action: actions[d.id],
+    };
+  });
+
+  ctxMenu.show(menuItems, { x: e.clientX, y: e.clientY });
 }
 
 pill.addEventListener('contextmenu', showContextMenu);
