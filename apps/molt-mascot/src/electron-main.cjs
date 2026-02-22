@@ -133,12 +133,13 @@ if (cliErrorHold) {
 
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
+// Uses _prefs.clear() to atomically cancel pending writes and delete the file,
+// avoiding race conditions with any in-flight debounced saves.
 if (hasBoolFlag('--reset-prefs')) {
   try {
-    const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
-    if (fs.existsSync(prefsPath)) {
-      fs.unlinkSync(prefsPath);
-      process.stdout.write(`molt-mascot: preferences reset (deleted ${prefsPath})\n`);
+    const deleted = _prefs.clear();
+    if (deleted) {
+      process.stdout.write(`molt-mascot: preferences reset (deleted ${PREFS_FILE})\n`);
     } else {
       process.stdout.write(`molt-mascot: no preferences file to reset\n`);
     }

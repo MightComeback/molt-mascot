@@ -161,4 +161,44 @@ describe("createPrefsManager", () => {
     const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
     expect(data).toEqual({ a: 99, b: 2 });
   });
+
+  describe("clear", () => {
+    it("deletes existing preferences file and returns true", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.clear()).toBe(true);
+      expect(fs.existsSync(prefsPath)).toBe(false);
+    });
+
+    it("returns false when file does not exist", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.clear()).toBe(false);
+    });
+
+    it("cancels pending debounced writes", async () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 50 });
+      mgr.save({ alignment: "center" });
+      mgr.clear();
+      // Wait longer than debounce — file should not reappear
+      await new Promise((r) => setTimeout(r, 100));
+      expect(fs.existsSync(prefsPath)).toBe(false);
+    });
+
+    it("load returns empty object after clear", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ x: 1 }));
+      const mgr = createPrefsManager(prefsPath);
+      mgr.clear();
+      expect(mgr.load()).toEqual({});
+    });
+
+    it("save works normally after clear", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ old: true }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+      mgr.clear();
+      mgr.save({ fresh: true });
+      mgr.flush();
+      const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+      expect(data).toEqual({ fresh: true });
+    });
+  });
 });

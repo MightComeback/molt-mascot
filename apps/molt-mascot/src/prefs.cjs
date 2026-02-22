@@ -103,7 +103,27 @@ function createPrefsManager(filePath, opts = {}) {
     }
   }
 
-  return { load, save, remove, flush, filePath };
+  /**
+   * Clear all preferences: cancel pending writes and delete the file.
+   * Used by --reset-prefs to ensure a clean slate without race conditions
+   * from any in-flight debounced writes.
+   *
+   * @returns {boolean} true if a file was deleted, false if it didn't exist
+   */
+  function clear() {
+    // Cancel any pending debounced write so it doesn't recreate the file.
+    if (_timer) { clearTimeout(_timer); _timer = null; }
+    _pending = null;
+    try {
+      fs.unlinkSync(filePath);
+      return true;
+    } catch (err) {
+      if (err.code === 'ENOENT') return false;
+      throw err;
+    }
+  }
+
+  return { load, save, remove, flush, clear, filePath };
 }
 
 module.exports = { createPrefsManager };
