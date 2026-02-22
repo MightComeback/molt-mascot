@@ -73,6 +73,7 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_NO_TRAY` | Disable system tray icon (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_NO_SHORTCUTS` | Disable global keyboard shortcuts (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_REDUCED_MOTION` | Force reduced motion (`1`/`true`); overrides OS preference | `0` |
+| `MOLT_MASCOT_START_HIDDEN` | Launch hidden, tray-only (`1`/`true` to enable); toggle with shortcut | `0` |
 | `MOLT_MASCOT_DISABLE_GPU` | Disable hardware acceleration (`1`/`true` to enable) | `0` |
 
 ### Connection Configuration
@@ -156,8 +157,12 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--idle-delay <ms>` | Delay before returning to idle after activity (default: 800) |
 | `--error-hold <ms>` | How long to show error state before reverting (default: 5000) |
 | `--no-shortcuts` | Disable global keyboard shortcuts (use tray/context menu instead) |
+| `--reduced-motion` | Disable animations (bob, blink); overrides OS preference |
+| `--start-hidden` | Launch hidden (tray-only); toggle visibility with shortcut |
 | `--reset-prefs` | Clear saved preferences and start fresh |
 | `--list-prefs` | Print saved preferences and exit |
+| `--status` | Print resolved config summary and exit |
+| `--status --json` | Print resolved config as JSON and exit |
 
 ## Screenshot Capture
 
