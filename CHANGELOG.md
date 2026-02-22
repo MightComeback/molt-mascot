@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `--start-hidden` CLI flag for tray-only launch (toggle visibility with shortcut)
 - `lastResetAt` timestamp in plugin state for reset diagnostics (shown in pill tooltip, tray tooltip, and debug info)
 - `--status` CLI flag for resolved config diagnostics (alignment, size, opacity, timing, etc.)
 - `--status --json` for machine-readable config output (scripting, CI checks)
@@ -64,6 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Comprehensive `plugin-sync` unit tests
 
 ### Fixed
+- `connectionQualityEmoji` returns grey circle (⚪) for unknown quality instead of empty string
 - Uppercase `WS://` and `WSS://` schemes normalized to lowercase in `normalizeWsUrl`
 - Duplicate object keys removed from renderer state snapshot (`firstConnectedAt`, `sessionAttemptCount`)
 - `connectionSuccessRate` passed to debug info builder
