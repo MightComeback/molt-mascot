@@ -3,6 +3,7 @@ import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 import { createFpsCounter } from './fps-counter.js';
+import { createLatencyTracker } from './latency-tracker.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -201,74 +202,11 @@ let pluginLastResetAt = null;
 
 // Rolling latency buffer for min/max/avg diagnostics in debug info.
 // Keeps the last ~60 samples (one per second via the plugin poller).
-const LATENCY_BUFFER_MAX = 60;
-const _latencyBuffer = [];
-// Cached stats result — invalidated when new samples are pushed.
-// Avoids re-sorting the buffer on every syncPill() tick (~1/s) and
-// getState() call when the underlying data hasn't changed.
-let _latencyStatsCache = null;
-
-/**
- * Push a latency sample into the rolling buffer.
- * @param {number} ms - Round-trip latency in milliseconds
- */
-function pushLatencySample(ms) {
-  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return;
-  _latencyBuffer.push(ms);
-  if (_latencyBuffer.length > LATENCY_BUFFER_MAX) _latencyBuffer.shift();
-  _latencyStatsCache = null; // invalidate cache
-}
-
-/**
- * Compute min/max/avg latency from the rolling buffer.
- * Results are cached until the next pushLatencySample() call.
- * @returns {{ min: number, max: number, avg: number, median: number, samples: number } | null}
- */
-function getLatencyStats() {
-  if (_latencyBuffer.length === 0) return null;
-  if (_latencyStatsCache) return _latencyStatsCache;
-  let min = Infinity;
-  let max = -Infinity;
-  let sum = 0;
-  for (let i = 0; i < _latencyBuffer.length; i++) {
-    const v = _latencyBuffer[i];
-    if (v < min) min = v;
-    if (v > max) max = v;
-    sum += v;
-  }
-  // Median is more meaningful than average for latency because it's robust
-  // against outlier spikes (e.g. a single 2s GC pause doesn't skew it).
-  const sorted = _latencyBuffer.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  const median = sorted.length % 2 === 0
-    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-    : Math.round(sorted[mid]);
-  // p95: 95th percentile — reveals tail latency that median/avg hide.
-  // Matches the gateway-client implementation for consistency.
-  const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
-  const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
-  // Jitter: standard deviation of latency samples. High jitter indicates
-  // unstable connection even when median looks healthy.
-  // Uses population stddev (not sample) since we have the full rolling window.
-  const avg = sum / _latencyBuffer.length;
-  let sqDiffSum = 0;
-  for (let i = 0; i < _latencyBuffer.length; i++) {
-    const diff = _latencyBuffer[i] - avg;
-    sqDiffSum += diff * diff;
-  }
-  const jitter = Math.round(Math.sqrt(sqDiffSum / _latencyBuffer.length));
-
-  _latencyStatsCache = {
-    min: Math.round(min),
-    max: Math.round(max),
-    avg: Math.round(avg),
-    median,
-    p95,
-    jitter,
-    samples: _latencyBuffer.length,
-  };
-  return _latencyStatsCache;
-}
+// Rolling latency tracker — extracted to latency-tracker.js for testability.
+// Provides push/stats/reset/samples with cached computation.
+const _latencyTracker = createLatencyTracker({ maxSamples: 60 });
+const pushLatencySample = (ms) => _latencyTracker.push(ms);
+const getLatencyStats = () => _latencyTracker.stats();
 
 // Centralized plugin state synchronizer (change-detection + dispatch).
 const _pluginSync = createPluginSync({
@@ -655,8 +593,7 @@ function resetConnectionState() {
   pluginStateLastSentAt = 0;
   pluginStateSentAt = 0;
   latencyMs = null;
-  _latencyBuffer.length = 0;
-  _latencyStatsCache = null;
+  _latencyTracker.reset();
   connectedSince = null;
   connectedUrl = '';
   lastCloseDetail = '';
