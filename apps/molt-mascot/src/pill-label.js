@@ -85,11 +85,17 @@ export function buildPillLabel(params) {
     } else if (activeAgents > 1) {
       label = `Thinking · ${activeAgents}`;
     }
-  } else if (mode === 'tool' && currentTool) {
+  } else if (mode === 'tool') {
     const toolSuffix = activeTools > 1 ? ` · ${activeTools}` : '';
-    label = duration > 2
-      ? truncate(`${currentTool} ${formatDuration(duration)}`, 32 - toolSuffix.length) + toolSuffix
-      : truncate(currentTool, 24 - toolSuffix.length) + toolSuffix;
+    if (currentTool) {
+      label = duration > 2
+        ? truncate(`${currentTool} ${formatDuration(duration)}`, 32 - toolSuffix.length) + toolSuffix
+        : truncate(currentTool, 24 - toolSuffix.length) + toolSuffix;
+    } else {
+      label = duration > 2
+        ? `Tool ${formatDuration(duration)}${toolSuffix}`
+        : `Tool${toolSuffix}`;
+    }
   } else if (mode === 'error' && lastErrorMessage) {
     label = truncate(lastErrorMessage, 48);
   }

@@ -277,6 +277,25 @@ describe('buildPillLabel', () => {
     expect(result.label).not.toContain('·');
   });
 
+  it('shows duration in tool mode without tool name', () => {
+    const result = build({
+      mode: 'tool',
+      modeSince: NOW - 5_000,
+      currentTool: '',
+    });
+    expect(result.label).toBe('Tool 5s');
+  });
+
+  it('shows tool count in tool mode without tool name', () => {
+    const result = build({
+      mode: 'tool',
+      modeSince: NOW - 1_000,
+      currentTool: '',
+      activeTools: 3,
+    });
+    expect(result.label).toBe('Tool · 3');
+  });
+
   it('defaults now to Date.now() when not provided', () => {
     const result = buildPillLabel({
       mode: 'idle',
