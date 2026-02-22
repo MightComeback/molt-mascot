@@ -55,8 +55,8 @@ function resolveStatusConfig({
     return 1.0;
   })();
 
-  const gatewayUrl = env.MOLT_MASCOT_GATEWAY_URL || env.GATEWAY_URL || env.OPENCLAW_GATEWAY_URL || null;
-  const hasToken = !!(env.MOLT_MASCOT_GATEWAY_TOKEN || env.GATEWAY_TOKEN || env.OPENCLAW_GATEWAY_TOKEN);
+  const gatewayUrl = env.MOLT_MASCOT_GATEWAY_URL || env.GATEWAY_URL || env.OPENCLAW_GATEWAY_URL || env.CLAWDBOT_GATEWAY_URL || env.gatewayUrl || null;
+  const hasToken = !!(env.MOLT_MASCOT_GATEWAY_TOKEN || env.GATEWAY_TOKEN || env.OPENCLAW_GATEWAY_TOKEN || env.CLAWDBOT_GATEWAY_TOKEN || env.gatewayToken);
 
   const resolvedPaddingNum = (() => {
     const envVal = Number(env.MOLT_MASCOT_PADDING);

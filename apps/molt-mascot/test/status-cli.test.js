@@ -134,6 +134,26 @@ describe('resolveStatusConfig', () => {
     const status = resolveStatusConfig(makeParams({ env: { GATEWAY_URL: 'ws://fallback:999' } }));
     expect(status.config.gatewayUrl).toBe('ws://fallback:999');
   });
+
+  it('CLAWDBOT_GATEWAY_URL fallback works', () => {
+    const status = resolveStatusConfig(makeParams({ env: { CLAWDBOT_GATEWAY_URL: 'ws://clawd:456' } }));
+    expect(status.config.gatewayUrl).toBe('ws://clawd:456');
+  });
+
+  it('gatewayUrl (camelCase) fallback works', () => {
+    const status = resolveStatusConfig(makeParams({ env: { gatewayUrl: 'ws://camel:789' } }));
+    expect(status.config.gatewayUrl).toBe('ws://camel:789');
+  });
+
+  it('CLAWDBOT_GATEWAY_TOKEN fallback sets gatewayToken', () => {
+    const status = resolveStatusConfig(makeParams({ env: { CLAWDBOT_GATEWAY_TOKEN: 'tok' } }));
+    expect(status.config.gatewayToken).toBe(true);
+  });
+
+  it('gatewayToken (camelCase) fallback sets gatewayToken', () => {
+    const status = resolveStatusConfig(makeParams({ env: { gatewayToken: 'tok' } }));
+    expect(status.config.gatewayToken).toBe(true);
+  });
 });
 
 describe('formatStatusText', () => {
