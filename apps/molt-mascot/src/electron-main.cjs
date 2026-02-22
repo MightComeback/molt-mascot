@@ -128,6 +128,7 @@ if (cliSize) {
 if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
 if (process.argv.includes('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
 if (process.argv.includes('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1';
+if (process.argv.includes('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
 
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 const cliMinProtocol = parseCliArg('--min-protocol');
@@ -382,6 +383,7 @@ Options:
   --click-through        Start in ghost mode (click-through)
   --hide-text            Start with HUD text hidden
   --reduced-motion       Disable animations (bob, blink); overrides OS preference
+  --start-hidden         Launch hidden (tray-only); toggle with ${mod}+Shift+V
   --debug                Open DevTools on launch
   --disable-gpu          Disable hardware acceleration (useful on VMs,
                          remote desktops, or Wayland compositors)
@@ -419,6 +421,7 @@ Environment variables:
   MOLT_MASCOT_NO_TRAY         Disable system tray icon (1/true/yes)
   MOLT_MASCOT_NO_SHORTCUTS    Disable global keyboard shortcuts (1/true/yes)
   MOLT_MASCOT_REDUCED_MOTION  Force reduced motion (1/true/yes; overrides OS preference)
+  MOLT_MASCOT_START_HIDDEN    Launch hidden, tray-only (1/true/yes; toggle with shortcut)
   MOLT_MASCOT_CAPTURE_DIR     Screenshot capture directory (dev/CI only)
 
 Keyboard shortcuts (while mascot is focused):
@@ -542,7 +545,7 @@ function createWindow({ capture = false, initWidth, initHeight, initOpacity, ini
     transparent: capture ? false : true,
     backgroundColor: capture ? '#111827' : '#00000000',
     opacity: capture ? 1.0 : (typeof initOpacity === 'number' ? initOpacity : 1.0),
-    show: capture ? false : true,
+    show: capture ? false : !isTruthyEnv(process.env.MOLT_MASCOT_START_HIDDEN),
     frame: false,
     resizable: false,
     movable: !capture,
