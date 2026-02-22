@@ -168,123 +168,32 @@ if (hasBoolFlag('--list-prefs')) {
 // CLI flags: --status prints a compact diagnostic summary showing the resolved
 // config (env vars + saved prefs + CLI overrides) and exits. Helps answer
 // "what settings will the mascot actually use?" without launching the GUI.
+// Logic extracted to status-cli.cjs for testability.
 if (hasBoolFlag('--status')) {
-  const prefs = loadPrefs();
-  const resolvedAlign = cliAlign || process.env.MOLT_MASCOT_ALIGN || prefs.alignment || 'bottom-right';
-  const resolvedSize = (() => {
-    const label = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
-    if (label && VALID_SIZES.includes(label)) return label;
-    if (typeof prefs.sizeIndex === 'number' && prefs.sizeIndex >= 0 && prefs.sizeIndex < SIZE_PRESETS.length) {
-      return SIZE_PRESETS[prefs.sizeIndex].label;
-    }
-    return SIZE_PRESETS[DEFAULT_SIZE_INDEX].label;
-  })();
-  const resolvedOpacityNum = (() => {
-    const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
-    if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
-    if (typeof prefs.opacityIndex === 'number' && prefs.opacityIndex >= 0 && prefs.opacityIndex < OPACITY_CYCLE.length) {
-      return OPACITY_CYCLE[prefs.opacityIndex];
-    }
-    return 1.0;
-  })();
-  const resolvedOpacity = `${Math.round(resolvedOpacityNum * 100)}%`;
-  const gatewayUrl = process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || '(not set)';
-  const hasToken = !!(process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN);
-  const resolvedPaddingNum = (() => {
-    const envVal = Number(process.env.MOLT_MASCOT_PADDING);
-    if (Number.isFinite(envVal) && envVal >= 0) return envVal;
-    if (typeof prefs.padding === 'number' && prefs.padding >= 0) return prefs.padding;
-    return 24;
-  })();
-  const resolvedPadding = `${resolvedPaddingNum}px`;
-  const clickThroughResolved = isTruthyEnv(process.env.MOLT_MASCOT_CLICK_THROUGH || process.env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
-  const hideTextResolved = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
-  const reducedMotionResolved = isTruthyEnv(process.env.MOLT_MASCOT_REDUCED_MOTION);
-  const noTrayResolved = hasBoolFlag('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
-  const noShortcutsResolved = hasBoolFlag('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
-  const sleepThresholdS = (() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
-  const idleDelayMs = (() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
-  const errorHoldMs = (() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
-  const minProtocol = (() => { const v = Number(process.env.MOLT_MASCOT_MIN_PROTOCOL || process.env.GATEWAY_MIN_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 2; })();
-  const maxProtocol = (() => { const v = Number(process.env.MOLT_MASCOT_MAX_PROTOCOL || process.env.GATEWAY_MAX_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 3; })();
+  const { resolveStatusConfig, formatStatusText } = require('./status-cli.cjs');
   const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
   const prefsExist = fs.existsSync(prefsPath);
+  const statusConfig = resolveStatusConfig({
+    appVersion: APP_VERSION,
+    prefs: loadPrefs(),
+    env: process.env,
+    argv: process.argv,
+    pid: process.pid,
+    platform: process.platform,
+    arch: process.arch,
+    versions: process.versions,
+    prefsPath: prefsExist ? prefsPath : null,
+    sizePresets: require('./size-presets.cjs'),
+    opacityCycle: OPACITY_CYCLE,
+    isTruthyEnv,
+    hasBoolFlag,
+  });
 
-  // Resolve window dimensions for diagnostics (size preset → actual pixels).
-  const { findSizePreset } = require('./size-presets.cjs');
-  const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
-  // Custom MOLT_MASCOT_WIDTH/HEIGHT override the preset dimensions.
-  const resolvedWidth = (() => { const v = Number(process.env.MOLT_MASCOT_WIDTH); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.width; })();
-  const resolvedHeight = (() => { const v = Number(process.env.MOLT_MASCOT_HEIGHT); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.height; })();
-
-  // --json flag: output machine-readable JSON (useful for scripting, piping into jq, CI checks).
   if (hasBoolFlag('--json')) {
-    const status = {
-      version: APP_VERSION,
-      config: {
-        gatewayUrl: gatewayUrl === '(not set)' ? null : gatewayUrl,
-        gatewayToken: hasToken,
-        alignment: resolvedAlign,
-        size: resolvedSize,
-        width: resolvedWidth,
-        height: resolvedHeight,
-        padding: resolvedPaddingNum,
-        opacity: resolvedOpacityNum,
-        clickThrough: clickThroughResolved,
-        hideText: hideTextResolved,
-        reducedMotion: reducedMotionResolved,
-        noTray: noTrayResolved,
-        noShortcuts: noShortcutsResolved,
-        minProtocol,
-        maxProtocol,
-      },
-      timing: {
-        sleepThresholdS,
-        idleDelayMs,
-        errorHoldMs,
-      },
-      preferences: prefsExist ? prefs : null,
-      preferencesFile: prefsExist ? prefsPath : null,
-      pid: process.pid,
-      platform: process.platform,
-      arch: process.arch,
-      electron: process.versions.electron || null,
-      node: process.versions.node || null,
-      chrome: process.versions.chrome || null,
-    };
-    process.stdout.write(JSON.stringify(status, null, 2) + '\n');
-    process.exit(0);
+    process.stdout.write(JSON.stringify(statusConfig, null, 2) + '\n');
+  } else {
+    process.stdout.write(formatStatusText(statusConfig));
   }
-
-  process.stdout.write(`Molt Mascot v${APP_VERSION}
-
-Config (resolved):
-  Gateway URL:    ${gatewayUrl}
-  Gateway token:  ${hasToken ? '(set)' : '(not set)'}
-  Alignment:      ${resolvedAlign}
-  Size:           ${resolvedSize} (${resolvedWidth}×${resolvedHeight}px)
-  Padding:        ${resolvedPadding}
-  Opacity:        ${resolvedOpacity}
-  Ghost mode:     ${clickThroughResolved}
-  Hide text:      ${hideTextResolved}
-  Reduced motion: ${reducedMotionResolved}
-  No tray:        ${noTrayResolved}
-  No shortcuts:   ${noShortcutsResolved}
-  Min protocol:   ${minProtocol}
-  Max protocol:   ${maxProtocol}
-
-Timing:
-  Sleep threshold: ${sleepThresholdS}s
-  Idle delay:      ${idleDelayMs}ms
-  Error hold:      ${errorHoldMs}ms
-
-Preferences file: ${prefsExist ? prefsPath : '(none)'}
-${prefsExist && Object.keys(prefs).length > 0 ? `Saved preferences:\n${Object.entries(prefs).map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`).join('\n')}\n` : ''}Platform: ${process.platform} ${process.arch}
-PID: ${process.pid}
-Electron: ${process.versions.electron || 'n/a'}
-Node: ${process.versions.node || 'n/a'}
-Chrome: ${process.versions.chrome || 'n/a'}
-`);
   process.exit(0);
 }
 
