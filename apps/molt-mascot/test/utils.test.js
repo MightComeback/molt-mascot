@@ -667,6 +667,19 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10 });
     expect(tip).not.toContain("→");
   });
+
+  it("shows lastResetAt when provided", () => {
+    const now = Date.now();
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, lastResetAt: now - 300_000, now });
+    expect(tip).toContain("reset 5m ago");
+  });
+
+  it("omits lastResetAt when not provided or zero", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip).not.toContain("reset");
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0, lastResetAt: 0 });
+    expect(tip2).not.toContain("reset");
+  });
 });
 
 describe("normalizeWsUrl", () => {

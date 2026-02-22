@@ -145,6 +145,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (median used for connection quality label when available)
+ * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -175,6 +176,7 @@ export function buildTooltip(params) {
     activeAgents = 0,
     activeTools = 0,
     targetUrl,
+    lastResetAt,
     now: nowOverride,
   } = params;
 
@@ -231,6 +233,9 @@ export function buildTooltip(params) {
   if (typeof opacity === 'number' && opacity < 1) tip += ` · ${Math.round(opacity * 100)}%`;
   // Show reconnect count when the connection has flapped (>1 handshake since launch).
   // Helps users diagnose flaky gateway connections without opening debug info.
+  if (typeof lastResetAt === 'number' && lastResetAt > 0) {
+    tip += ` · reset ${formatElapsed(lastResetAt, now)} ago`;
+  }
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
     tip += ` · reconnected ${sessionConnectCount - 1}×`;
   }

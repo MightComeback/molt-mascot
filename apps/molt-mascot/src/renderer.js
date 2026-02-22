@@ -440,6 +440,7 @@ function syncPill() {
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
     targetUrl: !connectedSince ? (loadCfg()?.url || undefined) : undefined,
+    lastResetAt: pluginLastResetAt,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
