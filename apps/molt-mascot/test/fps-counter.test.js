@@ -134,5 +134,44 @@ describe('fps-counter', () => {
     expect(snap.fps).toBe(0);
     expect(snap.frameCount).toBe(0);
     expect(snap.avgFrameTimeMs).toBeNull();
+    expect(snap.worstFrameDeltaMs).toBe(0);
+  });
+
+  it('worstDelta tracks peak inter-frame delta', () => {
+    const c = createFpsCounter();
+    expect(c.worstDelta()).toBe(0);
+    c.update(0);
+    expect(c.worstDelta()).toBe(0); // no delta yet (only one frame)
+    c.update(16);
+    expect(c.worstDelta()).toBe(16);
+    c.update(32);
+    expect(c.worstDelta()).toBe(16); // no change, same delta
+    // Simulate a jank spike (200ms gap)
+    c.update(232);
+    expect(c.worstDelta()).toBe(200);
+    // Subsequent normal frames don't lower the worst
+    c.update(248);
+    expect(c.worstDelta()).toBe(200);
+  });
+
+  it('worstDelta resets on reset()', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(500); // 500ms jank
+    expect(c.worstDelta()).toBe(500);
+    c.reset();
+    expect(c.worstDelta()).toBe(0);
+    c.update(1000);
+    c.update(1016);
+    expect(c.worstDelta()).toBe(16);
+  });
+
+  it('getSnapshot includes worstFrameDeltaMs', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(16);
+    c.update(116); // 100ms jank
+    const snap = c.getSnapshot();
+    expect(snap.worstFrameDeltaMs).toBe(100);
   });
 });

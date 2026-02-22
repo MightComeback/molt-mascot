@@ -20,6 +20,8 @@ export function createFpsCounter(opts = {}) {
   let count = 0;
   let currentFps = 0;
   let totalFrames = 0;
+  let lastFrameTime = -1;
+  let worstFrameDeltaMs = 0;
 
   /**
    * Record a frame timestamp and update the FPS measurement.
@@ -29,6 +31,14 @@ export function createFpsCounter(opts = {}) {
    */
   function update(t) {
     totalFrames++;
+    // Track worst inter-frame delta for jank detection.
+    // A large delta relative to the expected frame interval indicates a rendering
+    // stall (GC pause, layout thrash, blocked main thread, etc.).
+    if (lastFrameTime >= 0) {
+      const delta = t - lastFrameTime;
+      if (delta > worstFrameDeltaMs) worstFrameDeltaMs = delta;
+    }
+    lastFrameTime = t;
     ring[head] = t;
     head = (head + 1) % bufferSize;
     if (count < bufferSize) count++;
@@ -56,6 +66,8 @@ export function createFpsCounter(opts = {}) {
     count = 0;
     currentFps = 0;
     totalFrames = 0;
+    lastFrameTime = -1;
+    worstFrameDeltaMs = 0;
   }
 
   /** Total frames rendered since creation or last reset. */
@@ -68,7 +80,7 @@ export function createFpsCounter(opts = {}) {
    * Avoids consumers calling multiple methods (fps(), frameCount())
    * and keeps debug-info / diagnostics export clean.
    *
-   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number | null }}
+   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number | null, worstFrameDeltaMs: number }}
    */
   function getSnapshot() {
     const f = currentFps;
@@ -76,8 +88,14 @@ export function createFpsCounter(opts = {}) {
       fps: f,
       frameCount: totalFrames,
       avgFrameTimeMs: f > 0 ? Math.round((windowMs / f) * 100) / 100 : null,
+      worstFrameDeltaMs,
     };
   }
 
-  return { update, fps, reset, frameCount, getSnapshot };
+  /** Peak inter-frame delta since creation or last reset (ms). Indicates worst jank. */
+  function worstDelta() {
+    return worstFrameDeltaMs;
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta };
 }
