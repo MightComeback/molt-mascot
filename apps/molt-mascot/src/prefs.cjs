@@ -123,7 +123,20 @@ function createPrefsManager(filePath, opts = {}) {
     }
   }
 
-  return { load, save, remove, flush, clear, filePath };
+  /**
+   * Check whether a preference key has been explicitly set.
+   * Considers both pending (unsaved) and persisted values.
+   *
+   * @param {string} key - Preference key to check
+   * @returns {boolean} true if the key exists with a non-undefined value
+   */
+  function has(key) {
+    if (_pending) return key in _pending && _pending[key] !== undefined;
+    const current = load();
+    return key in current && current[key] !== undefined;
+  }
+
+  return { load, save, remove, flush, clear, has, filePath };
 }
 
 module.exports = { createPrefsManager };

@@ -201,4 +201,36 @@ describe("createPrefsManager", () => {
       expect(data).toEqual({ fresh: true });
     });
   });
+
+  describe("has", () => {
+    it("returns false when file does not exist", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.has("alignment")).toBe(false);
+    });
+
+    it("returns true for a persisted key", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.has("alignment")).toBe(true);
+    });
+
+    it("returns false for a missing key when file exists", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.has("opacity")).toBe(false);
+    });
+
+    it("returns true for a pending (unsaved) key", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+      mgr.save({ size: "large" });
+      expect(mgr.has("size")).toBe(true);
+    });
+
+    it("returns false after key is removed", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+      mgr.remove("alignment");
+      expect(mgr.has("alignment")).toBe(false);
+    });
+  });
 });
