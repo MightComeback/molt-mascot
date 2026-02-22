@@ -11,8 +11,9 @@ const { formatDuration } = require('@molt/mascot-plugin');
 const APP_VERSION = require('../package.json').version;
 
 // Opacity presets cycled by the keyboard shortcut / context menu.
-// Defined once so _resolveInitialOpacity and the runtime cycle stay in sync.
-const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4, 0.2];
+// Imported from the shared module (single source of truth) so electron-main,
+// status-cli, and opacity-presets.test all reference the same values.
+const { OPACITY_PRESETS: OPACITY_CYCLE } = require('./opacity-presets.cjs');
 
 // --- User preference persistence ---
 // Delegated to prefs.cjs for testability (atomic writes, debounced batching).
