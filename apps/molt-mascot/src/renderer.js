@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, successRate, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -957,6 +957,16 @@ function connect(cfg) {
       reconnectCountdownTimer = null;
     }
     setMode(Mode.disconnected);
+
+    // Fatal close codes (auth failed, protocol error, forbidden, etc.) should not
+    // auto-reconnect — they'll fail the same way every time. Show setup instead
+    // so the user can fix credentials or the gateway URL.
+    if (!isRecoverableCloseCode(ev?.code)) {
+      showError(lastCloseDetail || 'connection rejected');
+      showSetup(cfg);
+      return;
+    }
+
     const delay = getReconnectDelay();
     const reconnectAt = Date.now() + delay;
 
