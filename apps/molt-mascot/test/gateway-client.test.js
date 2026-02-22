@@ -778,6 +778,15 @@ describe('GatewayClient', () => {
       expect(str).toContain('retry #3');
       expect(str).toContain('ws://example.com');
     });
+
+    it('includes degraded health status when latency is poor', () => {
+      client.connectedSince = Date.now();
+      client.connectedUrl = 'ws://localhost:18789';
+      client._ws = { readyState: 1 };
+      client.latencyMs = 600; // poor latency → degraded
+      const str = client.toString();
+      expect(str).toContain('⚠️ degraded');
+    });
   });
 
   describe('connectionUptimePercent', () => {

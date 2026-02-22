@@ -861,6 +861,9 @@ export class GatewayClient {
         const emoji = quality ? ` ${connectionQualityEmoji(quality)}` : '';
         parts.push(`${formatLatency(source ?? this.latencyMs)}${emoji}`);
       }
+      const health = this.healthStatus;
+      if (health === 'degraded') parts.push('⚠️ degraded');
+      else if (health === 'unhealthy') parts.push('🔴 unhealthy');
     } else {
       parts.push('disconnected');
       if (this.targetUrl) parts.push(this.targetUrl);
