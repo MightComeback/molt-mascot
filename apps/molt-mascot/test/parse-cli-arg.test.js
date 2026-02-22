@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseCliArg } from "../src/parse-cli-arg.cjs";
+import { parseCliArg, hasBoolFlag } from "../src/parse-cli-arg.cjs";
 
 describe("parseCliArg", () => {
   it("returns null when flag is not present", () => {
@@ -47,5 +47,30 @@ describe("parseCliArg", () => {
     // it returns the next arg regardless. Callers are responsible for knowing
     // which flags take values (this matches the original electron-main behavior).
     expect(parseCliArg("--debug", argv)).toBe("--gateway");
+  });
+});
+
+describe("hasBoolFlag", () => {
+  it("returns true when flag is present", () => {
+    expect(hasBoolFlag("--debug", ["node", "app", "--debug"])).toBe(true);
+  });
+
+  it("returns false when flag is absent", () => {
+    expect(hasBoolFlag("--debug", ["node", "app"])).toBe(false);
+  });
+
+  it("does not match partial flag names", () => {
+    expect(hasBoolFlag("--no", ["node", "app", "--no-tray"])).toBe(false);
+  });
+
+  it("matches exact flag among many args", () => {
+    const argv = ["node", "app", "--click-through", "--debug", "--no-tray"];
+    expect(hasBoolFlag("--debug", argv)).toBe(true);
+    expect(hasBoolFlag("--no-tray", argv)).toBe(true);
+    expect(hasBoolFlag("--help", argv)).toBe(false);
+  });
+
+  it("returns false for empty argv", () => {
+    expect(hasBoolFlag("--debug", [])).toBe(false);
   });
 });

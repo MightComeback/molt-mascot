@@ -20,4 +20,20 @@ function parseCliArg(flag, argv) {
   return null;
 }
 
-module.exports = { parseCliArg };
+/**
+ * Check whether a boolean flag is present in an argv array.
+ * Matches exact flag names (e.g. '--debug', '--no-tray').
+ *
+ * Extracted from the repeated `process.argv.includes('--flag')` pattern
+ * in electron-main.cjs for testability and consistency.
+ *
+ * @param {string} flag - The flag to search for (e.g. '--debug')
+ * @param {string[]} [argv] - Argument array (defaults to process.argv)
+ * @returns {boolean} Whether the flag is present
+ */
+function hasBoolFlag(flag, argv) {
+  const args = argv || process.argv;
+  return args.includes(flag);
+}
+
+module.exports = { parseCliArg, hasBoolFlag };

@@ -78,7 +78,7 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
 
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
-const { parseCliArg } = require('./parse-cli-arg.cjs');
+const { parseCliArg, hasBoolFlag } = require('./parse-cli-arg.cjs');
 const cliGatewayUrl = parseCliArg('--gateway');
 const cliGatewayToken = parseCliArg('--token');
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
@@ -125,10 +125,10 @@ if (cliSize) {
 }
 
 // CLI flags for boolean appearance toggles (override env vars).
-if (process.argv.includes('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
-if (process.argv.includes('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
-if (process.argv.includes('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1';
-if (process.argv.includes('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
+if (hasBoolFlag('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
+if (hasBoolFlag('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
+if (hasBoolFlag('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1';
+if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
 
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 const cliMinProtocol = parseCliArg('--min-protocol');
@@ -181,7 +181,7 @@ if (cliErrorHold) {
 
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
-if (process.argv.includes('--reset-prefs')) {
+if (hasBoolFlag('--reset-prefs')) {
   try {
     const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
     if (fs.existsSync(prefsPath)) {
@@ -198,7 +198,7 @@ if (process.argv.includes('--reset-prefs')) {
 
 // CLI flags: --list-prefs prints the saved preferences file and exits.
 // Useful for diagnosing why the mascot is positioned oddly or has unexpected settings.
-if (process.argv.includes('--list-prefs')) {
+if (hasBoolFlag('--list-prefs')) {
   try {
     const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
     if (fs.existsSync(prefsPath)) {
@@ -216,7 +216,7 @@ if (process.argv.includes('--list-prefs')) {
 // CLI flags: --status prints a compact diagnostic summary showing the resolved
 // config (env vars + saved prefs + CLI overrides) and exits. Helps answer
 // "what settings will the mascot actually use?" without launching the GUI.
-if (process.argv.includes('--status')) {
+if (hasBoolFlag('--status')) {
   const prefs = loadPrefs();
   const resolvedAlign = cliAlign || process.env.MOLT_MASCOT_ALIGN || prefs.alignment || 'bottom-right';
   const resolvedSize = (() => {
@@ -248,8 +248,8 @@ if (process.argv.includes('--status')) {
   const clickThroughResolved = isTruthyEnv(process.env.MOLT_MASCOT_CLICK_THROUGH || process.env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
   const hideTextResolved = isTruthyEnv(process.env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
   const reducedMotionResolved = isTruthyEnv(process.env.MOLT_MASCOT_REDUCED_MOTION);
-  const noTrayResolved = process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
-  const noShortcutsResolved = process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
+  const noTrayResolved = hasBoolFlag('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
+  const noShortcutsResolved = hasBoolFlag('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
   const sleepThresholdS = (() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
   const idleDelayMs = (() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
   const errorHoldMs = (() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
@@ -266,7 +266,7 @@ if (process.argv.includes('--status')) {
   const resolvedHeight = (() => { const v = Number(process.env.MOLT_MASCOT_HEIGHT); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.height; })();
 
   // --json flag: output machine-readable JSON (useful for scripting, piping into jq, CI checks).
-  if (process.argv.includes('--json')) {
+  if (hasBoolFlag('--json')) {
     const status = {
       version: APP_VERSION,
       config: {
@@ -339,24 +339,24 @@ Chrome: ${process.versions.chrome || 'n/a'}
 // CLI flags: --disable-gpu disables hardware acceleration.
 // Useful on VMs, remote desktops, or Wayland compositors where GPU acceleration
 // causes rendering artifacts, blank windows, or crashes.
-if (process.argv.includes('--disable-gpu') || isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_GPU)) {
+if (hasBoolFlag('--disable-gpu') || isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_GPU)) {
   app.disableHardwareAcceleration();
 }
 
 // CLI flags: --debug opens DevTools on launch for easier development.
-const cliDebug = process.argv.includes('--debug');
+const cliDebug = hasBoolFlag('--debug');
 
 // CLI flags: --no-tray disables the system tray icon entirely.
 // Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
-const cliNoTray = process.argv.includes('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
+const cliNoTray = hasBoolFlag('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
 
 // CLI flags: --no-shortcuts disables global keyboard shortcut registration.
 // Useful when the mascot's shortcuts (Cmd+Shift+M, etc.) conflict with other apps.
 // All actions remain accessible via the tray menu, context menu, and IPC.
-const cliNoShortcuts = process.argv.includes('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
+const cliNoShortcuts = hasBoolFlag('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
 
 // CLI flags: --help prints usage information and exits.
-if (process.argv.includes('--help') || process.argv.includes('-h')) {
+if (hasBoolFlag('--help') || hasBoolFlag('-h')) {
   // Platform-aware modifier key labels so the help text matches the user's OS.
   const mod = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
   const alt = process.platform === 'darwin' ? 'Option' : 'Alt';
