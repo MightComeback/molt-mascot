@@ -151,7 +151,18 @@ function createPrefsManager(filePath, opts = {}) {
     return defaultValue;
   }
 
-  return { load, save, remove, flush, clear, has, get, filePath };
+  /**
+   * Return all preference keys currently set (pending + persisted).
+   * Useful for diagnostics (e.g. --list-prefs) and iteration.
+   *
+   * @returns {string[]} Array of preference key names
+   */
+  function keys() {
+    const current = _pending || load();
+    return Object.keys(current).filter((k) => current[k] !== undefined);
+  }
+
+  return { load, save, remove, flush, clear, has, get, keys, filePath };
 }
 
 module.exports = { createPrefsManager };

@@ -274,4 +274,38 @@ describe("createPrefsManager", () => {
       expect(mgr.get("name", "default")).toBe("");
     });
   });
+
+  describe("keys", () => {
+    it("returns empty array when no preferences exist", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.keys()).toEqual([]);
+    });
+
+    it("returns keys from persisted preferences", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", size: "large" }));
+      const mgr = createPrefsManager(prefsPath);
+      const k = mgr.keys();
+      expect(k).toContain("alignment");
+      expect(k).toContain("size");
+      expect(k.length).toBe(2);
+    });
+
+    it("returns keys from pending (unsaved) preferences", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ opacity: 0.5, ghost: true });
+      const k = mgr.keys();
+      expect(k).toContain("opacity");
+      expect(k).toContain("ghost");
+    });
+
+    it("excludes keys set to undefined after remove", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1, b: 2, c: 3 }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.remove("b");
+      const k = mgr.keys();
+      expect(k).toContain("a");
+      expect(k).toContain("c");
+      expect(k).not.toContain("b");
+    });
+  });
 });
