@@ -30,7 +30,7 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
 
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
-const { parseCliArg, hasBoolFlag } = require('./parse-cli-arg.cjs');
+const { parseCliArg, hasBoolFlag, parseNumericArg } = require('./parse-cli-arg.cjs');
 const cliGatewayUrl = parseCliArg('--gateway');
 const cliGatewayToken = parseCliArg('--token');
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
@@ -83,52 +83,33 @@ if (hasBoolFlag('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1
 if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
 
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
-const cliMinProtocol = parseCliArg('--min-protocol');
-const cliMaxProtocol = parseCliArg('--max-protocol');
-if (cliMinProtocol) {
-  const v = Number(cliMinProtocol);
-  if (Number.isInteger(v) && v > 0) {
-    process.env.MOLT_MASCOT_MIN_PROTOCOL = cliMinProtocol;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --min-protocol "${cliMinProtocol}" (must be a positive integer)\n`);
-  }
+// Uses parseNumericArg to replace the repeated parseCliArg + Number + validate pattern.
+{
+  const v = parseNumericArg('--min-protocol', -1, { min: 1, integer: true });
+  if (v > 0) process.env.MOLT_MASCOT_MIN_PROTOCOL = String(v);
+  else if (parseCliArg('--min-protocol') !== null) process.stderr.write(`molt-mascot: invalid --min-protocol "${parseCliArg('--min-protocol')}" (must be a positive integer)\n`);
 }
-if (cliMaxProtocol) {
-  const v = Number(cliMaxProtocol);
-  if (Number.isInteger(v) && v > 0) {
-    process.env.MOLT_MASCOT_MAX_PROTOCOL = cliMaxProtocol;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --max-protocol "${cliMaxProtocol}" (must be a positive integer)\n`);
-  }
+{
+  const v = parseNumericArg('--max-protocol', -1, { min: 1, integer: true });
+  if (v > 0) process.env.MOLT_MASCOT_MAX_PROTOCOL = String(v);
+  else if (parseCliArg('--max-protocol') !== null) process.stderr.write(`molt-mascot: invalid --max-protocol "${parseCliArg('--max-protocol')}" (must be a positive integer)\n`);
 }
 
 // CLI flags for timing customization (override env vars).
-const cliSleepThreshold = parseCliArg('--sleep-threshold');
-const cliIdleDelay = parseCliArg('--idle-delay');
-const cliErrorHold = parseCliArg('--error-hold');
-if (cliSleepThreshold) {
-  const v = Number(cliSleepThreshold);
-  if (Number.isFinite(v) && v >= 0) {
-    process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S = cliSleepThreshold;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --sleep-threshold "${cliSleepThreshold}" (must be >= 0 seconds)\n`);
-  }
+{
+  const v = parseNumericArg('--sleep-threshold', -1, { min: 0 });
+  if (v >= 0) process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S = String(v);
+  else if (parseCliArg('--sleep-threshold') !== null) process.stderr.write(`molt-mascot: invalid --sleep-threshold "${parseCliArg('--sleep-threshold')}" (must be >= 0 seconds)\n`);
 }
-if (cliIdleDelay) {
-  const v = Number(cliIdleDelay);
-  if (Number.isFinite(v) && v >= 0) {
-    process.env.MOLT_MASCOT_IDLE_DELAY_MS = cliIdleDelay;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --idle-delay "${cliIdleDelay}" (must be >= 0 ms)\n`);
-  }
+{
+  const v = parseNumericArg('--idle-delay', -1, { min: 0 });
+  if (v >= 0) process.env.MOLT_MASCOT_IDLE_DELAY_MS = String(v);
+  else if (parseCliArg('--idle-delay') !== null) process.stderr.write(`molt-mascot: invalid --idle-delay "${parseCliArg('--idle-delay')}" (must be >= 0 ms)\n`);
 }
-if (cliErrorHold) {
-  const v = Number(cliErrorHold);
-  if (Number.isFinite(v) && v >= 0) {
-    process.env.MOLT_MASCOT_ERROR_HOLD_MS = cliErrorHold;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --error-hold "${cliErrorHold}" (must be >= 0 ms)\n`);
-  }
+{
+  const v = parseNumericArg('--error-hold', -1, { min: 0 });
+  if (v >= 0) process.env.MOLT_MASCOT_ERROR_HOLD_MS = String(v);
+  else if (parseCliArg('--error-hold') !== null) process.stderr.write(`molt-mascot: invalid --error-hold "${parseCliArg('--error-hold')}" (must be >= 0 ms)\n`);
 }
 
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
