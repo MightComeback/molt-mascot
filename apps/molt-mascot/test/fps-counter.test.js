@@ -71,4 +71,32 @@ describe('fps-counter', () => {
     for (let i = 0; i < 5; i++) c.update(1000);
     expect(c.fps()).toBe(5);
   });
+
+  it('frameCount starts at 0', () => {
+    const c = createFpsCounter();
+    expect(c.frameCount()).toBe(0);
+  });
+
+  it('frameCount tracks total frames across updates', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(100);
+    c.update(200);
+    expect(c.frameCount()).toBe(3);
+    // Even after frames fall outside the FPS window, total count keeps growing
+    c.update(5000);
+    expect(c.frameCount()).toBe(4);
+    expect(c.fps()).toBe(1); // only the last frame is in the window
+  });
+
+  it('frameCount resets to 0 on reset()', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(16);
+    expect(c.frameCount()).toBe(2);
+    c.reset();
+    expect(c.frameCount()).toBe(0);
+    c.update(1000);
+    expect(c.frameCount()).toBe(1);
+  });
 });

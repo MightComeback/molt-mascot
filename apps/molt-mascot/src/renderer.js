@@ -1351,6 +1351,7 @@ function buildDebugInfo() {
     reducedMotion,
     frameIntervalMs: getFrameIntervalMs(),
     actualFps: _fpsCounter.fps(),
+    totalFrames: _fpsCounter.frameCount(),
     reconnectAttempt,
     canvasScale: currentScale,
     canvasWidth: canvas.width,

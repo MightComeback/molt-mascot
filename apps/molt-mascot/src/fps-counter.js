@@ -10,7 +10,7 @@
  * Create an FPS counter instance.
  *
  * @param {{ bufferSize?: number, windowMs?: number }} [opts]
- * @returns {{ update: (t: number) => void, fps: () => number, reset: () => void }}
+ * @returns {{ update: (t: number) => void, fps: () => number, reset: () => void, frameCount: () => number }}
  */
 export function createFpsCounter(opts = {}) {
   const bufferSize = opts.bufferSize ?? 120; // enough for 2× 60fps
@@ -19,6 +19,7 @@ export function createFpsCounter(opts = {}) {
   let head = 0;
   let count = 0;
   let currentFps = 0;
+  let totalFrames = 0;
 
   /**
    * Record a frame timestamp and update the FPS measurement.
@@ -27,6 +28,7 @@ export function createFpsCounter(opts = {}) {
    * @param {number} t - Frame timestamp in milliseconds
    */
   function update(t) {
+    totalFrames++;
     ring[head] = t;
     head = (head + 1) % bufferSize;
     if (count < bufferSize) count++;
@@ -53,7 +55,13 @@ export function createFpsCounter(opts = {}) {
     head = 0;
     count = 0;
     currentFps = 0;
+    totalFrames = 0;
   }
 
-  return { update, fps, reset };
+  /** Total frames rendered since creation or last reset. */
+  function frameCount() {
+    return totalFrames;
+  }
+
+  return { update, fps, reset, frameCount };
 }

@@ -27,6 +27,7 @@
  * @param {boolean} params.reducedMotion - Prefers-reduced-motion
  * @param {number} params.frameIntervalMs - Current frame interval (0 = ~60fps)
  * @param {number} [params.actualFps] - Measured frames per second (rolling 1s window)
+ * @param {number} [params.totalFrames] - Total frames rendered since app start or last reset
  * @param {number} params.reconnectAttempt - Current reconnect attempt
  * @param {number} params.canvasScale - Pixel scale factor for canvas
  * @param {string} [params.appVersion] - App version string
@@ -92,6 +93,7 @@ export function buildDebugInfo(params) {
     reducedMotion,
     frameIntervalMs,
     actualFps,
+    totalFrames,
     reconnectAttempt,
     canvasScale,
     appVersion,
@@ -218,7 +220,8 @@ export function buildDebugInfo(params) {
   lines.push(`Reduced motion: ${reducedMotion}`);
   const fpsLabel = frameIntervalMs === 0 ? '~60fps' : `~${Math.round(1000 / frameIntervalMs)}fps`;
   const actualFpsLabel = typeof actualFps === 'number' ? `, actual ${actualFps}fps` : '';
-  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${reducedMotion ? ' (reduced)' : ''}`);
+  const totalFramesLabel = typeof totalFrames === 'number' ? `, ${formatCount(totalFrames)} total` : '';
+  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${reducedMotion ? ' (reduced)' : ''}`);
   const platformStr = [platform || 'unknown', arch].filter(Boolean).join(' ');
   lines.push(`Platform: ${platformStr}`);
   const dpr = devicePixelRatio ?? 1;
