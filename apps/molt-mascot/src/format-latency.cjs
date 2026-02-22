@@ -19,6 +19,22 @@ function formatLatency(ms) {
 }
 
 /**
+ * Connection quality thresholds (ms) for WebSocket round-trip latency.
+ * Calibrated for local/near-local Gateway connections (not internet-scale RTTs).
+ *
+ * Exported so consumers (tests, docs, health checks) can reference the actual
+ * threshold values without duplicating magic numbers.
+ */
+const QUALITY_THRESHOLDS = Object.freeze({
+  /** Below this → "excellent" (typical local/LAN) */
+  EXCELLENT_MAX_MS: 50,
+  /** Below this → "good" (Wi-Fi, same region) */
+  GOOD_MAX_MS: 150,
+  /** Below this → "fair" (cross-region, congested); ≥ this → "poor" */
+  FAIR_MAX_MS: 500,
+});
+
+/**
  * Categorize a latency value into a human-readable quality label.
  * Useful for at-a-glance connection assessment in tooltips and debug info
  * without requiring users to interpret raw millisecond values.
@@ -35,9 +51,9 @@ function formatLatency(ms) {
  */
 function connectionQuality(ms) {
   if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return null;
-  if (ms < 50) return 'excellent';
-  if (ms < 150) return 'good';
-  if (ms < 500) return 'fair';
+  if (ms < QUALITY_THRESHOLDS.EXCELLENT_MAX_MS) return 'excellent';
+  if (ms < QUALITY_THRESHOLDS.GOOD_MAX_MS) return 'good';
+  if (ms < QUALITY_THRESHOLDS.FAIR_MAX_MS) return 'fair';
   return 'poor';
 }
 
@@ -80,4 +96,4 @@ function resolveQualitySource(instantMs, stats) {
   return null;
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource };
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, QUALITY_THRESHOLDS };

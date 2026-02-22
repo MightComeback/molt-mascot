@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, QUALITY_THRESHOLDS } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -125,6 +125,31 @@ describe('resolveQualitySource', () => {
 
   it('handles instant of 0 (valid)', () => {
     expect(resolveQualitySource(0, null)).toBe(0);
+  });
+});
+
+describe('QUALITY_THRESHOLDS', () => {
+  it('exports frozen threshold constants', () => {
+    expect(QUALITY_THRESHOLDS).toBeDefined();
+    expect(Object.isFrozen(QUALITY_THRESHOLDS)).toBe(true);
+  });
+
+  it('has expected threshold values', () => {
+    expect(QUALITY_THRESHOLDS.EXCELLENT_MAX_MS).toBe(50);
+    expect(QUALITY_THRESHOLDS.GOOD_MAX_MS).toBe(150);
+    expect(QUALITY_THRESHOLDS.FAIR_MAX_MS).toBe(500);
+  });
+
+  it('connectionQuality transitions align with thresholds', () => {
+    const { EXCELLENT_MAX_MS, GOOD_MAX_MS, FAIR_MAX_MS } = QUALITY_THRESHOLDS;
+    // Just below each threshold
+    expect(connectionQuality(EXCELLENT_MAX_MS - 1)).toBe('excellent');
+    expect(connectionQuality(GOOD_MAX_MS - 1)).toBe('good');
+    expect(connectionQuality(FAIR_MAX_MS - 1)).toBe('fair');
+    // At each threshold
+    expect(connectionQuality(EXCELLENT_MAX_MS)).toBe('good');
+    expect(connectionQuality(GOOD_MAX_MS)).toBe('fair');
+    expect(connectionQuality(FAIR_MAX_MS)).toBe('poor');
   });
 });
 
