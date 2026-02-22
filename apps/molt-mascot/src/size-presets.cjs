@@ -62,4 +62,18 @@ function isValidSize(value) {
   return VALID_SIZES.includes(value.trim().toLowerCase());
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize };
+/**
+ * Compute the next size preset index when cycling through sizes.
+ * Wraps around to 0 after the last preset.
+ *
+ * @param {number} currentIndex - Current size preset index
+ * @param {number} [count] - Number of presets (defaults to SIZE_PRESETS.length)
+ * @returns {number} Next index (wraps around)
+ */
+function nextSizeIndex(currentIndex, count) {
+  const n = typeof count === 'number' && count > 0 ? count : SIZE_PRESETS.length;
+  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return 0;
+  return (currentIndex + 1) % n;
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex };

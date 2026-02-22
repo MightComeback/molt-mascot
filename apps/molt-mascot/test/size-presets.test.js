@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -114,6 +114,30 @@ describe('size-presets', () => {
       expect(isValidSize(42)).toBe(false);
       expect(isValidSize(true)).toBe(false);
       expect(isValidSize({})).toBe(false);
+    });
+  });
+
+  describe('nextSizeIndex', () => {
+    it('advances to the next index', () => {
+      expect(nextSizeIndex(0)).toBe(1);
+      expect(nextSizeIndex(1)).toBe(2);
+      expect(nextSizeIndex(3)).toBe(4);
+    });
+
+    it('wraps around at the end', () => {
+      expect(nextSizeIndex(4)).toBe(0);
+    });
+
+    it('accepts custom count', () => {
+      expect(nextSizeIndex(2, 3)).toBe(0);
+      expect(nextSizeIndex(1, 3)).toBe(2);
+    });
+
+    it('returns 0 for invalid inputs', () => {
+      expect(nextSizeIndex(-1)).toBe(0);
+      expect(nextSizeIndex(null)).toBe(0);
+      expect(nextSizeIndex(undefined)).toBe(0);
+      expect(nextSizeIndex(1.5)).toBe(0);
     });
   });
 });
