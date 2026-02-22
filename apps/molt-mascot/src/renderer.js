@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -330,6 +330,16 @@ function syncPill() {
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
+  const _healthStatus = computeHealthStatus({
+    isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
+    isPollingPaused: document.hidden,
+    lastMessageAt: lastMessageAt || null,
+    latencyMs,
+    latencyStats: getLatencyStats(),
+    connectionSuccessRate: sessionAttemptCount > 0
+      ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+      : null,
+  });
   const tip = buildTooltip({
     displayMode: effectiveMode,
     durationSec: duration,
@@ -357,6 +367,7 @@ function syncPill() {
     activeTools: pluginActiveTools,
     targetUrl: !connectedSince ? (loadCfg()?.url || undefined) : undefined,
     lastResetAt: pluginLastResetAt,
+    healthStatus: _healthStatus,
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
@@ -1278,6 +1289,16 @@ function buildDebugInfo() {
     instanceId: INSTANCE_ID,
     lastResetAt: pluginLastResetAt,
     pid: window.moltMascot?.pid,
+    healthStatus: computeHealthStatus({
+      isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
+      isPollingPaused: document.hidden,
+      lastMessageAt: lastMessageAt || null,
+      latencyMs,
+      latencyStats: getLatencyStats(),
+      connectionSuccessRate: sessionAttemptCount > 0
+        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+        : null,
+    }),
   });
 }
 
@@ -1314,6 +1335,16 @@ function showContextMenu(e) {
     sleepThresholdS: SLEEP_THRESHOLD_S,
     appVersion: window.moltMascot?.version,
     isMac,
+    healthStatus: computeHealthStatus({
+      isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
+      isPollingPaused: document.hidden,
+      lastMessageAt: lastMessageAt || null,
+      latencyMs,
+      latencyStats: getLatencyStats(),
+      connectionSuccessRate: sessionAttemptCount > 0
+        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+        : null,
+    }),
   });
 
   // Map descriptor IDs to action callbacks
