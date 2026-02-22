@@ -911,6 +911,7 @@ app.whenReady().then(async () => {
       lastMessageAt: currentLastMessageAt,
       latencyStats: currentLatencyStats,
       pluginStartedAt: currentPluginStartedAt,
+      lastResetAt: currentLastResetAt,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -1094,6 +1095,7 @@ app.whenReady().then(async () => {
   let currentLastMessageAt = null;
   let currentLatencyStats = null;
   let currentPluginStartedAt = null;
+  let currentLastResetAt = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
     const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal, pluginStartedAt: pluginStartedAtVal } =
@@ -1133,6 +1135,11 @@ app.whenReady().then(async () => {
     // Track plugin start time for tray tooltip uptime display.
     if (typeof pluginStartedAtVal === 'number' && pluginStartedAtVal > 0) currentPluginStartedAt = pluginStartedAtVal;
     else if (pluginStartedAtVal === null) currentPluginStartedAt = null;
+
+    // Track last manual plugin reset time for tray tooltip diagnostics.
+    const lastResetAtVal = update?.lastResetAt;
+    if (typeof lastResetAtVal === 'number' && lastResetAtVal > 0) currentLastResetAt = lastResetAtVal;
+    else if (lastResetAtVal === null) currentLastResetAt = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;
