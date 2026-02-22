@@ -1,6 +1,7 @@
-import { capitalize, coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, formatDuration, formatElapsed, formatCount, formatLatency, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, successRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, MODE_EMOJI } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
+import { buildPillLabel } from './pill-label.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 import { createFpsCounter } from './fps-counter.js';
 import { createLatencyTracker } from './latency-tracker.js';
@@ -300,81 +301,37 @@ function syncPill() {
     if (Date.now() < copiedUntil) return;
     copiedUntil = 0;
   }
-  // Dynamically adjust aria-live so error announcements are immediate (assertive)
-  // while routine status updates remain polite and non-intrusive.
-  const ariaLive = currentMode === Mode.error ? 'assertive' : 'polite';
+  // Delegate label computation to the extracted pure-function module (single source of truth).
+  // This eliminates ~50 lines of duplicated mode→text mapping that previously lived here.
+  const pillResult = buildPillLabel({
+    mode: currentMode,
+    modeSince,
+    sleepThresholdS: SLEEP_THRESHOLD_S,
+    connectedSince,
+    currentTool,
+    lastErrorMessage,
+    lastCloseDetail,
+    isClickThrough,
+  });
+
+  const { label, cssClass, effectiveMode, ariaLive } = pillResult;
+
   if (pill.getAttribute('aria-live') !== ariaLive) {
     pill.setAttribute('aria-live', ariaLive);
   }
 
-  const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-
-  let label = capitalize(currentMode);
-  if (currentMode === Mode.connected) {
-    label = 'Connected ✓';
-  }
-  if (currentMode === Mode.idle && duration <= SLEEP_THRESHOLD_S && connectedSince) {
-    // Show connection uptime in the pill when idle — gives at-a-glance confirmation
-    // that the gateway link is healthy without hovering for the tooltip.
-    const uptimeSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-    if (uptimeSec >= 60) {
-      label = `Idle · ↑${formatDuration(uptimeSec)}`;
-    }
-  }
-  if (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) {
-    label = `Sleeping ${formatDuration(duration)}`;
-    // Append connection uptime so users can see gateway health at a glance
-    // even during long sleep periods (mirrors the idle pill's ↑ indicator).
-    if (connectedSince) {
-      const uptimeSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
-      if (uptimeSec >= 60) {
-        label += ` · ↑${formatDuration(uptimeSec)}`;
-      }
-    }
-  }
-  if (currentMode === Mode.connecting && duration > 2) {
-    label = `Connecting… ${formatDuration(duration)}`;
-  }
-  if (currentMode === Mode.disconnected) {
-    label = lastCloseDetail
-      ? truncate(`Disconnected: ${lastCloseDetail}`, 40)
-      : `Disconnected ${formatDuration(duration)}`;
-  }
-  if (currentMode === Mode.thinking && duration > 2) {
-    label = `Thinking ${formatDuration(duration)}`;
-  }
-  if (currentMode === Mode.tool && currentTool) {
-    label = duration > 2
-      ? truncate(`${currentTool} ${formatDuration(duration)}`, 32)
-      : truncate(currentTool, 24);
-  }
-  if (currentMode === Mode.error && lastErrorMessage) {
-    // UX Polish: show actual error in the HUD (truncated)
-    label = truncate(lastErrorMessage, 48);
-  }
-  
-  if (isClickThrough) {
-    label += ' 👻';
-  }
-
   pill.textContent = label;
-
-  // Color-coded pill background per mode (sleeping gets its own class)
-  const isSleeping = currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S;
-  pill.className = isSleeping ? 'pill--sleeping' : `pill--${currentMode}`;
+  pill.className = cssClass;
 
   // Expose effective mode on <body> so external CSS/automation can target state.
-  const bodyMode = isSleeping ? 'sleeping' : currentMode;
-  if (document.body.dataset.mode !== bodyMode) document.body.dataset.mode = bodyMode;
+  if (document.body.dataset.mode !== effectiveMode) document.body.dataset.mode = effectiveMode;
 
   // Update canvas aria-label for screen readers (use display mode, not raw mode)
-  const ariaMode = isSleeping ? 'sleeping' : currentMode;
-  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${ariaMode}`);
+  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
 
-  const displayMode = currentMode === Mode.connected ? 'connected'
-    : (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) ? 'sleeping' : currentMode;
+  const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   const tip = buildTooltip({
-    displayMode,
+    displayMode: effectiveMode,
     durationSec: duration,
     lastErrorMessage: currentMode === Mode.error ? lastErrorMessage : undefined,
     isClickThrough,
@@ -408,7 +365,7 @@ function syncPill() {
 
   // Notify main process of the effective display mode (including 'sleeping')
   // so the tray icon status dot and tooltip reflect the visual state.
-  const effectiveMode = isSleeping ? 'sleeping' : currentMode;
+  // effectiveMode is already computed by buildPillLabel above.
   const effectiveTool = currentTool || '';
   const now = Date.now();
   const modeOrToolChanged = effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool;
