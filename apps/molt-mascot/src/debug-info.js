@@ -56,6 +56,7 @@
  * @param {string} [params.arch] - CPU architecture (e.g. 'arm64', 'x64') — useful for diagnosing Electron compatibility issues
  * @param {string} [params.instanceId] - Stable client instance ID (helps diagnose multi-window and duplicate-session issues on the gateway)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (helps diagnose ghost state recovery)
+ * @param {number} [params.pid] - Electron process PID (useful for Activity Monitor / task kill diagnostics)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -120,6 +121,7 @@ export function buildDebugInfo(params) {
     lastMessageAt,
     instanceId,
     lastResetAt,
+    pid,
     now: nowOverride,
   } = params;
 
@@ -241,6 +243,9 @@ export function buildDebugInfo(params) {
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}`);
+  }
+  if (typeof pid === 'number' && pid > 0) {
+    lines.push(`PID: ${pid}`);
   }
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
     const attemptStr = typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount

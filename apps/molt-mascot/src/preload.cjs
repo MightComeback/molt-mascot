@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   onCopied: (cb) => onIpc('molt-mascot:copied', cb),
   processUptimeS: () => process.uptime(),
   processMemoryRssBytes: () => process.memoryUsage().rss,
+  pid: process.pid,
   platform: process.platform,
   arch: process.arch,
   version: pkg.version,

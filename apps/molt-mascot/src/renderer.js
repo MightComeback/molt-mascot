@@ -1360,6 +1360,7 @@ function buildDebugInfo() {
     latencyStats: getLatencyStats(),
     instanceId: INSTANCE_ID,
     lastResetAt: pluginLastResetAt,
+    pid: window.moltMascot?.pid,
   });
 }
 

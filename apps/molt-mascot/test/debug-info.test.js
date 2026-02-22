@@ -644,6 +644,16 @@ describe("connection uptime", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Last reset:");
   });
+
+  it("shows PID when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, pid: 12345 });
+    expect(info).toContain("PID: 12345");
+  });
+
+  it("omits PID when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("PID:");
+  });
 });
 
 describe("formatElapsed", () => {
