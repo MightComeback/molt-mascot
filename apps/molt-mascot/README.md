@@ -164,6 +164,51 @@ Right-click the status pill to access all actions: ghost mode, hide text, reset,
 | `--status` | Print resolved config summary and exit |
 | `--status --json` | Print resolved config as JSON and exit |
 
+## ws-dump (Debug Tool)
+
+A CLI tool for debugging the Gateway WebSocket connection and plugin state. Useful for scripting, monitoring, and diagnostics.
+
+```bash
+bun tools/ws-dump.ts [options]
+```
+
+| Flag | Description |
+|---|---|
+| `--once`, `--exit` | Exit after receiving hello-ok handshake |
+| `--state` | Print plugin state and exit |
+| `--watch` | Continuously poll plugin state; print only on change |
+| `--reset` | Reset plugin state and exit (clears error/tool/counters) |
+| `--ping` | Measure plugin state round-trip latency and exit |
+| `--ping-count=<n>` | Number of pings to send (default: 5) |
+| `--count=<n>` | Exit after N state changes (`--watch` mode) |
+| `--filter=<type>` | Only print events matching this type (e.g. `agent`, `tool`). Repeatable |
+| `--compact` | Print JSON on a single line |
+| `--poll-ms=<ms>` | Poll interval for `--watch` mode (default: 1000) |
+| `--timeout-ms=<ms>` | Timeout for `--once`/`--state`/`--reset` mode (default: 5000) |
+| `-q`, `--quiet` | Suppress stderr diagnostics |
+| `-V`, `--version` | Show version and exit |
+
+**Environment:** `GATEWAY_URL` (or `OPENCLAW_GATEWAY_URL`), `GATEWAY_TOKEN` (or `OPENCLAW_GATEWAY_TOKEN`).
+
+**Examples:**
+
+```bash
+# Quick check: is the plugin responding?
+bun tools/ws-dump.ts --state
+
+# Monitor state changes in real-time
+bun tools/ws-dump.ts --watch
+
+# Measure gateway latency (10 pings)
+bun tools/ws-dump.ts --ping --ping-count=10
+
+# Watch for the next 3 state transitions, then exit
+bun tools/ws-dump.ts --watch --count=3
+
+# Stream only agent events as compact JSON (for piping)
+bun tools/ws-dump.ts --filter=agent --compact
+```
+
 ## Screenshot Capture
 
 Set `MOLT_MASCOT_CAPTURE_DIR` to a directory path to capture deterministic screenshots of all modes (idle, thinking, tool, error, connecting, connected, disconnected, sleeping) and exit. Useful for docs and CI.
