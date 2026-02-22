@@ -201,6 +201,24 @@ describe('buildPillLabel', () => {
     expect(result.label).toContain('3');
   });
 
+  it('shows agent count in thinking mode early (<=2s) when multiple agents', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 1_000,
+      activeAgents: 3,
+    });
+    expect(result.label).toBe('Thinking · 3');
+  });
+
+  it('does not show agent count in thinking mode early when only 1 agent', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 1_000,
+      activeAgents: 1,
+    });
+    expect(result.label).toBe('Thinking');
+  });
+
   it('does not show agent count in thinking mode when only 1 agent', () => {
     const result = build({
       mode: 'thinking',

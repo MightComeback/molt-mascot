@@ -75,10 +75,14 @@ export function buildPillLabel(params) {
     label = lastCloseDetail
       ? truncate(`Disconnected: ${lastCloseDetail}`, 40)
       : `Disconnected ${formatDuration(duration)}`;
-  } else if (mode === 'thinking' && duration > 2) {
-    label = activeAgents > 1
-      ? `Thinking ${formatDuration(duration)} · ${activeAgents}`
-      : `Thinking ${formatDuration(duration)}`;
+  } else if (mode === 'thinking') {
+    if (duration > 2) {
+      label = activeAgents > 1
+        ? `Thinking ${formatDuration(duration)} · ${activeAgents}`
+        : `Thinking ${formatDuration(duration)}`;
+    } else if (activeAgents > 1) {
+      label = `Thinking · ${activeAgents}`;
+    }
   } else if (mode === 'tool' && currentTool) {
     label = duration > 2
       ? truncate(`${currentTool} ${formatDuration(duration)}`, 32)
