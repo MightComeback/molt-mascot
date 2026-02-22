@@ -49,6 +49,9 @@ export function createLatencyTracker(opts = {}) {
     const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
     const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
 
+    const p99Idx = Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1);
+    const p99 = Math.round(sorted[Math.max(0, p99Idx)]);
+
     const avg = sum / buffer.length;
     let sqDiffSum = 0;
     for (let i = 0; i < buffer.length; i++) {
@@ -63,6 +66,7 @@ export function createLatencyTracker(opts = {}) {
       avg: Math.round(avg),
       median,
       p95,
+      p99,
       jitter,
       samples: buffer.length,
     };

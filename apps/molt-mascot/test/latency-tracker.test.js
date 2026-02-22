@@ -82,6 +82,22 @@ describe('createLatencyTracker', () => {
     expect(s.p95).toBe(19);
   });
 
+  it('computes p99 correctly', () => {
+    const t = createLatencyTracker({ maxSamples: 100 });
+    // 100 samples: 1..100
+    for (let i = 1; i <= 100; i++) t.push(i);
+    const s = t.stats();
+    // p99 index = ceil(100*0.99)-1 = 98 → sorted[98] = 99
+    expect(s.p99).toBe(99);
+  });
+
+  it('computes p99 with small sample size', () => {
+    const t = createLatencyTracker();
+    // 5 samples: p99 index = ceil(5*0.99)-1 = 4 → sorted[4] = 50
+    [10, 20, 30, 40, 50].forEach(v => t.push(v));
+    expect(t.stats().p99).toBe(50);
+  });
+
   it('computes jitter (stddev)', () => {
     const t = createLatencyTracker();
     // All same value → jitter = 0

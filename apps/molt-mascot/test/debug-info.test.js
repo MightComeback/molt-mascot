@@ -423,6 +423,11 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms, p95 38ms (30 samples)");
   });
 
+  it("includes p99 in latency stats when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, p95: 38, p99: 40, samples: 30 } });
+    expect(info).toContain("p95 38ms, p99 40ms");
+  });
+
   it("omits p95 from latency stats when not provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, samples: 30 } });
     expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms (30 samples)");
