@@ -252,6 +252,8 @@ if (process.argv.includes('--status')) {
   const sleepThresholdS = (() => { const v = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
   const idleDelayMs = (() => { const v = Number(process.env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
   const errorHoldMs = (() => { const v = Number(process.env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
+  const minProtocol = (() => { const v = Number(process.env.MOLT_MASCOT_MIN_PROTOCOL || process.env.GATEWAY_MIN_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 2; })();
+  const maxProtocol = (() => { const v = Number(process.env.MOLT_MASCOT_MAX_PROTOCOL || process.env.GATEWAY_MAX_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 3; })();
   const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
   const prefsExist = fs.existsSync(prefsPath);
 
@@ -280,6 +282,8 @@ if (process.argv.includes('--status')) {
         reducedMotion: reducedMotionResolved,
         noTray: noTrayResolved,
         noShortcuts: noShortcutsResolved,
+        minProtocol,
+        maxProtocol,
       },
       timing: {
         sleepThresholdS,
@@ -313,6 +317,8 @@ Config (resolved):
   Reduced motion: ${reducedMotionResolved}
   No tray:        ${noTrayResolved}
   No shortcuts:   ${noShortcutsResolved}
+  Min protocol:   ${minProtocol}
+  Max protocol:   ${maxProtocol}
 
 Timing:
   Sleep threshold: ${sleepThresholdS}s
