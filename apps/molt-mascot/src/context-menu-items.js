@@ -40,6 +40,7 @@ import { capitalize, truncate, formatDuration, formatElapsed, formatCount, succe
  * @param {number} state.sleepThresholdS
  * @param {string} [state.appVersion]
  * @param {boolean} [state.isMac]
+ * @param {"healthy"|"degraded"|"unhealthy"|null} [state.healthStatus] - At-a-glance health assessment (shown as prefix when degraded/unhealthy)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -65,6 +66,7 @@ export function buildContextMenuItems(state) {
     sleepThresholdS = 120,
     appVersion,
     isMac = false,
+    healthStatus = null,
     now: nowOverride,
   } = state;
 
@@ -104,6 +106,8 @@ export function buildContextMenuItems(state) {
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
     statusParts.push(formatLatency(latencyMs));
   }
+  if (healthStatus === 'degraded') statusParts.push('⚠️ degraded');
+  if (healthStatus === 'unhealthy') statusParts.push('🔴 unhealthy');
 
   const statusLine = statusParts.join(' · ');
 

@@ -173,6 +173,29 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).toContain('↻3');
   });
 
+  it('shows degraded health status in status line', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, healthStatus: 'degraded' });
+    expect(result.statusLine).toContain('⚠️ degraded');
+  });
+
+  it('shows unhealthy health status in status line', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, healthStatus: 'unhealthy' });
+    expect(result.statusLine).toContain('🔴 unhealthy');
+  });
+
+  it('omits health status when healthy', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, healthStatus: 'healthy' });
+    expect(result.statusLine).not.toContain('healthy');
+    expect(result.statusLine).not.toContain('degraded');
+    expect(result.statusLine).not.toContain('unhealthy');
+  });
+
+  it('omits health status when null', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, healthStatus: null });
+    expect(result.statusLine).not.toContain('degraded');
+    expect(result.statusLine).not.toContain('unhealthy');
+  });
+
   it('every non-separator item has an id', () => {
     const result = buildContextMenuItems(BASE_STATE);
     for (const item of result.items) {
