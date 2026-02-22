@@ -19,6 +19,7 @@ import {
   PLUGIN_RESET_METHODS,
   successRate,
   formatBytes,
+  formatCount,
   formatLatency,
   connectionQuality,
   connectionQualityEmoji,
@@ -939,6 +940,42 @@ describe("formatBytes", () => {
     expect(formatBytes(-1)).toBe("0 B");
     expect(formatBytes(NaN)).toBe("0 B");
     expect(formatBytes(Infinity)).toBe("0 B");
+  });
+});
+
+describe("formatCount", () => {
+  it("formats small numbers as plain integers", () => {
+    expect(formatCount(0)).toBe("0");
+    expect(formatCount(1)).toBe("1");
+    expect(formatCount(42)).toBe("42");
+    expect(formatCount(999)).toBe("999");
+  });
+
+  it("formats thousands with K suffix", () => {
+    expect(formatCount(1000)).toBe("1.0K");
+    expect(formatCount(1500)).toBe("1.5K");
+    expect(formatCount(9999)).toBe("10.0K");
+    expect(formatCount(999999)).toBe("1000.0K");
+  });
+
+  it("formats millions with M suffix", () => {
+    expect(formatCount(1000000)).toBe("1.0M");
+    expect(formatCount(2500000)).toBe("2.5M");
+  });
+
+  it("formats billions with B suffix", () => {
+    expect(formatCount(1000000000)).toBe("1.0B");
+  });
+
+  it("returns '0' for invalid inputs", () => {
+    expect(formatCount(-1)).toBe("0");
+    expect(formatCount(NaN)).toBe("0");
+    expect(formatCount(Infinity)).toBe("0");
+  });
+
+  it("rounds fractional values below 1000", () => {
+    expect(formatCount(1.7)).toBe("2");
+    expect(formatCount(0.4)).toBe("0");
   });
 });
 
