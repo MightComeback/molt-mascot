@@ -58,4 +58,26 @@ function connectionQualityEmoji(quality) {
   }
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji };
+/**
+ * Pick the best latency value for quality assessment: prefer median from
+ * rolling stats (more stable) when available with >1 sample, else fall back
+ * to the instant latency value.
+ *
+ * Extracts the repeated pattern from buildTooltip, buildTrayTooltip, and
+ * buildDebugInfo into a single reusable function.
+ *
+ * @param {number|null|undefined} instantMs - Most recent latency sample
+ * @param {{ median?: number, samples?: number }|null|undefined} stats - Rolling latency stats
+ * @returns {number|null} Best available latency value, or null if neither is usable
+ */
+function resolveQualitySource(instantMs, stats) {
+  const hasStats = stats
+    && typeof stats.median === 'number'
+    && typeof stats.samples === 'number'
+    && stats.samples > 1;
+  if (hasStats) return stats.median;
+  if (typeof instantMs === 'number' && Number.isFinite(instantMs) && instantMs >= 0) return instantMs;
+  return null;
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource };

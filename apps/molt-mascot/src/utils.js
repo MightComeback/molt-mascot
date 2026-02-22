@@ -17,8 +17,8 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji } from './format-latency.cjs';
-export { formatLatency, connectionQuality, connectionQualityEmoji };
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } from './format-latency.cjs';
+export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource };
 
 /**
  * Capitalize the first character of a string.
@@ -220,10 +220,7 @@ export function buildTooltip(params) {
     let latencyPart = formatLatency(latencyMs);
     // Append connection quality label (excellent/good/fair/poor) using median when
     // available (more stable than instant latency), matching tray tooltip behavior.
-    const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)
-      ? latencyStats.median
-      : latencyMs;
-    const quality = connectionQuality(qualitySource);
+    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
     if (quality) latencyPart += ` [${quality}]`;
     // Show jitter when it exceeds 50% of median — indicates unstable connection
     if (latencyStats && typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5) {

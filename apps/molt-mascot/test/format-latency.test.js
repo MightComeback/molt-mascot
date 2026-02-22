@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -86,6 +86,45 @@ describe('connectionQuality', () => {
     expect(connectionQuality(null)).toBeNull();
     expect(connectionQuality(undefined)).toBeNull();
     expect(connectionQuality('42')).toBeNull();
+  });
+});
+
+describe('resolveQualitySource', () => {
+  it('prefers median from stats when >1 sample', () => {
+    expect(resolveQualitySource(400, { median: 30, samples: 10 })).toBe(30);
+  });
+
+  it('falls back to instant when stats have 1 sample', () => {
+    expect(resolveQualitySource(200, { median: 200, samples: 1 })).toBe(200);
+  });
+
+  it('falls back to instant when stats is null', () => {
+    expect(resolveQualitySource(42, null)).toBe(42);
+  });
+
+  it('falls back to instant when stats is undefined', () => {
+    expect(resolveQualitySource(42, undefined)).toBe(42);
+  });
+
+  it('falls back to instant when stats lacks median', () => {
+    expect(resolveQualitySource(100, { samples: 5 })).toBe(100);
+  });
+
+  it('falls back to instant when stats lacks samples', () => {
+    expect(resolveQualitySource(100, { median: 50 })).toBe(100);
+  });
+
+  it('returns null when both are unavailable', () => {
+    expect(resolveQualitySource(null, null)).toBeNull();
+    expect(resolveQualitySource(undefined, undefined)).toBeNull();
+  });
+
+  it('returns null for negative instant without valid stats', () => {
+    expect(resolveQualitySource(-1, null)).toBeNull();
+  });
+
+  it('handles instant of 0 (valid)', () => {
+    expect(resolveQualitySource(0, null)).toBe(0);
   });
 });
 

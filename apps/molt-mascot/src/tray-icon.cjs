@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, connectionQuality, connectionQualityEmoji } = require('./format-latency.cjs');
+const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -215,10 +215,7 @@ function buildTrayTooltip(params) {
       latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${jitterStr})`;
     }
     // Append a quality label when median stats are available (more stable than instant latency).
-    const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)
-      ? latencyStats.median
-      : latencyMs;
-    const quality = connectionQuality(qualitySource);
+    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
     if (quality) {
       const emoji = connectionQualityEmoji(quality);
       latencyPart += emoji ? ` ${emoji}` : ` [${quality}]`;

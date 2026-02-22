@@ -61,7 +61,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, successRate, formatLatency, connectionQuality, connectionQualityEmoji } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -188,10 +188,7 @@ export function buildDebugInfo(params) {
     // Append connection quality label (excellent/good/fair/poor) for at-a-glance assessment,
     // matching the tray tooltip behavior. Use median from rolling stats when available (more
     // stable than instant latency); fall back to the current sample.
-    const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1)
-      ? latencyStats.median
-      : latencyMs;
-    const quality = connectionQuality(qualitySource);
+    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
     const qualitySuffix = quality ? ` ${connectionQualityEmoji(quality) || `[${quality}]`}` : '';
     lines.push(`Latency: ${formatLatency(latencyMs)}${qualitySuffix}`);
   }
