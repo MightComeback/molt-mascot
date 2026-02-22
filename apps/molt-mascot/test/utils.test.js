@@ -26,6 +26,7 @@ import {
   MODE_EMOJI,
   computeHealthStatus,
   isRecoverableCloseCode,
+  connectionUptimePercent,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1230,5 +1231,58 @@ describe("isRecoverableCloseCode", () => {
     for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
       expect(isRecoverableCloseCode(code)).toBe(false);
     }
+  });
+});
+
+describe("connectionUptimePercent", () => {
+  const base = {
+    processUptimeS: 100,
+    firstConnectedAt: 1000,
+    connectedSince: 50000,
+    lastDisconnectedAt: null,
+    now: 101000,
+  };
+
+  it("returns 100% when connected the entire time since first connect", () => {
+    expect(connectionUptimePercent(base)).toBe(100);
+  });
+
+  it("returns null when processUptimeS is 0 or negative", () => {
+    expect(connectionUptimePercent({ ...base, processUptimeS: 0 })).toBeNull();
+    expect(connectionUptimePercent({ ...base, processUptimeS: -1 })).toBeNull();
+  });
+
+  it("returns null when firstConnectedAt is null or 0", () => {
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: null })).toBeNull();
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: 0 })).toBeNull();
+  });
+
+  it("returns null when now is not finite", () => {
+    expect(connectionUptimePercent({ ...base, now: NaN })).toBeNull();
+    expect(connectionUptimePercent({ ...base, now: Infinity })).toBeNull();
+  });
+
+  it("accounts for current disconnect gap", () => {
+    // Disconnected 20s ago out of 100s process uptime, first connected at t=1000
+    const result = connectionUptimePercent({
+      processUptimeS: 100,
+      firstConnectedAt: 1000,
+      connectedSince: null,
+      lastDisconnectedAt: 81000,
+      now: 101000,
+    });
+    // timeSinceFirstConnect = 100000, gap = 20000, connected = 80000, pct = 80%
+    expect(result).toBe(80);
+  });
+
+  it("caps at 100% even if firstConnectedAt is before process start", () => {
+    const result = connectionUptimePercent({
+      processUptimeS: 10,
+      firstConnectedAt: 1000,
+      connectedSince: 1000,
+      lastDisconnectedAt: null,
+      now: 1000000,
+    });
+    expect(result).toBe(100);
   });
 });

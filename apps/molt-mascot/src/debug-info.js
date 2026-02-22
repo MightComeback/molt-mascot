@@ -63,7 +63,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -262,15 +262,8 @@ export function buildDebugInfo(params) {
   }
   // Connection uptime percentage: how much of the process lifetime was spent connected.
   // Helps diagnose flaky connections at a glance (e.g. "connected 23% of the time" → fix your network).
-  if (typeof processUptimeS === 'number' && processUptimeS > 0 && typeof firstConnectedAt === 'number' && firstConnectedAt > 0) {
-    // Total connected time = (first connected → now) minus estimated disconnected time.
-    // When currently connected, connectedSince gives the start of the current session.
-    // Without precise per-session tracking, we approximate: total uptime minus time before
-    // first connect minus current disconnect gap (if any).
-    const timeSinceFirstConnect = now - firstConnectedAt;
-    const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
-    const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
-    const uptimePercent = Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
+  const uptimePercent = connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now });
+  if (uptimePercent !== null) {
     lines.push(`Connection uptime: ~${uptimePercent}%`);
   }
   if (typeof lastResetAt === 'number' && lastResetAt > 0) {

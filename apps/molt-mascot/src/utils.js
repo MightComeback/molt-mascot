@@ -463,6 +463,33 @@ export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageA
   return 'healthy';
 }
 
+/**
+ * Approximate connection uptime as a percentage of total process lifetime.
+ * Extracts the inline computation from buildDebugInfo into a reusable,
+ * testable utility for use across debug info, tray tooltip, and diagnostics.
+ *
+ * Returns null when insufficient data is available (no first connection,
+ * or process uptime is zero/negative).
+ *
+ * @param {object} params
+ * @param {number} params.processUptimeS - Process uptime in seconds
+ * @param {number|null} params.firstConnectedAt - Epoch ms of first successful handshake
+ * @param {number|null} params.connectedSince - Epoch ms of current connection (null if disconnected)
+ * @param {number|null} params.lastDisconnectedAt - Epoch ms of last disconnect
+ * @param {number} params.now - Current timestamp in epoch ms
+ * @returns {number|null} Integer percentage (0-100), or null if not computable
+ */
+export function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now }) {
+  if (typeof processUptimeS !== 'number' || processUptimeS <= 0) return null;
+  if (typeof firstConnectedAt !== 'number' || firstConnectedAt <= 0) return null;
+  if (typeof now !== 'number' || !Number.isFinite(now)) return null;
+
+  const timeSinceFirstConnect = now - firstConnectedAt;
+  const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
+  const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
+  return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv } from './is-truthy-env.cjs';
