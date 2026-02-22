@@ -30,6 +30,7 @@ import { capitalize, truncate, formatDuration } from './utils.js';
  * @param {string} [params.lastErrorMessage] - Error detail
  * @param {string} [params.lastCloseDetail] - WebSocket close reason
  * @param {boolean} [params.isClickThrough] - Ghost mode active
+ * @param {number} [params.activeAgents] - Number of active agent sessions (shown when >1 in thinking/tool modes)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -43,6 +44,7 @@ export function buildPillLabel(params) {
     lastErrorMessage = '',
     lastCloseDetail = '',
     isClickThrough = false,
+    activeAgents = 0,
     now: nowOverride,
   } = params;
 
@@ -74,7 +76,9 @@ export function buildPillLabel(params) {
       ? truncate(`Disconnected: ${lastCloseDetail}`, 40)
       : `Disconnected ${formatDuration(duration)}`;
   } else if (mode === 'thinking' && duration > 2) {
-    label = `Thinking ${formatDuration(duration)}`;
+    label = activeAgents > 1
+      ? `Thinking ${formatDuration(duration)} · ${activeAgents}`
+      : `Thinking ${formatDuration(duration)}`;
   } else if (mode === 'tool' && currentTool) {
     label = duration > 2
       ? truncate(`${currentTool} ${formatDuration(duration)}`, 32)

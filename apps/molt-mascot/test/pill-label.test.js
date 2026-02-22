@@ -190,6 +190,35 @@ describe('buildPillLabel', () => {
     }
   });
 
+  it('shows agent count in thinking mode when multiple agents are active', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 5_000,
+      activeAgents: 3,
+    });
+    expect(result.label).toContain('Thinking');
+    expect(result.label).toContain('5s');
+    expect(result.label).toContain('3');
+  });
+
+  it('does not show agent count in thinking mode when only 1 agent', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 5_000,
+      activeAgents: 1,
+    });
+    expect(result.label).toBe('Thinking 5s');
+  });
+
+  it('does not show agent count in thinking mode when 0 agents', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 5_000,
+      activeAgents: 0,
+    });
+    expect(result.label).toBe('Thinking 5s');
+  });
+
   it('uses assertive aria-live only for error mode', () => {
     expect(build({ mode: 'error' }).ariaLive).toBe('assertive');
     expect(build({ mode: 'idle' }).ariaLive).toBe('polite');
