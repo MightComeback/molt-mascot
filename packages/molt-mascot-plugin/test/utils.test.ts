@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, coerceSize, coerceAlignment, coerceOpacity, coercePadding, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1104,6 +1104,28 @@ describe("utils", () => {
     expect(coercePadding(null, 24)).toBe(24);
     expect(coercePadding(Infinity, 24)).toBe(24);
     expect(coercePadding(100, 24)).toBe(100);
+  });
+
+  it("clamp", () => {
+    // Normal clamping
+    expect(clamp(5, 0, 10)).toBe(5);
+    expect(clamp(-1, 0, 10)).toBe(0);
+    expect(clamp(15, 0, 10)).toBe(10);
+    // Boundary values
+    expect(clamp(0, 0, 10)).toBe(0);
+    expect(clamp(10, 0, 10)).toBe(10);
+    // Fractional
+    expect(clamp(0.5, 0, 1)).toBe(0.5);
+    expect(clamp(-0.1, 0, 1)).toBe(0);
+    expect(clamp(1.1, 0, 1)).toBe(1);
+    // Non-finite inputs return min
+    expect(clamp(NaN, 0, 10)).toBe(0);
+    expect(clamp(Infinity, 0, 10)).toBe(0);
+    expect(clamp(-Infinity, 0, 10)).toBe(0);
+    // Negative range
+    expect(clamp(-5, -10, -1)).toBe(-5);
+    expect(clamp(0, -10, -1)).toBe(-1);
+    expect(clamp(-20, -10, -1)).toBe(-10);
   });
 
   it("infrastructure error on tool end enters error mode with tool name prefix", async () => {

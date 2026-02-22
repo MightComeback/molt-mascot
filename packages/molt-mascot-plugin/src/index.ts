@@ -153,6 +153,24 @@ export function coercePadding(v: unknown, fallback: number): number {
 }
 
 /**
+ * Clamp a number to a [min, max] range.
+ * Returns min if value is below min, max if above max, otherwise value.
+ * Non-finite inputs (NaN, ±Infinity) return min as a safe fallback.
+ *
+ * Centralizes the repeated `Math.max(min, Math.min(value, max))` pattern
+ * used across opacity clamping, padding bounds, position clamping, etc.
+ *
+ * @param value - The number to clamp
+ * @param min - Lower bound (inclusive)
+ * @param max - Upper bound (inclusive)
+ * @returns Clamped value
+ */
+export function clamp(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
+  return Math.max(min, Math.min(value, max));
+}
+
+/**
  * Compute a success-rate percentage from total calls and error count.
  * Returns null if totalCalls is 0 (avoids division by zero).
  *
