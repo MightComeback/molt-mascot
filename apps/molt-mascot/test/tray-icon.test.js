@@ -457,6 +457,18 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, pluginStartedAt: -1 })).not.toContain('🔌');
     });
 
+    it('shows last reset time when lastResetAt is provided', () => {
+      const now = 1700000000000;
+      const tip = buildTrayTooltip({ ...base, lastResetAt: now - 300000, now });
+      expect(tip).toContain('🔄 reset 5m');
+    });
+
+    it('omits last reset when lastResetAt is not provided or zero', () => {
+      expect(buildTrayTooltip({ ...base })).not.toContain('🔄 reset');
+      expect(buildTrayTooltip({ ...base, lastResetAt: 0 })).not.toContain('🔄 reset');
+      expect(buildTrayTooltip({ ...base, lastResetAt: null })).not.toContain('🔄 reset');
+    });
+
     it('shows last message gap when >= 5s and connected', () => {
       const now = Date.now();
       const tip = buildTrayTooltip({ ...base, uptimeStr: '10m', lastMessageAt: now - 8000, now });

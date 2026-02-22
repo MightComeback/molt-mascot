@@ -170,11 +170,12 @@ function renderTraySprite(scale, opts) {
  * @param {number} [params.pluginStartedAt] - Plugin start timestamp (for uptime display in tooltip)
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
+ * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -242,6 +243,9 @@ function buildTrayTooltip(params) {
   }
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
     parts.push(`🔌 plugin up ${formatElapsed(pluginStartedAt, now)}`);
+  }
+  if (typeof lastResetAt === 'number' && lastResetAt > 0) {
+    parts.push(`🔄 reset ${formatElapsed(lastResetAt, now)} ago`);
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
     parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
