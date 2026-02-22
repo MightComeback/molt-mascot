@@ -191,6 +191,43 @@ describe('resolveStatusConfig', () => {
     const status = resolveStatusConfig(makeParams({ env: { gatewayToken: 'tok' } }));
     expect(status.config.gatewayToken).toBe(true);
   });
+
+  it('OPENCLAW_GATEWAY_URL fallback works', () => {
+    const status = resolveStatusConfig(makeParams({ env: { OPENCLAW_GATEWAY_URL: 'ws://openclaw:555' } }));
+    expect(status.config.gatewayUrl).toBe('ws://openclaw:555');
+  });
+
+  it('OPENCLAW_GATEWAY_TOKEN fallback sets gatewayToken', () => {
+    const status = resolveStatusConfig(makeParams({ env: { OPENCLAW_GATEWAY_TOKEN: 'tok' } }));
+    expect(status.config.gatewayToken).toBe(true);
+  });
+
+  it('MOLT_MASCOT_GATEWAY_URL takes priority over OPENCLAW_GATEWAY_URL', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_GATEWAY_URL: 'ws://molt:111', OPENCLAW_GATEWAY_URL: 'ws://openclaw:222' },
+    }));
+    expect(status.config.gatewayUrl).toBe('ws://molt:111');
+  });
+
+  it('noTray defaults to false', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.config.noTray).toBe(false);
+  });
+
+  it('MOLT_MASCOT_NO_TRAY env sets noTray', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_NO_TRAY: '1' } }));
+    expect(status.config.noTray).toBe(true);
+  });
+
+  it('noShortcuts defaults to false', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.config.noShortcuts).toBe(false);
+  });
+
+  it('MOLT_MASCOT_NO_SHORTCUTS env sets noShortcuts', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_NO_SHORTCUTS: '1' } }));
+    expect(status.config.noShortcuts).toBe(true);
+  });
 });
 
 describe('formatStatusText', () => {
