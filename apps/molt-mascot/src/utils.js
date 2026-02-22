@@ -448,6 +448,13 @@ export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageA
     if (quality === 'poor') return 'degraded';
   }
 
+  // Jitter check: high jitter indicates an unstable connection even when median latency looks fine.
+  // Threshold: jitter >200ms absolute OR jitter >150% of median (whichever triggers first).
+  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
+    if (latencyStats.jitter > 200) return 'degraded';
+    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 1.5) return 'degraded';
+  }
+
   // Connection success rate check
   if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < 80) return 'degraded';
 

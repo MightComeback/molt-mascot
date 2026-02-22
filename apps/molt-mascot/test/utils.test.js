@@ -1174,6 +1174,33 @@ describe("computeHealthStatus", () => {
     })).toBe("degraded");
   });
 
+  it("returns degraded when jitter exceeds 200ms", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 40,
+      latencyStats: { median: 40, jitter: 250, samples: 10 },
+      now,
+    })).toBe("degraded");
+  });
+
+  it("returns degraded when jitter exceeds 150% of median", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 30,
+      latencyStats: { median: 50, jitter: 80, samples: 10 },
+      now,
+    })).toBe("degraded");
+  });
+
+  it("returns healthy when jitter is moderate", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 30,
+      latencyStats: { median: 40, jitter: 50, samples: 10 },
+      now,
+    })).toBe("healthy");
+  });
+
   it("returns healthy when all signals are good", () => {
     expect(computeHealthStatus({
       isConnected: true,
