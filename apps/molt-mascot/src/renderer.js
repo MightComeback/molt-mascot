@@ -257,6 +257,24 @@ const _pluginSync = createPluginSync({
   },
 });
 
+/**
+ * Compute the current health status from live renderer state.
+ * Centralizes the repeated computeHealthStatus() call pattern used by
+ * syncPill(), buildDebugInfo(), and showContextMenu().
+ */
+function currentHealthStatus() {
+  return computeHealthStatus({
+    isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
+    isPollingPaused: document.hidden,
+    lastMessageAt: lastMessageAt || null,
+    latencyMs,
+    latencyStats: getLatencyStats(),
+    connectionSuccessRate: sessionAttemptCount > 0
+      ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+      : null,
+  });
+}
+
 // Track the last mode reported to the main process (including 'sleeping') to avoid
 // redundant IPC and to enable sleeping-state tray icon dot.
 let _lastReportedMode = 'idle';
@@ -331,16 +349,7 @@ function syncPill() {
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  const _healthStatus = computeHealthStatus({
-    isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
-    isPollingPaused: document.hidden,
-    lastMessageAt: lastMessageAt || null,
-    latencyMs,
-    latencyStats: getLatencyStats(),
-    connectionSuccessRate: sessionAttemptCount > 0
-      ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
-      : null,
-  });
+  const _healthStatus = currentHealthStatus();
   const tip = buildTooltip({
     displayMode: effectiveMode,
     durationSec: duration,
@@ -1291,16 +1300,7 @@ function buildDebugInfo() {
     instanceId: INSTANCE_ID,
     lastResetAt: pluginLastResetAt,
     pid: window.moltMascot?.pid,
-    healthStatus: computeHealthStatus({
-      isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
-      isPollingPaused: document.hidden,
-      lastMessageAt: lastMessageAt || null,
-      latencyMs,
-      latencyStats: getLatencyStats(),
-      connectionSuccessRate: sessionAttemptCount > 0
-        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
-        : null,
-    }),
+    healthStatus: currentHealthStatus(),
   });
 }
 
@@ -1337,16 +1337,7 @@ function showContextMenu(e) {
     sleepThresholdS: SLEEP_THRESHOLD_S,
     appVersion: window.moltMascot?.version,
     isMac,
-    healthStatus: computeHealthStatus({
-      isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
-      isPollingPaused: document.hidden,
-      lastMessageAt: lastMessageAt || null,
-      latencyMs,
-      latencyStats: getLatencyStats(),
-      connectionSuccessRate: sessionAttemptCount > 0
-        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
-        : null,
-    }),
+    healthStatus: currentHealthStatus(),
   });
 
   // Map descriptor IDs to action callbacks
