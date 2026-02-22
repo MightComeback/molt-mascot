@@ -341,4 +341,39 @@ describe("createPrefsManager", () => {
       expect(data.b).toBe(2);
     });
   });
+
+  describe("getAll", () => {
+    it("returns empty object when no prefs exist", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.getAll()).toEqual({});
+    });
+
+    it("returns persisted preferences", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1, b: 2 }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.getAll()).toEqual({ a: 1, b: 2 });
+    });
+
+    it("includes pending unsaved writes", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1 }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ b: 2 });
+      const all = mgr.getAll();
+      expect(all).toEqual({ a: 1, b: 2 });
+    });
+
+    it("returns a safe copy (mutations don't affect internal state)", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ x: 10 });
+      const copy = mgr.getAll();
+      copy.x = 999;
+      expect(mgr.get("x")).toBe(10);
+    });
+
+    it("excludes keys set to undefined", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ a: 1, b: undefined });
+      expect(mgr.getAll()).toEqual({ a: 1 });
+    });
+  });
 });

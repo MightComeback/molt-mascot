@@ -174,7 +174,23 @@ function createPrefsManager(filePath, opts = {}) {
     save({ [key]: value });
   }
 
-  return { load, save, set, remove, flush, clear, has, get, keys, filePath };
+  /**
+   * Return a shallow copy of all current preferences (pending + persisted).
+   * Unlike load(), includes any unsaved pending writes.
+   * Returns a plain object safe to mutate without affecting internal state.
+   *
+   * @returns {object} Shallow copy of all preference key-value pairs
+   */
+  function getAll() {
+    const current = _pending || load();
+    const result = {};
+    for (const k of Object.keys(current)) {
+      if (current[k] !== undefined) result[k] = current[k];
+    }
+    return result;
+  }
+
+  return { load, save, set, remove, flush, clear, has, get, getAll, keys, filePath };
 }
 
 module.exports = { createPrefsManager };
