@@ -308,4 +308,37 @@ describe("createPrefsManager", () => {
       expect(k).not.toContain("b");
     });
   });
+
+  describe("set", () => {
+    it("sets a single key-value pair", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.set("alignment", "top-left");
+      expect(mgr.get("alignment")).toBe("top-left");
+    });
+
+    it("overwrites an existing key", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ size: "small" }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.set("size", "large");
+      expect(mgr.get("size")).toBe("large");
+    });
+
+    it("persists after flush", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.set("opacity", 0.5);
+      mgr.flush();
+      const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+      expect(data.opacity).toBe(0.5);
+    });
+
+    it("batches with pending save() calls", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ a: 1 });
+      mgr.set("b", 2);
+      mgr.flush();
+      const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+      expect(data.a).toBe(1);
+      expect(data.b).toBe(2);
+    });
+  });
 });

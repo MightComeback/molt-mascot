@@ -162,7 +162,19 @@ function createPrefsManager(filePath, opts = {}) {
     return Object.keys(current).filter((k) => current[k] !== undefined);
   }
 
-  return { load, save, remove, flush, clear, has, get, keys, filePath };
+  /**
+   * Set a single preference key-value pair.
+   * Convenience wrapper around save() for single-key updates.
+   * Debounced like save() — batches with any pending writes.
+   *
+   * @param {string} key - Preference key to set
+   * @param {*} value - Value to store
+   */
+  function set(key, value) {
+    save({ [key]: value });
+  }
+
+  return { load, save, set, remove, flush, clear, has, get, keys, filePath };
 }
 
 module.exports = { createPrefsManager };
