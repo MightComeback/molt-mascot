@@ -32,6 +32,7 @@ import { capitalize, truncate, formatDuration } from './utils.js';
  * @param {boolean} [params.isClickThrough] - Ghost mode active
  * @param {number} [params.activeAgents] - Number of active agent sessions (shown when >1 in thinking/tool modes)
  * @param {number} [params.activeTools] - Number of in-flight tool calls (shown when >1 in tool mode)
+ * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown in connecting/disconnected modes)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -47,6 +48,7 @@ export function buildPillLabel(params) {
     isClickThrough = false,
     activeAgents = 0,
     activeTools = 0,
+    reconnectAttempt = 0,
     now: nowOverride,
   } = params;
 
@@ -72,11 +74,14 @@ export function buildPillLabel(params) {
       }
     }
   } else if (mode === 'connecting' && duration > 2) {
-    label = `Connecting… ${formatDuration(duration)}`;
+    label = reconnectAttempt > 1
+      ? `Connecting… ${formatDuration(duration)} #${reconnectAttempt}`
+      : `Connecting… ${formatDuration(duration)}`;
   } else if (mode === 'disconnected') {
+    const retrySuffix = reconnectAttempt > 0 ? ` #${reconnectAttempt}` : '';
     label = lastCloseDetail
-      ? truncate(`Disconnected: ${lastCloseDetail}`, 40)
-      : `Disconnected ${formatDuration(duration)}`;
+      ? truncate(`Disconnected: ${lastCloseDetail}`, 40 - retrySuffix.length) + retrySuffix
+      : `Disconnected ${formatDuration(duration)}${retrySuffix}`;
   } else if (mode === 'thinking') {
     if (duration > 2) {
       label = activeAgents > 1
