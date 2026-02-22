@@ -4,6 +4,10 @@
  *
  * Maintains a fixed-size ring buffer of latency samples and computes
  * min/max/avg/median/p95/jitter on demand (cached until next push).
+ *
+ * Uses a ring buffer internally to avoid O(n) Array.shift() on every push
+ * when the buffer is at capacity. The previous implementation used a plain
+ * array with push/shift, which copies all elements on each eviction.
  */
 
 const DEFAULT_BUFFER_MAX = 60;
@@ -16,31 +20,45 @@ const DEFAULT_BUFFER_MAX = 60;
  */
 export function createLatencyTracker(opts = {}) {
   const maxSamples = opts.maxSamples ?? DEFAULT_BUFFER_MAX;
-  const buffer = [];
+  // Ring buffer: head points to the next write slot; _count tracks filled slots.
+  const ring = new Array(maxSamples);
+  let head = 0;
+  let _count = 0;
   let cache = null;
 
   function push(ms) {
     if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return;
-    buffer.push(ms);
-    if (buffer.length > maxSamples) buffer.shift();
+    ring[head] = ms;
+    head = (head + 1) % maxSamples;
+    if (_count < maxSamples) _count++;
     cache = null;
   }
 
+  /** Materialize the ring buffer into an ordered array (oldest → newest). */
+  function _toArray() {
+    if (_count === 0) return [];
+    if (_count < maxSamples) return ring.slice(0, _count);
+    // Buffer is full: head points to the oldest entry
+    return ring.slice(head).concat(ring.slice(0, head));
+  }
+
   function stats() {
-    if (buffer.length === 0) return null;
+    if (_count === 0) return null;
     if (cache) return cache;
 
+    // Read directly from ring to avoid allocation for min/max/sum
     let min = Infinity;
     let max = -Infinity;
     let sum = 0;
-    for (let i = 0; i < buffer.length; i++) {
-      const v = buffer[i];
+    const start = _count < maxSamples ? 0 : head;
+    for (let i = 0; i < _count; i++) {
+      const v = ring[(start + i) % maxSamples];
       if (v < min) min = v;
       if (v > max) max = v;
       sum += v;
     }
 
-    const sorted = buffer.slice().sort((a, b) => a - b);
+    const sorted = _toArray().sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     const median = sorted.length % 2 === 0
       ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
@@ -52,13 +70,13 @@ export function createLatencyTracker(opts = {}) {
     const p99Idx = Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1);
     const p99 = Math.round(sorted[Math.max(0, p99Idx)]);
 
-    const avg = sum / buffer.length;
+    const avg = sum / _count;
     let sqDiffSum = 0;
-    for (let i = 0; i < buffer.length; i++) {
-      const diff = buffer[i] - avg;
+    for (let i = 0; i < _count; i++) {
+      const diff = ring[(start + i) % maxSamples] - avg;
       sqDiffSum += diff * diff;
     }
-    const jitter = Math.round(Math.sqrt(sqDiffSum / buffer.length));
+    const jitter = Math.round(Math.sqrt(sqDiffSum / _count));
 
     cache = {
       min: Math.round(min),
@@ -68,18 +86,19 @@ export function createLatencyTracker(opts = {}) {
       p95,
       p99,
       jitter,
-      samples: buffer.length,
+      samples: _count,
     };
     return cache;
   }
 
   function reset() {
-    buffer.length = 0;
+    head = 0;
+    _count = 0;
     cache = null;
   }
 
   function samples() {
-    return buffer.slice();
+    return _toArray();
   }
 
   /**
@@ -89,7 +108,7 @@ export function createLatencyTracker(opts = {}) {
    * @returns {number}
    */
   function count() {
-    return buffer.length;
+    return _count;
   }
 
   /**
@@ -102,7 +121,7 @@ export function createLatencyTracker(opts = {}) {
   function getSnapshot() {
     return {
       stats: stats(),
-      count: buffer.length,
+      count: _count,
       maxSamples,
     };
   }
