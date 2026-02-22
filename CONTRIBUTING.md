@@ -13,9 +13,13 @@ molt-mascot/
 │   │   ├── draw.js            # Sprite drawing + cache + blink state
 │   │   ├── sprites.js         # Pixel art data (32×32 grids)
 │   │   ├── context-menu.js    # Right-click menu (a11y, keyboard nav)
+│   │   ├── context-menu-items.js # Menu item descriptors (pure function, no DOM)
+│   │   ├── pill-label.js      # HUD pill label/class computation (pure function)
 │   │   ├── gateway-client.js  # Extracted WS client class (reconnect, stale detection, plugin polling)
 │   │   ├── plugin-sync.js     # Change-detection for plugin state → IPC dispatch
+│   │   ├── latency-tracker.js # Rolling latency stats (ring buffer, percentiles, jitter)
 │   │   ├── debug-info.js      # Multi-line diagnostic string builder
+│   │   ├── opacity-presets.cjs # Opacity preset cycling logic
 │   │   ├── utils.js           # Shared utilities (re-exports from plugin)
 │   │   ├── tray-icon.cjs      # Pixel-art tray icon renderer with status dot
 │   │   ├── get-position.cjs   # Window positioning (alignment × padding)
