@@ -207,10 +207,10 @@ export function buildTooltip(params) {
     tip += ` · plugin up ${formatElapsed(pluginStartedAt, now)}`;
   }
   if (pluginToolCalls > 0) {
-    tip += ` · ${pluginToolCalls} calls`;
+    tip += ` · ${formatCount(pluginToolCalls)} calls`;
     if (pluginToolErrors > 0) {
       const rate = successRate(pluginToolCalls, pluginToolErrors);
-      tip += `, ${pluginToolErrors} errors (${rate}% ok)`;
+      tip += `, ${formatCount(pluginToolErrors)} errors (${rate}% ok)`;
     }
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {

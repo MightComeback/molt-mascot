@@ -459,6 +459,13 @@ describe("buildTooltip", () => {
     expect(tip).not.toContain("% ok");
   });
 
+  it("formats large tool counts with compact notation", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 1500, pluginToolErrors: 200 });
+    expect(tip).toContain("1.5K calls");
+    expect(tip).toContain("200 errors");
+    expect(tip).toContain("87% ok");
+  });
+
   it("includes version info", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, appVersion: "1.2.3", pluginVersion: "0.5.0" });
     expect(tip).toContain("v1.2.3");
