@@ -320,7 +320,7 @@ Timing:
   Error hold:      ${errorHoldMs}ms
 
 Preferences file: ${prefsExist ? prefsPath : '(none)'}
-Platform: ${process.platform} ${process.arch}
+${prefsExist && Object.keys(prefs).length > 0 ? `Saved preferences:\n${Object.entries(prefs).map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`).join('\n')}\n` : ''}Platform: ${process.platform} ${process.arch}
 PID: ${process.pid}
 Electron: ${process.versions.electron || 'n/a'}
 Node: ${process.versions.node || 'n/a'}
