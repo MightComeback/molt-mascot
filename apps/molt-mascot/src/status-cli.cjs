@@ -33,13 +33,13 @@ function resolveStatusConfig({
   isTruthyEnv,
   hasBoolFlag,
 }) {
-  const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, VALID_SIZES, findSizePreset } = sizePresets;
+  const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, isValidSize, findSizePreset } = sizePresets;
 
   const resolvedAlign = env.MOLT_MASCOT_ALIGN || prefs.alignment || 'bottom-right';
 
   const resolvedSize = (() => {
     const label = (env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
-    if (label && VALID_SIZES.includes(label)) return label;
+    if (label && isValidSize(label)) return label;
     if (typeof prefs.sizeIndex === 'number' && prefs.sizeIndex >= 0 && prefs.sizeIndex < SIZE_PRESETS.length) {
       return SIZE_PRESETS[prefs.sizeIndex].label;
     }
