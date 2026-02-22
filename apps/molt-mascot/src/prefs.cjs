@@ -190,7 +190,17 @@ function createPrefsManager(filePath, opts = {}) {
     return result;
   }
 
-  return { load, save, set, remove, flush, clear, has, get, getAll, keys, filePath };
+  /**
+   * Return the number of preference keys currently set (pending + persisted).
+   * Convenience for diagnostics (e.g. "12 saved preferences" in --status output).
+   *
+   * @returns {number}
+   */
+  function size() {
+    return keys().length;
+  }
+
+  return { load, save, set, remove, flush, clear, has, get, getAll, keys, size, filePath };
 }
 
 module.exports = { createPrefsManager };

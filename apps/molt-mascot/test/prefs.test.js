@@ -376,4 +376,39 @@ describe("createPrefsManager", () => {
       expect(mgr.getAll()).toEqual({ a: 1 });
     });
   });
+
+  describe("size()", () => {
+    it("returns 0 when no preferences are set", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.size()).toBe(0);
+    });
+
+    it("returns count of persisted preferences", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1, b: 2, c: 3 }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.size()).toBe(3);
+    });
+
+    it("reflects pending unsaved writes", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1 }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ b: 2 });
+      expect(mgr.size()).toBe(2);
+    });
+
+    it("decreases after remove", () => {
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.save({ x: 1, y: 2, z: 3 });
+      expect(mgr.size()).toBe(3);
+      mgr.remove("y");
+      expect(mgr.size()).toBe(2);
+    });
+
+    it("returns 0 after clear", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ a: 1 }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 99999 });
+      mgr.clear();
+      expect(mgr.size()).toBe(0);
+    });
+  });
 });
