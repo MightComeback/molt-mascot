@@ -136,7 +136,22 @@ function createPrefsManager(filePath, opts = {}) {
     return key in current && current[key] !== undefined;
   }
 
-  return { load, save, remove, flush, clear, has, filePath };
+  /**
+   * Get a single preference value by key.
+   * Considers pending (unsaved) writes first, then falls back to persisted values.
+   * Returns the provided default (or undefined) if the key is not set.
+   *
+   * @param {string} key - Preference key to retrieve
+   * @param {*} [defaultValue] - Value to return if the key is not set
+   * @returns {*} The preference value, or defaultValue if not found
+   */
+  function get(key, defaultValue) {
+    const current = _pending || load();
+    if (key in current && current[key] !== undefined) return current[key];
+    return defaultValue;
+  }
+
+  return { load, save, remove, flush, clear, has, get, filePath };
 }
 
 module.exports = { createPrefsManager };

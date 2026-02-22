@@ -233,4 +233,45 @@ describe("createPrefsManager", () => {
       expect(mgr.has("alignment")).toBe(false);
     });
   });
+
+  describe("get", () => {
+    it("returns undefined when file does not exist and no default", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.get("alignment")).toBeUndefined();
+    });
+
+    it("returns the default when key is not set", () => {
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.get("alignment", "bottom-right")).toBe("bottom-right");
+    });
+
+    it("returns persisted value", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.get("alignment")).toBe("top-left");
+    });
+
+    it("returns pending (unsaved) value over persisted", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+      mgr.save({ alignment: "center" });
+      expect(mgr.get("alignment")).toBe("center");
+    });
+
+    it("returns default after key is removed", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left" }));
+      const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+      mgr.remove("alignment");
+      expect(mgr.get("alignment", "fallback")).toBe("fallback");
+    });
+
+    it("returns falsy values (0, false, empty string) without falling back", () => {
+      fs.writeFileSync(prefsPath, JSON.stringify({ count: 0, enabled: false, name: "" }));
+      const mgr = createPrefsManager(prefsPath);
+      expect(mgr.get("count", 99)).toBe(0);
+      expect(mgr.get("enabled", true)).toBe(false);
+      // Empty string is falsy but not undefined, so it should be returned
+      expect(mgr.get("name", "default")).toBe("");
+    });
+  });
 });
