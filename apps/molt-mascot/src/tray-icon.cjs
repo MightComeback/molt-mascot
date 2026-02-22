@@ -208,7 +208,11 @@ function buildTrayTooltip(params) {
       // indicating intermittent spikes worth investigating.
       const showP95 = typeof latencyStats.p95 === 'number' && latencyStats.median > 0 && latencyStats.p95 > latencyStats.median * 2;
       const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : '';
-      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str})`;
+      // Show jitter when it exceeds 50% of median — indicates unstable connection
+      // worth investigating even if median looks fine.
+      const showJitter = typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5;
+      const jitterStr = showJitter ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
+      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${jitterStr})`;
     }
     // Append a quality label when median stats are available (more stable than instant latency).
     const qualitySource = (latencyStats && typeof latencyStats.median === 'number' && latencyStats.samples > 1)

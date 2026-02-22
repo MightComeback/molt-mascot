@@ -634,7 +634,7 @@ export class GatewayClient {
    * Compute min/max/avg latency from the rolling buffer.
    * Returns null if no samples are available.
    *
-   * @returns {{ min: number, max: number, avg: number, median: number, p95: number, samples: number } | null}
+   * @returns {{ min: number, max: number, avg: number, median: number, p95: number, jitter: number, samples: number } | null}
    */
   get latencyStats() {
     const buf = this._latencyBuffer;
@@ -652,6 +652,16 @@ export class GatewayClient {
       if (v > max) max = v;
       sum += v;
     }
+    const avg = sum / buf.length;
+    // Jitter: standard deviation of latency samples. High jitter indicates
+    // an unstable connection even when median/avg look acceptable.
+    // Uses population stddev (not sample) since we have the full rolling window.
+    let sqDiffSum = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const diff = buf[i] - avg;
+      sqDiffSum += diff * diff;
+    }
+    const jitter = Math.round(Math.sqrt(sqDiffSum / buf.length));
     // Median is more meaningful than average for latency because it's robust
     // against outlier spikes (e.g. a single 2s GC pause doesn't skew it).
     const sorted = buf.slice().sort((a, b) => a - b);
@@ -666,9 +676,10 @@ export class GatewayClient {
     this._latencyStatsCache = {
       min: Math.round(min),
       max: Math.round(max),
-      avg: Math.round(sum / buf.length),
+      avg: Math.round(avg),
       median,
       p95,
+      jitter,
       samples: buf.length,
     };
     return this._latencyStatsCache;

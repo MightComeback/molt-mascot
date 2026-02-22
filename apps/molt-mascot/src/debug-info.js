@@ -198,7 +198,8 @@ export function buildDebugInfo(params) {
   if (latencyStats && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
     const medianStr = typeof latencyStats.median === 'number' ? `, median ${latencyStats.median}ms` : '';
     const p95Str = typeof latencyStats.p95 === 'number' ? `, p95 ${latencyStats.p95}ms` : '';
-    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str} (${latencyStats.samples} samples)`);
+    const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${latencyStats.jitter}ms` : '';
+    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${jitterStr} (${latencyStats.samples} samples)`);
   }
   if (pluginToolCalls > 0) {
     const rateSuffix = pluginToolErrors > 0
