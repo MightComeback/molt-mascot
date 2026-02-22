@@ -30,6 +30,7 @@
  * @property {Object|null} latencyStats - Stats object with numeric samples, or null
  * @property {number|null} pluginStartedAt - Positive epoch ms, or null
  * @property {number|null} lastResetAt - Positive epoch ms, or null
+ * @property {"healthy"|"degraded"|"unhealthy"|null} healthStatus - At-a-glance health assessment, or null
  */
 
 /**
@@ -61,6 +62,17 @@ function nonNegInt(v) {
 function posEpoch(v) {
   if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) return null;
   return v;
+}
+
+/**
+ * Validate a health status string against the known set of values.
+ * @param {*} v
+ * @returns {"healthy"|"degraded"|"unhealthy"|null}
+ */
+const VALID_HEALTH = ['healthy', 'degraded', 'unhealthy'];
+function validHealthStatus(v) {
+  if (typeof v !== 'string') return null;
+  return VALID_HEALTH.includes(v) ? v : null;
 }
 
 /**
@@ -107,7 +119,8 @@ function parseModeUpdate(raw) {
       : null,
     pluginStartedAt: posEpoch(update.pluginStartedAt),
     lastResetAt: posEpoch(update.lastResetAt),
+    healthStatus: validHealthStatus(update.healthStatus),
   };
 }
 
-module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr };
+module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validHealthStatus };

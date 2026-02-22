@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validHealthStatus } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -69,6 +69,23 @@ describe('parse-mode-update', () => {
     });
   });
 
+  describe('validHealthStatus', () => {
+    it('accepts known health status values', () => {
+      expect(validHealthStatus('healthy')).toBe('healthy');
+      expect(validHealthStatus('degraded')).toBe('degraded');
+      expect(validHealthStatus('unhealthy')).toBe('unhealthy');
+    });
+
+    it('rejects unknown strings and non-strings', () => {
+      expect(validHealthStatus('excellent')).toBeNull();
+      expect(validHealthStatus('')).toBeNull();
+      expect(validHealthStatus(null)).toBeNull();
+      expect(validHealthStatus(undefined)).toBeNull();
+      expect(validHealthStatus(42)).toBeNull();
+      expect(validHealthStatus(true)).toBeNull();
+    });
+  });
+
   describe('parseModeUpdate', () => {
     it('parses a full valid payload', () => {
       const result = parseModeUpdate({
@@ -90,6 +107,7 @@ describe('parse-mode-update', () => {
         latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 10 },
         pluginStartedAt: 1700000000000,
         lastResetAt: 1700000050000,
+        healthStatus: 'degraded',
       });
 
       expect(result.mode).toBe('thinking');
@@ -110,6 +128,7 @@ describe('parse-mode-update', () => {
       expect(result.latencyStats).toEqual({ min: 30, max: 80, avg: 45, median: 38, samples: 10 });
       expect(result.pluginStartedAt).toBe(1700000000000);
       expect(result.lastResetAt).toBe(1700000050000);
+      expect(result.healthStatus).toBe('degraded');
     });
 
     it('returns all nulls for empty object', () => {
@@ -132,6 +151,7 @@ describe('parse-mode-update', () => {
       expect(result.latencyStats).toBeNull();
       expect(result.pluginStartedAt).toBeNull();
       expect(result.lastResetAt).toBeNull();
+      expect(result.healthStatus).toBeNull();
     });
 
     it('handles null/undefined input gracefully', () => {
