@@ -380,6 +380,20 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, processUptimeS: -1 })).not.toContain('🕐');
     });
 
+    it('shows process memory RSS when processMemoryRssBytes is provided', () => {
+      const tip = buildTrayTooltip({ ...base, processMemoryRssBytes: 52428800 }); // 50 MB
+      expect(tip).toContain('🧠 50.0 MB');
+    });
+
+    it('omits process memory when not provided', () => {
+      expect(buildTrayTooltip({ ...base })).not.toContain('🧠');
+    });
+
+    it('omits process memory when zero or negative', () => {
+      expect(buildTrayTooltip({ ...base, processMemoryRssBytes: 0 })).not.toContain('🧠');
+      expect(buildTrayTooltip({ ...base, processMemoryRssBytes: -1 })).not.toContain('🧠');
+    });
+
     it('shows reconnect count when sessionConnectCount > 1', () => {
       const tip = buildTrayTooltip({ ...base, sessionConnectCount: 4 });
       expect(tip).toContain('↻3 reconnects');

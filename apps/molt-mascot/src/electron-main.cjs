@@ -770,6 +770,7 @@ app.whenReady().then(async () => {
       lastErrorMessage: currentErrorMessage,
       modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
       processUptimeS: process.uptime(),
+      processMemoryRssBytes: process.memoryUsage.rss(),
       sessionConnectCount,
       sessionAttemptCount,
       toolCalls: currentToolCalls,
