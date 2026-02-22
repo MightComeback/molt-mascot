@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import { createLatencyTracker } from './latency-tracker.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
@@ -126,6 +126,8 @@ export class GatewayClient {
     this.onDisconnect = null;
     /** @type {((error: string) => void)|null} */
     this.onError = null;
+    /** @type {((info: { code?: number, reason?: string, detail?: string }) => void)|null} Called when a fatal (non-recoverable) close code is received and auto-reconnect is stopped. Consumer should show the setup form instead of waiting for retry. */
+    this.onFatalClose = null;
     /** @type {(() => void)|null} Called on disconnect so consumers can clear cached plugin config (clickThrough, alignment, etc.) */
     this.onPluginStateReset = null;
   }
@@ -406,6 +408,15 @@ export class GatewayClient {
 
       this.onPluginStateReset?.();
       this.onDisconnect?.({ code: ev?.code, reason: this.lastCloseReason || undefined });
+
+      // Stop auto-reconnect on fatal close codes (auth failed, protocol error,
+      // forbidden, etc.) — retrying with the same bad credentials is pointless.
+      if (!isRecoverableCloseCode(ev?.code)) {
+        const detail = formatCloseDetail(ev?.code, this.lastCloseReason);
+        this.onConnectionStateChange?.('disconnected', detail || 'fatal close');
+        this.onFatalClose?.({ code: ev?.code, reason: this.lastCloseReason || undefined, detail: detail || undefined });
+        return;
+      }
 
       const delay = this._getReconnectDelay();
       const reconnectAt = Date.now() + delay;

@@ -897,4 +897,48 @@ describe('GatewayClient', () => {
       expect(status.healthStatus).toBe('unhealthy');
     });
   });
+
+  describe('fatal close codes', () => {
+    it('stops auto-reconnect on fatal close code (auth failed 4001)', () => {
+      const fatalCalls = [];
+      const countdownCalls = [];
+      client.onFatalClose = (info) => fatalCalls.push(info);
+      client.onReconnectCountdown = (s) => countdownCalls.push(s);
+
+      client.connect({ url: 'ws://example.com' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      // Complete handshake
+      ws._message({ type: 'res', id: JSON.parse(ws._sent[0]).id, payload: { type: 'hello-ok' } });
+      expect(client.isConnected).toBe(true);
+
+      // Fatal close
+      ws._close(4001, 'auth failed');
+
+      expect(fatalCalls).toHaveLength(1);
+      expect(fatalCalls[0].code).toBe(4001);
+      expect(fatalCalls[0].detail).toContain('auth failed');
+      // No reconnect countdown should have started
+      expect(countdownCalls).toHaveLength(0);
+    });
+
+    it('still auto-reconnects on recoverable close code (1006)', () => {
+      const fatalCalls = [];
+      const countdownCalls = [];
+      client.onFatalClose = (info) => fatalCalls.push(info);
+      client.onReconnectCountdown = (s) => countdownCalls.push(s);
+
+      client.connect({ url: 'ws://example.com' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      ws._message({ type: 'res', id: JSON.parse(ws._sent[0]).id, payload: { type: 'hello-ok' } });
+
+      // Recoverable close
+      ws._close(1006, '');
+
+      expect(fatalCalls).toHaveLength(0);
+      // Reconnect countdown should have started (reconnect is scheduled via setTimeout)
+      expect(countdownCalls.length).toBeGreaterThan(0);
+    });
+  });
 });
