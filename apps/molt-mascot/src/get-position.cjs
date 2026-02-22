@@ -7,13 +7,19 @@ const { allowedAlignments } = require('@molt/mascot-plugin');
 const VALID_ALIGNMENTS = Object.freeze([...allowedAlignments]);
 
 /**
+ * Internal Set for O(1) alignment validation lookups.
+ * Alignments are already lowercase in the canonical list.
+ */
+const _VALID_ALIGNMENTS_SET = new Set(VALID_ALIGNMENTS);
+
+/**
  * Check whether a string is a recognized alignment value (case-insensitive).
  * @param {string} value
  * @returns {boolean}
  */
 function isValidAlignment(value) {
   if (typeof value !== 'string') return false;
-  return VALID_ALIGNMENTS.includes(value.trim().toLowerCase());
+  return _VALID_ALIGNMENTS_SET.has(value.trim().toLowerCase());
 }
 
 /**

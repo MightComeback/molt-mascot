@@ -53,13 +53,18 @@ function resolveSizePreset(label) {
 const VALID_SIZES = Object.freeze(SIZE_PRESETS.map(p => p.label));
 
 /**
+ * Internal Set for O(1) size validation lookups.
+ */
+const _VALID_SIZES_SET = new Set(VALID_SIZES);
+
+/**
  * Check whether a string is a recognized size preset label (case-insensitive).
  * @param {*} value
  * @returns {boolean}
  */
 function isValidSize(value) {
   if (typeof value !== 'string') return false;
-  return VALID_SIZES.includes(value.trim().toLowerCase());
+  return _VALID_SIZES_SET.has(value.trim().toLowerCase());
 }
 
 /**

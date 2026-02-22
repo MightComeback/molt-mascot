@@ -20,6 +20,13 @@ const MODE_EMOJI = Object.freeze({
 const VALID_MODES = Object.freeze(Object.keys(MODE_EMOJI));
 
 /**
+ * Internal Set for O(1) mode validation lookups.
+ * Used by isValidMode() on every IPC message — Set.has() avoids the
+ * linear scan of Array.includes() (8 modes today, but good hygiene).
+ */
+const _VALID_MODES_SET = new Set(VALID_MODES);
+
+/**
  * Check whether a string is a recognized mascot mode (case-sensitive).
  * Useful for validating mode values from external sources (plugin state,
  * IPC messages, config) without scattering ad-hoc `in` checks everywhere.
@@ -29,7 +36,7 @@ const VALID_MODES = Object.freeze(Object.keys(MODE_EMOJI));
  */
 function isValidMode(value) {
   if (typeof value !== 'string') return false;
-  return VALID_MODES.includes(value);
+  return _VALID_MODES_SET.has(value);
 }
 
 module.exports = { MODE_EMOJI, VALID_MODES, isValidMode };
