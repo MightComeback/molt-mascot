@@ -35,6 +35,8 @@ describe('resolveStatusConfig', () => {
     expect(status.config.clickThrough).toBe(false);
     expect(status.config.hideText).toBe(false);
     expect(status.config.reducedMotion).toBe(false);
+    expect(status.config.startHidden).toBe(false);
+    expect(status.config.disableGpu).toBe(false);
     expect(status.config.minProtocol).toBe(2);
     expect(status.config.maxProtocol).toBe(3);
     expect(status.timing.sleepThresholdS).toBe(120);
@@ -109,6 +111,26 @@ describe('resolveStatusConfig', () => {
     expect(status.config.height).toBe(250);
   });
 
+  it('--start-hidden flag sets startHidden', () => {
+    const status = resolveStatusConfig(makeParams({ argv: ['--start-hidden'] }));
+    expect(status.config.startHidden).toBe(true);
+  });
+
+  it('MOLT_MASCOT_START_HIDDEN env sets startHidden', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_START_HIDDEN: '1' } }));
+    expect(status.config.startHidden).toBe(true);
+  });
+
+  it('--disable-gpu flag sets disableGpu', () => {
+    const status = resolveStatusConfig(makeParams({ argv: ['--disable-gpu'] }));
+    expect(status.config.disableGpu).toBe(true);
+  });
+
+  it('MOLT_MASCOT_DISABLE_GPU env sets disableGpu', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_DISABLE_GPU: 'true' } }));
+    expect(status.config.disableGpu).toBe(true);
+  });
+
   it('--no-tray flag sets noTray', () => {
     const status = resolveStatusConfig(makeParams({ argv: ['--no-tray'] }));
     expect(status.config.noTray).toBe(true);
@@ -168,6 +190,8 @@ describe('formatStatusText', () => {
     expect(text).toContain('medium');
     expect(text).toContain('100%');
     expect(text).toContain('24px');
+    expect(text).toContain('Start hidden:   false');
+    expect(text).toContain('Disable GPU:    false');
     expect(text).toContain('PID: 12345');
     expect(text).toContain('darwin arm64');
   });

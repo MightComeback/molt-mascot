@@ -68,6 +68,8 @@ function resolveStatusConfig({
   const clickThrough = isTruthyEnv(env.MOLT_MASCOT_CLICK_THROUGH || env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
   const hideText = isTruthyEnv(env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
   const reducedMotion = isTruthyEnv(env.MOLT_MASCOT_REDUCED_MOTION);
+  const startHidden = hasBoolFlag('--start-hidden', argv) || isTruthyEnv(env.MOLT_MASCOT_START_HIDDEN);
+  const disableGpu = hasBoolFlag('--disable-gpu', argv) || isTruthyEnv(env.MOLT_MASCOT_DISABLE_GPU);
   const noTray = hasBoolFlag('--no-tray', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_TRAY);
   const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_SHORTCUTS);
 
@@ -95,6 +97,8 @@ function resolveStatusConfig({
       clickThrough,
       hideText,
       reducedMotion,
+      startHidden,
+      disableGpu,
       noTray,
       noShortcuts,
       minProtocol,
@@ -138,6 +142,8 @@ function formatStatusText(status) {
     `  Ghost mode:     ${c.clickThrough}`,
     `  Hide text:      ${c.hideText}`,
     `  Reduced motion: ${c.reducedMotion}`,
+    `  Start hidden:   ${c.startHidden}`,
+    `  Disable GPU:    ${c.disableGpu}`,
     `  No tray:        ${c.noTray}`,
     `  No shortcuts:   ${c.noShortcuts}`,
     `  Min protocol:   ${c.minProtocol}`,
