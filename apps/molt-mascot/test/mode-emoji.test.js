@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { MODE_EMOJI } from '../src/mode-emoji.cjs';
+import { MODE_EMOJI, VALID_MODES, isValidMode } from '../src/mode-emoji.cjs';
 
 describe('MODE_EMOJI', () => {
   it('is frozen (immutable)', () => {
@@ -40,5 +40,36 @@ describe('MODE_EMOJI', () => {
   it('all emojis are unique', () => {
     const values = Object.values(MODE_EMOJI);
     expect(new Set(values).size).toBe(values.length);
+  });
+});
+
+describe('VALID_MODES', () => {
+  it('is frozen', () => {
+    expect(Object.isFrozen(VALID_MODES)).toBe(true);
+  });
+
+  it('matches MODE_EMOJI keys', () => {
+    expect([...VALID_MODES].sort()).toEqual(Object.keys(MODE_EMOJI).sort());
+  });
+});
+
+describe('isValidMode', () => {
+  it('returns true for all known modes', () => {
+    for (const mode of VALID_MODES) {
+      expect(isValidMode(mode)).toBe(true);
+    }
+  });
+
+  it('returns false for unknown strings', () => {
+    expect(isValidMode('unknown')).toBe(false);
+    expect(isValidMode('IDLE')).toBe(false);
+    expect(isValidMode('')).toBe(false);
+  });
+
+  it('returns false for non-string values', () => {
+    expect(isValidMode(null)).toBe(false);
+    expect(isValidMode(undefined)).toBe(false);
+    expect(isValidMode(42)).toBe(false);
+    expect(isValidMode(true)).toBe(false);
   });
 });
