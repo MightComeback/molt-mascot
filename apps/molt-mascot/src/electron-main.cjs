@@ -768,6 +768,7 @@ app.whenReady().then(async () => {
       latencyStats: currentLatencyStats,
       pluginStartedAt: currentPluginStartedAt,
       lastResetAt: currentLastResetAt,
+      healthStatus: currentHealthStatus,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -952,9 +953,10 @@ app.whenReady().then(async () => {
   let currentLatencyStats = null;
   let currentPluginStartedAt = null;
   let currentLastResetAt = null;
+  let currentHealthStatus = null;
   ipcMain.on('molt-mascot:mode-update', (_event, update) => {
     // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal, pluginStartedAt: pluginStartedAtVal } =
+    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal, pluginStartedAt: pluginStartedAtVal, healthStatus: healthStatusVal } =
       (update && typeof update === 'object') ? update : {};
 
     // Track tool call stats for tray tooltip diagnostics.
@@ -996,6 +998,10 @@ app.whenReady().then(async () => {
     const lastResetAtVal = update?.lastResetAt;
     if (typeof lastResetAtVal === 'number' && lastResetAtVal > 0) currentLastResetAt = lastResetAtVal;
     else if (lastResetAtVal === null) currentLastResetAt = null;
+
+    // Track health status for tray tooltip (degraded/unhealthy warnings).
+    if (typeof healthStatusVal === 'string' && (healthStatusVal === 'healthy' || healthStatusVal === 'degraded' || healthStatusVal === 'unhealthy')) currentHealthStatus = healthStatusVal;
+    else if (healthStatusVal === null) currentHealthStatus = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = (typeof tool === 'string' && tool) ? tool : null;
