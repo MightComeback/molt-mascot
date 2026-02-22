@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `staleSinceMs` getter on `GatewayClient` — returns milliseconds since the last WebSocket message (or null if disconnected), enabling proactive staleness warnings before the auto-reconnect timer fires
 - `toJSON()` method on `GatewayClient` — `JSON.stringify(client)` now returns a clean diagnostic snapshot (delegates to `getStatus()`)
 - `--ping` and `--ping-count=<n>` modes in `ws-dump` for CLI latency measurement (min/avg/median/max summary)
 - `status-cli.cjs` added to architecture tree in CONTRIBUTING.md

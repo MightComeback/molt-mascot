@@ -694,6 +694,16 @@ export class GatewayClient {
   }
 
   /**
+   * Milliseconds since the last WebSocket message, or null if not connected.
+   * Lets consumers show proactive staleness warnings (e.g. "no data for 8s")
+   * before the automatic stale-check timer (default 15s) triggers a reconnect.
+   */
+  get staleSinceMs() {
+    if (this.connectedSince === null || this._lastMessageAt <= 0) return null;
+    return Math.max(0, Date.now() - this._lastMessageAt);
+  }
+
+  /**
    * Return a plain, JSON-serializable snapshot of the client's current state.
    * Useful for debug info export, logging, and diagnostics without manually
    * plucking individual properties.
@@ -729,6 +739,7 @@ export class GatewayClient {
       pluginPollerStarted: this._pluginPollerStarted,
       connectionSuccessRate: this.connectionSuccessRate,
       lastMessageAt: this._lastMessageAt || null,
+      staleSinceMs: this.staleSinceMs,
     };
   }
 

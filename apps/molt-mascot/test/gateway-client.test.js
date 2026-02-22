@@ -702,4 +702,38 @@ describe('GatewayClient', () => {
       expect(client.getStatus().connectionSuccessRate).toBe(75);
     });
   });
+
+  describe('staleSinceMs', () => {
+    it('returns null when not connected', () => {
+      expect(client.staleSinceMs).toBeNull();
+    });
+
+    it('returns null when connected but no messages received yet', () => {
+      client.connectedSince = Date.now();
+      // _lastMessageAt defaults to 0
+      expect(client.staleSinceMs).toBeNull();
+    });
+
+    it('returns ms since last message when connected', () => {
+      const now = Date.now();
+      client.connectedSince = now - 60000;
+      client._lastMessageAt = now - 5000;
+      const stale = client.staleSinceMs;
+      expect(stale).toBeGreaterThanOrEqual(4900); // allow ~100ms test jitter
+      expect(stale).toBeLessThan(6000);
+    });
+
+    it('is included in getStatus()', () => {
+      const now = Date.now();
+      client.connectedSince = now - 60000;
+      client._lastMessageAt = now - 3000;
+      const status = client.getStatus();
+      expect(status.staleSinceMs).toBeGreaterThanOrEqual(2900);
+      expect(status.staleSinceMs).toBeLessThan(4000);
+    });
+
+    it('returns null in getStatus() when disconnected', () => {
+      expect(client.getStatus().staleSinceMs).toBeNull();
+    });
+  });
 });
