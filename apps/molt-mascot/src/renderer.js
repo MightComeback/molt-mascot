@@ -1366,6 +1366,7 @@ function showContextMenu(e) {
     opacity: () => { if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity(); },
     'copy-status': () => { const text = pill.textContent || ''; if (text) navigator.clipboard.writeText(text).then(() => showCopiedFeedback()).catch(() => {}); },
     'copy-debug': () => { if (window.moltMascot?.copyDebugInfo) { window.moltMascot.copyDebugInfo(); showCopiedFeedback(); } else { navigator.clipboard.writeText(buildDebugInfo()).then(() => showCopiedFeedback()).catch(() => {}); } },
+    'copy-gateway-url': () => { const url = connectedUrl || loadCfg()?.url || ''; if (url) navigator.clipboard.writeText(url).then(() => showCopiedFeedback()).catch(() => {}); },
     reconnect: forceReconnectNow,
     'change-gateway': () => { const cfg = loadCfg(); showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' }); },
     hide: () => { if (window.moltMascot?.hide) window.moltMascot.hide(); },
