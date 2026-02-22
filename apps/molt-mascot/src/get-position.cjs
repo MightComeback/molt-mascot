@@ -106,4 +106,45 @@ function isValidPadding(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
-module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding };
+/**
+ * Compute the next alignment index when cycling forward through alignments.
+ * Wraps around to 0 after the last alignment. Mirrors nextSizeIndex / nextOpacityIndex.
+ *
+ * @param {number} currentIndex - Current alignment index
+ * @param {number} [count] - Number of alignments (defaults to VALID_ALIGNMENTS.length)
+ * @returns {number} Next index (wraps around)
+ */
+function nextAlignmentIndex(currentIndex, count) {
+  const n = typeof count === 'number' && count > 0 ? count : VALID_ALIGNMENTS.length;
+  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return 0;
+  return (currentIndex + 1) % n;
+}
+
+/**
+ * Compute the previous alignment index when cycling backward through alignments.
+ * Wraps around to the last alignment when going below 0. Mirrors prevSizeIndex / prevOpacityIndex.
+ *
+ * @param {number} currentIndex - Current alignment index
+ * @param {number} [count] - Number of alignments (defaults to VALID_ALIGNMENTS.length)
+ * @returns {number} Previous index (wraps around)
+ */
+function prevAlignmentIndex(currentIndex, count) {
+  const n = typeof count === 'number' && count > 0 ? count : VALID_ALIGNMENTS.length;
+  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return n - 1;
+  return (currentIndex - 1 + n) % n;
+}
+
+/**
+ * Find the index of an alignment label in VALID_ALIGNMENTS (case-insensitive).
+ * Returns -1 if not found. Mirrors findSizePreset / findOpacityIndex pattern.
+ *
+ * @param {string} alignment - Alignment label to find
+ * @returns {number} Index in VALID_ALIGNMENTS, or -1 if not found
+ */
+function findAlignmentIndex(alignment) {
+  if (typeof alignment !== 'string') return -1;
+  const normalized = alignment.trim().toLowerCase();
+  return VALID_ALIGNMENTS.indexOf(normalized);
+}
+
+module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex };

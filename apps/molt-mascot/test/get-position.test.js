@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex } = require("../src/get-position.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
@@ -264,5 +264,68 @@ describe("isValidPadding", () => {
     expect(isValidPadding("24")).toBe(false);
     expect(isValidPadding(null)).toBe(false);
     expect(isValidPadding(undefined)).toBe(false);
+  });
+});
+
+describe("nextAlignmentIndex", () => {
+  it("cycles forward through alignments", () => {
+    expect(nextAlignmentIndex(0)).toBe(1);
+    expect(nextAlignmentIndex(1)).toBe(2);
+  });
+
+  it("wraps around at the end", () => {
+    expect(nextAlignmentIndex(VALID_ALIGNMENTS.length - 1)).toBe(0);
+  });
+
+  it("returns 0 for invalid input", () => {
+    expect(nextAlignmentIndex(-1)).toBe(0);
+    expect(nextAlignmentIndex(NaN)).toBe(0);
+    expect(nextAlignmentIndex(null)).toBe(0);
+    expect(nextAlignmentIndex(undefined)).toBe(0);
+    expect(nextAlignmentIndex(1.5)).toBe(0);
+  });
+
+  it("respects custom count", () => {
+    expect(nextAlignmentIndex(2, 4)).toBe(3);
+    expect(nextAlignmentIndex(3, 4)).toBe(0);
+  });
+});
+
+describe("prevAlignmentIndex", () => {
+  it("cycles backward through alignments", () => {
+    expect(prevAlignmentIndex(2)).toBe(1);
+    expect(prevAlignmentIndex(1)).toBe(0);
+  });
+
+  it("wraps around at the start", () => {
+    expect(prevAlignmentIndex(0)).toBe(VALID_ALIGNMENTS.length - 1);
+  });
+
+  it("returns last index for invalid input", () => {
+    expect(prevAlignmentIndex(-1)).toBe(VALID_ALIGNMENTS.length - 1);
+    expect(prevAlignmentIndex(NaN)).toBe(VALID_ALIGNMENTS.length - 1);
+    expect(prevAlignmentIndex(null)).toBe(VALID_ALIGNMENTS.length - 1);
+    expect(prevAlignmentIndex(undefined)).toBe(VALID_ALIGNMENTS.length - 1);
+  });
+
+  it("respects custom count", () => {
+    expect(prevAlignmentIndex(0, 4)).toBe(3);
+    expect(prevAlignmentIndex(1, 4)).toBe(0);
+  });
+});
+
+describe("findAlignmentIndex", () => {
+  it("finds valid alignments (case-insensitive)", () => {
+    expect(findAlignmentIndex("bottom-right")).toBe(VALID_ALIGNMENTS.indexOf("bottom-right"));
+    expect(findAlignmentIndex("TOP-LEFT")).toBe(VALID_ALIGNMENTS.indexOf("top-left"));
+    expect(findAlignmentIndex("  Center  ")).toBe(VALID_ALIGNMENTS.indexOf("center"));
+  });
+
+  it("returns -1 for invalid alignments", () => {
+    expect(findAlignmentIndex("diagonal")).toBe(-1);
+    expect(findAlignmentIndex("")).toBe(-1);
+    expect(findAlignmentIndex(null)).toBe(-1);
+    expect(findAlignmentIndex(undefined)).toBe(-1);
+    expect(findAlignmentIndex(42)).toBe(-1);
   });
 });
