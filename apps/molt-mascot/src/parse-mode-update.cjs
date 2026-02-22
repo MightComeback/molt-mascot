@@ -69,10 +69,23 @@ function posEpoch(v) {
  * @param {*} v
  * @returns {"healthy"|"degraded"|"unhealthy"|null}
  */
+const { isValidMode } = require('./mode-emoji.cjs');
+
 const VALID_HEALTH = ['healthy', 'degraded', 'unhealthy'];
 function validHealthStatus(v) {
   if (typeof v !== 'string') return null;
   return VALID_HEALTH.includes(v) ? v : null;
+}
+
+/**
+ * Validate a mode string against the canonical set of known modes.
+ * Returns the mode if valid, null otherwise.
+ * @param {*} v
+ * @returns {string|null}
+ */
+function validMode(v) {
+  if (typeof v !== 'string') return null;
+  return isValidMode(v) ? v : null;
 }
 
 /**
@@ -99,7 +112,7 @@ function parseModeUpdate(raw) {
   const update = (raw && typeof raw === 'object') ? raw : {};
 
   return {
-    mode: nonEmptyStr(update.mode),
+    mode: validMode(update.mode),
     latencyMs: nonNegNum(update.latency),
     tool: nonEmptyStr(update.tool),
     errorMessage: nonEmptyStr(update.errorMessage),
@@ -123,4 +136,4 @@ function parseModeUpdate(raw) {
   };
 }
 
-module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validHealthStatus };
+module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus };

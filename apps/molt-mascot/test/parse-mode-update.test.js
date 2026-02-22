@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validHealthStatus } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -83,6 +83,28 @@ describe('parse-mode-update', () => {
       expect(validHealthStatus(undefined)).toBeNull();
       expect(validHealthStatus(42)).toBeNull();
       expect(validHealthStatus(true)).toBeNull();
+    });
+  });
+
+  describe('validMode', () => {
+    it('accepts known mode strings', () => {
+      for (const m of ['idle', 'thinking', 'tool', 'error', 'connecting', 'disconnected', 'connected', 'sleeping']) {
+        expect(validMode(m)).toBe(m);
+      }
+    });
+
+    it('rejects unknown mode strings', () => {
+      expect(validMode('unknown')).toBeNull();
+      expect(validMode('running')).toBeNull();
+      expect(validMode('')).toBeNull();
+      expect(validMode('IDLE')).toBeNull(); // case-sensitive
+    });
+
+    it('rejects non-string values', () => {
+      expect(validMode(null)).toBeNull();
+      expect(validMode(undefined)).toBeNull();
+      expect(validMode(42)).toBeNull();
+      expect(validMode(true)).toBeNull();
     });
   });
 
@@ -180,6 +202,12 @@ describe('parse-mode-update', () => {
       expect(result.toolCalls).toBeNull();
       expect(result.activeAgents).toBe(2);
       expect(result.pluginVersion).toBeNull();
+    });
+
+    it('rejects unknown mode strings', () => {
+      expect(parseModeUpdate({ mode: 'bogus' }).mode).toBeNull();
+      expect(parseModeUpdate({ mode: 'IDLE' }).mode).toBeNull();
+      expect(parseModeUpdate({ mode: '' }).mode).toBeNull();
     });
 
     it('rejects latencyStats without numeric samples field', () => {
