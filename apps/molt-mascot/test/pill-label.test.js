@@ -245,6 +245,38 @@ describe('buildPillLabel', () => {
     expect(build({ mode: 'connected' }).ariaLive).toBe('polite');
   });
 
+  it('shows active tools count in tool mode when >1', () => {
+    const result = build({
+      mode: 'tool',
+      modeSince: NOW - 5_000,
+      currentTool: 'web_search',
+      activeTools: 3,
+    });
+    expect(result.label).toContain('· 3');
+    expect(result.label).toContain('web_search');
+  });
+
+  it('does not show active tools count when 1', () => {
+    const result = build({
+      mode: 'tool',
+      modeSince: NOW - 5_000,
+      currentTool: 'web_search',
+      activeTools: 1,
+    });
+    expect(result.label).not.toContain('·');
+  });
+
+  it('does not show active tools count when 0', () => {
+    const result = build({
+      mode: 'tool',
+      modeSince: NOW - 1_000,
+      currentTool: 'exec',
+      activeTools: 0,
+    });
+    expect(result.label).toBe('exec');
+    expect(result.label).not.toContain('·');
+  });
+
   it('defaults now to Date.now() when not provided', () => {
     const result = buildPillLabel({
       mode: 'idle',
