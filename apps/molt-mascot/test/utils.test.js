@@ -640,6 +640,30 @@ describe("buildTooltip", () => {
     expect(tip).toContain("[fair]");
   });
 
+  it("shows jitter when it exceeds 50% of median", () => {
+    const tip = buildTooltip({
+      displayMode: "idle", durationSec: 0, latencyMs: 50,
+      latencyStats: { min: 10, max: 200, avg: 80, median: 50, p95: 180, jitter: 40, samples: 10 },
+    });
+    expect(tip).toContain("jitter 40ms");
+  });
+
+  it("omits jitter when below 50% of median", () => {
+    const tip = buildTooltip({
+      displayMode: "idle", durationSec: 0, latencyMs: 50,
+      latencyStats: { min: 10, max: 200, avg: 80, median: 100, p95: 180, jitter: 40, samples: 10 },
+    });
+    expect(tip).not.toContain("jitter");
+  });
+
+  it("omits jitter when not present in stats", () => {
+    const tip = buildTooltip({
+      displayMode: "idle", durationSec: 0, latencyMs: 50,
+      latencyStats: { min: 10, max: 200, avg: 80, median: 50, p95: 180, samples: 10 },
+    });
+    expect(tip).not.toContain("jitter");
+  });
+
   it("shows active agents and tools when non-zero", () => {
     const tip = buildTooltip({ displayMode: "thinking", durationSec: 5, activeAgents: 2, activeTools: 3 });
     expect(tip).toContain("2 agents, 3 tools");

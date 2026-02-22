@@ -225,6 +225,10 @@ export function buildTooltip(params) {
       : latencyMs;
     const quality = connectionQuality(qualitySource);
     if (quality) latencyPart += ` [${quality}]`;
+    // Show jitter when it exceeds 50% of median — indicates unstable connection
+    if (latencyStats && typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5) {
+      latencyPart += `, jitter ${formatLatency(latencyStats.jitter)}`;
+    }
     tip += ` · ${latencyPart}`;
   }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)

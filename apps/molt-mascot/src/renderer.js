@@ -246,12 +246,24 @@ function getLatencyStats() {
   // Matches the gateway-client implementation for consistency.
   const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
   const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
+  // Jitter: standard deviation of latency samples. High jitter indicates
+  // unstable connection even when median looks healthy.
+  // Uses population stddev (not sample) since we have the full rolling window.
+  const avg = sum / _latencyBuffer.length;
+  let sqDiffSum = 0;
+  for (let i = 0; i < _latencyBuffer.length; i++) {
+    const diff = _latencyBuffer[i] - avg;
+    sqDiffSum += diff * diff;
+  }
+  const jitter = Math.round(Math.sqrt(sqDiffSum / _latencyBuffer.length));
+
   _latencyStatsCache = {
     min: Math.round(min),
     max: Math.round(max),
-    avg: Math.round(sum / _latencyBuffer.length),
+    avg: Math.round(avg),
     median,
     p95,
+    jitter,
     samples: _latencyBuffer.length,
   };
   return _latencyStatsCache;
