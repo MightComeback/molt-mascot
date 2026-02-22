@@ -15,60 +15,12 @@ const APP_VERSION = require('../package.json').version;
 const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4, 0.2];
 
 // --- User preference persistence ---
-// Save runtime preferences (alignment, size, ghost mode, hide-text) to a JSON file
-// so they survive app restarts without requiring env vars.
+// Delegated to prefs.cjs for testability (atomic writes, debounced batching).
+const { createPrefsManager } = require('./prefs.cjs');
 const PREFS_FILE = path.join(app.getPath('userData'), 'preferences.json');
-
-function loadPrefs() {
-  try {
-    return JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8'));
-  } catch {
-    return {};
-  }
-}
-
-// Debounced preference persistence.
-// Rapid actions (e.g. cycling alignment 5× quickly) batch into a single disk write
-// instead of 5 synchronous writeFileSync calls. The 500ms window is long enough to
-// coalesce bursts but short enough that prefs survive an unexpected quit.
-let _prefsPending = null;
-let _prefsTimer = null;
-
-function _flushPrefs() {
-  if (_prefsTimer) { clearTimeout(_prefsTimer); _prefsTimer = null; }
-  if (!_prefsPending) return;
-  const merged = _prefsPending;
-  _prefsPending = null;
-  try {
-    const dir = path.dirname(PREFS_FILE);
-    fs.mkdirSync(dir, { recursive: true });
-    // Atomic write: write to a temp file then rename, so a crash mid-write
-    // doesn't corrupt the preferences file.
-    const tmp = path.join(dir, `.preferences.${process.pid}.tmp`);
-    fs.writeFileSync(tmp, JSON.stringify(merged, null, 2));
-    try {
-      fs.renameSync(tmp, PREFS_FILE);
-    } catch {
-      // On Windows, renameSync can fail with EPERM/EACCES when overwriting.
-      // Fall back to copy + unlink which is less atomic but more portable.
-      fs.copyFileSync(tmp, PREFS_FILE);
-      try { fs.unlinkSync(tmp); } catch {}
-    }
-  } catch {
-    // Best-effort; don't crash if disk is full or permissions are wrong.
-  }
-}
-
-function savePrefs(patch) {
-  try {
-    const current = _prefsPending || loadPrefs();
-    _prefsPending = { ...current, ...patch };
-    if (_prefsTimer) clearTimeout(_prefsTimer);
-    _prefsTimer = setTimeout(_flushPrefs, 500);
-  } catch {
-    // Best-effort
-  }
-}
+const _prefs = createPrefsManager(PREFS_FILE);
+const loadPrefs = _prefs.load;
+const savePrefs = _prefs.save;
 
 // CLI flags: --version prints version and exits (standard UX pattern).
 if (process.argv.includes('--version') || process.argv.includes('-v')) {
@@ -1349,7 +1301,7 @@ app.whenReady().then(async () => {
   app.on('will-quit', () => {
     try { globalShortcut.unregisterAll(); } catch {}
     // Flush any pending preference writes before exit so the last action isn't lost.
-    _flushPrefs();
+    _prefs.flush();
     // Cancel pending tray menu rebuild.
     if (_trayRebuildTimer) { clearTimeout(_trayRebuildTimer); _trayRebuildTimer = null; }
     // Destroy tray icon to prevent ghost icons on Windows/Linux after quit.

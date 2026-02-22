@@ -24,7 +24,8 @@ molt-mascot/
 │   │   ├── mode-emoji.cjs    # Mode → emoji map (shared tray + renderer)
 │   │   ├── size-presets.cjs   # Size preset definitions (dimensions, labels)
 │   │   ├── fps-counter.js     # Rolling FPS counter (ring buffer)
-│   │   └── parse-cli-arg.cjs  # CLI argument parser (--flag value)
+│   │   ├── parse-cli-arg.cjs  # CLI argument parser (--flag value)
+│   │   └── prefs.cjs          # User preference persistence (debounced, atomic writes)
 │   └── test/                  # Bun test files (mirrors src/)
 │
 ├── packages/molt-mascot-plugin/  # OpenClaw Gateway plugin
