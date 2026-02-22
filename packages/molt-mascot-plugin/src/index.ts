@@ -51,6 +51,8 @@ export type State = {
   activeAgents?: number;
   /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
   activeTools?: number;
+  /** Epoch ms of the last manual reset (undefined if never reset). */
+  lastResetAt?: number;
 };
 
 // Plugin API contract definition for better type safety
@@ -983,6 +985,7 @@ export default function register(api: PluginApi) {
   registerAlias("reset", (_params: any, { respond }: any) => {
     api?.logger?.info?.(`${pluginId}: manual reset triggered`);
     resetInternalState();
+    state.lastResetAt = Date.now();
     respond(true, { ok: true, state });
   });
 

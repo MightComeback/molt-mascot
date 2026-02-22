@@ -18,6 +18,7 @@ describe('createPluginSync', () => {
       onActiveAgents: (v) => { calls.activeAgents = v; },
       onActiveTools: (v) => { calls.activeTools = v; },
       onCurrentTool: (v) => { calls.currentTool = v; },
+      onLastResetAt: (v) => { calls.lastResetAt = v; },
     });
 
     const changed = sync.sync({
@@ -34,6 +35,7 @@ describe('createPluginSync', () => {
       activeAgents: 2,
       activeTools: 3,
       currentTool: 'web_fetch',
+      lastResetAt: 1700000050000,
     });
 
     expect(calls.clickThrough).toBe(true);
@@ -49,10 +51,11 @@ describe('createPluginSync', () => {
     expect(calls.activeAgents).toBe(2);
     expect(calls.activeTools).toBe(3);
     expect(calls.currentTool).toBe('web_fetch');
+    expect(calls.lastResetAt).toBe(1700000050000);
     expect(changed).toEqual([
       'clickThrough', 'alignment', 'opacity', 'padding', 'size', 'hideText',
       'version', 'toolCalls', 'toolErrors', 'startedAt',
-      'activeAgents', 'activeTools', 'currentTool',
+      'activeAgents', 'activeTools', 'currentTool', 'lastResetAt',
     ]);
   });
 

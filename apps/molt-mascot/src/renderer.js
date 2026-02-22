@@ -196,6 +196,7 @@ let pluginToolErrors = 0;
 let pluginStartedAt = null;
 let pluginActiveAgents = 0;
 let pluginActiveTools = 0;
+let pluginLastResetAt = null;
 
 // Rolling latency buffer for min/max/avg diagnostics in debug info.
 // Keeps the last ~60 samples (one per second via the plugin poller).
@@ -295,6 +296,7 @@ const _pluginSync = createPluginSync({
   onStartedAt(v) { pluginStartedAt = v; },
   onActiveAgents(v) { pluginActiveAgents = v; },
   onActiveTools(v) { pluginActiveTools = v; },
+  onLastResetAt(v) { pluginLastResetAt = v; },
   onCurrentTool(v) {
     if (v !== currentTool) {
       currentTool = v;
@@ -1355,6 +1357,7 @@ function buildDebugInfo() {
     lastMessageAt,
     latencyStats: getLatencyStats(),
     instanceId: INSTANCE_ID,
+    lastResetAt: pluginLastResetAt,
   });
 }
 

@@ -691,6 +691,17 @@ describe("utils", () => {
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
+    // lastResetAt should be set after manual reset
+    expect(payload?.state?.lastResetAt).toBeGreaterThan(0);
+  });
+
+  it("lastResetAt is undefined before any manual reset", async () => {
+    const api = createMockApi();
+    register(api);
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    let payload: any;
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.lastResetAt).toBeUndefined();
   });
 
   it("stop() resets published state so clients don't see stale data after reload", async () => {

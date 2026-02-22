@@ -633,6 +633,17 @@ describe("connection uptime", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Instance:");
   });
+
+  it("includes lastResetAt when provided", () => {
+    const now = 1700000060000;
+    const info = buildDebugInfo({ ...BASE_PARAMS, lastResetAt: 1700000000000, now });
+    expect(info).toContain("Last reset: 1m");
+  });
+
+  it("omits lastResetAt when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Last reset:");
+  });
 });
 
 describe("formatElapsed", () => {
