@@ -273,6 +273,22 @@ describe("utils", () => {
     expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe("fetch failed");
     // Deno runtime
     expect(cleanErrorString("deno: error: Module not found")).toBe("Module not found");
+    // Bun runtime
+    expect(cleanErrorString("bun: error: ModuleNotFound resolving 'missing'")).toBe("ModuleNotFound resolving 'missing'");
+    // Node.js internal module prefixes
+    expect(cleanErrorString("node: bad option: --inspect-brk=0")).toBe("bad option: --inspect-brk=0");
+    expect(cleanErrorString("internal: process.binding is not supported")).toBe("process.binding is not supported");
+    expect(cleanErrorString("commonjs: Cannot find module 'foo'")).toBe("Cannot find module 'foo'");
+    expect(cleanErrorString("fs: ENOENT: no such file")).toBe("no such file");
+    expect(cleanErrorString("process: unhandled rejection")).toBe("unhandled rejection");
+    // OpenClaw ecosystem prefixes
+    expect(cleanErrorString("openclaw: gateway connection failed")).toBe("gateway connection failed");
+    expect(cleanErrorString("clawd: plugin load error")).toBe("plugin load error");
+    expect(cleanErrorString("clawdbot: channel init failed")).toBe("channel init failed");
+    expect(cleanErrorString("cron: job timed out")).toBe("job timed out");
+    expect(cleanErrorString("nodes: device unreachable")).toBe("device unreachable");
+    expect(cleanErrorString("hakky: linear API error")).toBe("linear API error");
+    expect(cleanErrorString("hakky-tools: missing env var")).toBe("missing env var");
     // RPC/gRPC prefixes
     expect(cleanErrorString("rpc: connection refused")).toBe("connection refused");
     expect(cleanErrorString("grpc: deadline exceeded")).toBe("deadline exceeded");
