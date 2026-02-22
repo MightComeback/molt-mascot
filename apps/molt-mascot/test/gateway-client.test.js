@@ -288,6 +288,17 @@ describe('GatewayClient', () => {
       expect(frame.method).toBe('connect');
       expect(frame.params.auth.token).toBe('abc');
       expect(frame.params.client.id).toBe('molt-mascot-desktop');
+      expect(frame.params.client.arch).toBe('');
+    });
+
+    it('includes arch in connect frame when provided', () => {
+      const c = new GatewayClient({ clientArch: 'arm64' });
+      c.connect({ url: 'ws://localhost:9999' });
+      const ws = FakeWebSocket._last;
+      ws._open();
+      const frame = JSON.parse(ws._sent[0]);
+      expect(frame.params.client.arch).toBe('arm64');
+      c.destroy();
     });
 
     it('handles hello-ok handshake', () => {

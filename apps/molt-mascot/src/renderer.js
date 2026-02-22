@@ -804,6 +804,7 @@ function connect(cfg) {
           displayName: 'Molt Mascot',
           version: window.moltMascot?.version || 'dev',
           platform: window.moltMascot?.platform || navigator.userAgent,
+          arch: window.moltMascot?.arch || '',
           mode: 'gui',
           instanceId: INSTANCE_ID,
         },

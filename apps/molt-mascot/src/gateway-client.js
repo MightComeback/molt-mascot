@@ -24,6 +24,7 @@ export { normalizeWsUrl };
  * @property {number} [maxProtocol]
  * @property {string} [clientVersion]
  * @property {string} [clientPlatform]
+ * @property {string} [clientArch]
  */
 
 export class GatewayClient {
@@ -40,6 +41,7 @@ export class GatewayClient {
     this._maxProtocol = opts.maxProtocol ?? 3;
     this._clientVersion = opts.clientVersion ?? 'dev';
     this._clientPlatform = opts.clientPlatform ?? '';
+    this._clientArch = opts.clientArch ?? '';
 
     /** @type {WebSocket|null} */
     this._ws = null;
@@ -270,6 +272,7 @@ export class GatewayClient {
             displayName: 'Molt Mascot',
             version: this._clientVersion,
             platform: this._clientPlatform,
+            arch: this._clientArch,
             mode: 'gui',
             instanceId: this._instanceId,
           },
