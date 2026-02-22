@@ -138,7 +138,33 @@ export const _spriteCache = (() => {
   /** Number of cached entries. */
   function size() { return cache.size; }
 
-  return { get, clear, size };
+  /**
+   * Pre-render all known sprites (idle frames + every overlay frame) at the
+   * given scale so the first drawLobster() call hits warm cache instead of
+   * doing per-pixel fillRect. Call once during app init after canvas is ready.
+   *
+   * @param {number} scale - Pixel scale factor
+   * @returns {number} Number of sprites warmed (0 if canvas unavailable)
+   */
+  function warmAll(scale) {
+    let count = 0;
+    const allSprites = [
+      ...lobsterIdle,
+      ...overlay.sleep,
+      ...overlay.thinking,
+      ...overlay.tool,
+      ...overlay.error,
+      ...overlay.connecting,
+      ...overlay.connected,
+      ...overlay.disconnected,
+    ];
+    for (const sprite of allSprites) {
+      if (get(sprite, scale) !== null) count++;
+    }
+    return count;
+  }
+
+  return { get, clear, size, warmAll };
 })();
 
 /**

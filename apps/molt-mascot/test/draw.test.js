@@ -351,6 +351,25 @@ describe("_spriteCache", () => {
     expect(sizeAfter).toBeLessThanOrEqual(1);
     expect(sizeAfter).toBeLessThanOrEqual(sizeBefore + 1);
   });
+
+  it("warmAll() pre-renders all known sprites at given scale", () => {
+    _spriteCache.clear();
+    const warmed = _spriteCache.warmAll(3);
+    // 2 idle + 2×7 overlay modes = 16 total sprite frames
+    // In test env without canvas, warmed=0 and size=0 (graceful degradation).
+    // With canvas support, warmed=16 and size=16.
+    expect(warmed === 0 || warmed === 16).toBe(true);
+    expect(_spriteCache.size()).toBe(warmed);
+  });
+
+  it("warmAll() is idempotent (second call returns same count)", () => {
+    _spriteCache.clear();
+    const first = _spriteCache.warmAll(3);
+    const sizeBefore = _spriteCache.size();
+    const second = _spriteCache.warmAll(3);
+    expect(second).toBe(first);
+    expect(_spriteCache.size()).toBe(sizeBefore);
+  });
 });
 
 describe("OVERLAY_TIMING", () => {
