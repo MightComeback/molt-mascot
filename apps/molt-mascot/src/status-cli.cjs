@@ -84,8 +84,46 @@ function resolveStatusConfig({
   const resolvedWidth = (() => { const v = Number(env.MOLT_MASCOT_WIDTH); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.width; })();
   const resolvedHeight = (() => { const v = Number(env.MOLT_MASCOT_HEIGHT); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.height; })();
 
+  // Detect which env vars are actively influencing config (helps debug "why is my config wrong?")
+  const ENV_OVERRIDES_MAP = [
+    ['MOLT_MASCOT_GATEWAY_URL',    'gatewayUrl'],
+    ['GATEWAY_URL',                'gatewayUrl'],
+    ['OPENCLAW_GATEWAY_URL',       'gatewayUrl'],
+    ['CLAWDBOT_GATEWAY_URL',       'gatewayUrl'],
+    ['MOLT_MASCOT_GATEWAY_TOKEN',  'gatewayToken'],
+    ['GATEWAY_TOKEN',              'gatewayToken'],
+    ['OPENCLAW_GATEWAY_TOKEN',     'gatewayToken'],
+    ['CLAWDBOT_GATEWAY_TOKEN',     'gatewayToken'],
+    ['MOLT_MASCOT_ALIGN',          'alignment'],
+    ['MOLT_MASCOT_SIZE',           'size'],
+    ['MOLT_MASCOT_OPACITY',        'opacity'],
+    ['MOLT_MASCOT_PADDING',        'padding'],
+    ['MOLT_MASCOT_CLICK_THROUGH',  'clickThrough'],
+    ['MOLT_MASCOT_CLICKTHROUGH',   'clickThrough'],
+    ['MOLT_MASCOT_HIDE_TEXT',      'hideText'],
+    ['MOLT_MASCOT_REDUCED_MOTION', 'reducedMotion'],
+    ['MOLT_MASCOT_START_HIDDEN',   'startHidden'],
+    ['MOLT_MASCOT_DEBUG',          'debug'],
+    ['MOLT_MASCOT_DISABLE_GPU',    'disableGpu'],
+    ['MOLT_MASCOT_NO_TRAY',        'noTray'],
+    ['MOLT_MASCOT_NO_SHORTCUTS',   'noShortcuts'],
+    ['MOLT_MASCOT_WIDTH',          'width'],
+    ['MOLT_MASCOT_HEIGHT',         'height'],
+    ['MOLT_MASCOT_SLEEP_THRESHOLD_S', 'sleepThreshold'],
+    ['MOLT_MASCOT_IDLE_DELAY_MS',  'idleDelay'],
+    ['MOLT_MASCOT_ERROR_HOLD_MS',  'errorHold'],
+    ['MOLT_MASCOT_MIN_PROTOCOL',   'minProtocol'],
+    ['GATEWAY_MIN_PROTOCOL',       'minProtocol'],
+    ['MOLT_MASCOT_MAX_PROTOCOL',   'maxProtocol'],
+    ['GATEWAY_MAX_PROTOCOL',       'maxProtocol'],
+  ];
+  const envOverrides = ENV_OVERRIDES_MAP
+    .filter(([key]) => env[key] !== undefined && env[key] !== '')
+    .map(([key, affects]) => ({ key, affects }));
+
   return {
     version: appVersion,
+    envOverrides,
     config: {
       gatewayUrl,
       gatewayToken: hasToken,
@@ -164,6 +202,14 @@ function formatStatusText(status) {
     lines.push('Saved preferences:');
     for (const [k, v] of Object.entries(status.preferences)) {
       lines.push(`  ${k}: ${JSON.stringify(v)}`);
+    }
+  }
+
+  if (status.envOverrides && status.envOverrides.length > 0) {
+    lines.push('');
+    lines.push('Active env overrides:');
+    for (const { key, affects } of status.envOverrides) {
+      lines.push(`  ${key} → ${affects}`);
     }
   }
 

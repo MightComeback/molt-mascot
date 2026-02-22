@@ -228,6 +228,28 @@ describe('resolveStatusConfig', () => {
     const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_NO_SHORTCUTS: '1' } }));
     expect(status.config.noShortcuts).toBe(true);
   });
+
+  it('envOverrides is empty when no env vars are set', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.envOverrides).toEqual([]);
+  });
+
+  it('envOverrides lists active env vars with their affected config', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_ALIGN: 'top-left', MOLT_MASCOT_DEBUG: '1' },
+    }));
+    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_ALIGN', affects: 'alignment' });
+    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_DEBUG', affects: 'debug' });
+  });
+
+  it('envOverrides ignores empty string env vars', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_ALIGN: '', MOLT_MASCOT_SIZE: 'large' },
+    }));
+    const keys = status.envOverrides.map(o => o.key);
+    expect(keys).not.toContain('MOLT_MASCOT_ALIGN');
+    expect(keys).toContain('MOLT_MASCOT_SIZE');
+  });
 });
 
 describe('formatStatusText', () => {
@@ -270,5 +292,26 @@ describe('formatStatusText', () => {
     const text = formatStatusText(status);
     expect(text).toContain('Gateway URL:    (not set)');
     expect(text).toContain('Gateway token:  (not set)');
+  });
+
+  it('shows active env overrides section when env vars are set', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: {
+        MOLT_MASCOT_ALIGN: 'top-left',
+        MOLT_MASCOT_OPACITY: '0.5',
+        MOLT_MASCOT_GATEWAY_URL: 'ws://test:123',
+      },
+    }));
+    const text = formatStatusText(status);
+    expect(text).toContain('Active env overrides:');
+    expect(text).toContain('MOLT_MASCOT_ALIGN → alignment');
+    expect(text).toContain('MOLT_MASCOT_OPACITY → opacity');
+    expect(text).toContain('MOLT_MASCOT_GATEWAY_URL → gatewayUrl');
+  });
+
+  it('omits env overrides section when no env vars are set', () => {
+    const status = resolveStatusConfig(makeParams());
+    const text = formatStatusText(status);
+    expect(text).not.toContain('Active env overrides:');
   });
 });
