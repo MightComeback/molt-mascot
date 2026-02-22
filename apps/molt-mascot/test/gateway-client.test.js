@@ -736,4 +736,47 @@ describe('GatewayClient', () => {
       expect(client.getStatus().staleSinceMs).toBeNull();
     });
   });
+
+  describe('toString', () => {
+    it('shows disconnected when not connected', () => {
+      const str = client.toString();
+      expect(str).toStartWith('GatewayClient<');
+      expect(str).toContain('disconnected');
+    });
+
+    it('shows destroyed after destroy()', () => {
+      client.destroy();
+      expect(client.toString()).toContain('destroyed');
+    });
+
+    it('shows connected state with uptime and plugin status', () => {
+      client.connectedSince = Date.now() - 45000;
+      client.connectedUrl = 'ws://localhost:18789';
+      client.hasPlugin = true;
+      // Simulate open socket for isConnected
+      client._ws = { readyState: 1 };
+      const str = client.toString();
+      expect(str).toContain('connected');
+      expect(str).toContain('ws://localhost:18789');
+      expect(str).toContain('plugin=true');
+    });
+
+    it('includes latency with quality emoji when available', () => {
+      client.connectedSince = Date.now();
+      client.connectedUrl = 'ws://localhost:18789';
+      client._ws = { readyState: 1 };
+      client.latencyMs = 25;
+      const str = client.toString();
+      expect(str).toContain('25ms');
+      expect(str).toContain('🟢');
+    });
+
+    it('shows retry count when disconnected and reconnecting', () => {
+      client._reconnectAttempt = 3;
+      client.targetUrl = 'ws://example.com';
+      const str = client.toString();
+      expect(str).toContain('retry #3');
+      expect(str).toContain('ws://example.com');
+    });
+  });
 });

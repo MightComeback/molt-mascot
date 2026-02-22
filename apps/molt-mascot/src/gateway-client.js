@@ -766,6 +766,40 @@ export class GatewayClient {
   }
 
   /**
+   * Human-readable one-line summary for quick diagnostic logging.
+   * Example: "GatewayClient<connected 45s, ws://localhost:18789, plugin=true, 12ms 🟢>"
+   *
+   * @returns {string}
+   */
+  toString() {
+    const parts = [];
+    if (this._destroyed) {
+      parts.push('destroyed');
+    } else if (this.isConnected) {
+      const uptime = this.uptimeSeconds;
+      parts.push(`connected ${uptime !== null ? `${uptime}s` : ''}`);
+      if (this.connectedUrl) parts.push(this.connectedUrl);
+      parts.push(`plugin=${this.hasPlugin}`);
+      if (this.latencyMs !== null) {
+        const stats = this.latencyStats;
+        const source = stats && typeof stats.median === 'number' && stats.samples > 1
+          ? stats.median : this.latencyMs;
+        let latencyStr = `${Math.round(source)}ms`;
+        if (source < 50) latencyStr += ' 🟢';
+        else if (source < 150) latencyStr += ' 🟡';
+        else if (source < 500) latencyStr += ' 🟠';
+        else latencyStr += ' 🔴';
+        parts.push(latencyStr);
+      }
+    } else {
+      parts.push('disconnected');
+      if (this.targetUrl) parts.push(this.targetUrl);
+      if (this._reconnectAttempt > 0) parts.push(`retry #${this._reconnectAttempt}`);
+    }
+    return `GatewayClient<${parts.join(', ')}>`;
+  }
+
+  /**
    * Tear down all timers and close the socket.
    * Fires onPluginStateReset so consumers clear any cached plugin config.
    * After destroy(), connect() and other methods become no-ops.
