@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseCliArg, hasBoolFlag } from "../src/parse-cli-arg.cjs";
+import { parseCliArg, hasBoolFlag, parseNumericArg } from "../src/parse-cli-arg.cjs";
 
 describe("parseCliArg", () => {
   it("returns null when flag is not present", () => {
@@ -72,5 +72,59 @@ describe("hasBoolFlag", () => {
 
   it("returns false for empty argv", () => {
     expect(hasBoolFlag("--debug", [])).toBe(false);
+  });
+});
+
+describe("parseNumericArg", () => {
+  it("returns fallback when flag is absent", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app"] })).toBe(10);
+  });
+
+  it("parses a valid integer", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "5"] })).toBe(5);
+  });
+
+  it("parses a valid float", () => {
+    expect(parseNumericArg("--opacity", 1.0, { argv: ["node", "app", "--opacity=0.75"] })).toBe(0.75);
+  });
+
+  it("returns fallback for non-numeric value", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "abc"] })).toBe(10);
+  });
+
+  it("returns fallback for NaN", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "NaN"] })).toBe(10);
+  });
+
+  it("returns fallback for Infinity", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "Infinity"] })).toBe(10);
+  });
+
+  it("respects min constraint", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "-5"], min: 0 })).toBe(10);
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "0"], min: 0 })).toBe(0);
+  });
+
+  it("respects max constraint", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "200"], max: 100 })).toBe(10);
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "100"], max: 100 })).toBe(100);
+  });
+
+  it("respects integer constraint", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "3.5"], integer: true })).toBe(10);
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count", "3"], integer: true })).toBe(3);
+  });
+
+  it("combines min, max, and integer constraints", () => {
+    const opts = { argv: ["node", "app", "--count", "5"], min: 1, max: 10, integer: true };
+    expect(parseNumericArg("--count", 3, opts)).toBe(5);
+  });
+
+  it("returns fallback for empty --flag= value", () => {
+    expect(parseNumericArg("--count", 10, { argv: ["node", "app", "--count="] })).toBe(10);
+  });
+
+  it("handles negative numbers when no min constraint", () => {
+    expect(parseNumericArg("--offset", 0, { argv: ["node", "app", "--offset", "-10"] })).toBe(-10);
   });
 });

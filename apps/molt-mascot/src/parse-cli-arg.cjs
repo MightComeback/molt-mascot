@@ -36,4 +36,26 @@ function hasBoolFlag(flag, argv) {
   return args.includes(flag);
 }
 
-module.exports = { parseCliArg, hasBoolFlag };
+/**
+ * Parse a numeric CLI flag value with validation and fallback.
+ * Combines parseCliArg + Number coercion + finite/range checks into a single call,
+ * eliminating the repeated `const v = Number(parseCliArg(...)); Number.isFinite(v) ? v : default`
+ * pattern used for --sleep-threshold, --idle-delay, --error-hold, --ping-count, etc.
+ *
+ * @param {string} flag - The flag to search for (e.g. '--ping-count')
+ * @param {number} fallback - Value to return if flag is absent or invalid
+ * @param {{ argv?: string[], min?: number, max?: number, integer?: boolean }} [opts]
+ * @returns {number} Parsed numeric value, or fallback if absent/invalid/out-of-range
+ */
+function parseNumericArg(flag, fallback, opts) {
+  const raw = parseCliArg(flag, opts?.argv);
+  if (raw === null || raw.trim() === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  if (opts?.integer && !Number.isInteger(n)) return fallback;
+  if (typeof opts?.min === 'number' && n < opts.min) return fallback;
+  if (typeof opts?.max === 'number' && n > opts.max) return fallback;
+  return n;
+}
+
+module.exports = { parseCliArg, hasBoolFlag, parseNumericArg };
