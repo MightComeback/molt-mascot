@@ -282,8 +282,9 @@ describe('tray-icon', () => {
 
     it('includes median latency from stats when available', () => {
       const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 10 } });
-      expect(tip).toContain('⏱ 42ms (med 38ms)');
-      // Quality is based on median when stats are available
+      expect(tip).toContain('⏱ 42ms');
+      expect(tip).toContain('med 38ms');
+      // Quality emoji is now inline via formatQualitySummary (before extended stats)
       expect(tip).toContain('🟢');
     });
 

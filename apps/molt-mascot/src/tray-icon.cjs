@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource } = require('./format-latency.cjs');
+const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -200,29 +200,16 @@ function buildTrayTooltip(params) {
   if (typeof targetUrl === 'string' && targetUrl && !uptimeStr) parts.push(`→ ${targetUrl}`);
   if (typeof lastCloseDetail === 'string' && lastCloseDetail) parts.push(`⚡ ${lastCloseDetail}`);
   if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
-    let latencyPart = `⏱ ${formatLatency(latencyMs)}`;
-    // Append median from rolling stats when available (>1 sample) for connection quality insight.
-    // Median is more robust than avg against occasional spikes, giving users a clearer picture
-    // of typical latency without opening the debug panel.
+    const { text: summaryText } = formatQualitySummary(latencyMs, latencyStats);
+    let latencyPart = `⏱ ${summaryText}`;
+    // Append extended stats (median, p95, p99) from rolling stats when available (>1 sample).
+    // These supplement the compact summary with deeper diagnostics for the tray tooltip.
     if (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-      // Show p95 alongside median when tail latency is notable (p95 > 2× median),
-      // indicating intermittent spikes worth investigating.
       const showP95 = typeof latencyStats.p95 === 'number' && latencyStats.median > 0 && latencyStats.p95 > latencyStats.median * 2;
       const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : '';
-      // Show p99 when tail latency is extreme (p99 > 3× median), indicating rare but severe spikes.
       const showP99 = typeof latencyStats.p99 === 'number' && latencyStats.median > 0 && latencyStats.p99 > latencyStats.median * 3;
       const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : '';
-      // Show jitter when it exceeds 50% of median — indicates unstable connection
-      // worth investigating even if median looks fine.
-      const showJitter = typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5;
-      const jitterStr = showJitter ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
-      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str}${jitterStr})`;
-    }
-    // Append a quality label when median stats are available (more stable than instant latency).
-    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
-    if (quality) {
-      const emoji = connectionQualityEmoji(quality);
-      latencyPart += emoji ? ` ${emoji}` : ` [${quality}]`;
+      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str})`;
     }
     parts.push(latencyPart);
   }
