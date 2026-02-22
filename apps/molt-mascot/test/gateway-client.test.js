@@ -780,6 +780,49 @@ describe('GatewayClient', () => {
     });
   });
 
+  describe('connectionUptimePercent', () => {
+    it('returns null when never connected', () => {
+      expect(client.connectionUptimePercent()).toBeNull();
+    });
+
+    it('returns ~100 when connected since first connect', () => {
+      const now = Date.now();
+      client.firstConnectedAt = now - 10000;
+      client.connectedSince = now - 10000;
+      client.lastDisconnectedAt = null;
+      const pct = client.connectionUptimePercent();
+      expect(pct).toBeGreaterThanOrEqual(99);
+      expect(pct).toBeLessThanOrEqual(100);
+    });
+
+    it('returns lower percentage when currently disconnected', () => {
+      const now = Date.now();
+      client.firstConnectedAt = now - 10000;
+      client.connectedSince = null;
+      client.lastDisconnectedAt = now - 5000;
+      const pct = client.connectionUptimePercent();
+      // ~50% (5s connected out of 10s since first connect)
+      expect(pct).toBeGreaterThanOrEqual(40);
+      expect(pct).toBeLessThanOrEqual(60);
+    });
+
+    it('accepts processUptimeMs for more accurate denominator', () => {
+      const now = Date.now();
+      client.firstConnectedAt = now - 5000;
+      client.connectedSince = now - 5000;
+      // Process has been alive for 20s but connected for only 5s
+      const pct = client.connectionUptimePercent(20000);
+      expect(pct).toBeGreaterThanOrEqual(20);
+      expect(pct).toBeLessThanOrEqual(30);
+    });
+
+    it('is included in getStatus()', () => {
+      const status = client.getStatus();
+      expect(status).toHaveProperty('connectionUptimePercent');
+      expect(status.connectionUptimePercent).toBeNull();
+    });
+  });
+
   describe('healthStatus', () => {
     it('returns unhealthy when destroyed', () => {
       client.destroy();

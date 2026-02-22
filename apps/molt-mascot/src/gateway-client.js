@@ -755,7 +755,38 @@ export class GatewayClient {
   }
 
   /**
-   * Return a plain, JSON-serializable snapshot of the client's current state.
+   * Approximate percentage of total lifetime spent connected (0-100), or null
+   * if no successful connection has ever been made.
+   *
+   * Uses the gap between firstConnectedAt and now, minus the current disconnect
+   * gap (if any), as a rough numerator. Denominator is wall-clock time since
+   * client creation (sessionAttemptCount > 0 implies the client has been alive).
+   *
+   * Previously computed inline in buildDebugInfo; extracted here so consumers
+   * (tray tooltip, monitoring, automated alerts) can reuse it without duplicating
+   * the arithmetic.
+   *
+   * @param {number} [processUptimeMs] - Total process uptime in ms (if available).
+   *   When omitted, falls back to (now - firstConnectedAt) which underestimates
+   *   total lifetime (ignores time before the first connection).
+   * @returns {number|null} Integer percentage (0-100), or null if never connected
+   */
+  connectionUptimePercent(processUptimeMs) {
+    if (this.firstConnectedAt === null) return null;
+    const now = Date.now();
+    const totalMs = typeof processUptimeMs === 'number' && processUptimeMs > 0
+      ? processUptimeMs
+      : now - this.firstConnectedAt;
+    if (totalMs <= 0) return null;
+    const currentDisconnectGap = this.connectedSince
+      ? 0
+      : (this.lastDisconnectedAt ? now - this.lastDisconnectedAt : 0);
+    const timeSinceFirstConnect = now - this.firstConnectedAt;
+    const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
+    return Math.min(100, Math.round((approxConnectedMs / totalMs) * 100));
+  }
+
+  /**
    * Useful for debug info export, logging, and diagnostics without manually
    * plucking individual properties.
    *
@@ -792,6 +823,7 @@ export class GatewayClient {
       lastMessageAt: this._lastMessageAt || null,
       staleSinceMs: this.staleSinceMs,
       healthStatus: this.healthStatus,
+      connectionUptimePercent: this.connectionUptimePercent(),
     };
   }
 
@@ -821,6 +853,8 @@ export class GatewayClient {
       parts.push(`connected ${uptime !== null ? `${uptime}s` : ''}`);
       if (this.connectedUrl) parts.push(this.connectedUrl);
       parts.push(`plugin=${this.hasPlugin}`);
+      const uptimePct = this.connectionUptimePercent();
+      if (uptimePct !== null && uptimePct < 100) parts.push(`uptime ${uptimePct}%`);
       if (this.latencyMs !== null) {
         const source = resolveQualitySource(this.latencyMs, this.latencyStats);
         const quality = connectionQuality(source ?? this.latencyMs);
