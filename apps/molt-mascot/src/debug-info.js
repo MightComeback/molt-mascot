@@ -49,7 +49,7 @@
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100)
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
- * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (min/max/avg/p95 over ~60 samples)
+ * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (min/max/avg/p95/jitter over ~60 samples)
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {number|null} [params.firstConnectedAt] - Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
@@ -199,7 +199,7 @@ export function buildDebugInfo(params) {
   if (latencyStats && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
     const medianStr = typeof latencyStats.median === 'number' ? `, median ${latencyStats.median}ms` : '';
     const p95Str = typeof latencyStats.p95 === 'number' ? `, p95 ${latencyStats.p95}ms` : '';
-    const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${latencyStats.jitter}ms` : '';
+    const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
     lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${jitterStr} (${latencyStats.samples} samples)`);
   }
   if (pluginToolCalls > 0) {

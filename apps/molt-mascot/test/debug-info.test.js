@@ -428,6 +428,16 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms (30 samples)");
   });
 
+  it("includes jitter in latency stats when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, p95: 38, jitter: 12, samples: 30 } });
+    expect(info).toContain("jitter 12ms");
+  });
+
+  it("formats large jitter values with seconds notation", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 2000, avg: 500, median: 18, p95: 1800, jitter: 1200, samples: 30 } });
+    expect(info).toContain("jitter 1.2s");
+  });
+
   it("omits latency stats when only 1 sample (not useful)", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 10, max: 10, avg: 10, samples: 1 } });
     expect(info).not.toContain("Latency stats");
