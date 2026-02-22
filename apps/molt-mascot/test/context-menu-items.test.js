@@ -105,16 +105,16 @@ describe('buildContextMenuItems', () => {
     expect(item.label).toBe('Force Reconnect');
   });
 
-  it('uses Ctrl for hints on non-Mac', () => {
+  it('uses Ctrl+Shift+ for hints on non-Mac', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, isMac: false });
     const ghost = result.items.find((i) => i.id === 'ghost');
-    expect(ghost.hint).toContain('Ctrl');
+    expect(ghost.hint).toBe('Ctrl+Shift+M');
   });
 
-  it('uses ⌘ for hints on Mac', () => {
+  it('uses ⌘⇧ for hints on Mac', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, isMac: true });
     const ghost = result.items.find((i) => i.id === 'ghost');
-    expect(ghost.hint).toContain('⌘');
+    expect(ghost.hint).toBe('⌘⇧M');
   });
 
   it('includes alignment label in cycle alignment item', () => {

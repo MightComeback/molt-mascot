@@ -70,7 +70,8 @@ export function buildContextMenuItems(state) {
     now: nowOverride,
   } = state;
 
-  const modKey = isMac ? '⌘' : 'Ctrl';
+  const modKey = isMac ? '⌘' : 'Ctrl+';
+  const shiftKey = isMac ? '⇧' : 'Shift+';
   const altKey = isMac ? '⌥' : 'Alt+';
   const now = nowOverride ?? Date.now();
 
@@ -114,22 +115,22 @@ export function buildContextMenuItems(state) {
   const items = [
     { id: 'status', label: statusLine, disabled: true },
     { id: 'sep-1', separator: true },
-    { id: 'ghost', label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}⇧M` },
-    { id: 'hide-text', label: `${isTextHidden ? '✓ ' : ''}Hide Text`, hint: `${modKey}⇧H` },
-    { id: 'reset', label: 'Reset State', hint: `${modKey}⇧R` },
-    { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}⇧A` },
-    { id: 'snap', label: 'Snap to Position', hint: `${modKey}⇧S` },
-    { id: 'size', label: `Cycle Size (${sizeLabel})`, hint: `${modKey}⇧Z` },
-    { id: 'opacity', label: `Opacity (${Math.round(opacity * 100)}%)`, hint: `${modKey}⇧O` },
+    { id: 'ghost', label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}${shiftKey}M` },
+    { id: 'hide-text', label: `${isTextHidden ? '✓ ' : ''}Hide Text`, hint: `${modKey}${shiftKey}H` },
+    { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
+    { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
+    { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S` },
+    { id: 'size', label: `Cycle Size (${sizeLabel})`, hint: `${modKey}${shiftKey}Z` },
+    { id: 'opacity', label: `Opacity (${Math.round(opacity * 100)}%)`, hint: `${modKey}${shiftKey}O` },
     { id: 'copy-status', label: 'Copy Status' },
-    { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}⇧I` },
-    { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}⇧C` },
+    { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
+    { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}${shiftKey}C` },
     { id: 'change-gateway', label: 'Change Gateway…' },
-    { id: 'hide', label: 'Hide Mascot', hint: `${modKey}⇧V` },
+    { id: 'hide', label: 'Hide Mascot', hint: `${modKey}${shiftKey}V` },
     { id: 'sep-2', separator: true },
     { id: 'about', label: 'About Molt Mascot' },
     { id: 'github', label: 'Open on GitHub…' },
-    { id: 'devtools', label: 'DevTools', hint: `${modKey}⇧D` },
+    { id: 'devtools', label: 'DevTools', hint: `${modKey}${shiftKey}D` },
     { id: 'quit', label: 'Quit', hint: `${modKey}${altKey}Q` },
   ];
 
