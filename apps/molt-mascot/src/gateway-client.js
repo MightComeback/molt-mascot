@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -732,31 +732,15 @@ export class GatewayClient {
    * @returns {"healthy"|"degraded"|"unhealthy"}
    */
   get healthStatus() {
-    if (this._destroyed || !this.isConnected) return 'unhealthy';
-
-    // Check for stale connection (no messages for >10s while polling is active)
-    if (!this._pollingPaused && this._lastMessageAt > 0) {
-      const gap = Date.now() - this._lastMessageAt;
-      if (gap > 10000) return 'degraded';
-    }
-
-    // Check latency quality (prefer median from rolling stats)
-    const source = resolveQualitySource(this.latencyMs, this.latencyStats);
-    if (source !== null) {
-      const quality = connectionQuality(source);
-      if (quality === 'poor') return 'degraded';
-    }
-
-    // Check error rate (>20% errors is degraded)
-    const stats = this.latencyStats;
-    if (this.hasPlugin) {
-      // Use the plugin state's tool call/error counts if we can access them
-      // via the last known state. For now, check connection success rate.
-      const rate = this.connectionSuccessRate;
-      if (rate !== null && rate < 80) return 'degraded';
-    }
-
-    return 'healthy';
+    if (this._destroyed) return 'unhealthy';
+    return computeHealthStatus({
+      isConnected: this.isConnected,
+      isPollingPaused: this._pollingPaused,
+      lastMessageAt: this._lastMessageAt || null,
+      latencyMs: this.latencyMs,
+      latencyStats: this.latencyStats,
+      connectionSuccessRate: this.connectionSuccessRate,
+    });
   }
 
   /**
