@@ -324,6 +324,7 @@ function syncPill() {
   }
   // Delegate label computation to the extracted pure-function module (single source of truth).
   // This eliminates ~50 lines of duplicated mode→text mapping that previously lived here.
+  const _healthStatus = currentHealthStatus();
   const pillResult = buildPillLabel({
     mode: currentMode,
     modeSince,
@@ -334,6 +335,7 @@ function syncPill() {
     lastCloseDetail,
     isClickThrough,
     activeAgents: pluginActiveAgents,
+    healthStatus: _healthStatus,
   });
 
   const { label, cssClass, effectiveMode, ariaLive } = pillResult;
@@ -352,7 +354,6 @@ function syncPill() {
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
-  const _healthStatus = currentHealthStatus();
   const tip = buildTooltip({
     displayMode: effectiveMode,
     durationSec: duration,

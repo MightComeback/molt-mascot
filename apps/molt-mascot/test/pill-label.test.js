@@ -342,4 +342,47 @@ describe('buildPillLabel', () => {
     });
     expect(result.label).toBe('Idle');
   });
+
+  // --- healthStatus indicator ---
+
+  it('appends ⚠️ when healthStatus is degraded', () => {
+    const result = build({ mode: 'idle', healthStatus: 'degraded' });
+    expect(result.label).toContain('⚠️');
+  });
+
+  it('appends 🔴 when healthStatus is unhealthy (non-disconnected mode)', () => {
+    const result = build({ mode: 'thinking', modeSince: NOW, healthStatus: 'unhealthy' });
+    expect(result.label).toContain('🔴');
+  });
+
+  it('omits health indicator when healthy', () => {
+    const result = build({ healthStatus: 'healthy' });
+    expect(result.label).not.toContain('⚠️');
+    expect(result.label).not.toContain('🔴');
+  });
+
+  it('omits unhealthy indicator when mode is disconnected (redundant)', () => {
+    const result = build({ mode: 'disconnected', modeSince: NOW, healthStatus: 'unhealthy' });
+    expect(result.label).not.toContain('🔴');
+  });
+
+  it('omits degraded indicator when mode is error (avoid clutter)', () => {
+    const result = build({
+      mode: 'error',
+      modeSince: NOW,
+      lastErrorMessage: 'timeout',
+      healthStatus: 'degraded',
+    });
+    expect(result.label).not.toContain('⚠️');
+  });
+
+  it('shows both health indicator and ghost emoji when both active', () => {
+    const result = build({ healthStatus: 'degraded', isClickThrough: true });
+    expect(result.label).toContain('⚠️');
+    expect(result.label).toContain('👻');
+    // Health indicator should come before ghost emoji
+    const healthIdx = result.label.indexOf('⚠️');
+    const ghostIdx = result.label.indexOf('👻');
+    expect(healthIdx).toBeLessThan(ghostIdx);
+  });
 });

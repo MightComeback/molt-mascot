@@ -33,6 +33,7 @@ import { capitalize, truncate, formatDuration } from './utils.js';
  * @param {number} [params.activeAgents] - Number of active agent sessions (shown when >1 in thinking/tool modes)
  * @param {number} [params.activeTools] - Number of in-flight tool calls (shown when >1 in tool mode)
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown in connecting/disconnected modes)
+ * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - Connection health (shown as prefix when degraded/unhealthy)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -49,6 +50,7 @@ export function buildPillLabel(params) {
     activeAgents = 0,
     activeTools = 0,
     reconnectAttempt = 0,
+    healthStatus = null,
     now: nowOverride,
   } = params;
 
@@ -103,6 +105,14 @@ export function buildPillLabel(params) {
     }
   } else if (mode === 'error' && lastErrorMessage) {
     label = truncate(lastErrorMessage, 48);
+  }
+
+  // Surface degraded/unhealthy connection status directly in the pill
+  // so the user sees it without hovering. "healthy" is omitted to avoid clutter.
+  if (healthStatus === 'unhealthy' && mode !== 'disconnected' && mode !== 'error') {
+    label += ' 🔴';
+  } else if (healthStatus === 'degraded' && mode !== 'error') {
+    label += ' ⚠️';
   }
 
   if (isClickThrough) {
