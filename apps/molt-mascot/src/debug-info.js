@@ -57,6 +57,7 @@
  * @param {string} [params.instanceId] - Stable client instance ID (helps diagnose multi-window and duplicate-session issues on the gateway)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (helps diagnose ghost state recovery)
  * @param {number} [params.pid] - Electron process PID (useful for Activity Monitor / task kill diagnostics)
+ * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -122,6 +123,7 @@ export function buildDebugInfo(params) {
     instanceId,
     lastResetAt,
     pid,
+    healthStatus,
     now: nowOverride,
   } = params;
 
@@ -271,5 +273,6 @@ export function buildDebugInfo(params) {
     lines.push(`Last reset: ${formatElapsed(lastResetAt, now)} ago (at ${new Date(lastResetAt).toISOString()})`);
   }
   if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
+  if (typeof healthStatus === 'string' && healthStatus) lines.push(`Health: ${healthStatus}`);
   return lines.join('\n');
 }

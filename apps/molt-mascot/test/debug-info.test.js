@@ -656,6 +656,28 @@ describe("connection uptime", () => {
   });
 });
 
+describe("healthStatus in debug info", () => {
+  it("shows health status when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, healthStatus: "degraded" });
+    expect(info).toContain("Health: degraded");
+  });
+
+  it("shows unhealthy health status", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, healthStatus: "unhealthy" });
+    expect(info).toContain("Health: unhealthy");
+  });
+
+  it("shows healthy health status", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, healthStatus: "healthy" });
+    expect(info).toContain("Health: healthy");
+  });
+
+  it("omits health when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Health:");
+  });
+});
+
 describe("formatElapsed", () => {
   it("returns human-readable duration between two timestamps", () => {
     const now = 1700000000000;

@@ -712,6 +712,25 @@ describe("buildTooltip", () => {
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0, lastResetAt: 0 });
     expect(tip2).not.toContain("reset");
   });
+
+  it("shows degraded health status", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "degraded" });
+    expect(tip).toContain("⚠️ degraded");
+  });
+
+  it("shows unhealthy health status", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "unhealthy" });
+    expect(tip).toContain("🔴 unhealthy");
+  });
+
+  it("omits health status when healthy or not provided", () => {
+    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "healthy" });
+    expect(tip1).not.toContain("degraded");
+    expect(tip1).not.toContain("unhealthy");
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip2).not.toContain("degraded");
+    expect(tip2).not.toContain("unhealthy");
+  });
 });
 
 describe("normalizeWsUrl", () => {

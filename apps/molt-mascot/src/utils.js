@@ -146,6 +146,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (median used for connection quality label when available)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
+ * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown as a prefix emoji when degraded/unhealthy)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -177,6 +178,7 @@ export function buildTooltip(params) {
     activeTools = 0,
     targetUrl,
     lastResetAt,
+    healthStatus,
     now: nowOverride,
   } = params;
 
@@ -240,6 +242,10 @@ export function buildTooltip(params) {
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
     tip += ` · reconnected ${sessionConnectCount - 1}×`;
   }
+  // Show health status when degraded or unhealthy for at-a-glance diagnostics.
+  // "healthy" is omitted to keep the tooltip clean when everything is fine.
+  if (healthStatus === 'degraded') tip += ' · ⚠️ degraded';
+  if (healthStatus === 'unhealthy') tip += ' · 🔴 unhealthy';
   const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
   if (verParts) tip += ` (${verParts})`;
   return tip;
