@@ -71,10 +71,12 @@ function posEpoch(v) {
  */
 const { isValidMode } = require('./mode-emoji.cjs');
 
-const VALID_HEALTH = ['healthy', 'degraded', 'unhealthy'];
+const VALID_HEALTH = Object.freeze(['healthy', 'degraded', 'unhealthy']);
+/** @private Set for O(1) health status validation (matches mode-emoji/size-presets pattern). */
+const _VALID_HEALTH_SET = new Set(VALID_HEALTH);
 function validHealthStatus(v) {
   if (typeof v !== 'string') return null;
-  return VALID_HEALTH.includes(v) ? v : null;
+  return _VALID_HEALTH_SET.has(v) ? v : null;
 }
 
 /**
@@ -136,4 +138,4 @@ function parseModeUpdate(raw) {
   };
 }
 
-module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus };
+module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH };

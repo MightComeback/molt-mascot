@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -83,6 +83,19 @@ describe('parse-mode-update', () => {
       expect(validHealthStatus(undefined)).toBeNull();
       expect(validHealthStatus(42)).toBeNull();
       expect(validHealthStatus(true)).toBeNull();
+    });
+  });
+
+  describe('VALID_HEALTH', () => {
+    it('is a frozen array of known health status strings', () => {
+      expect(Object.isFrozen(VALID_HEALTH)).toBe(true);
+      expect(VALID_HEALTH).toEqual(['healthy', 'degraded', 'unhealthy']);
+    });
+
+    it('matches the set of values accepted by validHealthStatus', () => {
+      for (const h of VALID_HEALTH) {
+        expect(validHealthStatus(h)).toBe(h);
+      }
     });
   });
 
