@@ -96,4 +96,41 @@ function resolveQualitySource(instantMs, stats) {
   return null;
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, QUALITY_THRESHOLDS };
+/**
+ * Build a compact latency + quality summary string from instant latency and optional rolling stats.
+ *
+ * Consolidates the repeated pattern across buildTooltip, buildTrayTooltip, and buildDebugInfo:
+ *   formatLatency(ms) + resolveQualitySource(ms, stats) + connectionQuality() + connectionQualityEmoji()
+ *
+ * @param {number} ms - Instant latency in milliseconds
+ * @param {{ median?: number, samples?: number, jitter?: number }|null|undefined} [stats] - Rolling latency stats
+ * @param {{ emoji?: boolean, jitterThreshold?: number }} [opts]
+ *   - emoji: include quality emoji (default true)
+ *   - jitterThreshold: show jitter when it exceeds this fraction of median (default 0.5)
+ * @returns {{ text: string, quality: string|null, emoji: string }} Formatted parts for flexible composition
+ */
+function formatQualitySummary(ms, stats, opts) {
+  const useEmoji = opts?.emoji !== false;
+  const jitterThreshold = opts?.jitterThreshold ?? 0.5;
+
+  const latencyStr = formatLatency(ms);
+  const source = resolveQualitySource(ms, stats);
+  const quality = connectionQuality(source);
+  const qualityEmoji = connectionQualityEmoji(quality);
+
+  let text = latencyStr;
+  if (quality) {
+    text += useEmoji ? ` ${qualityEmoji}` : ` [${quality}]`;
+  }
+
+  // Append jitter when it exceeds threshold fraction of median
+  if (stats && typeof stats.jitter === 'number' && typeof stats.median === 'number' && stats.median > 0) {
+    if (stats.jitter > stats.median * jitterThreshold) {
+      text += `, jitter ${formatLatency(stats.jitter)}`;
+    }
+  }
+
+  return { text, quality, emoji: qualityEmoji };
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS };

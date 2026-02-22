@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, QUALITY_THRESHOLDS } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -166,5 +166,57 @@ describe('connectionQualityEmoji', () => {
     expect(connectionQualityEmoji(undefined)).toBe('⚪');
     expect(connectionQualityEmoji('unknown')).toBe('⚪');
     expect(connectionQualityEmoji('')).toBe('⚪');
+  });
+});
+
+describe('formatQualitySummary', () => {
+  it('returns formatted latency with quality emoji by default', () => {
+    const result = formatQualitySummary(25, null);
+    expect(result.text).toBe('25ms 🟢');
+    expect(result.quality).toBe('excellent');
+    expect(result.emoji).toBe('🟢');
+  });
+
+  it('uses quality label instead of emoji when emoji=false', () => {
+    const result = formatQualitySummary(25, null, { emoji: false });
+    expect(result.text).toBe('25ms [excellent]');
+  });
+
+  it('prefers median from stats for quality assessment', () => {
+    const result = formatQualitySummary(400, { median: 30, samples: 10 });
+    expect(result.quality).toBe('excellent');
+    expect(result.text).toContain('400ms');
+    expect(result.text).toContain('🟢');
+  });
+
+  it('appends jitter when exceeding threshold', () => {
+    const stats = { median: 40, samples: 10, jitter: 30 };
+    const result = formatQualitySummary(42, stats);
+    expect(result.text).toContain('jitter 30ms');
+  });
+
+  it('omits jitter when below threshold', () => {
+    const stats = { median: 40, samples: 10, jitter: 10 };
+    const result = formatQualitySummary(42, stats);
+    expect(result.text).not.toContain('jitter');
+  });
+
+  it('supports custom jitter threshold', () => {
+    const stats = { median: 100, samples: 10, jitter: 30 };
+    // Default 0.5 threshold: 30 < 100*0.5=50, no jitter shown
+    expect(formatQualitySummary(100, stats).text).not.toContain('jitter');
+    // Custom 0.2 threshold: 30 > 100*0.2=20, jitter shown
+    expect(formatQualitySummary(100, stats, { jitterThreshold: 0.2 }).text).toContain('jitter');
+  });
+
+  it('handles invalid latency gracefully', () => {
+    const result = formatQualitySummary(-1, null);
+    expect(result.text).toBe('–');
+    expect(result.quality).toBeNull();
+  });
+
+  it('handles null stats gracefully', () => {
+    const result = formatQualitySummary(200, null);
+    expect(result.quality).toBe('fair');
   });
 });
