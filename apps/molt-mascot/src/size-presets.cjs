@@ -91,4 +91,18 @@ function prevSizeIndex(currentIndex, count) {
   return (currentIndex - 1 + n) % n;
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex };
+/**
+ * Format a size preset as a compact display string: "label (W×H)".
+ * Used in --status output, tray tooltip, and debug info for consistent sizing display.
+ *
+ * @param {string} label - Size label (e.g. 'medium')
+ * @param {number} width - Window width in pixels
+ * @param {number} height - Window height in pixels
+ * @returns {string} Formatted string (e.g. "medium (240×200)")
+ */
+function formatSizeLabel(label, width, height) {
+  if (!label) return `${width}×${height}`;
+  return `${label} (${width}×${height})`;
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel };

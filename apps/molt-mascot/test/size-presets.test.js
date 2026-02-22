@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -169,6 +169,21 @@ describe('size-presets', () => {
         expect(prevSizeIndex(nextSizeIndex(i))).toBe(i);
         expect(nextSizeIndex(prevSizeIndex(i))).toBe(i);
       }
+    });
+  });
+
+  describe('formatSizeLabel', () => {
+    it('formats label with dimensions', () => {
+      expect(formatSizeLabel('medium', 240, 200)).toBe('medium (240×200)');
+    });
+
+    it('returns dimensions only when label is empty', () => {
+      expect(formatSizeLabel('', 100, 80)).toBe('100×80');
+    });
+
+    it('returns dimensions only when label is null/undefined', () => {
+      expect(formatSizeLabel(null, 100, 80)).toBe('100×80');
+      expect(formatSizeLabel(undefined, 100, 80)).toBe('100×80');
     });
   });
 });
