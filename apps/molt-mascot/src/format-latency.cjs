@@ -46,7 +46,7 @@ function connectionQuality(ms) {
  * visual feedback in tooltips and tray menus.
  *
  * @param {string|null} quality - Quality label from connectionQuality()
- * @returns {string} Colored circle emoji, or empty string if quality is null/unknown
+ * @returns {string} Colored circle emoji (⚪ for null/unknown quality)
  */
 function connectionQualityEmoji(quality) {
   switch (quality) {
@@ -54,7 +54,7 @@ function connectionQualityEmoji(quality) {
     case 'good':      return '🟡';
     case 'fair':      return '🟠';
     case 'poor':      return '🔴';
-    default:          return '';
+    default:          return '⚪';
   }
 }
 

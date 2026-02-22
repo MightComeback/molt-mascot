@@ -994,10 +994,10 @@ describe("connectionQualityEmoji", () => {
     expect(connectionQualityEmoji("poor")).toBe("🔴");
   });
 
-  it("returns empty string for null or unknown values", () => {
-    expect(connectionQualityEmoji(null)).toBe("");
-    expect(connectionQualityEmoji(undefined)).toBe("");
-    expect(connectionQualityEmoji("unknown")).toBe("");
+  it("returns grey circle for null or unknown values", () => {
+    expect(connectionQualityEmoji(null)).toBe("⚪");
+    expect(connectionQualityEmoji(undefined)).toBe("⚪");
+    expect(connectionQualityEmoji("unknown")).toBe("⚪");
   });
 });
 
