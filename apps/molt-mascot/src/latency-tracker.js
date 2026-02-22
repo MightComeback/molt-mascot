@@ -21,7 +21,7 @@ const DEFAULT_BUFFER_MAX = 60;
 export function createLatencyTracker(opts = {}) {
   const maxSamples = opts.maxSamples ?? DEFAULT_BUFFER_MAX;
   // Ring buffer: head points to the next write slot; _count tracks filled slots.
-  const ring = new Array(maxSamples);
+  const ring = Array.from({ length: maxSamples });
   let head = 0;
   let _count = 0;
   let cache = null;
