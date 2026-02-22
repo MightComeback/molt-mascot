@@ -45,7 +45,7 @@ const SYNC_PROPS = [
   ['startedAt',    'number',  'onStartedAt'],
   ['activeAgents', 'number',  'onActiveAgents'],
   ['activeTools',  'number',  'onActiveTools'],
-  ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true }],
+  ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true, clearOnMissing: true }],
   ['lastResetAt',  'number',  'onLastResetAt'],
 ];
 
@@ -91,6 +91,19 @@ export function createPluginSync(callbacks = {}) {
     for (const entry of SYNC_PROPS) {
       const [key, expectedType, cbName, opts] = entry;
       const val = state[key];
+
+      // When a property is absent from the state and clearOnMissing is set,
+      // treat it as an explicit clear (e.g. plugin deletes currentTool when idle).
+      // Without this, a stale value lingers in the cache until a new value arrives.
+      if (val === undefined && opts?.clearOnMissing) {
+        if (last[key] !== null && last[key] !== undefined) {
+          last[key] = null;
+          callbacks[cbName]?.('');
+          changed.push(key);
+        }
+        continue;
+      }
+
       if (typeof val !== expectedType) continue;
       // String properties must be non-empty to count as a valid update,
       // unless allowEmpty is set (e.g. currentTool clears to '' when idle).

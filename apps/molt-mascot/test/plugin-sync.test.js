@@ -210,6 +210,44 @@ describe('createPluginSync', () => {
     expect(changed).toEqual(['alignment', 'opacity']);
   });
 
+  it('clears currentTool when absent from state (clearOnMissing)', () => {
+    const calls = [];
+    const sync = createPluginSync({
+      onCurrentTool: (v) => { calls.push(v); },
+    });
+
+    // Set a tool
+    sync.sync({ currentTool: 'exec' });
+    expect(calls).toEqual(['exec']);
+
+    // State omits currentTool entirely (plugin does `delete state.currentTool`)
+    sync.sync({ alignment: 'top-left' });
+    expect(calls).toEqual(['exec', '']);
+
+    // Subsequent sync without currentTool should not fire again (already cleared)
+    sync.sync({ alignment: 'top-left' });
+    expect(calls).toEqual(['exec', '']);
+
+    // Re-setting should fire again
+    sync.sync({ currentTool: 'read' });
+    expect(calls).toEqual(['exec', '', 'read']);
+  });
+
+  it('does not clear non-clearOnMissing properties when absent', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onAlignment: () => { called = true; },
+    });
+
+    sync.sync({ alignment: 'top-left' });
+    expect(called).toBe(true);
+    called = false;
+
+    // alignment is absent but does NOT have clearOnMissing — should not fire
+    sync.sync({ opacity: 0.5 });
+    expect(called).toBe(false);
+  });
+
   it('validates startedAt is positive', () => {
     let called = false;
     const sync = createPluginSync({
