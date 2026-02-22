@@ -438,14 +438,21 @@ export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageA
   if (!isConnected) return 'unhealthy';
   const now = nowOverride ?? Date.now();
 
-  // Stale connection check (no messages for >10s while polling is active)
+  // Stale connection check (no messages while polling is active).
+  // >30s stale is unhealthy (connection is effectively dead);
+  // >10s stale is degraded (likely transient hiccup).
   if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
-    if (now - lastMessageAt > 10000) return 'degraded';
+    const staleMs = now - lastMessageAt;
+    if (staleMs > 30000) return 'unhealthy';
+    if (staleMs > 10000) return 'degraded';
   }
 
-  // Latency quality check
+  // Latency quality check.
+  // Extreme latency (>5s) is unhealthy — the connection is barely functional.
+  // Poor latency (>500ms) is degraded — usable but warrants investigation.
   const source = resolveQualitySource(latencyMs, latencyStats);
   if (source !== null) {
+    if (source > 5000) return 'unhealthy';
     const quality = connectionQuality(source);
     if (quality === 'poor') return 'degraded';
   }

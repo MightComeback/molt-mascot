@@ -1213,6 +1213,33 @@ describe("computeHealthStatus", () => {
       now,
     })).toBe("healthy");
   });
+
+  it("returns unhealthy when connection is very stale (>30s no messages)", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: now - 35000,
+      latencyMs: 20,
+      now,
+    })).toBe("unhealthy");
+  });
+
+  it("returns unhealthy when latency exceeds 5s", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 6000,
+      now,
+    })).toBe("unhealthy");
+  });
+
+  it("returns unhealthy when median latency from stats exceeds 5s", () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 20,
+      latencyStats: { median: 7000, samples: 10 },
+      now,
+    })).toBe("unhealthy");
+  });
 });
 
 describe("isRecoverableCloseCode", () => {
