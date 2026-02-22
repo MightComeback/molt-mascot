@@ -72,7 +72,7 @@ export function drawSprite(ctx, sprite, { x = 0, y = 0, scale = 3 } = {}) {
  * first access. Invalidated when scale changes (rare — only on window resize).
  */
 export const _spriteCache = (() => {
-  /** @type {Map<string, { canvas: OffscreenCanvas|HTMLCanvasElement, scale: number }>} */
+  /** @type {Map<number, OffscreenCanvas|HTMLCanvasElement>} */
   const cache = new Map();
   let lastScale = -1;
 

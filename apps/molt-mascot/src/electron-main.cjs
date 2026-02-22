@@ -321,6 +321,7 @@ Timing:
 
 Preferences file: ${prefsExist ? prefsPath : '(none)'}
 Platform: ${process.platform} ${process.arch}
+PID: ${process.pid}
 Electron: ${process.versions.electron || 'n/a'}
 Node: ${process.versions.node || 'n/a'}
 Chrome: ${process.versions.chrome || 'n/a'}
