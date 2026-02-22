@@ -1,5 +1,6 @@
 import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { GatewayClient } from '../src/gateway-client.js';
+import { createLatencyTracker } from '../src/latency-tracker.js';
 
 // GatewayClient requires WebSocket in the global scope; provide a controllable stub
 // so we can test connection lifecycle without a real server.
@@ -604,28 +605,28 @@ describe('GatewayClient', () => {
 
     it('computes min/max/avg from latency buffer', () => {
       const client = new GatewayClient();
-      client._latencyBuffer = [10, 20, 30];
+      for (const v of [10, 20, 30]) client._latencyTracker.push(v);
       const stats = client.latencyStats;
       expect(stats).toEqual({ min: 10, max: 30, avg: 20, median: 20, p95: 30, p99: 30, jitter: 8, samples: 3 });
     });
 
     it('rounds fractional averages', () => {
       const client = new GatewayClient();
-      client._latencyBuffer = [10, 11];
+      for (const v of [10, 11]) client._latencyTracker.push(v);
       const stats = client.latencyStats;
       expect(stats.avg).toBe(11); // 10.5 rounds to 11
     });
 
     it('is included in getStatus()', () => {
       const client = new GatewayClient();
-      client._latencyBuffer = [5, 15];
+      for (const v of [5, 15]) client._latencyTracker.push(v);
       const status = client.getStatus();
       expect(status.latencyStats).toEqual({ min: 5, max: 15, avg: 10, median: 10, p95: 15, p99: 15, jitter: 5, samples: 2 });
     });
 
     it('is cleared on cleanup', () => {
       const client = new GatewayClient();
-      client._latencyBuffer = [10, 20, 30];
+      for (const v of [10, 20, 30]) client._latencyTracker.push(v);
       client._cleanup();
       expect(client.latencyStats).toBeNull();
     });
@@ -640,7 +641,7 @@ describe('GatewayClient', () => {
       // First plugin state response
       const req1 = JSON.parse(ws._sent[1]);
       ws._message({ type: 'res', id: req1.id, ok: true, payload: { ok: true, state: { mode: 'idle' } } });
-      expect(client._latencyBuffer.length).toBe(1);
+      expect(client._latencyTracker.count()).toBe(1);
       expect(client.latencyStats.samples).toBe(1);
     });
 
@@ -662,13 +663,13 @@ describe('GatewayClient', () => {
     });
 
     it('caps buffer at max size', () => {
+      // Use a client with a small maxSamples to test capping behavior.
+      // The tracker is created in the constructor with maxSamples=60,
+      // so we replace it with a smaller one for this test.
       const client = new GatewayClient();
-      client._latencyBufferMax = 3;
-      client._latencyBuffer = [10, 20, 30];
-      // Simulate adding one more
-      client._latencyBuffer.shift();
-      client._latencyBuffer.push(40);
-      expect(client._latencyBuffer).toEqual([20, 30, 40]);
+      client._latencyTracker = createLatencyTracker({ maxSamples: 3 });
+      for (const v of [10, 20, 30, 40]) client._latencyTracker.push(v);
+      expect(client._latencyTracker.samples()).toEqual([20, 30, 40]);
       expect(client.latencyStats).toEqual({ min: 20, max: 40, avg: 30, median: 30, p95: 40, p99: 40, jitter: 8, samples: 3 });
     });
   });

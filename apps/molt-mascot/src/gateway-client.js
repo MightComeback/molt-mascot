@@ -7,6 +7,7 @@
  */
 
 import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { createLatencyTracker } from './latency-tracker.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -81,12 +82,8 @@ export class GatewayClient {
     // this in tooltips/debug info to diagnose gateway responsiveness.
     /** @type {number|null} Most recent plugin state poll round-trip time in ms. */
     this.latencyMs = null;
-    /** @private Circular buffer for latency history (rolling window for min/max/avg). */
-    this._latencyBuffer = [];
-    /** @private Max entries in the latency ring buffer. ~60 samples = ~1 min at 1s poll. */
-    this._latencyBufferMax = 60;
-    /** @private Cached latencyStats result (invalidated when new samples are added). */
-    this._latencyStatsCache = null;
+    /** @private Latency tracker (replaces inline ring buffer + stats computation). */
+    this._latencyTracker = createLatencyTracker({ maxSamples: 60 });
     /** @private */
     this._pluginStateSentAt = 0;
 
@@ -355,12 +352,7 @@ export class GatewayClient {
         // Track round-trip latency for diagnostics
         if (this._pluginStateSentAt > 0) {
           this.latencyMs = Date.now() - this._pluginStateSentAt;
-          // Push into ring buffer for min/max/avg stats
-          if (this._latencyBuffer.length >= this._latencyBufferMax) {
-            this._latencyBuffer.shift();
-          }
-          this._latencyBuffer.push(this.latencyMs);
-          this._latencyStatsCache = null; // invalidate cached stats
+          this._latencyTracker.push(this.latencyMs);
         }
         this.onPluginState?.(msg.payload.state);
         return;
@@ -539,8 +531,7 @@ export class GatewayClient {
     this._pluginStateLastSentAt = 0;
     this._pluginStateSentAt = 0;
     this.latencyMs = null;
-    this._latencyBuffer = [];
-    this._latencyStatsCache = null;
+    this._latencyTracker.reset();
 
     // Notify consumers to clear cached plugin config (clickThrough, alignment,
     // etc.) so stale values don't persist across reconnections.
@@ -632,62 +623,13 @@ export class GatewayClient {
 
   /**
    * Compute min/max/avg latency from the rolling buffer.
+   * Delegates to the shared latency tracker (single source of truth for stats computation).
    * Returns null if no samples are available.
    *
    * @returns {{ min: number, max: number, avg: number, median: number, p95: number, p99: number, jitter: number, samples: number } | null}
    */
   get latencyStats() {
-    const buf = this._latencyBuffer;
-    if (!buf || buf.length === 0) return null;
-    // Return cached result if available (invalidated when new samples are added).
-    // Avoids re-sorting the buffer on every access within the same poll tick
-    // (tray tooltip, debug info, and renderer all read this per frame).
-    if (this._latencyStatsCache) return this._latencyStatsCache;
-    let min = Infinity;
-    let max = -Infinity;
-    let sum = 0;
-    for (let i = 0; i < buf.length; i++) {
-      const v = buf[i];
-      if (v < min) min = v;
-      if (v > max) max = v;
-      sum += v;
-    }
-    const avg = sum / buf.length;
-    // Jitter: standard deviation of latency samples. High jitter indicates
-    // an unstable connection even when median/avg look acceptable.
-    // Uses population stddev (not sample) since we have the full rolling window.
-    let sqDiffSum = 0;
-    for (let i = 0; i < buf.length; i++) {
-      const diff = buf[i] - avg;
-      sqDiffSum += diff * diff;
-    }
-    const jitter = Math.round(Math.sqrt(sqDiffSum / buf.length));
-    // Median is more meaningful than average for latency because it's robust
-    // against outlier spikes (e.g. a single 2s GC pause doesn't skew it).
-    const sorted = buf.slice().sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    const median = sorted.length % 2 === 0
-      ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-      : Math.round(sorted[mid]);
-    // p95: 95th percentile — reveals tail latency that median/avg hide.
-    // Uses nearest-rank method: ceil(0.95 * n) - 1, clamped to valid index.
-    const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
-    const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
-    // p99: 99th percentile — catches extreme tail latency that p95 misses.
-    // Matches latency-tracker.js for consistency across tracker modules.
-    const p99Idx = Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1);
-    const p99 = Math.round(sorted[Math.max(0, p99Idx)]);
-    this._latencyStatsCache = {
-      min: Math.round(min),
-      max: Math.round(max),
-      avg: Math.round(avg),
-      median,
-      p95,
-      p99,
-      jitter,
-      samples: buf.length,
-    };
-    return this._latencyStatsCache;
+    return this._latencyTracker.stats();
   }
 
   /**
