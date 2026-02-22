@@ -347,6 +347,22 @@ describe('tray-icon', () => {
       expect(tip).toContain('jitter 30ms');
     });
 
+    it('includes p99 when tail latency is extreme (p99 > 3× median)', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 500, avg: 55, median: 38, p99: 300, samples: 20 } });
+      expect(tip).toContain('p99 300ms');
+    });
+
+    it('omits p99 when tail latency is not extreme (p99 <= 3× median)', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 100, avg: 45, median: 38, p99: 80, samples: 20 } });
+      expect(tip).not.toContain('p99');
+    });
+
+    it('shows p95 and p99 together when both are notable', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 20, max: 500, avg: 55, median: 38, p95: 180, p99: 400, samples: 20 } });
+      expect(tip).toContain('p95 180ms');
+      expect(tip).toContain('p99 400ms');
+    });
+
     it('omits latency when null or undefined', () => {
       expect(buildTrayTooltip({ ...base, latencyMs: null })).not.toContain('⏱');
       expect(buildTrayTooltip({ ...base })).not.toContain('⏱');

@@ -169,7 +169,7 @@ function renderTraySprite(scale, opts) {
  * @param {string} [params.pluginVersion] - Plugin version string (shown alongside app version for diagnostics)
  * @param {number} [params.pluginStartedAt] - Plugin start timestamp (for uptime display in tooltip)
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
- * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
+ * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
@@ -209,11 +209,14 @@ function buildTrayTooltip(params) {
       // indicating intermittent spikes worth investigating.
       const showP95 = typeof latencyStats.p95 === 'number' && latencyStats.median > 0 && latencyStats.p95 > latencyStats.median * 2;
       const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : '';
+      // Show p99 when tail latency is extreme (p99 > 3× median), indicating rare but severe spikes.
+      const showP99 = typeof latencyStats.p99 === 'number' && latencyStats.median > 0 && latencyStats.p99 > latencyStats.median * 3;
+      const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : '';
       // Show jitter when it exceeds 50% of median — indicates unstable connection
       // worth investigating even if median looks fine.
       const showJitter = typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5;
       const jitterStr = showJitter ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
-      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${jitterStr})`;
+      latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str}${jitterStr})`;
     }
     // Append a quality label when median stats are available (more stable than instant latency).
     const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
