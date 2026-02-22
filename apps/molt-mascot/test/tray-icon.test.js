@@ -326,6 +326,27 @@ describe('tray-icon', () => {
       expect(tip).not.toContain('p95');
     });
 
+    it('includes jitter alongside median when jitter exceeds 50% of median', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 20, max: 120, avg: 50, median: 38, jitter: 25, samples: 20 } });
+      expect(tip).toContain('jitter 25ms');
+    });
+
+    it('omits jitter when jitter is within 50% of median', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 60, avg: 40, median: 38, jitter: 10, samples: 20 } });
+      expect(tip).not.toContain('jitter');
+    });
+
+    it('omits jitter when jitter field is not present', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 20 } });
+      expect(tip).not.toContain('jitter');
+    });
+
+    it('shows both p95 and jitter when both are notable', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyStats: { min: 20, max: 200, avg: 55, median: 38, p95: 180, jitter: 30, samples: 20 } });
+      expect(tip).toContain('p95 180ms');
+      expect(tip).toContain('jitter 30ms');
+    });
+
     it('omits latency when null or undefined', () => {
       expect(buildTrayTooltip({ ...base, latencyMs: null })).not.toContain('⏱');
       expect(buildTrayTooltip({ ...base })).not.toContain('⏱');
