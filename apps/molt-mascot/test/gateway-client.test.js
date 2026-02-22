@@ -779,4 +779,54 @@ describe('GatewayClient', () => {
       expect(str).toContain('ws://example.com');
     });
   });
+
+  describe('healthStatus', () => {
+    it('returns unhealthy when destroyed', () => {
+      client.destroy();
+      expect(client.healthStatus).toBe('unhealthy');
+    });
+
+    it('returns unhealthy when not connected', () => {
+      expect(client.healthStatus).toBe('unhealthy');
+    });
+
+    it('returns healthy when connected with no issues', () => {
+      client.connect({ url: 'ws://example.com' });
+      const ws = FakeWebSocket._last;
+      ws.readyState = FakeWebSocket.OPEN;
+      ws._emit('open');
+      // Simulate successful handshake
+      ws._emit('message', { data: JSON.stringify({
+        type: 'res',
+        id: JSON.parse(ws._sent[0]).id,
+        payload: { type: 'hello-ok' },
+      }) });
+      expect(client.isConnected).toBe(true);
+      expect(client.healthStatus).toBe('healthy');
+    });
+
+    it('returns degraded when connection success rate is low', () => {
+      // Inflate attempt count to simulate failures
+      client.sessionAttemptCount = 10;
+      client.sessionConnectCount = 5;
+      client.connect({ url: 'ws://example.com' });
+      const ws = FakeWebSocket._last;
+      ws.readyState = FakeWebSocket.OPEN;
+      ws._emit('open');
+      ws._emit('message', { data: JSON.stringify({
+        type: 'res',
+        id: JSON.parse(ws._sent[0]).id,
+        payload: { type: 'hello-ok' },
+      }) });
+      // hasPlugin needs to be true for error rate check
+      client.hasPlugin = true;
+      expect(client.healthStatus).toBe('degraded');
+    });
+
+    it('includes healthStatus in getStatus()', () => {
+      const status = client.getStatus();
+      expect(status).toHaveProperty('healthStatus');
+      expect(status.healthStatus).toBe('unhealthy');
+    });
+  });
 });

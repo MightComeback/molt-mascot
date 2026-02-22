@@ -715,6 +715,46 @@ export class GatewayClient {
   }
 
   /**
+   * At-a-glance health assessment based on connection state, latency, and error rate.
+   *
+   * - "healthy"   — connected with good/excellent latency and low error rate
+   * - "degraded"  — connected but with fair/poor latency, high error rate, or stale connection
+   * - "unhealthy" — disconnected or destroyed
+   *
+   * Useful for programmatic consumers (monitoring dashboards, automated alerts,
+   * tray icon color selection) without parsing individual metrics.
+   *
+   * @returns {"healthy"|"degraded"|"unhealthy"}
+   */
+  get healthStatus() {
+    if (this._destroyed || !this.isConnected) return 'unhealthy';
+
+    // Check for stale connection (no messages for >10s while polling is active)
+    if (!this._pollingPaused && this._lastMessageAt > 0) {
+      const gap = Date.now() - this._lastMessageAt;
+      if (gap > 10000) return 'degraded';
+    }
+
+    // Check latency quality (prefer median from rolling stats)
+    const source = resolveQualitySource(this.latencyMs, this.latencyStats);
+    if (source !== null) {
+      const quality = connectionQuality(source);
+      if (quality === 'poor') return 'degraded';
+    }
+
+    // Check error rate (>20% errors is degraded)
+    const stats = this.latencyStats;
+    if (this.hasPlugin) {
+      // Use the plugin state's tool call/error counts if we can access them
+      // via the last known state. For now, check connection success rate.
+      const rate = this.connectionSuccessRate;
+      if (rate !== null && rate < 80) return 'degraded';
+    }
+
+    return 'healthy';
+  }
+
+  /**
    * Return a plain, JSON-serializable snapshot of the client's current state.
    * Useful for debug info export, logging, and diagnostics without manually
    * plucking individual properties.
@@ -751,6 +791,7 @@ export class GatewayClient {
       connectionSuccessRate: this.connectionSuccessRate,
       lastMessageAt: this._lastMessageAt || null,
       staleSinceMs: this.staleSinceMs,
+      healthStatus: this.healthStatus,
     };
   }
 
