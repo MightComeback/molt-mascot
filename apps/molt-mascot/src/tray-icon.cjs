@@ -172,11 +172,12 @@ function renderTraySprite(scale, opts) {
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (shown as compact memory usage for leak diagnostics)
+ * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -261,6 +262,10 @@ function buildTrayTooltip(params) {
       : '';
     parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}${attemptSuffix}`);
   }
+  // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
+  // matching the pill tooltip behavior. "healthy" is omitted to keep it clean.
+  if (healthStatus === 'degraded') parts.push('⚠️ degraded');
+  if (healthStatus === 'unhealthy') parts.push('🔴 unhealthy');
   return parts.join(' · ');
 }
 

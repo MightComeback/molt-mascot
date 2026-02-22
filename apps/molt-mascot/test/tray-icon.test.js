@@ -545,6 +545,23 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base, targetUrl: '' })).not.toContain('→');
       expect(buildTrayTooltip({ ...base })).not.toContain('→');
     });
+
+    it('shows degraded health status', () => {
+      const tip = buildTrayTooltip({ ...base, healthStatus: 'degraded' });
+      expect(tip).toContain('⚠️ degraded');
+    });
+
+    it('shows unhealthy health status', () => {
+      const tip = buildTrayTooltip({ ...base, healthStatus: 'unhealthy' });
+      expect(tip).toContain('🔴 unhealthy');
+    });
+
+    it('omits health status when healthy or not provided', () => {
+      expect(buildTrayTooltip({ ...base, healthStatus: 'healthy' })).not.toContain('degraded');
+      expect(buildTrayTooltip({ ...base, healthStatus: 'healthy' })).not.toContain('unhealthy');
+      expect(buildTrayTooltip({ ...base })).not.toContain('degraded');
+      expect(buildTrayTooltip({ ...base })).not.toContain('unhealthy');
+    });
   });
 
   describe('formatLatency', () => {
