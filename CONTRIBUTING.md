@@ -25,7 +25,8 @@ molt-mascot/
 │   │   ├── size-presets.cjs   # Size preset definitions (dimensions, labels)
 │   │   ├── fps-counter.js     # Rolling FPS counter (ring buffer)
 │   │   ├── parse-cli-arg.cjs  # CLI argument parser (--flag value)
-│   │   └── prefs.cjs          # User preference persistence (debounced, atomic writes)
+│   │   ├── prefs.cjs          # User preference persistence (debounced, atomic writes)
+│   │   └── status-cli.cjs    # --status CLI output (resolved config, formatting)
 │   └── test/                  # Bun test files (mirrors src/)
 │
 ├── packages/molt-mascot-plugin/  # OpenClaw Gateway plugin

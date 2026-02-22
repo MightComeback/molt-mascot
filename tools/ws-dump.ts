@@ -30,6 +30,8 @@ Options:
   --poll-ms=<ms>          Poll interval for --watch mode (default: 1000)
   --min-protocol=<n>      Minimum protocol version (default: 3)
   --max-protocol=<n>      Maximum protocol version (default: 3)
+  --ping                  Measure plugin state round-trip latency and exit
+  --ping-count=<n>        Number of pings to send (default: 5)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
   --compact               Print JSON on a single line instead of pretty-printed
@@ -49,6 +51,7 @@ const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-
 const stateMode = args.has("--state");
 const watchMode = args.has("--watch");
 const resetMode = args.has("--reset");
+const pingMode = args.has("--ping");
 const quiet = args.has("--quiet") || args.has("-q");
 
 const getArg = (name: string): string | undefined => {
@@ -156,6 +159,10 @@ let resetMethodIndex = 0;
 let lastWatchJson = "";
 let watchInterval: ReturnType<typeof setInterval> | null = null;
 const watchPollMs = Number(getArg("--poll-ms") ?? 1000);
+const pingCount = Math.max(1, Number(getArg("--ping-count") ?? 5));
+let pingsSent = 0;
+let pingResults: number[] = [];
+let pingSentAt = 0;
 
 const isMissingMethod = isMissingMethodResponse;
 
@@ -175,7 +182,17 @@ ws.addEventListener("message", (ev) => {
       if (proto != null) parts.push(`protocol=${proto}`);
       if (gwVer) parts.push(`gateway=${gwVer}`);
       info(parts.join(" "));
-      if (resetMode) {
+      if (pingMode) {
+        // Send first ping
+        stateReqId = nextId("ping");
+        pingSentAt = performance.now();
+        pingsSent = 1;
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+      } else if (resetMode) {
         resetReqId = nextId("r");
         ws.send(JSON.stringify({
           type: "req", id: resetReqId,
@@ -228,6 +245,61 @@ ws.addEventListener("message", (ev) => {
       // skip printing — user wants plugin state, not handshake
     } else {
       console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
+    }
+
+    // --ping mode: measure round-trip latency
+    if (pingMode && msg.type === "res" && msg.id === stateReqId) {
+      if (msg.ok && msg.payload?.ok && msg.payload?.state) {
+        const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
+        pingResults.push(rtt);
+        info(`ping ${pingsSent}/${pingCount}: ${rtt}ms`);
+
+        if (pingsSent < pingCount) {
+          // Send next ping after a short delay to avoid burst
+          setTimeout(() => {
+            stateReqId = nextId("ping");
+            pingSentAt = performance.now();
+            pingsSent++;
+            ws.send(JSON.stringify({
+              type: "req", id: stateReqId,
+              method: PLUGIN_STATE_METHODS[stateMethodIndex],
+              params: {},
+            }));
+          }, 200);
+          return;
+        }
+
+        // All pings done — print summary
+        const sorted = pingResults.slice().sort((a, b) => a - b);
+        const min = sorted[0];
+        const max = sorted[sorted.length - 1];
+        const avg = Math.round((sorted.reduce((s, v) => s + v, 0) / sorted.length) * 100) / 100;
+        const mid = Math.floor(sorted.length / 2);
+        const median = sorted.length % 2 === 0
+          ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
+          : sorted[mid];
+
+        console.log(compact
+          ? JSON.stringify({ count: pingCount, min, max, avg, median })
+          : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms`
+        );
+        try { ws.close(); } catch {}
+        return;
+      }
+      // Method fallback (same as --state mode)
+      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+        stateMethodIndex++;
+        stateReqId = nextId("ping");
+        pingSentAt = performance.now();
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        return;
+      }
+      console.error("ws-dump: plugin not available (no state method found)");
+      process.exit(1);
     }
 
     // --reset mode: handle plugin reset response
@@ -305,7 +377,8 @@ ws.addEventListener("message", (ev) => {
 
 // Safety: in --once/--state mode, don't hang forever if the server never replies.
 // (--watch mode runs indefinitely, so no timeout for it.)
-if (once || stateMode || resetMode) {
+if (once || stateMode || resetMode || pingMode) {
+  const effectiveTimeout = pingMode ? Math.max(onceTimeoutMs, pingCount * 1000) : onceTimeoutMs;
   setTimeout(() => {
     if (!gotHello) {
       console.error(`Timed out waiting for hello-ok after ${onceTimeoutMs}ms`);
@@ -319,7 +392,11 @@ if (once || stateMode || resetMode) {
       console.error("Timed out waiting for plugin reset response");
       process.exit(2);
     }
-  }, onceTimeoutMs).unref?.();
+    if (pingMode) {
+      console.error(`Timed out after ${pingsSent}/${pingCount} pings`);
+      process.exit(2);
+    }
+  }, effectiveTimeout).unref?.();
 }
 
 ws.addEventListener("close", () => {
