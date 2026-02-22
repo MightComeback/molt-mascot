@@ -78,5 +78,30 @@ export function createLatencyTracker(opts = {}) {
     return buffer.slice();
   }
 
-  return { push, stats, reset, samples };
+  /**
+   * Number of samples currently in the buffer.
+   * Avoids the allocation of samples().slice() when only the count is needed.
+   *
+   * @returns {number}
+   */
+  function count() {
+    return buffer.length;
+  }
+
+  /**
+   * Return a snapshot of all latency tracker metrics in one call.
+   * Mirrors fpsCounter.getSnapshot() for API consistency across tracker modules.
+   * Avoids consumers calling multiple methods (stats(), count()) separately.
+   *
+   * @returns {{ stats: object|null, count: number, maxSamples: number }}
+   */
+  function getSnapshot() {
+    return {
+      stats: stats(),
+      count: buffer.length,
+      maxSamples,
+    };
+  }
+
+  return { push, stats, reset, samples, count, getSnapshot };
 }

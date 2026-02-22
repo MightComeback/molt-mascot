@@ -103,4 +103,50 @@ describe('createLatencyTracker', () => {
     s.push(999);
     expect(t.samples()).toEqual([10, 20]); // original unaffected
   });
+
+  it('count() returns buffer length without copying', () => {
+    const t = createLatencyTracker({ maxSamples: 5 });
+    expect(t.count()).toBe(0);
+    t.push(10);
+    expect(t.count()).toBe(1);
+    t.push(20);
+    t.push(30);
+    expect(t.count()).toBe(3);
+    t.reset();
+    expect(t.count()).toBe(0);
+  });
+
+  it('count() respects maxSamples eviction', () => {
+    const t = createLatencyTracker({ maxSamples: 2 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.count()).toBe(2);
+  });
+
+  it('getSnapshot() returns stats, count, and maxSamples', () => {
+    const t = createLatencyTracker({ maxSamples: 10 });
+    const empty = t.getSnapshot();
+    expect(empty.stats).toBeNull();
+    expect(empty.count).toBe(0);
+    expect(empty.maxSamples).toBe(10);
+
+    t.push(5);
+    t.push(15);
+    const snap = t.getSnapshot();
+    expect(snap.count).toBe(2);
+    expect(snap.maxSamples).toBe(10);
+    expect(snap.stats).not.toBeNull();
+    expect(snap.stats.min).toBe(5);
+    expect(snap.stats.max).toBe(15);
+    expect(snap.stats.samples).toBe(2);
+  });
+
+  it('getSnapshot() uses cached stats', () => {
+    const t = createLatencyTracker();
+    t.push(42);
+    const s1 = t.getSnapshot().stats;
+    const s2 = t.getSnapshot().stats;
+    expect(s1).toBe(s2); // same cached reference
+  });
 });
