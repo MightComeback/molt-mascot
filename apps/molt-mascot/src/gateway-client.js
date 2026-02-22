@@ -634,7 +634,7 @@ export class GatewayClient {
    * Compute min/max/avg latency from the rolling buffer.
    * Returns null if no samples are available.
    *
-   * @returns {{ min: number, max: number, avg: number, median: number, p95: number, jitter: number, samples: number } | null}
+   * @returns {{ min: number, max: number, avg: number, median: number, p95: number, p99: number, jitter: number, samples: number } | null}
    */
   get latencyStats() {
     const buf = this._latencyBuffer;
@@ -673,12 +673,17 @@ export class GatewayClient {
     // Uses nearest-rank method: ceil(0.95 * n) - 1, clamped to valid index.
     const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
     const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
+    // p99: 99th percentile — catches extreme tail latency that p95 misses.
+    // Matches latency-tracker.js for consistency across tracker modules.
+    const p99Idx = Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1);
+    const p99 = Math.round(sorted[Math.max(0, p99Idx)]);
     this._latencyStatsCache = {
       min: Math.round(min),
       max: Math.round(max),
       avg: Math.round(avg),
       median,
       p95,
+      p99,
       jitter,
       samples: buf.length,
     };

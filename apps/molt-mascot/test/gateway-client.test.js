@@ -606,7 +606,7 @@ describe('GatewayClient', () => {
       const client = new GatewayClient();
       client._latencyBuffer = [10, 20, 30];
       const stats = client.latencyStats;
-      expect(stats).toEqual({ min: 10, max: 30, avg: 20, median: 20, p95: 30, jitter: 8, samples: 3 });
+      expect(stats).toEqual({ min: 10, max: 30, avg: 20, median: 20, p95: 30, p99: 30, jitter: 8, samples: 3 });
     });
 
     it('rounds fractional averages', () => {
@@ -620,7 +620,7 @@ describe('GatewayClient', () => {
       const client = new GatewayClient();
       client._latencyBuffer = [5, 15];
       const status = client.getStatus();
-      expect(status.latencyStats).toEqual({ min: 5, max: 15, avg: 10, median: 10, p95: 15, jitter: 5, samples: 2 });
+      expect(status.latencyStats).toEqual({ min: 5, max: 15, avg: 10, median: 10, p95: 15, p99: 15, jitter: 5, samples: 2 });
     });
 
     it('is cleared on cleanup', () => {
@@ -669,7 +669,7 @@ describe('GatewayClient', () => {
       client._latencyBuffer.shift();
       client._latencyBuffer.push(40);
       expect(client._latencyBuffer).toEqual([20, 30, 40]);
-      expect(client.latencyStats).toEqual({ min: 20, max: 40, avg: 30, median: 30, p95: 40, jitter: 8, samples: 3 });
+      expect(client.latencyStats).toEqual({ min: 20, max: 40, avg: 30, median: 30, p95: 40, p99: 40, jitter: 8, samples: 3 });
     });
   });
 
