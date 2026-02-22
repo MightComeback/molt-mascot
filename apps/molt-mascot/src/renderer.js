@@ -312,6 +312,7 @@ function syncPill() {
     lastErrorMessage,
     lastCloseDetail,
     isClickThrough,
+    activeAgents: pluginActiveAgents,
   });
 
   const { label, cssClass, effectiveMode, ariaLive } = pillResult;
