@@ -84,6 +84,7 @@ bun run mascot
 - **Opacity**: `MOLT_MASCOT_OPACITY` (default: `1.0`, range: `0.0`-`1.0`)
 - **Size preset**: `MOLT_MASCOT_SIZE` (values: `tiny`, `small`, `medium`, `large`, `xlarge`; default: `medium`)
 - **Window Size**: `MOLT_MASCOT_WIDTH` (default: 240) / `MOLT_MASCOT_HEIGHT` (default: 200)
+- **Debug**: `MOLT_MASCOT_DEBUG=1` — opens DevTools on launch (equivalent to `--debug`)
 - **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
 - **Start hidden**: `MOLT_MASCOT_START_HIDDEN=1` — launch hidden (tray-only); toggle visibility with **Cmd/Ctrl+Shift+V**
 - **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings

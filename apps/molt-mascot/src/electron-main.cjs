@@ -205,7 +205,8 @@ if (hasBoolFlag('--disable-gpu') || isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_
 }
 
 // CLI flags: --debug opens DevTools on launch for easier development.
-const cliDebug = hasBoolFlag('--debug');
+// Also accepts MOLT_MASCOT_DEBUG env var for headless/CI scenarios.
+const cliDebug = hasBoolFlag('--debug') || isTruthyEnv(process.env.MOLT_MASCOT_DEBUG);
 
 // CLI flags: --no-tray disables the system tray icon entirely.
 // Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
@@ -278,6 +279,7 @@ Environment variables:
   MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
   MOLT_MASCOT_MIN_PROTOCOL    Minimum Gateway protocol version (default: 2)
   MOLT_MASCOT_MAX_PROTOCOL    Maximum Gateway protocol version (default: 3)
+  MOLT_MASCOT_DEBUG           Open DevTools on launch (1/true/yes)
   MOLT_MASCOT_DISABLE_GPU     Disable hardware acceleration (1/true/yes)
   MOLT_MASCOT_NO_TRAY         Disable system tray icon (1/true/yes)
   MOLT_MASCOT_NO_SHORTCUTS    Disable global keyboard shortcuts (1/true/yes)

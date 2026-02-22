@@ -121,6 +121,21 @@ describe('resolveStatusConfig', () => {
     expect(status.config.startHidden).toBe(true);
   });
 
+  it('--debug flag sets debug', () => {
+    const status = resolveStatusConfig(makeParams({ argv: ['--debug'] }));
+    expect(status.config.debug).toBe(true);
+  });
+
+  it('MOLT_MASCOT_DEBUG env sets debug', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_DEBUG: '1' } }));
+    expect(status.config.debug).toBe(true);
+  });
+
+  it('debug defaults to false', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.config.debug).toBe(false);
+  });
+
   it('--disable-gpu flag sets disableGpu', () => {
     const status = resolveStatusConfig(makeParams({ argv: ['--disable-gpu'] }));
     expect(status.config.disableGpu).toBe(true);
@@ -191,6 +206,7 @@ describe('formatStatusText', () => {
     expect(text).toContain('100%');
     expect(text).toContain('24px');
     expect(text).toContain('Start hidden:   false');
+    expect(text).toContain('Debug:          false');
     expect(text).toContain('Disable GPU:    false');
     expect(text).toContain('PID: 12345');
     expect(text).toContain('darwin arm64');

@@ -69,6 +69,7 @@ function resolveStatusConfig({
   const hideText = isTruthyEnv(env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
   const reducedMotion = isTruthyEnv(env.MOLT_MASCOT_REDUCED_MOTION);
   const startHidden = hasBoolFlag('--start-hidden', argv) || isTruthyEnv(env.MOLT_MASCOT_START_HIDDEN);
+  const debug = hasBoolFlag('--debug', argv) || isTruthyEnv(env.MOLT_MASCOT_DEBUG);
   const disableGpu = hasBoolFlag('--disable-gpu', argv) || isTruthyEnv(env.MOLT_MASCOT_DISABLE_GPU);
   const noTray = hasBoolFlag('--no-tray', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_TRAY);
   const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_SHORTCUTS);
@@ -98,6 +99,7 @@ function resolveStatusConfig({
       hideText,
       reducedMotion,
       startHidden,
+      debug,
       disableGpu,
       noTray,
       noShortcuts,
@@ -143,6 +145,7 @@ function formatStatusText(status) {
     `  Hide text:      ${c.hideText}`,
     `  Reduced motion: ${c.reducedMotion}`,
     `  Start hidden:   ${c.startHidden}`,
+    `  Debug:          ${c.debug}`,
     `  Disable GPU:    ${c.disableGpu}`,
     `  No tray:        ${c.noTray}`,
     `  No shortcuts:   ${c.noShortcuts}`,
