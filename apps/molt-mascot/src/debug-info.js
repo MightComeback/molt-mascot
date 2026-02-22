@@ -28,6 +28,7 @@
  * @param {number} params.frameIntervalMs - Current frame interval (0 = ~60fps)
  * @param {number} [params.actualFps] - Measured frames per second (rolling 1s window)
  * @param {number} [params.totalFrames] - Total frames rendered since app start or last reset
+ * @param {number} [params.worstFrameDeltaMs] - Peak inter-frame delta since start/reset (jank detection)
  * @param {number} params.reconnectAttempt - Current reconnect attempt
  * @param {number} params.canvasScale - Pixel scale factor for canvas
  * @param {string} [params.appVersion] - App version string
@@ -94,6 +95,7 @@ export function buildDebugInfo(params) {
     frameIntervalMs,
     actualFps,
     totalFrames,
+    worstFrameDeltaMs,
     reconnectAttempt,
     canvasScale,
     appVersion,
@@ -222,7 +224,8 @@ export function buildDebugInfo(params) {
   const fpsLabel = frameIntervalMs === 0 ? '~60fps' : `~${Math.round(1000 / frameIntervalMs)}fps`;
   const actualFpsLabel = typeof actualFps === 'number' ? `, actual ${actualFps}fps` : '';
   const totalFramesLabel = typeof totalFrames === 'number' ? `, ${formatCount(totalFrames)} total` : '';
-  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${reducedMotion ? ' (reduced)' : ''}`);
+  const worstDeltaLabel = typeof worstFrameDeltaMs === 'number' && worstFrameDeltaMs > 0 ? `, worst ${Math.round(worstFrameDeltaMs)}ms` : '';
+  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${reducedMotion ? ' (reduced)' : ''}`);
   const platformStr = [platform || 'unknown', arch].filter(Boolean).join(' ');
   lines.push(`Platform: ${platformStr}`);
   const dpr = devicePixelRatio ?? 1;

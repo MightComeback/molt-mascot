@@ -1283,6 +1283,7 @@ function buildDebugInfo() {
     frameIntervalMs: getFrameIntervalMs(),
     actualFps: _fpsCounter.fps(),
     totalFrames: _fpsCounter.frameCount(),
+    worstFrameDeltaMs: _fpsCounter.worstDelta(),
     reconnectAttempt,
     canvasScale: currentScale,
     canvasWidth: canvas.width,

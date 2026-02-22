@@ -204,6 +204,18 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("actual");
   });
 
+  it("shows worst frame delta when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, actualFps: 12, worstFrameDeltaMs: 342.7 });
+    expect(info).toContain("worst 343ms");
+  });
+
+  it("omits worst frame delta when zero or not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, worstFrameDeltaMs: 0 });
+    expect(info).not.toContain("worst");
+    const info2 = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66 });
+    expect(info2).not.toContain("worst");
+  });
+
   it("shows reduced motion suffix", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, reducedMotion: true, frameIntervalMs: 500 });
     expect(info).toContain("(reduced)");
