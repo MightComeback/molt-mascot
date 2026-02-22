@@ -356,6 +356,45 @@ export function formatCloseDetail(code, reason) {
 }
 
 /**
+ * Classify whether a WebSocket close code indicates a recoverable (transient)
+ * disconnection that is worth auto-reconnecting, vs. a fatal condition where
+ * reconnect attempts should stop (or require user intervention).
+ *
+ * Useful for smarter reconnect UX: infinite retry for network blips,
+ * stop-and-alert for auth failures or protocol errors.
+ *
+ * @param {number|null|undefined} code - WebSocket close code
+ * @returns {boolean} true if auto-reconnect is appropriate, false if fatal
+ */
+export function isRecoverableCloseCode(code) {
+  if (code == null) return true; // no code = abnormal drop, always retry
+  // Normal closure initiated by client — not an error, but reconnectable
+  // if the client wants to reconnect (e.g. force-reconnect action).
+  if (code === 1000) return true;
+  // Server going away / restart — transient, reconnect
+  if (code === 1001) return true;
+  // Abnormal closure (no close frame) — network issue, reconnect
+  if (code === 1006) return true;
+  // Service restart / try again later — explicitly transient
+  if (code === 1012 || code === 1013) return true;
+  // Application codes: transient server-side conditions
+  if (code === 4000) return true; // unknown error
+  if (code === 4002) return true; // rate limited
+  if (code === 4005) return true; // already connected (stale session)
+  if (code === 4006) return true; // session replaced
+  if (code === 4008) return true; // request timeout
+  if (code === 4009) return true; // session expired
+  if (code === 4010) return true; // server restart
+  if (code === 4011) return true; // reconnect required
+
+  // Fatal: auth failed, forbidden, protocol errors, bad version/intent
+  // 1002 (protocol error), 1003 (unsupported data), 1008 (policy violation)
+  // 4001 (auth failed), 4003 (forbidden), 4004 (not found),
+  // 4007 (invalid payload), 4012 (invalid version), 4013/4014 (intent errors)
+  return false;
+}
+
+/**
  * Plugin RPC method names for state and reset, ordered by preference.
  * The canonical name uses the scoped package id; the rest are back-compat aliases
  * for older plugins/configs. Probed in order until one succeeds.

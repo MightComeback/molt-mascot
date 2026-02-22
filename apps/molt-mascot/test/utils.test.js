@@ -25,6 +25,7 @@ import {
   connectionQualityEmoji,
   MODE_EMOJI,
   computeHealthStatus,
+  isRecoverableCloseCode,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1183,5 +1184,24 @@ describe("computeHealthStatus", () => {
       connectionSuccessRate: 95,
       now,
     })).toBe("healthy");
+  });
+});
+
+describe("isRecoverableCloseCode", () => {
+  it("returns true for null/undefined (abnormal drop)", () => {
+    expect(isRecoverableCloseCode(null)).toBe(true);
+    expect(isRecoverableCloseCode(undefined)).toBe(true);
+  });
+
+  it("returns true for transient codes", () => {
+    for (const code of [1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011]) {
+      expect(isRecoverableCloseCode(code)).toBe(true);
+    }
+  });
+
+  it("returns false for fatal codes", () => {
+    for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
+      expect(isRecoverableCloseCode(code)).toBe(false);
+    }
   });
 });
