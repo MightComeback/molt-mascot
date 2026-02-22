@@ -372,6 +372,14 @@ function syncPill() {
   }
   if (currentMode === Mode.idle && duration > SLEEP_THRESHOLD_S) {
     label = `Sleeping ${formatDuration(duration)}`;
+    // Append connection uptime so users can see gateway health at a glance
+    // even during long sleep periods (mirrors the idle pill's ↑ indicator).
+    if (connectedSince) {
+      const uptimeSec = Math.max(0, Math.round((Date.now() - connectedSince) / 1000));
+      if (uptimeSec >= 60) {
+        label += ` · ↑${formatDuration(uptimeSec)}`;
+      }
+    }
   }
   if (currentMode === Mode.connecting && duration > 2) {
     label = `Connecting… ${formatDuration(duration)}`;
