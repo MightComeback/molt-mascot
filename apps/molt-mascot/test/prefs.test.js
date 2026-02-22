@@ -108,4 +108,57 @@ describe("createPrefsManager", () => {
     const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
     expect(data).toEqual({ x: 1 });
   });
+
+  it("remove deletes a single key from preferences", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", sizeIndex: 2 }));
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.remove("alignment");
+    mgr.flush();
+    const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+    expect(data).toEqual({ sizeIndex: 2 });
+  });
+
+  it("remove deletes multiple keys at once", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ a: 1, b: 2, c: 3 }));
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.remove("a", "c");
+    mgr.flush();
+    const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+    expect(data).toEqual({ b: 2 });
+  });
+
+  it("remove is a no-op for nonexistent keys", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ x: 1 }));
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.remove("nonexistent");
+    mgr.flush();
+    const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+    expect(data).toEqual({ x: 1 });
+  });
+
+  it("remove with no arguments is a no-op", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.remove();
+    mgr.flush();
+    expect(fs.existsSync(prefsPath)).toBe(false);
+  });
+
+  it("remove batches with pending save", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.save({ a: 1, b: 2, c: 3 });
+    mgr.remove("b");
+    mgr.flush();
+    const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+    expect(data).toEqual({ a: 1, c: 3 });
+  });
+
+  it("save after remove re-adds the key", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ a: 1, b: 2 }));
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
+    mgr.remove("a");
+    mgr.save({ a: 99 });
+    mgr.flush();
+    const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
+    expect(data).toEqual({ a: 99, b: 2 });
+  });
 });

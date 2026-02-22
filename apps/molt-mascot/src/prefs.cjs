@@ -84,7 +84,26 @@ function createPrefsManager(filePath, opts = {}) {
     }
   }
 
-  return { load, save, flush, filePath };
+  /**
+   * Delete one or more preference keys (revert to env-var / built-in defaults).
+   * Debounced like save() — batches with any pending writes.
+   *
+   * @param {...string} keys - Preference key(s) to remove
+   */
+  function remove(...keys) {
+    if (!keys.length) return;
+    try {
+      const current = _pending || load();
+      _pending = { ...current };
+      for (const key of keys) delete _pending[key];
+      if (_timer) clearTimeout(_timer);
+      _timer = setTimeout(flush, debounceMs);
+    } catch {
+      // Best-effort
+    }
+  }
+
+  return { load, save, remove, flush, filePath };
 }
 
 module.exports = { createPrefsManager };
