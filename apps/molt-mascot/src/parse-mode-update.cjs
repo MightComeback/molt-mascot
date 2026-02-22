@@ -115,7 +115,7 @@ function parseModeUpdate(raw) {
 
   return {
     mode: validMode(update.mode),
-    latencyMs: nonNegNum(update.latency),
+    latencyMs: nonNegNum(update.latencyMs ?? update.latency),
     tool: nonEmptyStr(update.tool),
     errorMessage: nonEmptyStr(update.errorMessage),
     toolCalls: nonNegInt(update.toolCalls),

@@ -240,6 +240,14 @@ describe('parse-mode-update', () => {
       expect(result).not.toHaveProperty('latency');
     });
 
+    it('accepts latencyMs as an alias for latency', () => {
+      expect(parseModeUpdate({ latencyMs: 55 }).latencyMs).toBe(55);
+      // latencyMs takes precedence over latency when both are present
+      expect(parseModeUpdate({ latencyMs: 55, latency: 99 }).latencyMs).toBe(55);
+      // falls back to latency when latencyMs is absent
+      expect(parseModeUpdate({ latency: 99 }).latencyMs).toBe(99);
+    });
+
     it('accepts zero for numeric fields where appropriate', () => {
       const result = parseModeUpdate({
         latency: 0,
