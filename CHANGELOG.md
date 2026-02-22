@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Reconnect attempt number shown in pill label during connecting/disconnected modes
+- `p99` latency in rolling stats and tray tooltip for extreme tail detection
+- `healthStatus` ("healthy"/"degraded"/"unhealthy") surfaced in tray tooltip
+- `computeHealthStatus` pure function in utils.js (no GatewayClient dependency needed)
+- `isRecoverableCloseCode` utility for smarter reconnect behavior (stop retrying on fatal close codes)
+- Sprite cache `warmAll()` method for pre-rendering all sprites on init/resize (eliminates first-frame jitter)
+- `SECURITY.md` with vulnerability reporting policy and security design overview
+- Missing modules added to CONTRIBUTING.md architecture tree (pill-label, context-menu-items, latency-tracker, opacity-presets)
 - `staleSinceMs` getter on `GatewayClient` — returns milliseconds since the last WebSocket message (or null if disconnected), enabling proactive staleness warnings before the auto-reconnect timer fires
 - `toJSON()` method on `GatewayClient` — `JSON.stringify(client)` now returns a clean diagnostic snapshot (delegates to `getStatus()`)
 - `--ping` and `--ping-count=<n>` modes in `ws-dump` for CLI latency measurement (min/avg/median/max summary)
@@ -69,6 +77,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Comprehensive `plugin-sync` unit tests
 
 ### Fixed
+- Pill label now shows duration and tool count in tool mode even without a tool name
+- Six unused imports removed from renderer.js (successRate, MODE_EMOJI, formatDuration, formatElapsed, formatCount, formatLatency)
+- Auto-reconnect stopped on fatal WebSocket close codes (auth failed, forbidden, protocol errors)
+- Preload prioritizes app-specific env vars (`MOLT_MASCOT_*`) over generic (`GATEWAY_*`) for protocol negotiation
+- `parseModeUpdate` validates mode against canonical VALID_MODES Set
 - `connectionQualityEmoji` returns grey circle (⚪) for unknown quality instead of empty string
 - Uppercase `WS://` and `WSS://` schemes normalized to lowercase in `normalizeWsUrl`
 - Duplicate object keys removed from renderer state snapshot (`firstConnectedAt`, `sessionAttemptCount`)
@@ -91,6 +104,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `--min-protocol` and `--max-protocol` CLI flags validated
 
 ### Changed
+- `isValidMode`, `isValidAlignment`, `isValidSize` use Set for O(1) lookups instead of Array.includes()
+- `status-cli` uses `isValidSize()` for O(1) Set lookup instead of linear scan
+- Renderer delegates `currentHealthStatus()` computation to shared `computeHealthStatus()` function (DRY)
+- Latency stats delegated from `GatewayClient` to shared `latency-tracker` module
+- `GatewayClient.toString()` includes close detail and reconnect count when disconnected
+- Sprite cache warmed on init and resize to eliminate first-frame fillRect overhead
 - Bob animation magic numbers extracted into named constants (`BOB_PERIOD_MS`, `BOB_AMPLITUDE_PX`)
 - Shadow geometry magic numbers extracted into named constants (`SHADOW_*`)
 - `coerceOpacity` and `coercePadding` extracted as standalone utilities
