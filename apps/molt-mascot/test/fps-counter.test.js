@@ -99,4 +99,40 @@ describe('fps-counter', () => {
     c.update(1000);
     expect(c.frameCount()).toBe(1);
   });
+
+  it('getSnapshot returns all metrics in one call', () => {
+    const c = createFpsCounter();
+    // Before any frames
+    const snap0 = c.getSnapshot();
+    expect(snap0.fps).toBe(0);
+    expect(snap0.frameCount).toBe(0);
+    expect(snap0.avgFrameTimeMs).toBeNull();
+
+    // Simulate 10 frames over 1s window (100ms apart)
+    for (let i = 0; i < 10; i++) c.update(i * 100);
+    const snap1 = c.getSnapshot();
+    expect(snap1.fps).toBe(10);
+    expect(snap1.frameCount).toBe(10);
+    expect(snap1.avgFrameTimeMs).toBe(100);
+  });
+
+  it('getSnapshot avgFrameTimeMs uses custom windowMs', () => {
+    const c = createFpsCounter({ windowMs: 2000 });
+    // 20 frames in 2s window = 10 fps equivalent, avg frame time = 2000/20 = 100ms
+    for (let i = 0; i < 20; i++) c.update(i * 100);
+    const snap = c.getSnapshot();
+    expect(snap.fps).toBe(20);
+    expect(snap.avgFrameTimeMs).toBe(100);
+  });
+
+  it('getSnapshot resets with reset()', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(16);
+    c.reset();
+    const snap = c.getSnapshot();
+    expect(snap.fps).toBe(0);
+    expect(snap.frameCount).toBe(0);
+    expect(snap.avgFrameTimeMs).toBeNull();
+  });
 });

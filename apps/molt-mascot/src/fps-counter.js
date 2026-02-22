@@ -63,5 +63,21 @@ export function createFpsCounter(opts = {}) {
     return totalFrames;
   }
 
-  return { update, fps, reset, frameCount };
+  /**
+   * Return a snapshot of all FPS counter metrics in one call.
+   * Avoids consumers calling multiple methods (fps(), frameCount())
+   * and keeps debug-info / diagnostics export clean.
+   *
+   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number | null }}
+   */
+  function getSnapshot() {
+    const f = currentFps;
+    return {
+      fps: f,
+      frameCount: totalFrames,
+      avgFrameTimeMs: f > 0 ? Math.round((windowMs / f) * 100) / 100 : null,
+    };
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot };
 }
