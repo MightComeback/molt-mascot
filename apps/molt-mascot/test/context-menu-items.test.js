@@ -209,4 +209,17 @@ describe('buildContextMenuItems', () => {
     const seps = result.items.filter((i) => i.separator);
     expect(seps.length).toBe(2);
   });
+
+  it('includes copy-gateway-url item when connected', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, connectedSince: Date.now() - 60000 });
+    const item = result.items.find((i) => i.id === 'copy-gateway-url');
+    expect(item).toBeDefined();
+    expect(item.label).toBe('Copy Gateway URL');
+  });
+
+  it('omits copy-gateway-url item when disconnected', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, connectedSince: null });
+    const item = result.items.find((i) => i.id === 'copy-gateway-url');
+    expect(item).toBeUndefined();
+  });
 });

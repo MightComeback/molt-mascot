@@ -124,6 +124,7 @@ export function buildContextMenuItems(state) {
     { id: 'opacity', label: `Opacity (${Math.round(opacity * 100)}%)`, hint: `${modKey}${shiftKey}O` },
     { id: 'copy-status', label: 'Copy Status' },
     { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
+    ...(connectedSince ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),
     { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}${shiftKey}C` },
     { id: 'change-gateway', label: 'Change Gateway…' },
     { id: 'hide', label: 'Hide Mascot', hint: `${modKey}${shiftKey}V` },
