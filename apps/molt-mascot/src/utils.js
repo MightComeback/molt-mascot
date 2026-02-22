@@ -86,9 +86,11 @@ export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reduc
     return idleDurationMs > sleepThresholdMs ? 250 : 66;
   }
   if (mode === 'disconnected' || mode === 'error') return 100;
-  // Connecting/connected animations use slow intervals (500ms/300ms sprites),
-  // so ~15fps (66ms) is more than enough without wasting CPU at full 60fps.
-  if (mode === 'connecting' || mode === 'connected') return 66;
+  // Connecting animation uses 500ms sprite frames — ~15fps (66ms) is plenty.
+  if (mode === 'connecting') return 66;
+  // Connected sparkle overlay alternates every 300ms — ~7fps (150ms) is
+  // sufficient and halves CPU usage for a transient celebration state.
+  if (mode === 'connected') return 150;
   // Thinking overlay alternates every 600ms — ~15fps (66ms) gives smooth bob.
   if (mode === 'thinking') return 66;
   // Tool overlay has 2-frame animation (700ms per frame) + bob — match thinking's

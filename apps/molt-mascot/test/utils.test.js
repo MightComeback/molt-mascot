@@ -320,7 +320,7 @@ describe("getFrameIntervalMs", () => {
 
   it("returns ~15fps (66ms) for connecting/connected modes", () => {
     expect(getFrameIntervalMs("connecting", 0, SLEEP_MS, false)).toBe(66);
-    expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(66);
+    expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(150);
   });
 
   it("returns ~15fps (66ms) for idle below sleep threshold", () => {
