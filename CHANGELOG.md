@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `toJSON()` method on `GatewayClient` — `JSON.stringify(client)` now returns a clean diagnostic snapshot (delegates to `getStatus()`)
 - `--ping` and `--ping-count=<n>` modes in `ws-dump` for CLI latency measurement (min/avg/median/max summary)
 - `status-cli.cjs` added to architecture tree in CONTRIBUTING.md
 - `--start-hidden` CLI flag for tray-only launch (toggle visibility with shortcut)

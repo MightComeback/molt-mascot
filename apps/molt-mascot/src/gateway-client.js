@@ -733,6 +733,17 @@ export class GatewayClient {
   }
 
   /**
+   * JSON.stringify() support — delegates to getStatus() so
+   * `JSON.stringify(client)` produces a clean diagnostic snapshot
+   * without manual plucking (useful for logging and IPC serialization).
+   *
+   * @returns {object}
+   */
+  toJSON() {
+    return this.getStatus();
+  }
+
+  /**
    * Tear down all timers and close the socket.
    * Fires onPluginStateReset so consumers clear any cached plugin config.
    * After destroy(), connect() and other methods become no-ops.

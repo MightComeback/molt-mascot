@@ -133,6 +133,16 @@ describe('GatewayClient', () => {
     });
   });
 
+  describe('toJSON()', () => {
+    it('delegates to getStatus() so JSON.stringify(client) works', () => {
+      const json = JSON.stringify(client);
+      const parsed = JSON.parse(json);
+      expect(parsed).toEqual(client.getStatus());
+      expect(parsed.isConnected).toBe(false);
+      expect(parsed.instanceId).toMatch(/^moltMascot-/);
+    });
+  });
+
   describe('destroy()', () => {
     it('sets isDestroyed and prevents further connect()', () => {
       const onState = mock(() => {});
