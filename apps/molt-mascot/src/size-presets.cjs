@@ -76,4 +76,19 @@ function nextSizeIndex(currentIndex, count) {
   return (currentIndex + 1) % n;
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex };
+/**
+ * Compute the previous size preset index when cycling through sizes in reverse.
+ * Wraps around to the last preset when going below 0.
+ * Useful for bidirectional size cycling (e.g., "shrink" shortcut or scroll-wheel down).
+ *
+ * @param {number} currentIndex - Current size preset index
+ * @param {number} [count] - Number of presets (defaults to SIZE_PRESETS.length)
+ * @returns {number} Previous index (wraps around)
+ */
+function prevSizeIndex(currentIndex, count) {
+  const n = typeof count === 'number' && count > 0 ? count : SIZE_PRESETS.length;
+  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return n - 1;
+  return (currentIndex - 1 + n) % n;
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex };

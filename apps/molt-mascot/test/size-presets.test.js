@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -138,6 +138,37 @@ describe('size-presets', () => {
       expect(nextSizeIndex(null)).toBe(0);
       expect(nextSizeIndex(undefined)).toBe(0);
       expect(nextSizeIndex(1.5)).toBe(0);
+    });
+  });
+
+  describe('prevSizeIndex', () => {
+    it('goes to the previous index', () => {
+      expect(prevSizeIndex(4)).toBe(3);
+      expect(prevSizeIndex(2)).toBe(1);
+      expect(prevSizeIndex(1)).toBe(0);
+    });
+
+    it('wraps around at the beginning', () => {
+      expect(prevSizeIndex(0)).toBe(4);
+    });
+
+    it('accepts custom count', () => {
+      expect(prevSizeIndex(0, 3)).toBe(2);
+      expect(prevSizeIndex(2, 3)).toBe(1);
+    });
+
+    it('returns last index for invalid inputs', () => {
+      expect(prevSizeIndex(-1)).toBe(4);
+      expect(prevSizeIndex(null)).toBe(4);
+      expect(prevSizeIndex(undefined)).toBe(4);
+      expect(prevSizeIndex(1.5)).toBe(4);
+    });
+
+    it('is inverse of nextSizeIndex', () => {
+      for (let i = 0; i < SIZE_PRESETS.length; i++) {
+        expect(prevSizeIndex(nextSizeIndex(i))).toBe(i);
+        expect(nextSizeIndex(prevSizeIndex(i))).toBe(i);
+      }
     });
   });
 });
