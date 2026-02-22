@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -781,15 +781,10 @@ export class GatewayClient {
       if (this.connectedUrl) parts.push(this.connectedUrl);
       parts.push(`plugin=${this.hasPlugin}`);
       if (this.latencyMs !== null) {
-        const stats = this.latencyStats;
-        const source = stats && typeof stats.median === 'number' && stats.samples > 1
-          ? stats.median : this.latencyMs;
-        let latencyStr = `${Math.round(source)}ms`;
-        if (source < 50) latencyStr += ' 🟢';
-        else if (source < 150) latencyStr += ' 🟡';
-        else if (source < 500) latencyStr += ' 🟠';
-        else latencyStr += ' 🔴';
-        parts.push(latencyStr);
+        const source = resolveQualitySource(this.latencyMs, this.latencyStats);
+        const quality = connectionQuality(source ?? this.latencyMs);
+        const emoji = quality ? ` ${connectionQualityEmoji(quality)}` : '';
+        parts.push(`${formatLatency(source ?? this.latencyMs)}${emoji}`);
       }
     } else {
       parts.push('disconnected');
