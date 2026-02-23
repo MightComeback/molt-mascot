@@ -1,4 +1,4 @@
-const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource } = require('./env-keys.cjs');
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource } = require('./env-keys.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
 /**
