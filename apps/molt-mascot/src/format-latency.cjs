@@ -240,4 +240,50 @@ function isValidHealth(value) {
   return _VALID_HEALTH_SET.has(value);
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth };
+/**
+ * Compute an overall health status from connection metrics.
+ * Single source of truth — mirrors the check order in computeHealthReasons()
+ * but short-circuits on the first match for efficient status determination.
+ *
+ * @param {object} params
+ * @param {boolean} params.isConnected
+ * @param {boolean} [params.isPollingPaused]
+ * @param {number|null} [params.lastMessageAt]
+ * @param {number|null} [params.latencyMs]
+ * @param {{ median?: number, jitter?: number, samples?: number }|null} [params.latencyStats]
+ * @param {number|null} [params.connectionSuccessRate]
+ * @param {number} [params.now]
+ * @returns {"healthy"|"degraded"|"unhealthy"}
+ */
+function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
+  if (!isConnected) return 'unhealthy';
+  const now = nowOverride ?? Date.now();
+
+  // Stale connection check (no messages while polling is active).
+  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+    const staleMs = now - lastMessageAt;
+    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) return 'unhealthy';
+    if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) return 'degraded';
+  }
+
+  // Latency quality check.
+  const source = resolveQualitySource(latencyMs, latencyStats);
+  if (source !== null) {
+    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) return 'unhealthy';
+    const quality = connectionQuality(source);
+    if (quality === 'poor') return 'degraded';
+  }
+
+  // Jitter check: high jitter indicates an unstable connection even when median latency looks fine.
+  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
+    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) return 'degraded';
+    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) return 'degraded';
+  }
+
+  // Connection success rate check
+  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) return 'degraded';
+
+  return 'healthy';
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth };

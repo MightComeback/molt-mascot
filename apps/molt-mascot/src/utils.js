@@ -17,7 +17,7 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth } from './format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth } from './format-latency.cjs';
 export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth };
 
 /**
@@ -504,36 +504,15 @@ export const PLUGIN_RESET_METHODS = [
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {"healthy"|"degraded"|"unhealthy"}
  */
-export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
-  if (!isConnected) return 'unhealthy';
-  const now = nowOverride ?? Date.now();
-
-  // Stale connection check (no messages while polling is active).
-  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
-    const staleMs = now - lastMessageAt;
-    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) return 'unhealthy';
-    if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) return 'degraded';
-  }
-
-  // Latency quality check.
-  const source = resolveQualitySource(latencyMs, latencyStats);
-  if (source !== null) {
-    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) return 'unhealthy';
-    const quality = connectionQuality(source);
-    if (quality === 'poor') return 'degraded';
-  }
-
-  // Jitter check: high jitter indicates an unstable connection even when median latency looks fine.
-  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) return 'degraded';
-    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) return 'degraded';
-  }
-
-  // Connection success rate check
-  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) return 'degraded';
-
-  return 'healthy';
-}
+/**
+ * Compute an overall health status from connection metrics.
+ * Delegates to the canonical implementation in format-latency.cjs (single source of truth).
+ * Re-exported here for ESM consumers (renderer, debug-info, pill tooltip).
+ *
+ * @param {object} params - Connection metric parameters
+ * @returns {"healthy"|"degraded"|"unhealthy"}
+ */
+export const computeHealthStatus = _computeHealthStatus;
 
 /**
  * Return human-readable reason strings explaining why health is degraded/unhealthy.
