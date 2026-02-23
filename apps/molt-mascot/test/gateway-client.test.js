@@ -144,6 +144,12 @@ describe('GatewayClient', () => {
     });
   });
 
+  describe('getSnapshot()', () => {
+    it('is an alias for getStatus() matching fpsCounter/latencyTracker convention', () => {
+      expect(client.getSnapshot()).toEqual(client.getStatus());
+    });
+  });
+
   describe('destroy()', () => {
     it('sets isDestroyed and prevents further connect()', () => {
       const onState = mock(() => {});

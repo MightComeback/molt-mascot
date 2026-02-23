@@ -800,6 +800,16 @@ export class GatewayClient {
   }
 
   /**
+   * Alias for getStatus() — matches the getSnapshot() convention used by
+   * fpsCounter, latencyTracker, and blinkState for API consistency.
+   *
+   * @returns {object} Serializable status snapshot
+   */
+  getSnapshot() {
+    return this.getStatus();
+  }
+
+  /**
    * Human-readable one-line summary for quick diagnostic logging.
    * Example: "GatewayClient<connected 45s, ws://localhost:18789, plugin=true, 12ms 🟢>"
    *
