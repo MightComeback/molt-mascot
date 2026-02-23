@@ -323,4 +323,34 @@ describe('createPluginSync', () => {
     expect(parsed.values.alignment).toBe('top-left');
     expect(parsed.values.size).toBe('large');
   });
+
+  it('toString() returns "PluginSync<empty>" when no state received', () => {
+    const sync = createPluginSync({});
+    expect(sync.toString()).toBe('PluginSync<empty>');
+  });
+
+  it('toString() includes prop count and key values', () => {
+    const sync = createPluginSync({});
+    sync.sync({ alignment: 'top-left', clickThrough: true, version: '1.2.3' });
+    const str = sync.toString();
+    expect(str).toMatch(/^PluginSync<.+>$/);
+    expect(str).toContain('3/');
+    expect(str).toContain('v1.2.3');
+    expect(str).toContain('ghost=true');
+    expect(str).toContain('top-left');
+  });
+
+  it('toString() includes currentTool when set', () => {
+    const sync = createPluginSync({});
+    sync.sync({ currentTool: 'web_search', alignment: 'bottom-right' });
+    const str = sync.toString();
+    expect(str).toContain('tool=web_search');
+  });
+
+  it('toString() omits currentTool when empty', () => {
+    const sync = createPluginSync({});
+    sync.sync({ alignment: 'bottom-right' });
+    const str = sync.toString();
+    expect(str).not.toContain('tool=');
+  });
 });

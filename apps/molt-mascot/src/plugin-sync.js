@@ -181,5 +181,28 @@ export function createPluginSync(callbacks = {}) {
     return getSnapshot();
   }
 
-  return { sync, reset, last: getLast, activeCount, getSnapshot, toJSON };
+  /**
+   * Human-readable one-line summary for quick diagnostic logging.
+   * Example: "PluginSync<8/15 props, clickThrough=true, alignment=bottom-right>"
+   * Returns "PluginSync<empty>" when no plugin state has been received yet.
+   *
+   * Mirrors LatencyTracker.toString(), FpsCounter.toString(), BlinkState.toString(),
+   * and GatewayClient.toString() for consistent diagnostic output across modules.
+   *
+   * @returns {string}
+   */
+  function toString() {
+    const active = activeCount();
+    if (active === 0) return 'PluginSync<empty>';
+    const parts = [`${active}/${SYNC_PROPS.length} props`];
+    // Include a few key values for at-a-glance diagnostics
+    const current = getLast();
+    if (current.version !== null) parts.push(`v${current.version}`);
+    if (current.clickThrough !== null) parts.push(`ghost=${current.clickThrough}`);
+    if (current.alignment !== null) parts.push(current.alignment);
+    if (current.currentTool !== null && current.currentTool !== '') parts.push(`tool=${current.currentTool}`);
+    return `PluginSync<${parts.join(', ')}>`;
+  }
+
+  return { sync, reset, last: getLast, activeCount, getSnapshot, toJSON, toString };
 }
