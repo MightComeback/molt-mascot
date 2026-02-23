@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { isValidAlignment } = require('./get-position.cjs');
 
 /**
  * Create a preferences manager.
@@ -211,7 +212,7 @@ function createPrefsManager(filePath, opts = {}) {
  * Adding a new pref? Add an entry here and it's automatically validated.
  */
 const PREF_SCHEMA = {
-  alignment:    { type: 'string' },
+  alignment:    { type: 'string', validate: (v) => isValidAlignment(v) },
   sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
   opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
   padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },

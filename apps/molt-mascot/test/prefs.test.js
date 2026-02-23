@@ -468,6 +468,18 @@ describe("validatePrefs", () => {
     expect(validatePrefs([1, 2]).clean).toEqual({});
   });
 
+  it("drops invalid alignment values", () => {
+    const { clean, dropped } = validatePrefs({ alignment: "banana" });
+    expect(clean).toEqual({});
+    expect(dropped).toContain("alignment");
+  });
+
+  it("accepts valid alignment values", () => {
+    const { clean, dropped } = validatePrefs({ alignment: "top-left" });
+    expect(clean.alignment).toBe("top-left");
+    expect(dropped).toEqual([]);
+  });
+
   it("does not mutate input", () => {
     const raw = { alignment: "center", bogus: 42 };
     const copy = { ...raw };
