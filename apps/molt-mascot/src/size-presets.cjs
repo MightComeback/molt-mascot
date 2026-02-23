@@ -124,4 +124,21 @@ function findSizeIndex(label) {
   return SIZE_PRESETS.findIndex(p => p.label === normalized);
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel };
+/**
+ * Format a size label with its pixel dimensions resolved from presets.
+ * Convenience wrapper: looks up the preset by label and formats as "label W×H".
+ * Falls back to the raw label (or 'medium') if no preset matches.
+ *
+ * Used by context-menu-items and tray-icon for compact size display
+ * without requiring callers to manually resolve the preset first.
+ *
+ * @param {string} label - Size preset label (e.g. 'medium', 'large')
+ * @returns {string} Formatted string (e.g. "medium 240×200")
+ */
+function formatSizeWithDims(label) {
+  const preset = findSizePreset(label);
+  if (preset) return `${preset.label} ${preset.width}×${preset.height}`;
+  return label || 'medium';
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel, formatSizeWithDims };

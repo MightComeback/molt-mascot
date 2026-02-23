@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel, formatSizeWithDims } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -214,6 +214,29 @@ describe('size-presets', () => {
       expect(findSizeIndex(null)).toBe(-1);
       expect(findSizeIndex(undefined)).toBe(-1);
       expect(findSizeIndex(42)).toBe(-1);
+    });
+  });
+
+  describe('formatSizeWithDims', () => {
+    it('formats known preset labels with dimensions', () => {
+      expect(formatSizeWithDims('medium')).toBe('medium 240×200');
+      expect(formatSizeWithDims('tiny')).toBe('tiny 120×100');
+      expect(formatSizeWithDims('xlarge')).toBe('xlarge 480×400');
+    });
+
+    it('is case-insensitive', () => {
+      expect(formatSizeWithDims('Medium')).toBe('medium 240×200');
+      expect(formatSizeWithDims('LARGE')).toBe('large 360×300');
+    });
+
+    it('returns raw label for unknown presets', () => {
+      expect(formatSizeWithDims('gigantic')).toBe('gigantic');
+    });
+
+    it('returns "medium" for falsy input', () => {
+      expect(formatSizeWithDims('')).toBe('medium');
+      expect(formatSizeWithDims(null)).toBe('medium');
+      expect(formatSizeWithDims(undefined)).toBe('medium');
     });
   });
 });
