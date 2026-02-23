@@ -966,6 +966,44 @@ describe("utils", () => {
     expect(payload?.state?.toolErrors).toBe(0);
   });
 
+  it("tracks cumulative agentSessions counter", async () => {
+    const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
+    register(api);
+
+    const agentListener = api.listeners.get("agent");
+    const stateFn = api.handlers.get("@molt/mascot-plugin.state");
+    const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
+
+    let payload: any;
+
+    // Initially zero
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.agentSessions).toBe(0);
+
+    // Start two agents — counter increments per start
+    agentListener({ phase: "start", sessionKey: "s1" });
+    agentListener({ phase: "start", sessionKey: "s2" });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.agentSessions).toBe(2);
+
+    // End one agent — counter stays (cumulative, not active)
+    agentListener({ phase: "end", sessionKey: "s1" });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.agentSessions).toBe(2);
+
+    // Start another — increments again
+    agentListener({ phase: "start", sessionKey: "s3" });
+
+    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.agentSessions).toBe(3);
+
+    // Reset clears it
+    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    expect(payload?.state?.agentSessions).toBe(0);
+  });
+
   it("exposes activeAgents and activeTools counts in state response", async () => {
     const api = createMockApi({ pluginConfig: { idleDelayMs: 30 } });
     register(api);

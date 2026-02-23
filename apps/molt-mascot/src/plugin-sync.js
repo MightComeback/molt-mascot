@@ -23,6 +23,7 @@ const VALIDATORS = {
   toolCalls: (v) => v >= 0 && Number.isInteger(v),
   toolErrors: (v) => v >= 0 && Number.isInteger(v),
   startedAt: (v) => v > 0,
+  agentSessions: (v) => v >= 0 && Number.isInteger(v),
   activeAgents: (v) => v >= 0 && Number.isInteger(v),
   activeTools: (v) => v >= 0 && Number.isInteger(v),
   lastResetAt: (v) => v > 0,
@@ -43,6 +44,7 @@ const SYNC_PROPS = [
   ['toolCalls',    'number',  'onToolCalls'],
   ['toolErrors',   'number',  'onToolErrors'],
   ['startedAt',    'number',  'onStartedAt'],
+  ['agentSessions', 'number', 'onAgentSessions'],
   ['activeAgents', 'number',  'onActiveAgents'],
   ['activeTools',  'number',  'onActiveTools'],
   ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true, clearOnMissing: true }],
@@ -70,6 +72,7 @@ function emptyCache() {
  * @param {function} [callbacks.onToolCalls]    - Called with (number) when toolCalls changes.
  * @param {function} [callbacks.onToolErrors]   - Called with (number) when toolErrors changes.
  * @param {function} [callbacks.onStartedAt]    - Called with (number) when startedAt changes.
+ * @param {function} [callbacks.onAgentSessions] - Called with (number) when agentSessions changes (cumulative count).
  * @param {function} [callbacks.onCurrentTool]  - Called with (string) when currentTool changes ('' when cleared).
  * @param {function} [callbacks.onLastResetAt]  - Called with (number) when lastResetAt changes (epoch ms of last manual reset).
  * @returns {{ sync: function, reset: function, last: function }}

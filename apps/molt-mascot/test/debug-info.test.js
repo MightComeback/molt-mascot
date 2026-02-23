@@ -154,6 +154,16 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Tool calls:");
   });
 
+  it("shows agent sessions count when > 0", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, agentSessions: 15 });
+    expect(info).toContain("Agent sessions: 15");
+  });
+
+  it("does not show agent sessions when 0", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Agent sessions:");
+  });
+
   it("shows current tool when set", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, currentTool: "web_fetch" });
     expect(info).toContain("Current tool: web_fetch");

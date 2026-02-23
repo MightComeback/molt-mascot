@@ -15,6 +15,7 @@ describe('createPluginSync', () => {
       onToolCalls: (v) => { calls.toolCalls = v; },
       onToolErrors: (v) => { calls.toolErrors = v; },
       onStartedAt: (v) => { calls.startedAt = v; },
+      onAgentSessions: (v) => { calls.agentSessions = v; },
       onActiveAgents: (v) => { calls.activeAgents = v; },
       onActiveTools: (v) => { calls.activeTools = v; },
       onCurrentTool: (v) => { calls.currentTool = v; },
@@ -32,6 +33,7 @@ describe('createPluginSync', () => {
       toolCalls: 5,
       toolErrors: 1,
       startedAt: 1700000000000,
+      agentSessions: 10,
       activeAgents: 2,
       activeTools: 3,
       currentTool: 'web_fetch',
@@ -48,6 +50,7 @@ describe('createPluginSync', () => {
     expect(calls.toolCalls).toBe(5);
     expect(calls.toolErrors).toBe(1);
     expect(calls.startedAt).toBe(1700000000000);
+    expect(calls.agentSessions).toBe(10);
     expect(calls.activeAgents).toBe(2);
     expect(calls.activeTools).toBe(3);
     expect(calls.currentTool).toBe('web_fetch');
@@ -55,7 +58,7 @@ describe('createPluginSync', () => {
     expect(changed).toEqual([
       'clickThrough', 'alignment', 'opacity', 'padding', 'size', 'hideText',
       'version', 'toolCalls', 'toolErrors', 'startedAt',
-      'activeAgents', 'activeTools', 'currentTool', 'lastResetAt',
+      'agentSessions', 'activeAgents', 'activeTools', 'currentTool', 'lastResetAt',
     ]);
   });
 

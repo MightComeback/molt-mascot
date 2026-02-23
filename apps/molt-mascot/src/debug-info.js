@@ -51,6 +51,7 @@
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (e.g. window hidden)
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (min/max/avg/p95/p99/jitter over ~60 samples)
+ * @param {number} [params.agentSessions] - Cumulative count of agent sessions started since plugin start
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
  * @param {number|null} [params.firstConnectedAt] - Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
@@ -118,6 +119,7 @@ export function buildDebugInfo(params) {
     isPollingPaused,
     latencyMs,
     latencyStats,
+    agentSessions,
     activeAgents,
     activeTools,
     arch,
@@ -210,6 +212,9 @@ export function buildDebugInfo(params) {
       ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
       : '';
     lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`);
+  }
+  if (typeof agentSessions === 'number' && agentSessions > 0) {
+    lines.push(`Agent sessions: ${formatCount(agentSessions)}`);
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
     lines.push(`Active: ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);

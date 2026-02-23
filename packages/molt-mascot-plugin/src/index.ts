@@ -47,6 +47,8 @@ export type State = {
   toolErrors?: number;
   /** Epoch ms when the plugin was registered (for uptime calculation). */
   startedAt?: number;
+  /** Cumulative count of agent sessions started since plugin start. */
+  agentSessions?: number;
   /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
   activeAgents?: number;
   /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
@@ -808,6 +810,7 @@ export default function register(api: PluginApi) {
     version,
     toolCalls: 0,
     toolErrors: 0,
+    agentSessions: 0,
     startedAt,
   };
 
@@ -990,6 +993,7 @@ export default function register(api: PluginApi) {
     // Preserve version and startedAt through resets (static metadata, not runtime state).
     state.toolCalls = 0;
     state.toolErrors = 0;
+    state.agentSessions = 0;
     state.activeAgents = 0;
     state.activeTools = 0;
     agentToolStacks.clear();
@@ -1032,6 +1036,7 @@ export default function register(api: PluginApi) {
       }
       
       activeAgents.add(sessionKey);
+      state.agentSessions = (state.agentSessions ?? 0) + 1;
 
       // Auto-heal: ensure this agent starts fresh
       agentToolStacks.set(sessionKey, []);

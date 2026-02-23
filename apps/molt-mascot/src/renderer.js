@@ -200,6 +200,7 @@ let pluginVersion = '';
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 let pluginStartedAt = null;
+let pluginAgentSessions = 0;
 let pluginActiveAgents = 0;
 let pluginActiveTools = 0;
 let pluginLastResetAt = null;
@@ -249,6 +250,7 @@ const _pluginSync = createPluginSync({
   onToolCalls(v) { pluginToolCalls = v; },
   onToolErrors(v) { pluginToolErrors = v; },
   onStartedAt(v) { pluginStartedAt = v; },
+  onAgentSessions(v) { pluginAgentSessions = v; },
   onActiveAgents(v) { pluginActiveAgents = v; },
   onActiveTools(v) { pluginActiveTools = v; },
   onLastResetAt(v) { pluginLastResetAt = v; },
@@ -1307,6 +1309,7 @@ function buildDebugInfo() {
       : null,
     isPollingPaused: document.hidden,
     latencyMs,
+    agentSessions: pluginAgentSessions,
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
     firstConnectedAt,
