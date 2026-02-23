@@ -1,6 +1,6 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl } from "../apps/molt-mascot/src/utils.js";
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons } from "../apps/molt-mascot/src/utils.js";
 
 type GatewayCfg = {
   url: string;
@@ -32,6 +32,8 @@ Options:
   --max-protocol=<n>      Maximum protocol version (default: 3)
   --ping                  Measure plugin state round-trip latency and exit
   --ping-count=<n>        Number of pings to send (default: 5)
+  --health                Quick health check: connect, probe plugin, print status and exit
+                          Exit code: 0=healthy, 1=degraded/unhealthy, 2=connection failed
   --count=<n>             Exit after printing N state changes (--watch mode)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
@@ -53,6 +55,7 @@ const stateMode = args.has("--state");
 const watchMode = args.has("--watch");
 const resetMode = args.has("--reset");
 const pingMode = args.has("--ping");
+const healthMode = args.has("--health");
 const quiet = args.has("--quiet") || args.has("-q");
 
 const getArg = (name: string): string | undefined => {
@@ -185,7 +188,16 @@ ws.addEventListener("message", (ev) => {
       if (proto != null) parts.push(`protocol=${proto}`);
       if (gwVer) parts.push(`gateway=${gwVer}`);
       info(parts.join(" "));
-      if (pingMode) {
+      if (healthMode) {
+        // Probe plugin state for health assessment
+        stateReqId = nextId("h");
+        pingSentAt = performance.now();
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+      } else if (pingMode) {
         // Send first ping
         stateReqId = nextId("ping");
         pingSentAt = performance.now();
@@ -248,6 +260,48 @@ ws.addEventListener("message", (ev) => {
       // skip printing — user wants plugin state, not handshake
     } else {
       console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
+    }
+
+    // --health mode: quick health check
+    if (healthMode && msg.type === "res" && msg.id === stateReqId) {
+      if (msg.ok && msg.payload?.ok && msg.payload?.state) {
+        const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
+        const state = msg.payload.state;
+        const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
+        const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
+        const result = {
+          status,
+          latencyMs: rtt,
+          mode: state.mode,
+          plugin: true,
+          version: state.version || null,
+          toolCalls: state.toolCalls ?? 0,
+          toolErrors: state.toolErrors ?? 0,
+          activeAgents: state.activeAgents ?? 0,
+          activeTools: state.activeTools ?? 0,
+          ...(reasons.length > 0 ? { reasons } : {}),
+        };
+        console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
+        try { ws.close(); } catch {}
+        process.exitCode = status === "healthy" ? 0 : 1;
+        return;
+      }
+      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+        stateMethodIndex++;
+        stateReqId = nextId("h");
+        pingSentAt = performance.now();
+        ws.send(JSON.stringify({
+          type: "req", id: stateReqId,
+          method: PLUGIN_STATE_METHODS[stateMethodIndex],
+          params: {},
+        }));
+        return;
+      }
+      // No plugin — still report health based on connection alone
+      const result = { status: "healthy" as const, latencyMs: null, plugin: false };
+      console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
+      try { ws.close(); } catch {}
+      return;
     }
 
     // --ping mode: measure round-trip latency
@@ -388,7 +442,7 @@ ws.addEventListener("message", (ev) => {
 
 // Safety: in --once/--state mode, don't hang forever if the server never replies.
 // (--watch mode runs indefinitely, so no timeout for it.)
-if (once || stateMode || resetMode || pingMode) {
+if (once || stateMode || resetMode || pingMode || healthMode) {
   const effectiveTimeout = pingMode ? Math.max(onceTimeoutMs, pingCount * 1000) : onceTimeoutMs;
   setTimeout(() => {
     if (!gotHello) {
@@ -401,6 +455,10 @@ if (once || stateMode || resetMode || pingMode) {
     }
     if (resetMode) {
       console.error("Timed out waiting for plugin reset response");
+      process.exit(2);
+    }
+    if (healthMode) {
+      console.error("Timed out waiting for health check response");
       process.exit(2);
     }
     if (pingMode) {
