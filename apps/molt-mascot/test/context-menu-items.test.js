@@ -247,4 +247,81 @@ describe('buildContextMenuItems', () => {
     expect(item).toBeDefined();
     expect(item.label).toContain('custom');
   });
+
+  it('size item shows correct dimensions for each preset', () => {
+    const expected = [
+      ['tiny', '120×100'],
+      ['small', '160×140'],
+      ['medium', '240×200'],
+      ['large', '360×300'],
+      ['xlarge', '480×400'],
+    ];
+    for (const [label, dims] of expected) {
+      const result = buildContextMenuItems({ ...BASE_STATE, sizeLabel: label });
+      const item = result.items.find((i) => i.id === 'size');
+      expect(item.label).toContain(dims);
+      expect(item.label).toContain(label);
+    }
+  });
+
+  it('includes about, github, devtools, and quit items', () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    const aboutItem = result.items.find((i) => i.id === 'about');
+    expect(aboutItem).toBeDefined();
+    expect(aboutItem.label).toBe('About Molt Mascot');
+
+    const githubItem = result.items.find((i) => i.id === 'github');
+    expect(githubItem).toBeDefined();
+    expect(githubItem.label).toContain('GitHub');
+
+    const devtoolsItem = result.items.find((i) => i.id === 'devtools');
+    expect(devtoolsItem).toBeDefined();
+    expect(devtoolsItem.label).toBe('DevTools');
+
+    const quitItem = result.items.find((i) => i.id === 'quit');
+    expect(quitItem).toBeDefined();
+    expect(quitItem.label).toBe('Quit');
+  });
+
+  it('quit uses ⌘⌥Q on Mac and Ctrl+Alt+Q on non-Mac', () => {
+    const macResult = buildContextMenuItems({ ...BASE_STATE, isMac: true });
+    const macQuit = macResult.items.find((i) => i.id === 'quit');
+    expect(macQuit.hint).toBe('⌘⌥Q');
+
+    const winResult = buildContextMenuItems({ ...BASE_STATE, isMac: false });
+    const winQuit = winResult.items.find((i) => i.id === 'quit');
+    expect(winQuit.hint).toBe('Ctrl+Alt+Q');
+  });
+
+  it('status line omits version when appVersion is undefined', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, appVersion: undefined });
+    expect(result.statusLine).not.toContain('v');
+    expect(result.statusLine).not.toContain('undefined');
+  });
+
+  it('status line shows uptime arrow when connected', () => {
+    const now = Date.now();
+    const result = buildContextMenuItems({
+      ...BASE_STATE,
+      connectedSince: now - 3600000,
+      now,
+    });
+    expect(result.statusLine).toContain('↑');
+  });
+
+  it('snap item has correct shortcut', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, isMac: true });
+    const snap = result.items.find((i) => i.id === 'snap');
+    expect(snap).toBeDefined();
+    expect(snap.label).toBe('Snap to Position');
+    expect(snap.hint).toBe('⌘⇧S');
+  });
+
+  it('change-gateway item exists without a shortcut', () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    const item = result.items.find((i) => i.id === 'change-gateway');
+    expect(item).toBeDefined();
+    expect(item.label).toBe('Change Gateway…');
+    expect(item.hint).toBeUndefined();
+  });
 });
