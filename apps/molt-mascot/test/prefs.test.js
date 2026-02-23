@@ -453,19 +453,19 @@ describe("validatePrefs", () => {
     expect(droppedKeys).toContain("sizeIndex");
   });
 
-  it("validates dragPosition object shape", () => {
-    const { clean: good } = validatePrefs({ dragPosition: { x: 100, y: 200 } });
-    expect(good.dragPosition).toEqual({ x: 100, y: 200 });
+  it("validates draggedPosition object shape", () => {
+    const { clean: good } = validatePrefs({ draggedPosition: { x: 100, y: 200 } });
+    expect(good.draggedPosition).toEqual({ x: 100, y: 200 });
 
-    const { clean: bad, dropped } = validatePrefs({ dragPosition: { x: "a", y: 10 } });
-    expect(bad.dragPosition).toBeUndefined();
-    expect(dropped.map((d) => d.key)).toContain("dragPosition");
+    const { clean: bad, dropped } = validatePrefs({ draggedPosition: { x: "a", y: 10 } });
+    expect(bad.draggedPosition).toBeUndefined();
+    expect(dropped.map((d) => d.key)).toContain("draggedPosition");
   });
 
-  it("drops null dragPosition", () => {
-    const { clean, dropped } = validatePrefs({ dragPosition: null });
-    expect(clean.dragPosition).toBeUndefined();
-    expect(dropped.map((d) => d.key)).toContain("dragPosition");
+  it("drops null draggedPosition", () => {
+    const { clean, dropped } = validatePrefs({ draggedPosition: null });
+    expect(clean.draggedPosition).toBeUndefined();
+    expect(dropped.map((d) => d.key)).toContain("draggedPosition");
   });
 
   it("returns empty clean object for null/undefined/array input", () => {
@@ -620,7 +620,7 @@ describe("getSnapshot / toJSON", () => {
 
 describe("PREF_SCHEMA", () => {
   it("covers all expected preference keys", () => {
-    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "opacity", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];
+    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "opacity", "padding", "clickThrough", "hideText", "gatewayUrl", "draggedPosition"];
     for (const key of expectedKeys) {
       expect(PREF_SCHEMA[key]).toBeDefined();
     }
