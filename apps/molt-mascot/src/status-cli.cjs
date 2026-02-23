@@ -1,5 +1,5 @@
 const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource } = require('./env-keys.cjs');
-const { formatDuration } = require('@molt/mascot-plugin');
+const { formatDuration, formatTimestampLocal } = require('@molt/mascot-plugin');
 const { formatOpacity } = require('./opacity-presets.cjs');
 
 /**
@@ -21,6 +21,7 @@ const { formatOpacity } = require('./opacity-presets.cjs');
  * @param {typeof import('./is-truthy-env.cjs').isTruthyEnv} params.isTruthyEnv - Boolean env parser
  * @param {typeof import('./parse-cli-arg.cjs').hasBoolFlag} params.hasBoolFlag - Boolean flag checker
  * @param {number} [params.uptimeSeconds] - Process uptime in seconds (from process.uptime())
+ * @param {number} [params.startedAt] - Epoch ms when the process started (Date.now() - uptime*1000)
  * @returns {object} Resolved status config object
  */
 function resolveStatusConfig({
@@ -38,6 +39,7 @@ function resolveStatusConfig({
   isTruthyEnv,
   hasBoolFlag,
   uptimeSeconds,
+  startedAt,
 }) {
   const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, isValidSize, findSizePreset } = sizePresets;
 
@@ -178,6 +180,7 @@ function resolveStatusConfig({
     chrome: versions.chrome || null,
     bun: versions.bun || null,
     uptime: typeof uptimeSeconds === 'number' && uptimeSeconds >= 0 ? uptimeSeconds : null,
+    startedAt: typeof startedAt === 'number' && Number.isFinite(startedAt) ? startedAt : null,
   };
 }
 
@@ -255,7 +258,11 @@ function formatStatusText(status) {
   lines.push(`  Node:      ${status.node || 'n/a'}`);
   lines.push(`  Chrome:    ${status.chrome || 'n/a'}`);
   if (status.bun) lines.push(`  Bun:       ${status.bun}`);
-  if (typeof status.uptime === 'number') lines.push(`  Uptime:    ${formatDuration(status.uptime)}`);
+  if (typeof status.uptime === 'number') {
+    const uptimeStr = formatDuration(status.uptime);
+    const startedAt = typeof status.startedAt === 'number' ? ` (since ${formatTimestampLocal(status.startedAt)})` : '';
+    lines.push(`  Uptime:    ${uptimeStr}${startedAt}`);
+  }
   lines.push('');
 
   return lines.join('\n');

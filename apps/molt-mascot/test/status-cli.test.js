@@ -371,6 +371,15 @@ describe('formatStatusText', () => {
     expect(text).toContain('Uptime:    1h 1m');
   });
 
+  it('shows uptime with start time when startedAt is provided', () => {
+    // 2026-02-23T12:00:00.000Z
+    const startedAt = 1771934400000;
+    const status = resolveStatusConfig(makeParams({ uptimeSeconds: 3661, startedAt }));
+    expect(status.startedAt).toBe(startedAt);
+    const text = formatStatusText(status);
+    expect(text).toContain('Uptime:    1h 1m (since ');
+  });
+
   it('omits uptime line when not provided', () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.uptime).toBeNull();
