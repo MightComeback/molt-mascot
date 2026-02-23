@@ -54,6 +54,11 @@ function resolveStatusConfig({
   const resolvedOpacityNum = (() => {
     const envVal = Number(env.MOLT_MASCOT_OPACITY);
     if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
+    // Prefer raw opacity value (preserves arbitrary scroll-wheel values).
+    if (typeof prefs.opacity === 'number' && Number.isFinite(prefs.opacity) && prefs.opacity >= 0 && prefs.opacity <= 1) {
+      return prefs.opacity;
+    }
+    // Fall back to preset index for backward compatibility.
     if (typeof prefs.opacityIndex === 'number' && prefs.opacityIndex >= 0 && prefs.opacityIndex < opacityCycle.length) {
       return opacityCycle[prefs.opacityIndex];
     }

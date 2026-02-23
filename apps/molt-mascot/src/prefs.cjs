@@ -229,6 +229,7 @@ const PREF_SCHEMA = {
   sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
   opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
   padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
+  opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1 },
   clickThrough: { type: 'boolean' },
   hideText:     { type: 'boolean' },
   gatewayUrl:   { type: 'string' },

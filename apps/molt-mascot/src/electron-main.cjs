@@ -362,11 +362,16 @@ function getPosition(display, width, height, alignOverride, paddingOvr) {
  * Extracted so createWindow() applies the correct opacity on first paint,
  * avoiding a visible flash from 100% → saved value.
  */
-function _resolveInitialOpacity(savedOpacityIndex) {
+function _resolveInitialOpacity(savedOpacityIndex, savedOpacity) {
   const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
   if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
-  // Fall back to saved preference (opacityCycle is defined later, but this function
-  // is only called after app.whenReady, so that's fine — we use a local cycle copy).
+  // Prefer raw opacity value (preserves arbitrary scroll-wheel values like 0.3
+  // that don't exist in the preset cycle and would be lost via opacityIndex).
+  if (typeof savedOpacity === 'number' && Number.isFinite(savedOpacity) && savedOpacity >= 0 && savedOpacity <= 1) {
+    return savedOpacity;
+  }
+  // Fall back to saved preset index for backward compatibility with prefs
+  // saved before the raw opacity key was introduced.
   if (typeof savedOpacityIndex === 'number' && savedOpacityIndex >= 0 && savedOpacityIndex < OPACITY_CYCLE.length) {
     return OPACITY_CYCLE[savedOpacityIndex];
   }
@@ -567,7 +572,7 @@ app.whenReady().then(async () => {
       w.setOpacity(opacity);
       w.webContents.send('molt-mascot:opacity', opacity);
     });
-    savePrefs({ opacityIndex });
+    savePrefs({ opacityIndex, opacity });
     rebuildTrayMenu();
   }
 
@@ -661,7 +666,7 @@ app.whenReady().then(async () => {
 
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
-  const initOpacity = _resolveInitialOpacity(savedPrefs.opacityIndex);
+  const initOpacity = _resolveInitialOpacity(savedPrefs.opacityIndex, savedPrefs.opacity);
   // Restore drag position if the user previously dragged the window manually.
   const savedDragPos = savedPrefs.draggedPosition;
   const initPosition = (savedDragPos && Number.isFinite(savedDragPos.x) && Number.isFinite(savedDragPos.y))
@@ -1143,7 +1148,7 @@ app.whenReady().then(async () => {
         // Notify the renderer so the context menu and tooltip reflect the
         // updated opacity immediately (without waiting for the next plugin poll).
         w.webContents.send('molt-mascot:opacity', v);
-        savePrefs({ opacityIndex });
+        savePrefs({ opacityIndex, opacity: v });
         rebuildTrayMenu();
       }
     });

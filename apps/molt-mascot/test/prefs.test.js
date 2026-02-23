@@ -486,6 +486,25 @@ describe("validatePrefs", () => {
     expect(dropped).toEqual([]);
   });
 
+  it("accepts valid raw opacity values and rejects out-of-range", () => {
+    const { clean: good } = validatePrefs({ opacity: 0.3 });
+    expect(good.opacity).toBe(0.3);
+
+    const { clean: zero } = validatePrefs({ opacity: 0 });
+    expect(zero.opacity).toBe(0);
+
+    const { clean: one } = validatePrefs({ opacity: 1 });
+    expect(one.opacity).toBe(1);
+
+    const { clean: bad1, dropped: d1 } = validatePrefs({ opacity: 1.5 });
+    expect(bad1.opacity).toBeUndefined();
+    expect(d1.map((d) => d.key)).toContain("opacity");
+
+    const { clean: bad2, dropped: d2 } = validatePrefs({ opacity: -0.1 });
+    expect(bad2.opacity).toBeUndefined();
+    expect(d2.map((d) => d.key)).toContain("opacity");
+  });
+
   it("does not mutate input", () => {
     const raw = { alignment: "center", bogus: 42 };
     const copy = { ...raw };
@@ -541,7 +560,7 @@ describe("loadValidated", () => {
 
 describe("PREF_SCHEMA", () => {
   it("covers all expected preference keys", () => {
-    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];
+    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "opacity", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];
     for (const key of expectedKeys) {
       expect(PREF_SCHEMA[key]).toBeDefined();
     }
