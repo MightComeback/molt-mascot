@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { resolveStatusConfig, formatStatusText } from '../src/status-cli.cjs';
+import { resolveStatusConfig, formatStatusText, formatProtocolRange } from '../src/status-cli.cjs';
 import * as sizePresets from '../src/size-presets.cjs';
 import { isTruthyEnv } from '../src/is-truthy-env.cjs';
 import { hasBoolFlag } from '../src/parse-cli-arg.cjs';
@@ -388,5 +388,33 @@ describe('formatStatusText', () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
     expect(text).not.toContain('Capture dir');
+  });
+
+  it('shows protocol as compact range', () => {
+    const status = resolveStatusConfig(makeParams());
+    const text = formatStatusText(status);
+    expect(text).toContain('Protocol:       v2–v3');
+    expect(text).not.toContain('Min protocol');
+    expect(text).not.toContain('Max protocol');
+  });
+
+  it('shows single protocol version when min equals max', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_MIN_PROTOCOL: '3', MOLT_MASCOT_MAX_PROTOCOL: '3' } }));
+    const text = formatStatusText(status);
+    expect(text).toContain('Protocol:       v3');
+  });
+});
+
+describe('formatProtocolRange', () => {
+  it('shows single version when min === max', () => {
+    expect(formatProtocolRange(2, 2)).toBe('v2');
+  });
+
+  it('shows range when min !== max', () => {
+    expect(formatProtocolRange(2, 3)).toBe('v2–v3');
+  });
+
+  it('handles wide ranges', () => {
+    expect(formatProtocolRange(1, 5)).toBe('v1–v5');
   });
 });

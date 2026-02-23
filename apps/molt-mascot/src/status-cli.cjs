@@ -177,6 +177,19 @@ function resolveStatusConfig({
 }
 
 /**
+ * Format a protocol version range as a compact human-readable string.
+ * Shows "v2" when min === max, "v2–v3" when they differ.
+ *
+ * @param {number} min - Minimum protocol version
+ * @param {number} max - Maximum protocol version
+ * @returns {string}
+ */
+function formatProtocolRange(min, max) {
+  if (min === max) return `v${min}`;
+  return `v${min}–v${max}`;
+}
+
+/**
  * Format the resolved status config as a human-readable string.
  *
  * @param {object} status - Output of resolveStatusConfig()
@@ -203,8 +216,7 @@ function formatStatusText(status) {
     `  Disable GPU:    ${c.disableGpu}`,
     `  No tray:        ${c.noTray}`,
     `  No shortcuts:   ${c.noShortcuts}`,
-    `  Min protocol:   ${c.minProtocol}`,
-    `  Max protocol:   ${c.maxProtocol}`,
+    `  Protocol:       ${formatProtocolRange(c.minProtocol, c.maxProtocol)}`,
     ...(c.captureDir ? [`  Capture dir:    ${c.captureDir}`] : []),
     '',
     'Timing:',
@@ -244,4 +256,4 @@ function formatStatusText(status) {
   return lines.join('\n');
 }
 
-module.exports = { resolveStatusConfig, formatStatusText };
+module.exports = { resolveStatusConfig, formatStatusText, formatProtocolRange };
