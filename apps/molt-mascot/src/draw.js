@@ -255,6 +255,24 @@ export function createBlinkState(opts = {}) {
       return this.getSnapshot();
     },
     /**
+     * Human-readable one-line summary for quick diagnostic logging.
+     * Example: "BlinkState<5 blinks, next in 2.3s>"
+     * Returns "BlinkState<paused>" when reducedMotion is active.
+     *
+     * Mirrors LatencyTracker.toString() and GatewayClient.toString()
+     * for consistent diagnostic output across tracker modules.
+     *
+     * @param {number} [now] - Current timestamp (defaults to Date.now())
+     * @returns {string}
+     */
+    toString(now) {
+      if (opts.reducedMotion) return 'BlinkState<paused>';
+      const t = now ?? Date.now();
+      const untilNext = Math.max(0, nextBlinkAt - t);
+      const untilStr = untilNext < 1000 ? `${Math.round(untilNext)}ms` : `${(untilNext / 1000).toFixed(1)}s`;
+      return `BlinkState<${blinkCount} blink${blinkCount !== 1 ? 's' : ''}, next in ${untilStr}>`;
+    },
+    /**
      * Reset blink state: clear the blink count and schedule the next blink
      * relative to the given timestamp. Useful when the mascot transitions
      * between modes (e.g. idle → thinking → idle) to avoid an immediate

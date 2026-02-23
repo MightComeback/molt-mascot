@@ -158,6 +158,24 @@ describe("createBlinkState", () => {
     expect(JSON.stringify(blink)).toBe(JSON.stringify(snap));
   });
 
+  it("toString returns human-readable summary", () => {
+    const blink = createBlinkState({ initialBlinkAt: 5000 });
+    const str = blink.toString(3000);
+    expect(str).toContain('BlinkState<');
+    expect(str).toContain('0 blinks');
+    expect(str).toContain('next in');
+    // After triggering a blink
+    blink.isBlinking(5000);
+    blink.isBlinking(5000 + BLINK_DURATION_MS);
+    const str2 = blink.toString(6000);
+    expect(str2).toContain('1 blink,'); // singular
+  });
+
+  it("toString shows paused when reducedMotion is active", () => {
+    const blink = createBlinkState({ reducedMotion: true });
+    expect(blink.toString()).toBe('BlinkState<paused>');
+  });
+
   it("reset() clears blinkCount and schedules next blink in the future", () => {
     const blink = createBlinkState({ initialBlinkAt: 1000 });
     // Trigger a blink and end it to increment blinkCount
