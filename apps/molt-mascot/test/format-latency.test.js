@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -594,5 +594,20 @@ describe('computeHealthStatus', () => {
       latencyStats: { jitter: 300, samples: 10, median: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS + 1 },
       now: NOW,
     })).toBe('unhealthy');
+  });
+});
+
+describe('formatProtocolRange', () => {
+  it('shows single version when min equals max', () => {
+    expect(formatProtocolRange(3, 3)).toBe('v3');
+  });
+
+  it('shows range when min differs from max', () => {
+    expect(formatProtocolRange(2, 3)).toBe('v2–v3');
+  });
+
+  it('handles version 1', () => {
+    expect(formatProtocolRange(1, 1)).toBe('v1');
+    expect(formatProtocolRange(1, 3)).toBe('v1–v3');
   });
 });
