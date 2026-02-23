@@ -8,7 +8,7 @@
  * @module pill-label
  */
 
-import { capitalize, truncate, formatDuration } from './utils.js';
+import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS } from './utils.js';
 
 /**
  * Maximum pill label widths (in characters) per context.
@@ -26,6 +26,7 @@ export const PILL_MAX_TOOL_SHORT_LEN = 24;
  * @property {string} cssClass - CSS class name (e.g. 'pill--idle', 'pill--sleeping')
  * @property {string} effectiveMode - Resolved display mode (e.g. 'sleeping' instead of 'idle')
  * @property {string} ariaLive - 'assertive' for errors, 'polite' otherwise
+ * @property {string} ariaLabel - Accessible description of the current state (from MODE_DESCRIPTIONS)
  */
 
 /**
@@ -132,6 +133,7 @@ export function buildPillLabel(params) {
   const cssClass = isSleeping ? 'pill--sleeping' : `pill--${mode}`;
   const effectiveMode = isSleeping ? 'sleeping' : mode;
   const ariaLive = mode === 'error' ? 'assertive' : 'polite';
+  const ariaLabel = MODE_DESCRIPTIONS[effectiveMode] || `Mascot is ${effectiveMode}`;
 
-  return { label, cssClass, effectiveMode, ariaLive };
+  return { label, cssClass, effectiveMode, ariaLive, ariaLabel };
 }

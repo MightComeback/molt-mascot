@@ -393,6 +393,53 @@ describe('buildPillLabel', () => {
   });
 });
 
+describe('ariaLabel', () => {
+  it('returns MODE_DESCRIPTIONS entry for idle', () => {
+    const result = build();
+    expect(result.ariaLabel).toBe('Waiting for activity');
+  });
+
+  it('returns sleeping description when idle exceeds threshold', () => {
+    const result = build({ modeSince: NOW - 200_000 });
+    expect(result.ariaLabel).toBe('Idle for an extended period');
+  });
+
+  it('returns description for thinking mode', () => {
+    const result = build({ mode: 'thinking', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Processing a response');
+  });
+
+  it('returns description for tool mode', () => {
+    const result = build({ mode: 'tool', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Running a tool');
+  });
+
+  it('returns description for error mode', () => {
+    const result = build({ mode: 'error', modeSince: NOW });
+    expect(result.ariaLabel).toBe('An error occurred');
+  });
+
+  it('returns description for connecting mode', () => {
+    const result = build({ mode: 'connecting', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Connecting to gateway');
+  });
+
+  it('returns description for disconnected mode', () => {
+    const result = build({ mode: 'disconnected', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Disconnected from gateway');
+  });
+
+  it('returns description for connected mode', () => {
+    const result = build({ mode: 'connected', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Successfully connected');
+  });
+
+  it('returns fallback for unknown mode', () => {
+    const result = build({ mode: 'custom', modeSince: NOW });
+    expect(result.ariaLabel).toBe('Mascot is custom');
+  });
+});
+
 describe('pill label length constants', () => {
   it('exports expected default values', () => {
     expect(PILL_MAX_ERROR_LEN).toBe(48);
