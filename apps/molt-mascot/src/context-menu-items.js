@@ -128,6 +128,7 @@ export function buildContextMenuItems(state) {
     ...(connectedSince ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),
     { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}${shiftKey}C` },
     { id: 'change-gateway', label: 'Change Gateway…' },
+    { id: 'reset-prefs', label: 'Reset Preferences…' },
     { id: 'hide', label: 'Hide Mascot', hint: `${modKey}${shiftKey}V` },
     { id: 'sep-2', separator: true },
     { id: 'about', label: 'About Molt Mascot' },

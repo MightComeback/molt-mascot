@@ -1372,6 +1372,7 @@ function showContextMenu(e) {
     'copy-gateway-url': () => { const url = connectedUrl || loadCfg()?.url || ''; if (url) navigator.clipboard.writeText(url).then(() => showCopiedFeedback()).catch(() => {}); },
     reconnect: forceReconnectNow,
     'change-gateway': () => { const cfg = loadCfg(); showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' }); },
+    'reset-prefs': () => { if (window.moltMascot?.resetPrefs) window.moltMascot.resetPrefs(); },
     hide: () => { if (window.moltMascot?.hide) window.moltMascot.hide(); },
     about: () => { if (window.moltMascot?.showAbout) window.moltMascot.showAbout(); },
     github: () => { if (window.moltMascot?.openExternal) window.moltMascot.openExternal('https://github.com/MightComeback/molt-mascot'); },

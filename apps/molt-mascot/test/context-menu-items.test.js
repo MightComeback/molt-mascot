@@ -225,4 +225,11 @@ describe('buildContextMenuItems', () => {
     const item = result.items.find((i) => i.id === 'copy-gateway-url');
     expect(item).toBeUndefined();
   });
+
+  it('includes reset-prefs item', () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    const item = result.items.find((i) => i.id === 'reset-prefs');
+    expect(item).toBeDefined();
+    expect(item.label).toBe('Reset Preferences…');
+  });
 });

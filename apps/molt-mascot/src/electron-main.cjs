@@ -888,6 +888,24 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
   ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
+  ipcMain.on('molt-mascot:reset-prefs', () => {
+    const { dialog } = require('electron');
+    dialog.showMessageBox(win, {
+      type: 'warning',
+      buttons: ['Reset', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Reset Preferences',
+      message: 'Reset all preferences to defaults?',
+      detail: 'This clears saved alignment, size, opacity, ghost mode, and gateway URL. The app will restart.',
+    }).then(({ response }) => {
+      if (response === 0) {
+        _prefs.clear();
+        app.relaunch();
+        app.quit();
+      }
+    });
+  });
   ipcMain.on('molt-mascot:open-external', (_event, url) => {
     // Only allow https URLs to prevent shell injection via IPC.
     if (typeof url === 'string' && /^https:\/\//i.test(url)) {
