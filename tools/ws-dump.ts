@@ -269,12 +269,16 @@ ws.addEventListener("message", (ev) => {
         const state = msg.payload.state;
         const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
         const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
+        const uptimeMs = typeof state.startedAt === 'number' && state.startedAt > 0
+          ? Date.now() - state.startedAt
+          : null;
         const result = {
           status,
           latencyMs: rtt,
           mode: state.mode,
           plugin: true,
           version: state.version || null,
+          ...(uptimeMs !== null ? { pluginUptimeMs: uptimeMs } : {}),
           toolCalls: state.toolCalls ?? 0,
           toolErrors: state.toolErrors ?? 0,
           activeAgents: state.activeAgents ?? 0,
