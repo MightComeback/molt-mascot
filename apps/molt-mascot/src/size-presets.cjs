@@ -110,4 +110,18 @@ function formatSizeLabel(label, width, height) {
   return `${label} (${width}×${height})`;
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel };
+/**
+ * Find the index of a size preset by label (case-insensitive).
+ * Returns -1 if not found. Mirrors findAlignmentIndex / findOpacityIndex
+ * for API consistency across cycling modules.
+ *
+ * @param {string} label - Size label to find (e.g. 'small', 'Large')
+ * @returns {number} Index in SIZE_PRESETS, or -1 if not found
+ */
+function findSizeIndex(label) {
+  if (typeof label !== 'string') return -1;
+  const normalized = label.trim().toLowerCase();
+  return SIZE_PRESETS.findIndex(p => p.label === normalized);
+}
+
+module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel } from '../src/size-presets.cjs';
+import { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel } from '../src/size-presets.cjs';
 
 describe('size-presets', () => {
   it('SIZE_PRESETS has exactly 5 entries', () => {
@@ -184,6 +184,36 @@ describe('size-presets', () => {
     it('returns dimensions only when label is null/undefined', () => {
       expect(formatSizeLabel(null, 100, 80)).toBe('100×80');
       expect(formatSizeLabel(undefined, 100, 80)).toBe('100×80');
+    });
+  });
+
+  describe('findSizeIndex', () => {
+    it('returns correct index for each valid label', () => {
+      expect(findSizeIndex('tiny')).toBe(0);
+      expect(findSizeIndex('small')).toBe(1);
+      expect(findSizeIndex('medium')).toBe(2);
+      expect(findSizeIndex('large')).toBe(3);
+      expect(findSizeIndex('xlarge')).toBe(4);
+    });
+
+    it('is case-insensitive', () => {
+      expect(findSizeIndex('Medium')).toBe(2);
+      expect(findSizeIndex('LARGE')).toBe(3);
+    });
+
+    it('trims whitespace', () => {
+      expect(findSizeIndex('  small  ')).toBe(1);
+    });
+
+    it('returns -1 for unknown labels', () => {
+      expect(findSizeIndex('huge')).toBe(-1);
+      expect(findSizeIndex('')).toBe(-1);
+    });
+
+    it('returns -1 for non-string inputs', () => {
+      expect(findSizeIndex(null)).toBe(-1);
+      expect(findSizeIndex(undefined)).toBe(-1);
+      expect(findSizeIndex(42)).toBe(-1);
     });
   });
 });
