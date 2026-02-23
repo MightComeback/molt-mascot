@@ -106,49 +106,54 @@ Documentation: https://github.com/MightComeback/molt-mascot
 
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
-const { parseCliArg, hasBoolFlag, parseNumericArg } = require('./parse-cli-arg.cjs');
+const { parseCliArg, hasBoolFlag, parseNumericArg, parseStringArg } = require('./parse-cli-arg.cjs');
 const cliGatewayUrl = parseCliArg('--gateway');
 const cliGatewayToken = parseCliArg('--token');
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
 if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
 
 // CLI flags for appearance customization (override env vars).
-const cliAlign = parseCliArg('--align');
-const cliSize = parseCliArg('--size');
-const cliOpacity = parseCliArg('--opacity');
-const cliPadding = parseCliArg('--padding');
-
-// Validate CLI appearance flags and warn on invalid values so the user knows
-// their input was ignored rather than silently falling through to the default.
-const { isValidAlignment, isValidOpacity, isValidPadding } = require('./get-position.cjs');
-if (cliAlign) {
-  if (isValidAlignment(cliAlign)) {
+// Uses parseStringArg with allowed-values validation for --align and --size,
+// consolidating the manual parseCliArg + isValid pattern into a single call.
+const { VALID_ALIGNMENTS, isValidOpacity, isValidPadding } = require('./get-position.cjs');
+{
+  const raw = parseCliArg('--align');
+  const cliAlign = parseStringArg('--align', null, { allowed: VALID_ALIGNMENTS });
+  if (cliAlign) {
     process.env.MOLT_MASCOT_ALIGN = cliAlign;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --align "${cliAlign}" (valid: bottom-right, bottom-left, top-right, top-left, bottom-center, top-center, center-left, center-right, center)\n`);
+  } else if (raw !== null) {
+    process.stderr.write(`molt-mascot: invalid --align "${raw}" (valid: ${VALID_ALIGNMENTS.join(', ')})\n`);
   }
 }
-if (cliOpacity) {
-  const ov = Number(cliOpacity);
-  if (isValidOpacity(ov)) {
-    process.env.MOLT_MASCOT_OPACITY = cliOpacity;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`);
+{
+  const raw = parseCliArg('--size');
+  const cliSize = parseStringArg('--size', null, { allowed: VALID_SIZES });
+  if (cliSize) {
+    process.env.MOLT_MASCOT_SIZE = cliSize.toLowerCase();
+  } else if (raw !== null) {
+    process.stderr.write(`molt-mascot: invalid --size "${raw}" (valid: ${VALID_SIZES.join(', ')})\n`);
   }
 }
-if (cliPadding) {
-  const pv = Number(cliPadding);
-  if (isValidPadding(pv)) {
-    process.env.MOLT_MASCOT_PADDING = cliPadding;
-  } else {
-    process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
+{
+  const cliOpacity = parseCliArg('--opacity');
+  if (cliOpacity) {
+    const ov = Number(cliOpacity);
+    if (isValidOpacity(ov)) {
+      process.env.MOLT_MASCOT_OPACITY = cliOpacity;
+    } else {
+      process.stderr.write(`molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`);
+    }
   }
 }
-if (cliSize) {
-  if (isValidSize(cliSize)) {
-    process.env.MOLT_MASCOT_SIZE = cliSize.trim().toLowerCase();
-  } else {
-    process.stderr.write(`molt-mascot: invalid --size "${cliSize}" (valid: ${VALID_SIZES.join(', ')})\n`);
+{
+  const cliPadding = parseCliArg('--padding');
+  if (cliPadding) {
+    const pv = Number(cliPadding);
+    if (isValidPadding(pv)) {
+      process.env.MOLT_MASCOT_PADDING = cliPadding;
+    } else {
+      process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
+    }
   }
 }
 
