@@ -910,6 +910,22 @@ describe('GatewayClient', () => {
       expect(status).toHaveProperty('healthStatus');
       expect(status.healthStatus).toBe('unhealthy');
     });
+
+    it('includes healthReasons in getStatus()', () => {
+      const status = client.getStatus();
+      expect(status).toHaveProperty('healthReasons');
+      expect(Array.isArray(status.healthReasons)).toBe(true);
+    });
+
+    it('healthReasons getter returns array', () => {
+      expect(Array.isArray(client.healthReasons)).toBe(true);
+    });
+
+    it('healthReasons is non-empty when unhealthy (disconnected)', () => {
+      // Client is not connected, so healthStatus is unhealthy
+      expect(client.healthStatus).toBe('unhealthy');
+      expect(client.healthReasons.length).toBeGreaterThan(0);
+    });
   });
 
   describe('fatal close codes', () => {

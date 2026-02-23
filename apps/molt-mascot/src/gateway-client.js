@@ -697,6 +697,24 @@ export class GatewayClient {
   }
 
   /**
+   * Human-readable reasons explaining why health is degraded or unhealthy.
+   * Returns an empty array when healthy. Useful for diagnostics, logging,
+   * and monitoring dashboards without recomputing from raw metrics.
+   *
+   * @returns {string[]}
+   */
+  get healthReasons() {
+    return computeHealthReasons({
+      isConnected: this.isConnected,
+      isPollingPaused: this._pollingPaused,
+      lastMessageAt: this._lastMessageAt || null,
+      latencyMs: this.latencyMs,
+      latencyStats: this.latencyStats,
+      connectionSuccessRate: this.connectionSuccessRate,
+    });
+  }
+
+  /**
    * Approximate percentage of total lifetime spent connected (0-100), or null
    * if no successful connection has ever been made.
    *
@@ -765,6 +783,7 @@ export class GatewayClient {
       lastMessageAt: this._lastMessageAt || null,
       staleSinceMs: this.staleSinceMs,
       healthStatus: this.healthStatus,
+      healthReasons: this.healthReasons,
       connectionUptimePercent: this.connectionUptimePercent(),
     };
   }
@@ -806,14 +825,7 @@ export class GatewayClient {
       const health = this.healthStatus;
       if (health === 'degraded' || health === 'unhealthy') {
         const emoji = health === 'degraded' ? '⚠️' : '🔴';
-        const reasons = computeHealthReasons({
-          isConnected: this.isConnected,
-          isPollingPaused: this._pollingPaused,
-          lastMessageAt: this._lastMessageAt || null,
-          latencyMs: this.latencyMs,
-          latencyStats: this.latencyStats,
-          connectionSuccessRate: this.connectionSuccessRate,
-        });
+        const reasons = this.healthReasons;
         const reasonsSuffix = reasons.length > 0 ? `: ${reasons.join('; ')}` : '';
         parts.push(`${emoji} ${health}${reasonsSuffix}`);
       }
