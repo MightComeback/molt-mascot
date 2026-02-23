@@ -157,6 +157,44 @@ describe("createBlinkState", () => {
     // Verify JSON.stringify produces the same output
     expect(JSON.stringify(blink)).toBe(JSON.stringify(snap));
   });
+
+  it("reset() clears blinkCount and schedules next blink in the future", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    // Trigger a blink and end it to increment blinkCount
+    blink.isBlinking(1000);
+    blink.isBlinking(1000 + BLINK_DURATION_MS);
+    expect(blink.blinkCount).toBe(1);
+
+    // Reset at t=5000
+    blink.reset(5000);
+    expect(blink.blinkCount).toBe(0);
+    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(5000 + BLINK_MIN_INTERVAL_MS);
+    expect(blink.nextBlinkAt).toBeLessThanOrEqual(5000 + BLINK_MAX_INTERVAL_MS);
+  });
+
+  it("reset() without argument uses Date.now()", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    blink.isBlinking(1000);
+    blink.isBlinking(1000 + BLINK_DURATION_MS);
+
+    const before = Date.now();
+    blink.reset();
+    const after = Date.now();
+
+    expect(blink.blinkCount).toBe(0);
+    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(before + BLINK_MIN_INTERVAL_MS);
+    expect(blink.nextBlinkAt).toBeLessThanOrEqual(after + BLINK_MAX_INTERVAL_MS);
+  });
+
+  it("reset() prevents immediate blink after mode transition", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    // Reset at t=2000 — should NOT blink at t=2000
+    blink.reset(2000);
+    expect(blink.isBlinking(2000)).toBe(false);
+    expect(blink.isBlinking(2100)).toBe(false);
+    // Should blink only after the scheduled time
+    expect(blink.isBlinking(blink.nextBlinkAt)).toBe(true);
+  });
 });
 
 describe("blink timing constants", () => {

@@ -231,6 +231,20 @@ export function createBlinkState(opts = {}) {
     toJSON() {
       return this.getSnapshot();
     },
+    /**
+     * Reset blink state: clear the blink count and schedule the next blink
+     * relative to the given timestamp. Useful when the mascot transitions
+     * between modes (e.g. idle → thinking → idle) to avoid an immediate
+     * blink right after a mode change — the delay gives the user a beat
+     * to register the new state before the eyes close.
+     *
+     * @param {number} [now] - Current timestamp (defaults to Date.now())
+     */
+    reset(now) {
+      const t = now ?? Date.now();
+      blinkCount = 0;
+      nextBlinkAt = t + BLINK_MIN_INTERVAL_MS + Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
+    },
   };
 }
 
