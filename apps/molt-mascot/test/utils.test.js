@@ -23,6 +23,7 @@ import {
   formatLatency,
   connectionQuality,
   connectionQualityEmoji,
+  healthStatusEmoji,
   MODE_EMOJI,
   computeHealthStatus,
   isRecoverableCloseCode,
@@ -1088,6 +1089,20 @@ describe("connectionQualityEmoji", () => {
     expect(connectionQualityEmoji(null)).toBe("⚪");
     expect(connectionQualityEmoji(undefined)).toBe("⚪");
     expect(connectionQualityEmoji("unknown")).toBe("⚪");
+  });
+});
+
+describe("healthStatusEmoji", () => {
+  it("maps known statuses to correct emojis", () => {
+    expect(healthStatusEmoji("healthy")).toBe("🟢");
+    expect(healthStatusEmoji("degraded")).toBe("⚠️");
+    expect(healthStatusEmoji("unhealthy")).toBe("🔴");
+  });
+
+  it("returns grey circle for null or unknown values", () => {
+    expect(healthStatusEmoji(null)).toBe("⚪");
+    expect(healthStatusEmoji(undefined)).toBe("⚪");
+    expect(healthStatusEmoji("unknown")).toBe("⚪");
   });
 });
 

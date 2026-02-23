@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary } = require('./format-latency.cjs');
+const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, healthStatusEmoji } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -254,8 +254,9 @@ function buildTrayTooltip(params) {
   }
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
   // matching the pill tooltip behavior. "healthy" is omitted to keep it clean.
-  if (healthStatus === 'degraded') parts.push('⚠️ degraded');
-  if (healthStatus === 'unhealthy') parts.push('🔴 unhealthy');
+  if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
+    parts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
+  }
   return parts.join(' · ');
 }
 

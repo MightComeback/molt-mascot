@@ -133,4 +133,21 @@ function formatQualitySummary(ms, stats, opts) {
   return { text, quality, emoji: qualityEmoji };
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS };
+/**
+ * Map a health status label to a colored emoji for at-a-glance visual feedback.
+ * Complements connectionQualityEmoji (which is for latency quality) with a
+ * parallel function for overall connection health.
+ *
+ * @param {"healthy"|"degraded"|"unhealthy"|string|null} status
+ * @returns {string} Emoji (🟢/⚠️/🔴/⚪)
+ */
+function healthStatusEmoji(status) {
+  switch (status) {
+    case 'healthy':   return '🟢';
+    case 'degraded':  return '⚠️';
+    case 'unhealthy': return '🔴';
+    default:          return '⚪';
+  }
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji };

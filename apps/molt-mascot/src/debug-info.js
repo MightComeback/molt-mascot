@@ -64,7 +64,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -273,6 +273,6 @@ export function buildDebugInfo(params) {
     lines.push(`Last reset: ${formatElapsed(lastResetAt, now)} ago (at ${new Date(lastResetAt).toISOString()})`);
   }
   if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
-  if (typeof healthStatus === 'string' && healthStatus) lines.push(`Health: ${healthStatus}`);
+  if (typeof healthStatus === 'string' && healthStatus) lines.push(`Health: ${healthStatusEmoji(healthStatus)} ${healthStatus}`);
   return lines.join('\n');
 }
