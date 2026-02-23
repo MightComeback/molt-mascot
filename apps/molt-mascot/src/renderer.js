@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -352,8 +352,13 @@ function syncPill() {
   // Expose effective mode on <body> so external CSS/automation can target state.
   if (document.body.dataset.mode !== effectiveMode) document.body.dataset.mode = effectiveMode;
 
-  // Update canvas aria-label for screen readers (use display mode, not raw mode)
+  // Update canvas aria-label and aria-description for screen readers (use display mode, not raw mode).
+  // MODE_DESCRIPTIONS provides a human-readable explanation of each mode (e.g. "Processing a response").
   canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
+  const modeDesc = MODE_DESCRIPTIONS[effectiveMode];
+  if (modeDesc) {
+    canvas.setAttribute('aria-description', modeDesc);
+  }
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
   const tip = buildTooltip({
