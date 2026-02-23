@@ -157,7 +157,7 @@ describe('buildContextMenuItems', () => {
       pluginActiveAgents: 2,
       pluginActiveTools: 3,
     });
-    expect(result.statusLine).toContain('2A 3T');
+    expect(result.statusLine).toContain('2 agents, 3 tools');
   });
 
   it('includes latency in status line', () => {

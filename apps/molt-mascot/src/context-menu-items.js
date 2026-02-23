@@ -7,7 +7,7 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji } from './utils.js';
+import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary } from './utils.js';
 
 /**
  * @typedef {Object} MenuItemDescriptor
@@ -103,7 +103,7 @@ export function buildContextMenuItems(state) {
     statusParts.push(statsStr);
   }
   if (pluginActiveAgents > 0 || pluginActiveTools > 0) {
-    statusParts.push(`${pluginActiveAgents}A ${pluginActiveTools}T`);
+    statusParts.push(formatActiveSummary(pluginActiveAgents, pluginActiveTools));
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
     statusParts.push(formatLatency(latencyMs));
