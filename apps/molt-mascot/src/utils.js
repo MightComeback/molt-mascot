@@ -64,41 +64,60 @@ export function wsReadyStateLabel(readyState) {
 }
 
 /**
+ * Frame interval lookup tables for each mode.
+ * Stored as frozen objects for O(1) lookup instead of if-chains.
+ *
+ * Normal intervals:
+ * - 66ms  (~15fps) — smooth bob for active modes + idle
+ * - 100ms (~10fps) — error/disconnected (less urgent, save CPU)
+ * - 150ms (~7fps)  — connected sparkle (transient, 300ms sprite frames)
+ * - 250ms (~4fps)  — sleeping idle (minimal animation)
+ *
+ * Reduced-motion intervals are 2-10× slower to respect the preference.
+ */
+const FRAME_INTERVALS = Object.freeze({
+  idle:         66,
+  thinking:     66,
+  tool:         66,
+  connecting:   66,
+  connected:    150,
+  disconnected: 100,
+  error:        100,
+});
+
+const FRAME_INTERVALS_REDUCED = Object.freeze({
+  idle:         1000,
+  thinking:     500,
+  tool:         500,
+  connecting:   500,
+  connected:    500,
+  disconnected: 500,
+  error:        500,
+});
+
+/** Default interval for unknown/future modes (~15fps, safe CPU budget). */
+const DEFAULT_INTERVAL = 66;
+const DEFAULT_INTERVAL_REDUCED = 500;
+
+/**
  * Compute the render loop frame interval (ms) based on current mode and idle duration.
  * Higher intervals = lower FPS = less CPU.
- *
- * Returns 0 for active modes (full rAF rate, ~60fps).
  *
  * @param {string} mode - Current mascot mode (idle, thinking, tool, error, etc.)
  * @param {number} idleDurationMs - How long the mascot has been idle (0 if not idle)
  * @param {number} sleepThresholdMs - Idle duration before entering sleep (ZZZ overlay)
  * @param {boolean} reducedMotion - Whether prefers-reduced-motion is active
- * @returns {number} Frame interval in milliseconds (0 = no throttle)
+ * @returns {number} Frame interval in milliseconds
  */
 export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reducedMotion) {
   if (reducedMotion) {
-    if (mode === 'idle') {
-      return idleDurationMs > sleepThresholdMs ? 2000 : 1000;
-    }
-    return 500;
+    // Sleeping idle gets an even slower rate (2s between frames).
+    if (mode === 'idle' && idleDurationMs > sleepThresholdMs) return 2000;
+    return FRAME_INTERVALS_REDUCED[mode] ?? DEFAULT_INTERVAL_REDUCED;
   }
-  if (mode === 'idle') {
-    return idleDurationMs > sleepThresholdMs ? 250 : 66;
-  }
-  if (mode === 'disconnected' || mode === 'error') return 100;
-  // Connecting animation uses 500ms sprite frames — ~15fps (66ms) is plenty.
-  if (mode === 'connecting') return 66;
-  // Connected sparkle overlay alternates every 300ms — ~7fps (150ms) is
-  // sufficient and halves CPU usage for a transient celebration state.
-  if (mode === 'connected') return 150;
-  // Thinking overlay alternates every 600ms — ~15fps (66ms) gives smooth bob.
-  if (mode === 'thinking') return 66;
-  // Tool overlay has 2-frame animation (700ms per frame) + bob — match thinking's
-  // ~15fps (66ms) for consistent smooth motion across active modes.
-  if (mode === 'tool') return 66;
-  // Unknown/future modes: default to ~15fps rather than full 60fps to avoid
-  // unnecessary CPU usage if new modes are added without updating this function.
-  return 66;
+  // Sleeping idle drops to ~4fps (250ms) — minimal animation, low CPU.
+  if (mode === 'idle' && idleDurationMs > sleepThresholdMs) return 250;
+  return FRAME_INTERVALS[mode] ?? DEFAULT_INTERVAL;
 }
 
 /**

@@ -323,7 +323,7 @@ describe("getFrameIntervalMs", () => {
     expect(getFrameIntervalMs("tool", 0, SLEEP_MS, false)).toBe(66);
   });
 
-  it("returns ~15fps (66ms) for connecting/connected modes", () => {
+  it("returns ~15fps (66ms) for connecting and ~7fps (150ms) for connected mode", () => {
     expect(getFrameIntervalMs("connecting", 0, SLEEP_MS, false)).toBe(66);
     expect(getFrameIntervalMs("connected", 0, SLEEP_MS, false)).toBe(150);
   });
