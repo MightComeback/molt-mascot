@@ -148,6 +148,15 @@ describe("createBlinkState", () => {
     const blink = createBlinkState({ initialBlinkAt: 0, reducedMotion: true });
     expect(blink.getSnapshot().reducedMotion).toBe(true);
   });
+
+  it("toJSON delegates to getSnapshot for JSON.stringify support", () => {
+    const blink = createBlinkState({ initialBlinkAt: 5000 });
+    const snap = blink.getSnapshot();
+    const json = blink.toJSON();
+    expect(json).toEqual(snap);
+    // Verify JSON.stringify produces the same output
+    expect(JSON.stringify(blink)).toBe(JSON.stringify(snap));
+  });
 });
 
 describe("blink timing constants", () => {

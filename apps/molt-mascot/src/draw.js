@@ -220,6 +220,17 @@ export function createBlinkState(opts = {}) {
         reducedMotion: !!opts.reducedMotion,
       };
     },
+    /**
+     * JSON.stringify() support — delegates to getSnapshot() so
+     * `JSON.stringify(blinkState)` produces a useful diagnostic object
+     * without manual plucking (consistent with fpsCounter.toJSON()
+     * and latencyTracker.toJSON()).
+     *
+     * @returns {{ blinkCount: number, nextBlinkAt: number, reducedMotion: boolean }}
+     */
+    toJSON() {
+      return this.getSnapshot();
+    },
   };
 }
 
