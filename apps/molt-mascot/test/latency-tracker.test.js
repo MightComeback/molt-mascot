@@ -165,4 +165,35 @@ describe('createLatencyTracker', () => {
     const s2 = t.getSnapshot().stats;
     expect(s1).toBe(s2); // same cached reference
   });
+
+  it('last() returns null when empty', () => {
+    const t = createLatencyTracker();
+    expect(t.last()).toBeNull();
+  });
+
+  it('last() returns the most recently pushed sample', () => {
+    const t = createLatencyTracker();
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.last()).toBe(30);
+  });
+
+  it('last() works after ring buffer wraps around', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(1);
+    t.push(2);
+    t.push(3);
+    t.push(4); // wraps, evicts 1
+    expect(t.last()).toBe(4);
+    t.push(5); // wraps again
+    expect(t.last()).toBe(5);
+  });
+
+  it('last() returns null after reset', () => {
+    const t = createLatencyTracker();
+    t.push(42);
+    t.reset();
+    expect(t.last()).toBeNull();
+  });
 });

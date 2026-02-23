@@ -112,6 +112,20 @@ export function createLatencyTracker(opts = {}) {
   }
 
   /**
+   * Return the most recently pushed sample without materializing the full array.
+   * Useful for diagnostics that only need the latest value (e.g. "current latency")
+   * without the overhead of samples()[samples.length - 1].
+   *
+   * @returns {number|null} The last pushed sample, or null if empty
+   */
+  function last() {
+    if (_count === 0) return null;
+    // head points to the *next* write slot, so the most recent entry is at head - 1.
+    const idx = (head - 1 + maxSamples) % maxSamples;
+    return ring[idx];
+  }
+
+  /**
    * Return a snapshot of all latency tracker metrics in one call.
    * Mirrors fpsCounter.getSnapshot() for API consistency across tracker modules.
    * Avoids consumers calling multiple methods (stats(), count()) separately.
@@ -126,5 +140,5 @@ export function createLatencyTracker(opts = {}) {
     };
   }
 
-  return { push, stats, reset, samples, count, getSnapshot };
+  return { push, stats, reset, samples, count, last, getSnapshot };
 }
