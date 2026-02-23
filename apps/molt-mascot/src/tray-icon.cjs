@@ -173,11 +173,12 @@ function renderTraySprite(scale, opts) {
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
+ * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100); when provided, used directly for health reason diagnostics instead of computing from sessionConnectCount/sessionAttemptCount
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -256,15 +257,22 @@ function buildTrayTooltip(params) {
   // with diagnostic reasons so users can see *why* without opening debug info.
   // "healthy" is omitted to keep it clean.
   if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
+    // Use the caller-provided connectionSuccessRate when available (avoids
+    // redundant computation when the caller already has it, e.g. from
+    // GatewayClient.connectionSuccessRate). Fall back to inline computation
+    // from sessionConnectCount/sessionAttemptCount for back-compat.
+    const resolvedSuccessRate = typeof connectionSuccessRate === 'number'
+      ? connectionSuccessRate
+      : (typeof sessionConnectCount === 'number' && typeof sessionAttemptCount === 'number' && sessionAttemptCount > 0)
+        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+        : undefined;
     const reasons = computeHealthReasons({
       isConnected: !!uptimeStr,
       isPollingPaused: false,
       lastMessageAt: lastMessageAt || undefined,
       latencyMs,
       latencyStats,
-      connectionSuccessRate: (typeof sessionConnectCount === 'number' && typeof sessionAttemptCount === 'number' && sessionAttemptCount > 0)
-        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
-        : undefined,
+      connectionSuccessRate: resolvedSuccessRate,
       now,
     });
     const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';

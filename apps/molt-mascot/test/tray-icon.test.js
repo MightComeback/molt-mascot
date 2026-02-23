@@ -600,6 +600,30 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base })).not.toContain('degraded');
       expect(buildTrayTooltip({ ...base })).not.toContain('unhealthy');
     });
+
+    it('uses connectionSuccessRate param directly for health reasons when provided', () => {
+      const tip = buildTrayTooltip({
+        ...base,
+        uptimeStr: '5m',
+        healthStatus: 'degraded',
+        connectionSuccessRate: 50,
+        // sessionConnectCount/sessionAttemptCount are NOT provided —
+        // connectionSuccessRate should be used directly
+      });
+      expect(tip).toContain('low success rate: 50%');
+    });
+
+    it('falls back to computing success rate from counts when connectionSuccessRate is not provided', () => {
+      const tip = buildTrayTooltip({
+        ...base,
+        uptimeStr: '5m',
+        healthStatus: 'degraded',
+        sessionConnectCount: 2,
+        sessionAttemptCount: 4,
+        // connectionSuccessRate NOT provided → should compute 50% from counts
+      });
+      expect(tip).toContain('low success rate: 50%');
+    });
   });
 
   describe('formatLatency', () => {
