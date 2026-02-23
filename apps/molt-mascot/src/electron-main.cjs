@@ -31,6 +31,78 @@ if (process.argv.includes('--version') || process.argv.includes('-v')) {
   process.exit(0);
 }
 
+// CLI flags: --help prints usage and exits (standard UX pattern).
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  process.stdout.write(`molt-mascot ${APP_VERSION} — Desktop lobster mascot for OpenClaw
+
+Usage: molt-mascot [options]
+
+Connection:
+  --gateway <url>        Gateway WebSocket URL (ws:// or wss://)
+  --token <token>        Gateway auth token
+
+Appearance:
+  --align <position>     Window alignment (bottom-right, bottom-left, top-right,
+                         top-left, bottom-center, top-center, center-left,
+                         center-right, center)
+  --size <preset>        Window size (tiny, small, medium, large, xlarge)
+  --opacity <0.0-1.0>    Window opacity
+  --padding <px>         Edge padding in pixels
+  --click-through        Enable ghost mode (click-through)
+  --hide-text            Hide the HUD text pill
+  --reduced-motion       Disable animations
+  --start-hidden         Start minimized to tray
+
+Protocol:
+  --min-protocol <n>     Minimum Gateway protocol version
+  --max-protocol <n>     Maximum Gateway protocol version
+
+Timing:
+  --sleep-threshold <s>  Seconds idle before sleeping (default: 120)
+  --idle-delay <ms>      Delay before returning to idle (default: 800)
+  --error-hold <ms>      How long to show errors (default: 5000)
+
+Diagnostics:
+  --status               Print resolved config and exit
+  --status --json        Print resolved config as JSON and exit
+  --list-prefs           Print saved preferences and exit
+  --reset-prefs          Clear saved preferences on launch
+  --debug                Enable debug mode
+  --no-tray              Disable tray icon
+  --no-shortcuts         Disable global keyboard shortcuts
+  --disable-gpu          Disable GPU acceleration
+
+Keyboard shortcuts (while running):
+  Cmd/Ctrl+Shift+M       Toggle ghost mode
+  Cmd/Ctrl+Shift+H       Toggle hide text
+  Cmd/Ctrl+Shift+R       Reset state
+  Cmd/Ctrl+Shift+A       Cycle alignment
+  Cmd/Ctrl+Shift+S       Snap to position
+  Cmd/Ctrl+Shift+Z       Cycle size
+  Cmd/Ctrl+Shift+O       Cycle opacity
+  Cmd/Ctrl+Shift+V       Toggle visibility
+  Cmd/Ctrl+Shift+C       Force reconnect
+  Cmd/Ctrl+Shift+I       Copy debug info
+  Cmd/Ctrl+Shift+D       Toggle DevTools
+  Cmd/Ctrl+Alt+Q         Quit
+
+Other:
+  -v, --version          Print version and exit
+  -h, --help             Show this help message
+
+Environment variables:
+  MOLT_MASCOT_GATEWAY_URL, GATEWAY_URL     Gateway WebSocket URL
+  MOLT_MASCOT_GATEWAY_TOKEN, GATEWAY_TOKEN Gateway auth token
+  MOLT_MASCOT_ALIGN                        Window alignment
+  MOLT_MASCOT_SIZE                         Window size preset
+  MOLT_MASCOT_OPACITY                      Window opacity (0.0-1.0)
+  MOLT_MASCOT_PADDING                      Edge padding (px)
+
+Documentation: https://github.com/MightComeback/molt-mascot
+`);
+  process.exit(0);
+}
+
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
 const { parseCliArg, hasBoolFlag, parseNumericArg } = require('./parse-cli-arg.cjs');
