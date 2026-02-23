@@ -174,5 +174,16 @@ export function createLatencyTracker(opts = {}) {
     return Math.round((above / _count) * 100);
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot };
+  /**
+   * Whether the ring buffer is at capacity (oldest samples are being evicted).
+   * Useful for consumers that want to know if stats represent a full rolling
+   * window or are still warming up with partial data.
+   *
+   * @returns {boolean}
+   */
+  function isFull() {
+    return _count >= maxSamples;
+  }
+
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull };
 }

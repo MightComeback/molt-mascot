@@ -285,4 +285,40 @@ describe('createLatencyTracker', () => {
     expect(snap.totalPushed).toBe(4);
     expect(snap.count).toBe(3);
   });
+
+  it('isFull() returns false when buffer is not at capacity', () => {
+    const t = createLatencyTracker({ maxSamples: 5 });
+    expect(t.isFull()).toBe(false);
+    t.push(10);
+    t.push(20);
+    expect(t.isFull()).toBe(false);
+  });
+
+  it('isFull() returns true when buffer reaches capacity', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.isFull()).toBe(true);
+  });
+
+  it('isFull() remains true after eviction', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    t.push(40); // evicts oldest
+    expect(t.isFull()).toBe(true);
+    expect(t.count()).toBe(3);
+  });
+
+  it('isFull() resets to false after reset()', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.isFull()).toBe(true);
+    t.reset();
+    expect(t.isFull()).toBe(false);
+  });
 });
