@@ -78,6 +78,7 @@ function resolveStatusConfig({
   const disableGpu = hasBoolFlag('--disable-gpu', argv) || isTruthyEnv(env.MOLT_MASCOT_DISABLE_GPU);
   const noTray = hasBoolFlag('--no-tray', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_TRAY);
   const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_SHORTCUTS);
+  const captureDir = env.MOLT_MASCOT_CAPTURE_DIR || null;
 
   const sleepThresholdS = (() => { const v = Number(env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
   const idleDelayMs = (() => { const v = Number(env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
@@ -150,6 +151,7 @@ function resolveStatusConfig({
       noShortcuts,
       minProtocol,
       maxProtocol,
+      captureDir,
     },
     timing: {
       sleepThresholdS,
@@ -198,6 +200,7 @@ function formatStatusText(status) {
     `  No shortcuts:   ${c.noShortcuts}`,
     `  Min protocol:   ${c.minProtocol}`,
     `  Max protocol:   ${c.maxProtocol}`,
+    ...(c.captureDir ? [`  Capture dir:    ${c.captureDir}`] : []),
     '',
     'Timing:',
     `  Sleep threshold: ${t.sleepThresholdS}s`,

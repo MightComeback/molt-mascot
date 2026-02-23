@@ -257,6 +257,16 @@ describe('resolveStatusConfig', () => {
     expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_CAPTURE_DIR', affects: 'captureDir' });
   });
 
+  it('captureDir defaults to null', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.config.captureDir).toBeNull();
+  });
+
+  it('captureDir is resolved from MOLT_MASCOT_CAPTURE_DIR', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/caps' } }));
+    expect(status.config.captureDir).toBe('/tmp/caps');
+  });
+
   it('envOverrides ignores empty string env vars', () => {
     const status = resolveStatusConfig(makeParams({
       env: { MOLT_MASCOT_ALIGN: '', MOLT_MASCOT_SIZE: 'large' },
@@ -366,5 +376,17 @@ describe('formatStatusText', () => {
     expect(status.uptime).toBeNull();
     const text = formatStatusText(status);
     expect(text).not.toContain('Uptime:');
+  });
+
+  it('shows capture dir when set', () => {
+    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/caps' } }));
+    const text = formatStatusText(status);
+    expect(text).toContain('Capture dir:    /tmp/caps');
+  });
+
+  it('omits capture dir when not set', () => {
+    const status = resolveStatusConfig(makeParams());
+    const text = formatStatusText(status);
+    expect(text).not.toContain('Capture dir');
   });
 });
