@@ -31,6 +31,7 @@ molt-mascot/
 │   │   ├── parse-cli-arg.cjs  # CLI argument parser (--flag value)
 │   │   ├── parse-mode-update.cjs # IPC mode-update payload validation (pure function)
 │   │   ├── prefs.cjs          # User preference persistence (debounced, atomic writes)
+│   │   ├── env-keys.cjs       # Gateway env var key lists + resolveEnv (single source of truth)
 │   │   └── status-cli.cjs    # --status CLI output (resolved config, formatting)
 │   └── test/                  # Bun test files (mirrors src/)
 │
