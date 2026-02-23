@@ -558,6 +558,66 @@ describe("loadValidated", () => {
   });
 });
 
+describe("getSnapshot / toJSON", () => {
+  let tmpDir;
+  let prefsPath;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "molt-prefs-snap-"));
+    prefsPath = path.join(tmpDir, "preferences.json");
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+  });
+
+  it("getSnapshot returns expected shape when empty", () => {
+    const mgr = createPrefsManager(prefsPath);
+    const snap = mgr.getSnapshot();
+    expect(snap.filePath).toBe(prefsPath);
+    expect(snap.size).toBe(0);
+    expect(snap.keys).toEqual([]);
+    expect(snap.hasPending).toBe(false);
+  });
+
+  it("getSnapshot reflects saved (pending) data", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 60000 });
+    mgr.save({ alignment: "center", clickThrough: true });
+    const snap = mgr.getSnapshot();
+    expect(snap.size).toBe(2);
+    expect(snap.keys).toContain("alignment");
+    expect(snap.keys).toContain("clickThrough");
+    expect(snap.hasPending).toBe(true);
+  });
+
+  it("getSnapshot reflects flushed data (no pending)", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 60000 });
+    mgr.save({ alignment: "center" });
+    mgr.flush();
+    const snap = mgr.getSnapshot();
+    expect(snap.size).toBe(1);
+    expect(snap.hasPending).toBe(false);
+  });
+
+  it("toJSON delegates to getSnapshot", () => {
+    const mgr = createPrefsManager(prefsPath);
+    mgr.save({ opacity: 0.5 });
+    expect(mgr.toJSON()).toEqual(mgr.getSnapshot());
+  });
+
+  it("JSON.stringify produces clean diagnostic output", () => {
+    const mgr = createPrefsManager(prefsPath);
+    mgr.save({ alignment: "top-left", hideText: true });
+    const json = JSON.parse(JSON.stringify(mgr));
+    expect(json.filePath).toBe(prefsPath);
+    expect(json.size).toBe(2);
+    expect(json.hasPending).toBe(true);
+    // Values are not leaked
+    expect(json.alignment).toBeUndefined();
+    expect(json.hideText).toBeUndefined();
+  });
+});
+
 describe("PREF_SCHEMA", () => {
   it("covers all expected preference keys", () => {
     const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "opacity", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];

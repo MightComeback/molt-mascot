@@ -214,7 +214,37 @@ function createPrefsManager(filePath, opts = {}) {
     return validatePrefs(raw);
   }
 
-  return { load, loadValidated, save, set, remove, flush, clear, has, get, getAll, keys, size, filePath };
+  /**
+   * Return a diagnostic snapshot of the preferences manager state.
+   * Mirrors getSnapshot() on fps-counter, latency-tracker, plugin-sync,
+   * blink-state, and sprite-cache for API consistency across modules.
+   *
+   * Omits actual preference values to avoid leaking sensitive config in
+   * JSON.stringify() output; use getAll() when values are needed.
+   *
+   * @returns {{ filePath: string, size: number, keys: string[], hasPending: boolean }}
+   */
+  function getSnapshot() {
+    return {
+      filePath,
+      size: size(),
+      keys: keys(),
+      hasPending: _pending !== null,
+    };
+  }
+
+  /**
+   * JSON.stringify() support — delegates to getSnapshot() so
+   * `JSON.stringify(prefsManager)` produces a useful diagnostic object
+   * without leaking preference values (consistent with other module toJSON()).
+   *
+   * @returns {{ filePath: string, size: number, keys: string[], hasPending: boolean }}
+   */
+  function toJSON() {
+    return getSnapshot();
+  }
+
+  return { load, loadValidated, save, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, filePath };
 }
 
 /**
