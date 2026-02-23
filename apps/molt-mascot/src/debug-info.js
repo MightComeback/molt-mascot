@@ -68,7 +68,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -185,7 +185,7 @@ export function buildDebugInfo(params) {
     if (typeof targetUrl === 'string' && targetUrl) lines.push(`Target URL: ${targetUrl}`);
   }
   if (typeof minProtocol === 'number' && typeof maxProtocol === 'number') {
-    lines.push(`Protocol: ${minProtocol === maxProtocol ? `v${minProtocol}` : `v${minProtocol}–v${maxProtocol}`}`);
+    lines.push(`Protocol: ${formatProtocolRange(minProtocol, maxProtocol)}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
   if (hasPlugin) {

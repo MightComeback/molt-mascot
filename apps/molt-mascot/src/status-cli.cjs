@@ -1,6 +1,7 @@
 const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource } = require('./env-keys.cjs');
 const { formatDuration, formatTimestampLocal } = require('@molt/mascot-plugin');
 const { formatOpacity } = require('./opacity-presets.cjs');
+const { formatProtocolRange } = require('./format-latency.cjs');
 
 /**
  * Resolve the effective configuration for --status output.
@@ -182,19 +183,6 @@ function resolveStatusConfig({
     uptime: typeof uptimeSeconds === 'number' && uptimeSeconds >= 0 ? uptimeSeconds : null,
     startedAt: typeof startedAt === 'number' && Number.isFinite(startedAt) ? startedAt : null,
   };
-}
-
-/**
- * Format a protocol version range as a compact human-readable string.
- * Shows "v2" when min === max, "v2–v3" when they differ.
- *
- * @param {number} min - Minimum protocol version
- * @param {number} max - Maximum protocol version
- * @returns {string}
- */
-function formatProtocolRange(min, max) {
-  if (min === max) return `v${min}`;
-  return `v${min}–v${max}`;
 }
 
 /**

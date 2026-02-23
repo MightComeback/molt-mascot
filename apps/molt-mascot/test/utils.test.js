@@ -1598,3 +1598,15 @@ describe("isSleepingMode", () => {
     expect(isSleepingMode("error", 999999, 120000)).toBe(false);
   });
 });
+
+describe("formatProtocolRange (re-exported from format-latency.cjs)", () => {
+  const { formatProtocolRange } = require("../src/utils.js");
+
+  it("returns single version when min === max", () => {
+    expect(formatProtocolRange(2, 2)).toBe("v2");
+  });
+
+  it("returns range when min !== max", () => {
+    expect(formatProtocolRange(2, 3)).toBe("v2–v3");
+  });
+});

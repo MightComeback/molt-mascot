@@ -328,4 +328,18 @@ function formatActiveSummary(agents, tools) {
   return `${agentStr}, ${toolStr}`;
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary };
+/**
+ * Format a protocol version range as a compact human-readable string.
+ * Shows "v2" when min === max, "v2–v3" when they differ.
+ * Single source of truth — used by debug-info.js and status-cli.cjs.
+ *
+ * @param {number} min - Minimum protocol version
+ * @param {number} max - Maximum protocol version
+ * @returns {string}
+ */
+function formatProtocolRange(min, max) {
+  if (min === max) return `v${min}`;
+  return `v${min}–v${max}`;
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange };
