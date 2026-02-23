@@ -6,6 +6,7 @@ const {
   prevOpacityIndex,
   findOpacityIndex,
   formatOpacity,
+  isPresetOpacity,
 } = require('../src/opacity-presets.cjs');
 
 describe('opacity-presets', () => {
@@ -160,6 +161,29 @@ describe('opacity-presets', () => {
         const back = prevOpacityIndex(next);
         expect(back).toBe(start);
       }
+    });
+  });
+
+  describe('isPresetOpacity', () => {
+    it('returns true for all preset values', () => {
+      for (const v of OPACITY_PRESETS) {
+        expect(isPresetOpacity(v)).toBe(true);
+      }
+    });
+
+    it('returns false for non-preset values', () => {
+      expect(isPresetOpacity(0.73)).toBe(false);
+      expect(isPresetOpacity(0.5)).toBe(false);
+      expect(isPresetOpacity(0.8000000001)).toBe(false);
+      expect(isPresetOpacity(0)).toBe(false);
+    });
+
+    it('returns false for non-number inputs', () => {
+      expect(isPresetOpacity(null)).toBe(false);
+      expect(isPresetOpacity(undefined)).toBe(false);
+      expect(isPresetOpacity('0.8')).toBe(false);
+      expect(isPresetOpacity(NaN)).toBe(false);
+      expect(isPresetOpacity(Infinity)).toBe(false);
     });
   });
 });

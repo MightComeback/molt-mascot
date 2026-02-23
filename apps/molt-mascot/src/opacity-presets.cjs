@@ -76,6 +76,29 @@ function formatOpacity(opacity) {
   return `${Math.round(opacity * 100)}%`;
 }
 
+/**
+ * Internal Set for O(1) preset membership checks.
+ * Precomputed from OPACITY_PRESETS at module load.
+ */
+const _PRESET_SET = new Set(OPACITY_PRESETS);
+
+/**
+ * Check whether a given opacity value exactly matches one of the presets.
+ * Useful for UI: when true, the opacity label can show the preset name;
+ * when false, the value is a custom/scroll-wheel value (e.g. "73%").
+ *
+ * Note: uses strict equality — floating-point values that don't exactly match
+ * a preset (e.g. 0.8000000001 from scroll interpolation) return false.
+ * Use findOpacityIndex() when approximate matching is needed.
+ *
+ * @param {*} value - Opacity value to check
+ * @returns {boolean} true if the value is one of the OPACITY_PRESETS
+ */
+function isPresetOpacity(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return false;
+  return _PRESET_SET.has(value);
+}
+
 module.exports = {
   OPACITY_PRESETS,
   DEFAULT_OPACITY_INDEX,
@@ -83,4 +106,5 @@ module.exports = {
   prevOpacityIndex,
   findOpacityIndex,
   formatOpacity,
+  isPresetOpacity,
 };
