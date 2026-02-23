@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseCliArg, hasBoolFlag, parseNumericArg } from "../src/parse-cli-arg.cjs";
+import { parseCliArg, hasBoolFlag, parseNumericArg, parseStringArg } from "../src/parse-cli-arg.cjs";
 
 describe("parseCliArg", () => {
   it("returns null when flag is not present", () => {
@@ -126,5 +126,71 @@ describe("parseNumericArg", () => {
 
   it("handles negative numbers when no min constraint", () => {
     expect(parseNumericArg("--offset", 0, { argv: ["node", "app", "--offset", "-10"] })).toBe(-10);
+  });
+});
+
+describe("parseStringArg", () => {
+  it("returns fallback when flag is absent", () => {
+    expect(parseStringArg("--align", "bottom-right", { argv: ["node", "app"] })).toBe("bottom-right");
+  });
+
+  it("parses a plain string value", () => {
+    expect(parseStringArg("--align", "bottom-right", { argv: ["node", "app", "--align", "top-left"] })).toBe("top-left");
+  });
+
+  it("parses --flag=value syntax", () => {
+    expect(parseStringArg("--size", "medium", { argv: ["node", "app", "--size=large"] })).toBe("large");
+  });
+
+  it("trims whitespace", () => {
+    expect(parseStringArg("--align", "default", { argv: ["node", "app", "--align", "  top-right  "] })).toBe("top-right");
+  });
+
+  it("returns fallback for empty value", () => {
+    expect(parseStringArg("--align", "default", { argv: ["node", "app", "--align="] })).toBe("default");
+    expect(parseStringArg("--align", "default", { argv: ["node", "app", "--align", "  "] })).toBe("default");
+  });
+
+  it("validates against allowed array (case-insensitive by default)", () => {
+    const opts = { argv: ["node", "app", "--size", "LARGE"], allowed: ["small", "medium", "large"] };
+    expect(parseStringArg("--size", "medium", opts)).toBe("LARGE");
+  });
+
+  it("rejects values not in allowed array", () => {
+    const opts = { argv: ["node", "app", "--size", "huge"], allowed: ["small", "medium", "large"] };
+    expect(parseStringArg("--size", "medium", opts)).toBe("medium");
+  });
+
+  it("validates against allowed Set", () => {
+    const allowed = new Set(["small", "medium", "large"]);
+    expect(parseStringArg("--size", "medium", { argv: ["node", "app", "--size", "small"], allowed })).toBe("small");
+    expect(parseStringArg("--size", "medium", { argv: ["node", "app", "--size", "huge"], allowed })).toBe("medium");
+  });
+
+  it("respects caseSensitive option with allowed array", () => {
+    const opts = { argv: ["node", "app", "--size", "LARGE"], allowed: ["small", "medium", "large"], caseSensitive: true };
+    expect(parseStringArg("--size", "medium", opts)).toBe("medium");
+  });
+
+  it("respects caseSensitive option with allowed Set", () => {
+    const allowed = new Set(["small", "medium", "large"]);
+    expect(parseStringArg("--size", "medium", { argv: ["node", "app", "--size", "SMALL"], allowed, caseSensitive: true })).toBe("medium");
+    expect(parseStringArg("--size", "medium", { argv: ["node", "app", "--size", "small"], allowed, caseSensitive: true })).toBe("small");
+  });
+
+  it("respects minLength option", () => {
+    expect(parseStringArg("--name", "default", { argv: ["node", "app", "--name", "ab"], minLength: 3 })).toBe("default");
+    expect(parseStringArg("--name", "default", { argv: ["node", "app", "--name", "abc"], minLength: 3 })).toBe("abc");
+  });
+
+  it("respects maxLength option", () => {
+    expect(parseStringArg("--name", "default", { argv: ["node", "app", "--name", "toolong"], maxLength: 5 })).toBe("default");
+    expect(parseStringArg("--name", "default", { argv: ["node", "app", "--name", "ok"], maxLength: 5 })).toBe("ok");
+  });
+
+  it("combines allowed and length constraints", () => {
+    const opts = { argv: ["node", "app", "--size", "large"], allowed: ["small", "medium", "large"], maxLength: 4 };
+    // "large" is 5 chars, exceeds maxLength
+    expect(parseStringArg("--size", "medium", opts)).toBe("medium");
   });
 });

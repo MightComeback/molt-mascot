@@ -58,4 +58,50 @@ function parseNumericArg(flag, fallback, opts) {
   return n;
 }
 
-module.exports = { parseCliArg, hasBoolFlag, parseNumericArg };
+/**
+ * Parse a string CLI flag value with optional validation and fallback.
+ * Combines parseCliArg + trimming + allowed-values check into a single call,
+ * eliminating the repeated `const v = parseCliArg(...); isValid(v) ? v : default`
+ * pattern used for --alignment, --size, etc.
+ *
+ * @param {string} flag - The flag to search for (e.g. '--alignment')
+ * @param {string} fallback - Value to return if flag is absent or invalid
+ * @param {{ argv?: string[], allowed?: string[]|Set<string>, caseSensitive?: boolean, minLength?: number, maxLength?: number }} [opts]
+ *   - allowed: whitelist of valid values (Array or Set); if provided, value must be a member
+ *   - caseSensitive: whether allowed-values comparison is case-sensitive (default false)
+ *   - minLength: minimum string length after trimming (default 1, i.e. non-empty)
+ *   - maxLength: maximum string length after trimming
+ * @returns {string} Parsed string value, or fallback if absent/invalid
+ */
+function parseStringArg(flag, fallback, opts) {
+  const raw = parseCliArg(flag, opts?.argv);
+  if (raw === null) return fallback;
+  const trimmed = raw.trim();
+  const minLen = typeof opts?.minLength === 'number' ? opts.minLength : 1;
+  if (trimmed.length < minLen) return fallback;
+  if (typeof opts?.maxLength === 'number' && trimmed.length > opts.maxLength) return fallback;
+  if (opts?.allowed) {
+    const caseSensitive = opts.caseSensitive === true;
+    const needle = caseSensitive ? trimmed : trimmed.toLowerCase();
+    if (opts.allowed instanceof Set) {
+      // For Sets, we need to iterate if case-insensitive
+      if (caseSensitive) {
+        if (!opts.allowed.has(needle)) return fallback;
+      } else {
+        let found = false;
+        for (const v of opts.allowed) {
+          if ((typeof v === 'string' ? v.toLowerCase() : v) === needle) { found = true; break; }
+        }
+        if (!found) return fallback;
+      }
+    } else if (Array.isArray(opts.allowed)) {
+      const match = caseSensitive
+        ? opts.allowed.includes(needle)
+        : opts.allowed.some(v => typeof v === 'string' && v.toLowerCase() === needle);
+      if (!match) return fallback;
+    }
+  }
+  return trimmed;
+}
+
+module.exports = { parseCliArg, hasBoolFlag, parseNumericArg, parseStringArg };
