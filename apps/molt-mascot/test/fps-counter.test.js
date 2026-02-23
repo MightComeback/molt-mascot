@@ -265,4 +265,26 @@ describe('fps-counter', () => {
     c.update(1016);
     expect(c.percentAboveThreshold(33)).toBe(0);
   });
+
+  it('isFull returns false when buffer is not at capacity', () => {
+    const c = createFpsCounter({ bufferSize: 10 });
+    expect(c.isFull()).toBe(false);
+    c.update(0);
+    c.update(16);
+    expect(c.isFull()).toBe(false);
+  });
+
+  it('isFull returns true when buffer reaches capacity', () => {
+    const c = createFpsCounter({ bufferSize: 5 });
+    for (let i = 0; i < 5; i++) c.update(i * 16);
+    expect(c.isFull()).toBe(true);
+  });
+
+  it('isFull resets to false after reset()', () => {
+    const c = createFpsCounter({ bufferSize: 3 });
+    for (let i = 0; i < 3; i++) c.update(i * 16);
+    expect(c.isFull()).toBe(true);
+    c.reset();
+    expect(c.isFull()).toBe(false);
+  });
 });

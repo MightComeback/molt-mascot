@@ -159,5 +159,15 @@ export function createFpsCounter(opts = {}) {
     return Math.round((above / pairs) * 100);
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold };
+  /**
+   * Whether the ring buffer is at capacity (oldest timestamps are being evicted).
+   * Mirrors latencyTracker.isFull() for API consistency across tracker modules.
+   *
+   * @returns {boolean}
+   */
+  function isFull() {
+    return count >= bufferSize;
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull };
 }
