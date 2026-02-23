@@ -479,6 +479,22 @@ export function cleanErrorString(s: string): string {
   // Performance guard: truncate huge outputs before regex processing
   if (s.length > 4096) s = s.slice(0, 4096);
 
+  // JSON error responses: some tools return stringified JSON like '{"error":"rate limited"}'.
+  // Try to extract a human-readable message before falling through to regex stripping.
+  if (s.trimStart().startsWith("{")) {
+    try {
+      const obj = JSON.parse(s);
+      if (obj && typeof obj === "object") {
+        const msg =
+          obj.error?.message ?? (typeof obj.error === "string" ? obj.error : null) ??
+          obj.message ?? obj.detail ?? obj.reason;
+        if (typeof msg === "string" && msg.trim()) return cleanErrorString(msg);
+      }
+    } catch {
+      // Not valid JSON — continue with normal stripping
+    }
+  }
+
   // Strip ANSI escape codes (colors, cursor moves, etc)
   /* eslint-disable no-control-regex */
   let str = s

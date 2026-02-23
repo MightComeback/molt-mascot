@@ -363,6 +363,18 @@ describe("utils", () => {
     expect(cleanErrorString("conda: PackagesNotFoundError: missing")).toBe("missing");
     expect(cleanErrorString("mamba: error: libmamba Could not solve")).toBe("libmamba Could not solve");
     expect(cleanErrorString("pixi: error: No task named 'build'")).toBe("No task named 'build'");
+    // JSON error strings: extract message from stringified JSON objects
+    expect(cleanErrorString('{"error":"rate limited","code":429}')).toBe("rate limited");
+    expect(cleanErrorString('{"error":{"message":"quota exceeded","code":429}}')).toBe("quota exceeded");
+    expect(cleanErrorString('{"message":"not found"}')).toBe("not found");
+    expect(cleanErrorString('{"detail":"invalid API key"}')).toBe("invalid API key");
+    expect(cleanErrorString('{"reason":"timeout"}')).toBe("timeout");
+    // JSON without a recognized message field falls through to normal processing
+    expect(cleanErrorString('{"status":500}')).toBe('{"status":500}');
+    // Invalid JSON starting with { falls through gracefully
+    expect(cleanErrorString("{not json}")).toBe("{not json}");
+    // Nested error prefix stripping after JSON extraction
+    expect(cleanErrorString('{"error":"Error: connection refused"}')).toBe("connection refused");
   });
 
   it("summarizeToolResultMessage", () => {
