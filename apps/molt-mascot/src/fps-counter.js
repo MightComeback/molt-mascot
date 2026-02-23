@@ -97,5 +97,18 @@ export function createFpsCounter(opts = {}) {
     return worstFrameDeltaMs;
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta };
+  /**
+   * Return the most recently recorded frame timestamp without materializing arrays.
+   * Mirrors latencyTracker.last() for API consistency across tracker modules.
+   *
+   * @returns {number|null} The last frame timestamp, or null if no frames recorded
+   */
+  function last() {
+    if (totalFrames === 0) return null;
+    // head points to the next write slot; most recent entry is at head - 1.
+    const idx = (head - 1 + bufferSize) % bufferSize;
+    return ring[idx];
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last };
 }

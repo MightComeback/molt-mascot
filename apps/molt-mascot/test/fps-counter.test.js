@@ -174,4 +174,36 @@ describe('fps-counter', () => {
     const snap = c.getSnapshot();
     expect(snap.worstFrameDeltaMs).toBe(100);
   });
+
+  it('last returns null when no frames recorded', () => {
+    const c = createFpsCounter();
+    expect(c.last()).toBeNull();
+  });
+
+  it('last returns the most recent frame timestamp', () => {
+    const c = createFpsCounter();
+    c.update(100);
+    expect(c.last()).toBe(100);
+    c.update(200);
+    expect(c.last()).toBe(200);
+    c.update(350);
+    expect(c.last()).toBe(350);
+  });
+
+  it('last works correctly after buffer wraps', () => {
+    const c = createFpsCounter({ bufferSize: 3 });
+    c.update(10);
+    c.update(20);
+    c.update(30);
+    c.update(40); // wraps, overwrites slot 0
+    expect(c.last()).toBe(40);
+  });
+
+  it('last returns null after reset', () => {
+    const c = createFpsCounter();
+    c.update(100);
+    expect(c.last()).toBe(100);
+    c.reset();
+    expect(c.last()).toBeNull();
+  });
 });
