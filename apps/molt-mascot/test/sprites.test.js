@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { palette, lobsterIdle, overlay } from "../src/sprites.js";
+import { MODE_EMOJI } from "../src/mode-emoji.cjs";
 
 const EXPECTED_ROWS = 32;
 const EXPECTED_COLS = 32;
@@ -154,6 +155,35 @@ describe("sprites", () => {
     it("connecting frames differ (animation would be static otherwise)", () => {
       const hasDiff = overlay.connecting[0].some((row, i) => row !== overlay.connecting[1][i]);
       expect(hasDiff).toBe(true);
+    });
+  });
+
+  describe("structural integrity", () => {
+    it("every overlay key is a recognized visual mode or alias", () => {
+      // All overlay keys should map to a known mode (from MODE_EMOJI) or be
+      // a recognized alias like "sleep" (which maps to extended idle).
+      const knownKeys = new Set([...Object.keys(MODE_EMOJI), "sleep"]);
+      for (const key of Object.keys(overlay)) {
+        expect(knownKeys.has(key)).toBe(true);
+      }
+    });
+
+    it("all active visual modes have overlays", () => {
+      // Modes that display overlays in the renderer. "idle" uses "sleep" overlay
+      // (triggered by duration threshold), so it doesn't need its own key.
+      const modesNeedingOverlays = ["thinking", "tool", "error", "connecting", "connected", "disconnected"];
+      for (const mode of modesNeedingOverlays) {
+        expect(overlay[mode]).toBeDefined();
+        expect(overlay[mode].length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it("all overlay entries have exactly 2 frames", () => {
+      for (const [key, frames] of Object.entries(overlay)) {
+        if (frames.length !== 2) {
+          throw new Error(`overlay.${key} has ${frames.length} frames, expected 2`);
+        }
+      }
     });
   });
 
