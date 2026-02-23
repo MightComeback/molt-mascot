@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -245,5 +245,115 @@ describe('isValidHealth', () => {
     expect(isValidHealth(null)).toBe(false);
     expect(isValidHealth(undefined)).toBe(false);
     expect(isValidHealth(42)).toBe(false);
+  });
+});
+
+describe('healthStatusEmoji', () => {
+  it('maps health statuses to emojis', () => {
+    expect(healthStatusEmoji('healthy')).toBe('🟢');
+    expect(healthStatusEmoji('degraded')).toBe('⚠️');
+    expect(healthStatusEmoji('unhealthy')).toBe('🔴');
+  });
+
+  it('returns grey circle for null/unknown values', () => {
+    expect(healthStatusEmoji(null)).toBe('⚪');
+    expect(healthStatusEmoji(undefined)).toBe('⚪');
+    expect(healthStatusEmoji('unknown')).toBe('⚪');
+    expect(healthStatusEmoji('')).toBe('⚪');
+  });
+});
+
+describe('computeHealthReasons', () => {
+  it('returns ["disconnected"] when not connected', () => {
+    expect(computeHealthReasons({ isConnected: false })).toEqual(['disconnected']);
+  });
+
+  it('returns empty array for healthy connection', () => {
+    expect(computeHealthReasons({ isConnected: true, latencyMs: 20 })).toEqual([]);
+  });
+
+  it('detects stale connection (>10s)', () => {
+    const now = Date.now();
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 15000,
+      now,
+    });
+    expect(reasons.length).toBe(1);
+    expect(reasons[0]).toContain('stale connection');
+    expect(reasons[0]).not.toContain('dead');
+  });
+
+  it('detects severely stale (dead) connection (>30s)', () => {
+    const now = Date.now();
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 45000,
+      now,
+    });
+    expect(reasons[0]).toContain('dead');
+  });
+
+  it('skips staleness check when polling is paused', () => {
+    const now = Date.now();
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      isPollingPaused: true,
+      lastMessageAt: now - 60000,
+      now,
+    });
+    expect(reasons.filter(r => r.includes('stale'))).toEqual([]);
+  });
+
+  it('detects poor latency', () => {
+    const reasons = computeHealthReasons({ isConnected: true, latencyMs: 600 });
+    expect(reasons.some(r => r.includes('poor latency'))).toBe(true);
+  });
+
+  it('detects extreme latency (>5s)', () => {
+    const reasons = computeHealthReasons({ isConnected: true, latencyMs: 6000 });
+    expect(reasons.some(r => r.includes('extreme latency'))).toBe(true);
+  });
+
+  it('detects high absolute jitter (>200ms)', () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { median: 50, samples: 10, jitter: 250 },
+    });
+    expect(reasons.some(r => r.includes('high jitter'))).toBe(true);
+  });
+
+  it('detects high relative jitter (>150% of median)', () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { median: 50, samples: 10, jitter: 100 },
+    });
+    expect(reasons.some(r => r.includes('high jitter') && r.includes('% of median'))).toBe(true);
+  });
+
+  it('detects low connection success rate', () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      connectionSuccessRate: 60,
+    });
+    expect(reasons.some(r => r.includes('low success rate'))).toBe(true);
+  });
+
+  it('returns empty for default/no params', () => {
+    expect(computeHealthReasons()).toEqual(['disconnected']);
+  });
+
+  it('accumulates multiple reasons', () => {
+    const now = Date.now();
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 45000,
+      latencyMs: 6000,
+      connectionSuccessRate: 50,
+      now,
+    });
+    expect(reasons.length).toBeGreaterThanOrEqual(3);
   });
 });
