@@ -626,6 +626,38 @@ describe('tray-icon', () => {
     });
   });
 
+  describe('connectionUptimePct in tray tooltip', () => {
+    const tooltipBase = {
+      appVersion: '1.2.3',
+      mode: 'idle',
+      clickThrough: false,
+      hideText: false,
+      alignment: 'bottom-right',
+      sizeLabel: 'medium',
+      opacityPercent: 100,
+    };
+
+    it('shows percentage when below 100', () => {
+      const tip = buildTrayTooltip({ ...tooltipBase, connectionUptimePct: 85 });
+      expect(tip).toContain('📶 85% connected');
+    });
+
+    it('omits when 100% (fully connected)', () => {
+      const tip = buildTrayTooltip({ ...tooltipBase, connectionUptimePct: 100 });
+      expect(tip).not.toContain('📶');
+    });
+
+    it('omits when null', () => {
+      const tip = buildTrayTooltip({ ...tooltipBase, connectionUptimePct: null });
+      expect(tip).not.toContain('📶');
+    });
+
+    it('shows 0% for fully disconnected lifetime', () => {
+      const tip = buildTrayTooltip({ ...tooltipBase, connectionUptimePct: 0 });
+      expect(tip).toContain('📶 0% connected');
+    });
+  });
+
   describe('formatLatency', () => {
     it('returns "< 1ms" for zero', () => {
       expect(formatLatency(0)).toBe('< 1ms');

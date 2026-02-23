@@ -833,6 +833,17 @@ app.whenReady().then(async () => {
     if (connectedSinceMs) {
       uptimeStr = formatDuration(Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000)));
     }
+    // Compute connection uptime percentage from process lifetime.
+    const _uptimePct = (() => {
+      if (firstConnectedMs === null) return null;
+      const now = Date.now();
+      const totalMs = process.uptime() * 1000;
+      if (totalMs <= 0) return null;
+      const currentGap = connectedSinceMs ? 0 : (now - (firstConnectedMs || now));
+      const sinceFc = now - firstConnectedMs;
+      const approx = Math.max(0, sinceFc - currentGap);
+      return Math.min(100, Math.round((approx / totalMs) * 100));
+    })();
     tray.setToolTip(buildTrayTooltip({
       appVersion: APP_VERSION,
       mode: trayShowsSleeping ? 'sleeping' : (currentRendererMode || 'idle'),
@@ -863,6 +874,7 @@ app.whenReady().then(async () => {
       pluginStartedAt: currentPluginStartedAt,
       lastResetAt: currentLastResetAt,
       healthStatus: currentHealthStatus,
+      connectionUptimePct: _uptimePct,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -1046,6 +1058,8 @@ app.whenReady().then(async () => {
 
   // Track when the gateway connection was established (for tray tooltip uptime).
   let connectedSinceMs = null;
+  // Timestamp of the very first successful handshake (for connection uptime % calculation).
+  let firstConnectedMs = null;
 
   // Track latest plugin state poll latency and active tool for tray tooltip.
   let currentLatencyMs = null;
@@ -1127,6 +1141,7 @@ app.whenReady().then(async () => {
       if (p.mode !== 'idle') trayShowsSleeping = false;
       if (p.mode === 'connected') {
         connectedSinceMs = Date.now();
+        if (firstConnectedMs === null) firstConnectedMs = connectedSinceMs;
         currentCloseDetail = null;
         currentReconnectAttempt = 0;
       } else if (p.mode === 'disconnected' || p.mode === 'connecting') {
