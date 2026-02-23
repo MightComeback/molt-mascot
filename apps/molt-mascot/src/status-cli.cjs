@@ -215,6 +215,7 @@ function formatStatusText(status) {
     }
   }
 
+  lines.push('');
   lines.push('Runtime:');
   lines.push(`  Platform:  ${status.platform} ${status.arch}`);
   lines.push(`  PID:       ${status.pid}`);
