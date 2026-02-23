@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, formatHealthSummary, formatActiveSummary } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -410,5 +410,179 @@ describe('formatActiveSummary', () => {
     expect(formatActiveSummary(1, 3)).toBe('1 agent, 3 tools');
     expect(formatActiveSummary(0, 0)).toBe('0 agents, 0 tools');
     expect(formatActiveSummary(5, 5)).toBe('5 agents, 5 tools');
+  });
+});
+
+describe('computeHealthStatus', () => {
+  const NOW = 1700000000000;
+
+  it('returns "unhealthy" when disconnected', () => {
+    expect(computeHealthStatus({ isConnected: false, now: NOW })).toBe('unhealthy');
+  });
+
+  it('returns "healthy" for a good connected state', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      lastMessageAt: NOW - 1000,
+      latencyMs: 30,
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  it('returns "healthy" with no optional params when connected', () => {
+    expect(computeHealthStatus({ isConnected: true, now: NOW })).toBe('healthy');
+  });
+
+  it('returns "healthy" with default (empty) params', () => {
+    // Default params: isConnected is falsy → unhealthy
+    expect(computeHealthStatus()).toBe('unhealthy');
+  });
+
+  // Stale connection checks
+  it('returns "degraded" for stale connection (>10s)', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_DEGRADED_MS - 1,
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  it('returns "unhealthy" for severely stale connection (>30s)', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS - 1,
+      now: NOW,
+    })).toBe('unhealthy');
+  });
+
+  it('skips staleness check when polling is paused', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: true,
+      lastMessageAt: NOW - 60000, // very stale, but polling paused
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  it('skips staleness check when lastMessageAt is missing', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  // Latency checks
+  it('returns "unhealthy" for extreme latency (>5s)', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS + 1,
+      now: NOW,
+    })).toBe('unhealthy');
+  });
+
+  it('returns "degraded" for poor latency (>=500ms)', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 500,
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  it('returns "healthy" for good latency', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 40,
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  it('prefers median from stats for quality assessment', () => {
+    // Instant latency is fine (40ms) but median is poor (600ms)
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 40,
+      latencyStats: { median: 600, samples: 10 },
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  // Jitter checks
+  it('returns "degraded" for high absolute jitter (>200ms)', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { jitter: HEALTH_THRESHOLDS.JITTER_DEGRADED_MS + 1, samples: 10, median: 50 },
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  it('returns "degraded" for high relative jitter (>150% of median)', () => {
+    // jitter = 80ms, median = 50ms → ratio = 1.6 > 1.5
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { jitter: 80, samples: 10, median: 50 },
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  it('returns "healthy" when jitter is within thresholds', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { jitter: 30, samples: 10, median: 50 },
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  it('skips jitter check when samples <= 1', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { jitter: 500, samples: 1, median: 50 },
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  // Connection success rate checks
+  it('returns "degraded" for low connection success rate', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      connectionSuccessRate: HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT - 1,
+      now: NOW,
+    })).toBe('degraded');
+  });
+
+  it('returns "healthy" for acceptable success rate', () => {
+    expect(computeHealthStatus({
+      isConnected: true,
+      connectionSuccessRate: 80,
+      now: NOW,
+    })).toBe('healthy');
+  });
+
+  // Priority ordering: earlier checks take precedence
+  it('stale connection takes precedence over latency', () => {
+    // Both stale (unhealthy) and poor latency (degraded)
+    expect(computeHealthStatus({
+      isConnected: true,
+      isPollingPaused: false,
+      lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS - 1,
+      latencyMs: 500,
+      now: NOW,
+    })).toBe('unhealthy');
+  });
+
+  it('latency check takes precedence over jitter', () => {
+    // Extreme latency (unhealthy via median) and high jitter (degraded)
+    expect(computeHealthStatus({
+      isConnected: true,
+      latencyMs: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS + 1,
+      latencyStats: { jitter: 300, samples: 10, median: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS + 1 },
+      now: NOW,
+    })).toBe('unhealthy');
   });
 });
