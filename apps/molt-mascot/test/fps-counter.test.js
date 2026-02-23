@@ -287,4 +287,27 @@ describe('fps-counter', () => {
     c.reset();
     expect(c.isFull()).toBe(false);
   });
+
+  it('toJSON() delegates to getSnapshot() for JSON.stringify support', () => {
+    const c = createFpsCounter({ bufferSize: 10, windowMs: 1000 });
+    c.update(0);
+    c.update(16);
+    c.update(33);
+
+    const snapshot = c.getSnapshot();
+    const json = c.toJSON();
+    expect(json).toEqual(snapshot);
+
+    // JSON.stringify should produce the same output as manually stringifying getSnapshot
+    expect(JSON.stringify(c)).toBe(JSON.stringify(snapshot));
+  });
+
+  it('toJSON() returns zeroed snapshot when no frames recorded', () => {
+    const c = createFpsCounter();
+    const json = c.toJSON();
+    expect(json.fps).toBe(0);
+    expect(json.frameCount).toBe(0);
+    expect(json.avgFrameTimeMs).toBeNull();
+    expect(json.worstFrameDeltaMs).toBe(0);
+  });
 });

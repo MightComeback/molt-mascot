@@ -169,5 +169,16 @@ export function createFpsCounter(opts = {}) {
     return count >= bufferSize;
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull };
+  /**
+   * JSON.stringify() support — delegates to getSnapshot() so
+   * `JSON.stringify(fpsCounter)` produces a useful diagnostic object
+   * without manual plucking (consistent with latencyTracker.toJSON()).
+   *
+   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number|null, worstFrameDeltaMs: number }}
+   */
+  function toJSON() {
+    return getSnapshot();
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, toJSON };
 }
