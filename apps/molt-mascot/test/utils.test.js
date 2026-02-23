@@ -1318,6 +1318,23 @@ describe("computeHealthReasons", () => {
     expect(reasons.some(r => r.includes("low success rate: 60%"))).toBe(true);
   });
 
+  it("distinguishes severely stale (>30s) from mildly stale (>10s)", () => {
+    const severe = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 35000,
+      now,
+    });
+    expect(severe[0]).toMatch(/stale connection: 35s \(dead\)/);
+
+    const mild = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 15000,
+      now,
+    });
+    expect(mild[0]).toMatch(/stale connection: 15s$/);
+    expect(mild[0]).not.toContain('dead');
+  });
+
   it("collects multiple reasons", () => {
     const reasons = computeHealthReasons({
       isConnected: true,

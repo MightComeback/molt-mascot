@@ -170,8 +170,9 @@ function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, lat
 
   if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
     const staleMs = now - lastMessageAt;
-    if (staleMs > 30000) reasons.push(`stale connection: ${Math.round(staleMs / 1000)}s`);
-    else if (staleMs > 10000) reasons.push(`stale connection: ${Math.round(staleMs / 1000)}s`);
+    const staleSec = Math.round(staleMs / 1000);
+    if (staleMs > 30000) reasons.push(`stale connection: ${staleSec}s (dead)`);
+    else if (staleMs > 10000) reasons.push(`stale connection: ${staleSec}s`);
   }
 
   const source = resolveQualitySource(latencyMs, latencyStats);
