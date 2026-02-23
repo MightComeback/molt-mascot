@@ -488,6 +488,51 @@ describe("validatePrefs", () => {
   });
 });
 
+describe("loadValidated", () => {
+  let tmpDir;
+  let prefsPath;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "molt-prefs-lv-"));
+    prefsPath = path.join(tmpDir, "preferences.json");
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+  });
+
+  it("returns clean prefs and empty dropped for valid data", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", clickThrough: true }));
+    const mgr = createPrefsManager(prefsPath);
+    const { clean, dropped } = mgr.loadValidated();
+    expect(clean).toEqual({ alignment: "top-left", clickThrough: true });
+    expect(dropped).toEqual([]);
+  });
+
+  it("strips unknown keys from persisted file", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "center", bogus: 42 }));
+    const mgr = createPrefsManager(prefsPath);
+    const { clean, dropped } = mgr.loadValidated();
+    expect(clean).toEqual({ alignment: "center" });
+    expect(dropped).toContain("bogus");
+  });
+
+  it("drops invalid values", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: 123, padding: -5 }));
+    const mgr = createPrefsManager(prefsPath);
+    const { clean, dropped } = mgr.loadValidated();
+    expect(clean).toEqual({});
+    expect(dropped.length).toBe(2);
+  });
+
+  it("returns empty clean for missing file", () => {
+    const mgr = createPrefsManager(prefsPath);
+    const { clean, dropped } = mgr.loadValidated();
+    expect(clean).toEqual({});
+    expect(dropped).toEqual([]);
+  });
+});
+
 describe("PREF_SCHEMA", () => {
   it("covers all expected preference keys", () => {
     const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];

@@ -201,7 +201,20 @@ function createPrefsManager(filePath, opts = {}) {
     return keys().length;
   }
 
-  return { load, save, set, remove, flush, clear, has, get, getAll, keys, size, filePath };
+  /**
+   * Load preferences from disk and sanitize through validatePrefs().
+   * Strips unknown keys and coerces invalid values, returning only clean data.
+   * Use this instead of load() when you want guaranteed-valid preferences
+   * (e.g. at app startup where hand-edited or corrupted files could cause issues).
+   *
+   * @returns {{ clean: object, dropped: Array<{ key: string, reason: string }> }}
+   */
+  function loadValidated() {
+    const raw = load();
+    return validatePrefs(raw);
+  }
+
+  return { load, loadValidated, save, set, remove, flush, clear, has, get, getAll, keys, size, filePath };
 }
 
 /**
