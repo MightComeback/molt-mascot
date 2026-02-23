@@ -678,4 +678,14 @@ describe("context-menu", () => {
     ctxMenu.dismiss();
     expect(ctxMenu.getSnapshot()).toEqual({ visible: false });
   });
+
+  it("toJSON delegates to getSnapshot for JSON.stringify consistency", () => {
+    expect(ctxMenu.toJSON()).toEqual(ctxMenu.getSnapshot());
+    expect(ctxMenu.toJSON()).toEqual({ visible: false });
+    ctxMenu.show([{ label: "A" }], { x: 0, y: 0 });
+    expect(ctxMenu.toJSON()).toEqual({ visible: true });
+    // JSON.stringify should produce the same output
+    expect(JSON.stringify(ctxMenu)).toBe(JSON.stringify({ visible: true }));
+    ctxMenu.dismiss();
+  });
 });

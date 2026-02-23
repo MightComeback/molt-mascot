@@ -233,3 +233,15 @@ export function show(items, { x, y }) {
 export function getSnapshot() {
   return { visible: isVisible() };
 }
+
+/**
+ * JSON.stringify() support — delegates to getSnapshot() so
+ * `JSON.stringify(ctxMenu)` produces a useful diagnostic object
+ * (consistent with fpsCounter.toJSON(), latencyTracker.toJSON(),
+ * pluginSync.toJSON(), and blinkState.toJSON()).
+ *
+ * @returns {{ visible: boolean }}
+ */
+export function toJSON() {
+  return getSnapshot();
+}
