@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -1040,9 +1040,12 @@ setup.addEventListener('submit', (e) => {
   e.preventDefault();
   let url = normalizeWsUrl(urlInput.value);
 
-  // Validate WebSocket URL before attempting connection
-  if (url && !/^wss?:\/\/.+/i.test(url)) {
-    urlInput.setCustomValidity('URL must start with ws:// or wss://');
+  // Validate WebSocket URL before attempting connection.
+  // Uses the richer validateWsUrl() utility which catches missing hostnames,
+  // invalid port numbers, and malformed URLs — not just scheme checks.
+  const validationError = validateWsUrl(url);
+  if (validationError) {
+    urlInput.setCustomValidity(validationError);
     urlInput.reportValidity();
     return;
   }
