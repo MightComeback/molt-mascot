@@ -34,6 +34,7 @@ import {
   VALID_MODES,
   isValidMode,
   computeConnectionSuccessRate,
+  isSleepingMode,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1575,5 +1576,25 @@ describe("computeConnectionSuccessRate", () => {
 
   it("returns 0 when connects is 0", () => {
     expect(computeConnectionSuccessRate(0, 10)).toBe(0);
+  });
+});
+
+describe("isSleepingMode", () => {
+  it("returns true when idle and past threshold", () => {
+    expect(isSleepingMode("idle", 130000, 120000)).toBe(true);
+  });
+
+  it("returns false when idle but under threshold", () => {
+    expect(isSleepingMode("idle", 60000, 120000)).toBe(false);
+  });
+
+  it("returns false at exact threshold (not exceeded)", () => {
+    expect(isSleepingMode("idle", 120000, 120000)).toBe(false);
+  });
+
+  it("returns false for non-idle modes regardless of duration", () => {
+    expect(isSleepingMode("thinking", 999999, 120000)).toBe(false);
+    expect(isSleepingMode("tool", 999999, 120000)).toBe(false);
+    expect(isSleepingMode("error", 999999, 120000)).toBe(false);
   });
 });

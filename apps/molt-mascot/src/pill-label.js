@@ -8,7 +8,7 @@
  * @module pill-label
  */
 
-import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS } from './utils.js';
+import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS, isSleepingMode } from './utils.js';
 
 /**
  * Maximum pill label widths (in characters) per context.
@@ -67,7 +67,7 @@ export function buildPillLabel(params) {
 
   const now = nowOverride ?? Date.now();
   const duration = Math.max(0, Math.round((now - modeSince) / 1000));
-  const isSleeping = mode === 'idle' && duration > sleepThresholdS;
+  const isSleeping = isSleepingMode(mode, duration * 1000, sleepThresholdS * 1000);
 
   let label = capitalize(mode);
 

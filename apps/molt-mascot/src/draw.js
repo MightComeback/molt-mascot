@@ -7,6 +7,7 @@
  */
 
 import { palette, lobsterIdle, overlay } from './sprites.js';
+import { isSleepingMode } from './utils.js';
 
 // Eye geometry extracted from the sprite grid (row/col/size in sprite pixels).
 export const EYE_LEFT_COL = 14;
@@ -347,7 +348,7 @@ export function drawLobster(ctx, params) {
   // Overlays (simple icons) — attached to bob; modes are mutually exclusive.
   // Resolved via the declarative OVERLAY_TIMING map for maintainability.
   const overlayOpts = { x: 0, y: bobY + OVERLAY_Y_OFFSET_PX, scale: s };
-  const effectiveMode = (mode === 'idle' && idleDurationMs > sleepThresholdMs) ? 'sleep' : mode;
+  const effectiveMode = isSleepingMode(mode, idleDurationMs, sleepThresholdMs) ? 'sleep' : mode;
   const timing = OVERLAY_TIMING[effectiveMode];
   if (timing) {
     const { sprites, frameDurationMs } = timing;

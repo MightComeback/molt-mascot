@@ -21,6 +21,20 @@ import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualit
 export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth, formatActiveSummary };
 
 /**
+ * Determine whether the mascot is in "sleeping" state (idle beyond threshold).
+ * Consolidates the repeated `mode === 'idle' && duration > threshold` check
+ * used across pill-label, context-menu-items, debug-info, and the renderer.
+ *
+ * @param {string} mode - Current mascot mode
+ * @param {number} idleDurationMs - How long in idle mode (milliseconds)
+ * @param {number} sleepThresholdMs - Threshold before sleeping (milliseconds)
+ * @returns {boolean}
+ */
+export function isSleepingMode(mode, idleDurationMs, sleepThresholdMs) {
+  return mode === 'idle' && idleDurationMs > sleepThresholdMs;
+}
+
+/**
  * Capitalize the first character of a string.
  * Useful for turning mode names like "idle" into "Idle" for display.
  *
@@ -112,11 +126,11 @@ const DEFAULT_INTERVAL_REDUCED = 500;
 export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reducedMotion) {
   if (reducedMotion) {
     // Sleeping idle gets an even slower rate (2s between frames).
-    if (mode === 'idle' && idleDurationMs > sleepThresholdMs) return 2000;
+    if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs)) return 2000;
     return FRAME_INTERVALS_REDUCED[mode] ?? DEFAULT_INTERVAL_REDUCED;
   }
   // Sleeping idle drops to ~4fps (250ms) — minimal animation, low CPU.
-  if (mode === 'idle' && idleDurationMs > sleepThresholdMs) return 250;
+  if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs)) return 250;
   return FRAME_INTERVALS[mode] ?? DEFAULT_INTERVAL;
 }
 

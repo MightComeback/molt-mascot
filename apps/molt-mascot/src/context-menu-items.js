@@ -7,7 +7,7 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity } from './utils.js';
+import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
 import { findSizePreset } from './size-presets.cjs';
 
 /**
@@ -92,7 +92,7 @@ export function buildContextMenuItems(state) {
 
   // Build status summary line
   const modeDur = Math.max(0, Math.round((now - modeSince) / 1000));
-  const isSleeping = currentMode === 'idle' && modeDur > sleepThresholdS;
+  const isSleeping = isSleepingMode(currentMode, modeDur * 1000, sleepThresholdS * 1000);
   const emojiKey = isSleeping ? 'sleeping' : currentMode;
   const emoji = MODE_EMOJI[emojiKey] ? `${MODE_EMOJI[emojiKey]} ` : '';
   let modeLabel = isSleeping ? `${emoji}Sleeping` : `${emoji}${capitalize(currentMode)}`;

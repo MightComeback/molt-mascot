@@ -66,7 +66,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -142,7 +142,7 @@ export function buildDebugInfo(params) {
   lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
   lines.push(`Captured: ${formatTimestamp(now)}`);
   const modeDurationMs = Math.max(0, now - modeSince);
-  const isSleeping = currentMode === 'idle' && modeDurationMs > sleepThresholdS * 1000;
+  const isSleeping = isSleepingMode(currentMode, modeDurationMs, sleepThresholdS * 1000);
   const effectiveMode = isSleeping ? `idle (sleeping)` : currentMode;
   lines.push(`Mode: ${effectiveMode}`);
   lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
