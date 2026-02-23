@@ -1,4 +1,21 @@
 /**
+ * Canonical mode string constants.
+ * Single source of truth — previously each consumer defined its own
+ * `const Mode = { idle: 'idle', ... }` object (renderer.js, electron-main.cjs).
+ * Import this instead to avoid drift between the mode enum and VALID_MODES.
+ */
+const MODE = Object.freeze({
+  idle: 'idle',
+  thinking: 'thinking',
+  tool: 'tool',
+  error: 'error',
+  connecting: 'connecting',
+  connected: 'connected',
+  disconnected: 'disconnected',
+  sleeping: 'sleeping',
+});
+
+/**
  * Shared mode → emoji map for display across renderer and tray icon.
  * Single source of truth: previously duplicated in renderer.js and tray-icon.cjs.
  */
@@ -56,4 +73,4 @@ function isValidMode(value) {
   return _VALID_MODES_SET.has(value);
 }
 
-module.exports = { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode };
+module.exports = { MODE, MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode };

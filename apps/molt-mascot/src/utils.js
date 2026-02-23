@@ -611,7 +611,7 @@ export function computeConnectionSuccessRate(connects, attempts) {
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';
-export { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from './mode-emoji.cjs';
+export { MODE, MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from './mode-emoji.cjs';
 export { REPO_URL } from './env-keys.cjs';
 import { formatOpacity as _formatOpacity } from './opacity-presets.cjs';
 export { _formatOpacity as formatOpacity };

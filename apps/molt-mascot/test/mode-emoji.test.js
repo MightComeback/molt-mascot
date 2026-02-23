@@ -1,5 +1,29 @@
 import { describe, it, expect } from 'bun:test';
-import { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from '../src/mode-emoji.cjs';
+import { MODE, MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from '../src/mode-emoji.cjs';
+
+describe('MODE', () => {
+  it('is frozen (immutable)', () => {
+    expect(Object.isFrozen(MODE)).toBe(true);
+  });
+
+  it('every key maps to itself as a string value', () => {
+    for (const [key, value] of Object.entries(MODE)) {
+      expect(value).toBe(key);
+    }
+  });
+
+  it('contains all VALID_MODES entries', () => {
+    for (const mode of VALID_MODES) {
+      expect(MODE).toHaveProperty(mode);
+    }
+  });
+
+  it('has no extra keys beyond VALID_MODES + sleeping', () => {
+    const modeKeys = Object.keys(MODE).sort();
+    const expected = [...new Set([...VALID_MODES, 'sleeping'])].sort();
+    expect(modeKeys).toEqual(expected);
+  });
+});
 
 describe('MODE_EMOJI', () => {
   it('is frozen (immutable)', () => {
