@@ -487,7 +487,8 @@ app.whenReady().then(async () => {
   const envClickThrough = process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH;
   let clickThrough = envClickThrough ? isTruthyEnv(envClickThrough) : (savedPrefs.clickThrough ?? false);
 
-  const envHideText = process.env.MOLT_MASCOT_HIDE_TEXT;
+  // Back-compat: accept both MOLT_MASCOT_HIDETEXT and MOLT_MASCOT_HIDE_TEXT
+  const envHideText = process.env.MOLT_MASCOT_HIDETEXT ?? process.env.MOLT_MASCOT_HIDE_TEXT;
   let hideText = envHideText ? isTruthyEnv(envHideText) : (savedPrefs.hideText ?? false);
 
   // Restore saved alignment if no env override

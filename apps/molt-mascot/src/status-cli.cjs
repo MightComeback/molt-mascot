@@ -66,7 +66,7 @@ function resolveStatusConfig({
   })();
 
   const clickThrough = isTruthyEnv(env.MOLT_MASCOT_CLICK_THROUGH || env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
-  const hideText = isTruthyEnv(env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
+  const hideText = isTruthyEnv(env.MOLT_MASCOT_HIDETEXT || env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
   const reducedMotion = isTruthyEnv(env.MOLT_MASCOT_REDUCED_MOTION);
   const startHidden = hasBoolFlag('--start-hidden', argv) || isTruthyEnv(env.MOLT_MASCOT_START_HIDDEN);
   const debug = hasBoolFlag('--debug', argv) || isTruthyEnv(env.MOLT_MASCOT_DEBUG);
@@ -100,6 +100,7 @@ function resolveStatusConfig({
     ['MOLT_MASCOT_PADDING',        'padding'],
     ['MOLT_MASCOT_CLICK_THROUGH',  'clickThrough'],
     ['MOLT_MASCOT_CLICKTHROUGH',   'clickThrough'],
+    ['MOLT_MASCOT_HIDETEXT',       'hideText'],
     ['MOLT_MASCOT_HIDE_TEXT',      'hideText'],
     ['MOLT_MASCOT_REDUCED_MOTION', 'reducedMotion'],
     ['MOLT_MASCOT_START_HIDDEN',   'startHidden'],

@@ -309,6 +309,15 @@ describe('formatStatusText', () => {
     expect(text).toContain('MOLT_MASCOT_GATEWAY_URL → gatewayUrl');
   });
 
+  it('recognizes legacy MOLT_MASCOT_HIDETEXT alias', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_HIDETEXT: '1' },
+    }));
+    expect(status.config.hideText).toBe(true);
+    const text = formatStatusText(status);
+    expect(text).toContain('MOLT_MASCOT_HIDETEXT → hideText');
+  });
+
   it('omits env overrides section when no env vars are set', () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
