@@ -309,6 +309,47 @@ export function normalizeWsUrl(url) {
 }
 
 /**
+ * Validate a WebSocket URL structure beyond just scheme checking.
+ * Returns null if valid, or a human-readable error string describing the problem.
+ *
+ * Catches common user mistakes in the "Change Gateway…" dialog:
+ * - Missing or empty host (e.g. "ws://")
+ * - Invalid port numbers (e.g. "ws://localhost:99999")
+ * - Malformed URLs that would cause cryptic WebSocket errors
+ *
+ * Should be called on the normalized URL (after normalizeWsUrl).
+ *
+ * @param {string} url - Normalized WebSocket URL
+ * @returns {string|null} Error message, or null if valid
+ */
+export function validateWsUrl(url) {
+  if (typeof url !== 'string' || !url.trim()) return 'URL is empty';
+  const trimmed = url.trim();
+  if (!/^wss?:\/\//i.test(trimmed)) return 'URL must start with ws:// or wss://';
+
+  let parsed;
+  try {
+    // URL constructor requires http(s) scheme; swap temporarily to parse.
+    const httpUrl = trimmed.replace(/^ws(s?):\/\//i, 'http$1://');
+    parsed = new URL(httpUrl);
+  } catch {
+    return 'URL is malformed';
+  }
+
+  if (!parsed.hostname) return 'URL is missing a hostname';
+
+  // Port range check (URL constructor accepts any digits but WebSocket connect will fail).
+  if (parsed.port) {
+    const port = Number(parsed.port);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      return `Invalid port: ${parsed.port} (must be 1–65535)`;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Human-readable labels for well-known WebSocket close codes.
  * Turns cryptic "code 1006" into "abnormal closure" for user-facing display.
  *

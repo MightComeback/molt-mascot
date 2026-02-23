@@ -29,6 +29,7 @@ import {
   isRecoverableCloseCode,
   connectionUptimePercent,
   computeHealthReasons,
+  validateWsUrl,
   VALID_MODES,
   isValidMode,
 } from "../src/utils.js";
@@ -813,6 +814,53 @@ describe("normalizeWsUrl", () => {
 
   it("handles empty string", () => {
     expect(normalizeWsUrl("")).toBe("");
+  });
+});
+
+describe("validateWsUrl", () => {
+  it("returns null for valid ws:// URLs", () => {
+    expect(validateWsUrl("ws://127.0.0.1:18789")).toBe(null);
+    expect(validateWsUrl("ws://localhost:8080/ws")).toBe(null);
+    expect(validateWsUrl("wss://gateway.example.com")).toBe(null);
+    expect(validateWsUrl("wss://gateway.example.com:443/path")).toBe(null);
+  });
+
+  it("rejects empty or non-string input", () => {
+    expect(validateWsUrl("")).toBe("URL is empty");
+    expect(validateWsUrl("   ")).toBe("URL is empty");
+    expect(validateWsUrl(null)).toBe("URL is empty");
+    expect(validateWsUrl(undefined)).toBe("URL is empty");
+    expect(validateWsUrl(42)).toBe("URL is empty");
+  });
+
+  it("rejects non-WebSocket schemes", () => {
+    expect(validateWsUrl("http://localhost:8080")).toBe("URL must start with ws:// or wss://");
+    expect(validateWsUrl("https://localhost")).toBe("URL must start with ws:// or wss://");
+    expect(validateWsUrl("ftp://example.com")).toBe("URL must start with ws:// or wss://");
+  });
+
+  it("rejects URLs with missing hostname", () => {
+    // URL constructor throws for bare scheme-only URLs, caught as malformed
+    expect(validateWsUrl("ws://")).toBe("URL is malformed");
+    expect(validateWsUrl("wss://")).toBe("URL is malformed");
+  });
+
+  it("rejects out-of-range ports", () => {
+    expect(validateWsUrl("ws://localhost:0")).toMatch(/Invalid port/);
+    // Very large ports cause URL constructor to throw
+    expect(validateWsUrl("ws://localhost:99999")).toBe("URL is malformed");
+    expect(validateWsUrl("ws://localhost:70000")).toBe("URL is malformed");
+  });
+
+  it("accepts valid port numbers", () => {
+    expect(validateWsUrl("ws://localhost:1")).toBe(null);
+    expect(validateWsUrl("ws://localhost:65535")).toBe(null);
+    expect(validateWsUrl("ws://localhost:18789")).toBe(null);
+  });
+
+  it("accepts URLs without explicit port", () => {
+    expect(validateWsUrl("ws://localhost")).toBe(null);
+    expect(validateWsUrl("wss://example.com/path")).toBe(null);
   });
 });
 
