@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, formatQualitySummary, healthStatusEmoji } = require('./format-latency.cjs');
+const { formatLatency, formatQualitySummary, healthStatusEmoji, computeHealthReasons } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -253,9 +253,22 @@ function buildTrayTooltip(params) {
     parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}${attemptSuffix}`);
   }
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
-  // matching the pill tooltip behavior. "healthy" is omitted to keep it clean.
+  // with diagnostic reasons so users can see *why* without opening debug info.
+  // "healthy" is omitted to keep it clean.
   if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
-    parts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
+    const reasons = computeHealthReasons({
+      isConnected: !!uptimeStr,
+      isPollingPaused: false,
+      lastMessageAt: lastMessageAt || undefined,
+      latencyMs,
+      latencyStats,
+      connectionSuccessRate: (typeof sessionConnectCount === 'number' && typeof sessionAttemptCount === 'number' && sessionAttemptCount > 0)
+        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
+        : undefined,
+      now,
+    });
+    const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';
+    parts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}${reasonsSuffix}`);
   }
   return parts.join(' · ');
 }

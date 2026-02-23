@@ -150,4 +150,48 @@ function healthStatusEmoji(status) {
   }
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji };
+/**
+ * Return human-readable reason strings explaining why health is degraded/unhealthy.
+ * Mirrors the logic in computeHealthStatus() but collects all matching reasons
+ * instead of short-circuiting on the first. Useful for tooltips and debug info.
+ *
+ * Returns an empty array when health is "healthy" (no issues detected).
+ *
+ * @param {object} params - Same parameters as computeHealthStatus
+ * @returns {string[]} Array of reason strings (e.g. ["stale connection: 15s", "high jitter: 250ms"])
+ */
+function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
+  const reasons = [];
+  if (!isConnected) {
+    reasons.push('disconnected');
+    return reasons;
+  }
+  const now = nowOverride ?? Date.now();
+
+  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+    const staleMs = now - lastMessageAt;
+    if (staleMs > 30000) reasons.push(`stale connection: ${Math.round(staleMs / 1000)}s`);
+    else if (staleMs > 10000) reasons.push(`stale connection: ${Math.round(staleMs / 1000)}s`);
+  }
+
+  const source = resolveQualitySource(latencyMs, latencyStats);
+  if (source !== null) {
+    if (source > 5000) reasons.push(`extreme latency: ${formatLatency(source)}`);
+    else if (connectionQuality(source) === 'poor') reasons.push(`poor latency: ${formatLatency(source)}`);
+  }
+
+  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
+    if (latencyStats.jitter > 200) reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)}`);
+    else if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 1.5) {
+      reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)} (${Math.round(latencyStats.jitter / latencyStats.median * 100)}% of median)`);
+    }
+  }
+
+  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < 80) {
+    reasons.push(`low success rate: ${connectionSuccessRate}%`);
+  }
+
+  return reasons;
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, computeHealthReasons };
