@@ -107,6 +107,7 @@ describe('fps-counter', () => {
     expect(snap0.fps).toBe(0);
     expect(snap0.frameCount).toBe(0);
     expect(snap0.avgFrameTimeMs).toBeNull();
+    expect(snap0.trend).toBeNull();
 
     // Simulate 10 frames over 1s window (100ms apart)
     for (let i = 0; i < 10; i++) c.update(i * 100);
@@ -114,6 +115,7 @@ describe('fps-counter', () => {
     expect(snap1.fps).toBe(10);
     expect(snap1.frameCount).toBe(10);
     expect(snap1.avgFrameTimeMs).toBe(100);
+    expect(snap1.trend).toBe('stable');
   });
 
   it('getSnapshot avgFrameTimeMs uses custom windowMs', () => {
@@ -135,6 +137,7 @@ describe('fps-counter', () => {
     expect(snap.frameCount).toBe(0);
     expect(snap.avgFrameTimeMs).toBeNull();
     expect(snap.worstFrameDeltaMs).toBe(0);
+    expect(snap.trend).toBeNull();
   });
 
   it('worstDelta tracks peak inter-frame delta', () => {
@@ -309,6 +312,7 @@ describe('fps-counter', () => {
     expect(json.frameCount).toBe(0);
     expect(json.avgFrameTimeMs).toBeNull();
     expect(json.worstFrameDeltaMs).toBe(0);
+    expect(json.trend).toBeNull();
   });
 
   // trend() tests

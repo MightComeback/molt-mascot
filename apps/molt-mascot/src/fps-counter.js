@@ -99,7 +99,7 @@ export function createFpsCounter(opts = {}) {
    * Avoids consumers calling multiple methods (fps(), frameCount())
    * and keeps debug-info / diagnostics export clean.
    *
-   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number | null, worstFrameDeltaMs: number }}
+   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number | null, worstFrameDeltaMs: number, trend: "improving"|"degrading"|"stable"|null }}
    */
   function getSnapshot() {
     const f = currentFps;
@@ -108,6 +108,7 @@ export function createFpsCounter(opts = {}) {
       frameCount: totalFrames,
       avgFrameTimeMs: f > 0 ? Math.round((windowMs / f) * 100) / 100 : null,
       worstFrameDeltaMs,
+      trend: trend(),
     };
   }
 
@@ -227,7 +228,7 @@ export function createFpsCounter(opts = {}) {
    * `JSON.stringify(fpsCounter)` produces a useful diagnostic object
    * without manual plucking (consistent with latencyTracker.toJSON()).
    *
-   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number|null, worstFrameDeltaMs: number }}
+   * @returns {{ fps: number, frameCount: number, avgFrameTimeMs: number|null, worstFrameDeltaMs: number, trend: "improving"|"degrading"|"stable"|null }}
    */
   function toJSON() {
     return getSnapshot();
