@@ -33,6 +33,7 @@ import {
   validateWsUrl,
   VALID_MODES,
   isValidMode,
+  computeConnectionSuccessRate,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1541,5 +1542,38 @@ describe("VALID_MODES and isValidMode re-exports", () => {
     expect(isValidMode(null)).toBe(false);
     expect(isValidMode(42)).toBe(false);
     expect(isValidMode(undefined)).toBe(false);
+  });
+});
+
+describe("computeConnectionSuccessRate", () => {
+  it("returns percentage for valid inputs", () => {
+    expect(computeConnectionSuccessRate(5, 10)).toBe(50);
+    expect(computeConnectionSuccessRate(10, 10)).toBe(100);
+    expect(computeConnectionSuccessRate(1, 3)).toBe(33);
+  });
+
+  it("returns null when attempts is 0 or negative", () => {
+    expect(computeConnectionSuccessRate(0, 0)).toBeNull();
+    expect(computeConnectionSuccessRate(5, -1)).toBeNull();
+  });
+
+  it("returns null for non-number inputs", () => {
+    expect(computeConnectionSuccessRate(null, 10)).toBeNull();
+    expect(computeConnectionSuccessRate(5, null)).toBeNull();
+    expect(computeConnectionSuccessRate("5", "10")).toBeNull();
+  });
+
+  it("returns null for NaN/Infinity", () => {
+    expect(computeConnectionSuccessRate(NaN, 10)).toBeNull();
+    expect(computeConnectionSuccessRate(5, Infinity)).toBeNull();
+  });
+
+  it("clamps connects to [0, attempts]", () => {
+    expect(computeConnectionSuccessRate(-1, 10)).toBe(0);
+    expect(computeConnectionSuccessRate(15, 10)).toBe(100);
+  });
+
+  it("returns 0 when connects is 0", () => {
+    expect(computeConnectionSuccessRate(0, 10)).toBe(0);
   });
 });

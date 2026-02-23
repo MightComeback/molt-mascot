@@ -578,6 +578,22 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
   return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
 }
 
+/**
+ * Compute the connection success rate as an integer percentage (0-100).
+ * Centralizes the repeated `sessionAttemptCount > 0 ? Math.round((connects / attempts) * 100) : null`
+ * pattern used across renderer.js, tray-icon.cjs, and gateway-client.js.
+ *
+ * @param {number} connects - Number of successful connections
+ * @param {number} attempts - Total connection attempts
+ * @returns {number|null} Integer percentage (0-100), or null if no attempts
+ */
+export function computeConnectionSuccessRate(connects, attempts) {
+  if (typeof attempts !== 'number' || !Number.isFinite(attempts) || attempts <= 0) return null;
+  if (typeof connects !== 'number' || !Number.isFinite(connects)) return null;
+  const clamped = Math.max(0, Math.min(connects, attempts));
+  return Math.round((clamped / attempts) * 100);
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';
