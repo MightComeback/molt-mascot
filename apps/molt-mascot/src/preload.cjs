@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const pkg = require('../package.json');
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } = require('./env-keys.cjs');
 
 // Helper: create a send function for a given IPC channel.
 const send = (ch) => (...args) => ipcRenderer.send(ch, ...args);
@@ -54,8 +55,8 @@ contextBridge.exposeInMainWorld('moltMascot', {
     bun: process.versions.bun || '',
   },
   env: {
-    gatewayUrl: process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',
-    gatewayToken: process.env.MOLT_MASCOT_GATEWAY_TOKEN || process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN || process.env.gatewayToken || '',
+    gatewayUrl: resolveEnv(GATEWAY_URL_KEYS, process.env),
+    gatewayToken: resolveEnv(GATEWAY_TOKEN_KEYS, process.env),
     // Allow protocol negotiation for older/newer Gateways.
     // Prefer the same env vars as tools/ws-dump for consistency.
     minProtocol: process.env.MOLT_MASCOT_MIN_PROTOCOL || process.env.GATEWAY_MIN_PROTOCOL || '',

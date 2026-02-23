@@ -1,3 +1,5 @@
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } = require('./env-keys.cjs');
+
 /**
  * Resolve the effective configuration for --status output.
  * Extracted from electron-main.cjs for testability.
@@ -55,8 +57,8 @@ function resolveStatusConfig({
     return 1.0;
   })();
 
-  const gatewayUrl = env.MOLT_MASCOT_GATEWAY_URL || env.GATEWAY_URL || env.OPENCLAW_GATEWAY_URL || env.CLAWDBOT_GATEWAY_URL || env.gatewayUrl || null;
-  const hasToken = !!(env.MOLT_MASCOT_GATEWAY_TOKEN || env.GATEWAY_TOKEN || env.OPENCLAW_GATEWAY_TOKEN || env.CLAWDBOT_GATEWAY_TOKEN || env.gatewayToken);
+  const gatewayUrl = resolveEnv(GATEWAY_URL_KEYS, env) || null;
+  const hasToken = !!resolveEnv(GATEWAY_TOKEN_KEYS, env);
 
   const resolvedPaddingNum = (() => {
     const envVal = Number(env.MOLT_MASCOT_PADDING);
