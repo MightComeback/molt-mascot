@@ -470,6 +470,40 @@ describe("_spriteCache", () => {
     expect(second).toBe(first);
     expect(_spriteCache.size()).toBe(sizeBefore);
   });
+
+  it("getSnapshot() returns diagnostic state", () => {
+    _spriteCache.clear();
+    const snap = _spriteCache.getSnapshot();
+    expect(typeof snap.size).toBe("number");
+    expect(typeof snap.scale).toBe("number");
+    expect(typeof snap.spriteIds).toBe("number");
+    expect(snap.size).toBe(0);
+    expect(snap.scale).toBe(-1); // cleared state
+  });
+
+  it("getSnapshot() reflects cache state after warmAll", () => {
+    _spriteCache.clear();
+    _spriteCache.warmAll(3);
+    const snap = _spriteCache.getSnapshot();
+    expect(snap.scale).toBe(3);
+    expect(snap.size).toBe(_spriteCache.size());
+    expect(snap.spriteIds).toBeGreaterThan(0);
+  });
+
+  it("toJSON() returns same result as getSnapshot()", () => {
+    _spriteCache.clear();
+    _spriteCache.warmAll(3);
+    expect(_spriteCache.toJSON()).toEqual(_spriteCache.getSnapshot());
+  });
+
+  it("JSON.stringify() produces a useful diagnostic object", () => {
+    _spriteCache.clear();
+    const json = JSON.stringify(_spriteCache);
+    const parsed = JSON.parse(json);
+    expect(typeof parsed.size).toBe("number");
+    expect(typeof parsed.scale).toBe("number");
+    expect(typeof parsed.spriteIds).toBe("number");
+  });
 });
 
 describe("OVERLAY_TIMING", () => {

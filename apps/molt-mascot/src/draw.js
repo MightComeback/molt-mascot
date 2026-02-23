@@ -169,7 +169,33 @@ export const _spriteCache = (() => {
     return count;
   }
 
-  return { get, clear, size, warmAll };
+  /**
+   * Return a diagnostic snapshot of the sprite cache state.
+   * Mirrors getSnapshot() on fps-counter, latency-tracker, blink-state,
+   * and plugin-sync for API consistency across tracker/cache modules.
+   *
+   * @returns {{ size: number, scale: number, spriteIds: number }}
+   */
+  function getSnapshot() {
+    return {
+      size: cache.size,
+      scale: lastScale,
+      spriteIds: nextSpriteId,
+    };
+  }
+
+  /**
+   * JSON.stringify() support — delegates to getSnapshot() so
+   * `JSON.stringify(_spriteCache)` produces a useful diagnostic object
+   * (consistent with fpsCounter.toJSON(), latencyTracker.toJSON(), etc.).
+   *
+   * @returns {{ size: number, scale: number, spriteIds: number }}
+   */
+  function toJSON() {
+    return getSnapshot();
+  }
+
+  return { get, clear, size, warmAll, getSnapshot, toJSON };
 })();
 
 // Blink timing constants.
