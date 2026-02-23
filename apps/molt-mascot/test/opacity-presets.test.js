@@ -7,6 +7,7 @@ const {
   findOpacityIndex,
   formatOpacity,
   isPresetOpacity,
+  stepOpacity,
 } = require('../src/opacity-presets.cjs');
 
 describe('opacity-presets', () => {
@@ -184,6 +185,51 @@ describe('opacity-presets', () => {
       expect(isPresetOpacity('0.8')).toBe(false);
       expect(isPresetOpacity(NaN)).toBe(false);
       expect(isPresetOpacity(Infinity)).toBe(false);
+    });
+  });
+
+  describe('stepOpacity', () => {
+    it('steps up by 0.1 default', () => {
+      expect(stepOpacity(0.5, 1)).toBe(0.6);
+    });
+
+    it('steps down by 0.1 default', () => {
+      expect(stepOpacity(0.5, -1)).toBe(0.4);
+    });
+
+    it('clamps to max (1.0)', () => {
+      expect(stepOpacity(1.0, 1)).toBe(1.0);
+      expect(stepOpacity(0.9, 1)).toBe(1.0);
+    });
+
+    it('clamps to min (0.1)', () => {
+      expect(stepOpacity(0.1, -1)).toBe(0.1);
+      expect(stepOpacity(0.2, -1)).toBe(0.1);
+    });
+
+    it('avoids floating-point drift', () => {
+      // 0.1 + 0.2 === 0.30000000000000004 in JS; stepOpacity should round cleanly
+      expect(stepOpacity(0.2, 1)).toBe(0.3);
+      expect(stepOpacity(0.7, 1)).toBe(0.8);
+    });
+
+    it('returns no change for direction 0', () => {
+      expect(stepOpacity(0.5, 0)).toBe(0.5);
+    });
+
+    it('handles custom step size', () => {
+      expect(stepOpacity(0.5, 1, { step: 0.05 })).toBe(0.55);
+      expect(stepOpacity(0.5, -1, { step: 0.25 })).toBe(0.25);
+    });
+
+    it('handles custom min/max', () => {
+      expect(stepOpacity(0.3, -1, { min: 0.3 })).toBe(0.3);
+      expect(stepOpacity(0.8, 1, { max: 0.8 })).toBe(0.8);
+    });
+
+    it('handles invalid current value', () => {
+      expect(stepOpacity(NaN, -1)).toBe(0.9);
+      expect(stepOpacity(undefined, 1)).toBe(1.0);
     });
   });
 });

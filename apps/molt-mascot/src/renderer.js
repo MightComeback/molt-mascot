@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS, formatOpacity } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -1218,9 +1218,7 @@ canvas.addEventListener('wheel', (e) => {
   if (!window.moltMascot?.setOpacity) return;
   e.preventDefault();
   // deltaY > 0 = scroll down = decrease opacity; deltaY < 0 = scroll up = increase
-  const step = 0.1;
-  const direction = e.deltaY > 0 ? -step : step;
-  const next = Math.round(Math.min(1, Math.max(0.1, currentOpacity + direction)) * 10) / 10;
+  const next = stepOpacity(currentOpacity, e.deltaY > 0 ? -1 : 1);
   if (next === currentOpacity) return;
   currentOpacity = next;
   window.moltMascot.setOpacity(currentOpacity);

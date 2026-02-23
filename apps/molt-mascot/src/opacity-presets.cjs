@@ -99,6 +99,29 @@ function isPresetOpacity(value) {
   return _PRESET_SET.has(value);
 }
 
+/**
+ * Step opacity up or down by a fixed increment, clamping to [min, max].
+ * Rounds to the nearest step to avoid floating-point drift (e.g. 0.30000000000000004).
+ *
+ * Extracts the inline `Math.round(Math.min(1, Math.max(0.1, ...)) * 10) / 10`
+ * pattern from renderer.js scroll-wheel handler into a testable pure function.
+ *
+ * @param {number} current - Current opacity (0.0–1.0)
+ * @param {number} direction - Positive to increase, negative to decrease
+ * @param {{ step?: number, min?: number, max?: number }} [opts]
+ * @returns {number} New opacity value, clamped and rounded
+ */
+function stepOpacity(current, direction, opts = {}) {
+  const step = opts.step ?? 0.1;
+  const min = opts.min ?? 0.1;
+  const max = opts.max ?? 1.0;
+  if (typeof current !== 'number' || !Number.isFinite(current)) current = max;
+  const raw = current + (direction > 0 ? step : direction < 0 ? -step : 0);
+  // Round to avoid floating-point drift, then clamp.
+  const precision = Math.round(1 / step);
+  return Math.min(max, Math.max(min, Math.round(raw * precision) / precision));
+}
+
 module.exports = {
   OPACITY_PRESETS,
   DEFAULT_OPACITY_INDEX,
@@ -107,4 +130,5 @@ module.exports = {
   findOpacityIndex,
   formatOpacity,
   isPresetOpacity,
+  stepOpacity,
 };
