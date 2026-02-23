@@ -580,6 +580,6 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
-export { isTruthyEnv, isFalsyEnv } from './is-truthy-env.cjs';
+export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';
 export { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from './mode-emoji.cjs';
 export { REPO_URL } from './env-keys.cjs';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { isTruthyEnv, isFalsyEnv } from '../src/is-truthy-env.cjs';
+import { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from '../src/is-truthy-env.cjs';
 
 describe('isTruthyEnv', () => {
   it('returns true for truthy string values', () => {
@@ -99,5 +99,64 @@ describe('isFalsyEnv', () => {
     expect(isFalsyEnv(undefined)).toBe(false);
     expect(isTruthyEnv('')).toBe(false);
     expect(isFalsyEnv('')).toBe(false);
+  });
+});
+
+describe('parseBooleanEnv', () => {
+  it('returns true for truthy values', () => {
+    for (const v of ['1', 'true', 'True', 'TRUE', 't', 'T', 'yes', 'YES', 'y', 'Y', 'on', 'ON']) {
+      expect(parseBooleanEnv(v)).toBe(true);
+    }
+  });
+
+  it('returns false for falsy values', () => {
+    for (const v of ['0', 'false', 'False', 'FALSE', 'f', 'F', 'no', 'NO', 'n', 'N', 'off', 'OFF']) {
+      expect(parseBooleanEnv(v)).toBe(false);
+    }
+  });
+
+  it('returns undefined for unset/ambiguous values', () => {
+    expect(parseBooleanEnv(undefined)).toBeUndefined();
+    expect(parseBooleanEnv(null)).toBeUndefined();
+    expect(parseBooleanEnv('')).toBeUndefined();
+    expect(parseBooleanEnv('  ')).toBeUndefined();
+    expect(parseBooleanEnv('maybe')).toBeUndefined();
+    expect(parseBooleanEnv('2')).toBeUndefined();
+    expect(parseBooleanEnv('enabled')).toBeUndefined();
+  });
+
+  it('handles boolean primitives', () => {
+    expect(parseBooleanEnv(true)).toBe(true);
+    expect(parseBooleanEnv(false)).toBe(false);
+  });
+
+  it('handles numeric primitives', () => {
+    expect(parseBooleanEnv(1)).toBe(true);
+    expect(parseBooleanEnv(42)).toBe(true);
+    expect(parseBooleanEnv(0)).toBe(false);
+    expect(parseBooleanEnv(-1)).toBeUndefined();
+    expect(parseBooleanEnv(NaN)).toBeUndefined();
+    expect(parseBooleanEnv(Infinity)).toBeUndefined();
+  });
+
+  it('trims whitespace', () => {
+    expect(parseBooleanEnv('  true  ')).toBe(true);
+    expect(parseBooleanEnv('  false  ')).toBe(false);
+    expect(parseBooleanEnv('  0  ')).toBe(false);
+  });
+
+  it('enables clean nullish coalescing pattern', () => {
+    // The key use case: env ?? saved ?? default
+    const saved = true;
+    const fallback = false;
+    expect(parseBooleanEnv('false') ?? saved ?? fallback).toBe(false);
+    expect(parseBooleanEnv(undefined) ?? saved ?? fallback).toBe(true);
+    expect(parseBooleanEnv(undefined) ?? undefined ?? fallback).toBe(false);
+  });
+
+  it('rejects non-string/number/boolean types', () => {
+    expect(parseBooleanEnv({})).toBeUndefined();
+    expect(parseBooleanEnv([])).toBeUndefined();
+    expect(parseBooleanEnv(Symbol())).toBeUndefined();
   });
 });

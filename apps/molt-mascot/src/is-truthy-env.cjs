@@ -30,4 +30,36 @@ function isFalsyEnv(v) {
   return s === '0' || s === 'false' || s === 'f' || s === 'no' || s === 'n' || s === 'off';
 }
 
-module.exports = { isTruthyEnv, isFalsyEnv };
+/**
+ * Parse an environment variable as a three-state boolean.
+ * Returns true if explicitly truthy, false if explicitly falsy,
+ * or undefined if not set / not a recognized boolean value.
+ *
+ * Combines isTruthyEnv + isFalsyEnv into a single call for the common
+ * three-state pattern: "env overrides saved pref when explicitly set".
+ *
+ * Example usage (replaces verbose inline pattern):
+ *   // Before: envVal ? isTruthyEnv(envVal) : (savedPrefs.clickThrough ?? false)
+ *   // After:  parseBooleanEnv(envVal) ?? savedPrefs.clickThrough ?? false
+ *
+ * @param {*} v - Environment variable value
+ * @returns {boolean|undefined} true/false if explicitly set, undefined if absent/ambiguous
+ */
+function parseBooleanEnv(v) {
+  if (v === undefined || v === null || v === '') return undefined;
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) return undefined;
+    if (v > 0) return true;
+    if (v === 0) return false;
+    return undefined;
+  }
+  if (typeof v !== 'string') return undefined;
+  const s = v.trim().toLowerCase();
+  if (s === '') return undefined;
+  if (s === '1' || s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === 'on') return true;
+  if (s === '0' || s === 'false' || s === 'f' || s === 'no' || s === 'n' || s === 'off') return false;
+  return undefined;
+}
+
+module.exports = { isTruthyEnv, isFalsyEnv, parseBooleanEnv };
