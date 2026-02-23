@@ -71,6 +71,7 @@ Diagnostics:
   --no-tray              Disable tray icon
   --no-shortcuts         Disable global keyboard shortcuts
   --disable-gpu          Disable GPU acceleration
+  --capture-dir <path>   Screenshot capture directory (dev/CI)
 
 Keyboard shortcuts (while running):
   Cmd/Ctrl+Shift+M       Toggle ghost mode
@@ -185,6 +186,13 @@ if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
   const v = parseNumericArg('--error-hold', -1, { min: 0 });
   if (v >= 0) process.env.MOLT_MASCOT_ERROR_HOLD_MS = String(v);
   else if (parseCliArg('--error-hold') !== null) process.stderr.write(`molt-mascot: invalid --error-hold "${parseCliArg('--error-hold')}" (must be >= 0 ms)\n`);
+}
+
+// CLI flag: --capture-dir <path> overrides MOLT_MASCOT_CAPTURE_DIR env var.
+// Useful for CI/dev screenshot pipelines without setting env vars.
+{
+  const v = parseCliArg('--capture-dir');
+  if (v) process.env.MOLT_MASCOT_CAPTURE_DIR = v;
 }
 
 // CLI flags: --reset-prefs clears saved preferences and starts fresh.
