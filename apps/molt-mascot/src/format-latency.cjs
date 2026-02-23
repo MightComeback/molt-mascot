@@ -134,6 +134,28 @@ function formatQualitySummary(ms, stats, opts) {
 }
 
 /**
+ * Health assessment thresholds for computeHealthStatus / computeHealthReasons.
+ * Single source of truth — avoids magic numbers scattered across utils.js and here.
+ *
+ * Exported so consumers (tests, docs, monitoring dashboards) can reference the
+ * actual threshold values without duplicating them.
+ */
+const HEALTH_THRESHOLDS = Object.freeze({
+  /** No WS message for longer than this → unhealthy (connection effectively dead). */
+  STALE_UNHEALTHY_MS: 30000,
+  /** No WS message for longer than this → degraded (likely transient hiccup). */
+  STALE_DEGRADED_MS: 10000,
+  /** Latency above this → unhealthy (barely functional). */
+  LATENCY_UNHEALTHY_MS: 5000,
+  /** Absolute jitter above this → degraded (unstable connection). */
+  JITTER_DEGRADED_MS: 200,
+  /** Jitter exceeding this fraction of median → degraded. */
+  JITTER_MEDIAN_RATIO: 1.5,
+  /** Connection success rate below this percentage → degraded. */
+  SUCCESS_RATE_MIN_PCT: 80,
+});
+
+/**
  * Map a health status label to a colored emoji for at-a-glance visual feedback.
  * Complements connectionQualityEmoji (which is for latency quality) with a
  * parallel function for overall connection health.
@@ -171,24 +193,24 @@ function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, lat
   if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
     const staleMs = now - lastMessageAt;
     const staleSec = Math.round(staleMs / 1000);
-    if (staleMs > 30000) reasons.push(`stale connection: ${staleSec}s (dead)`);
-    else if (staleMs > 10000) reasons.push(`stale connection: ${staleSec}s`);
+    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) reasons.push(`stale connection: ${staleSec}s (dead)`);
+    else if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) reasons.push(`stale connection: ${staleSec}s`);
   }
 
   const source = resolveQualitySource(latencyMs, latencyStats);
   if (source !== null) {
-    if (source > 5000) reasons.push(`extreme latency: ${formatLatency(source)}`);
+    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) reasons.push(`extreme latency: ${formatLatency(source)}`);
     else if (connectionQuality(source) === 'poor') reasons.push(`poor latency: ${formatLatency(source)}`);
   }
 
   if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    if (latencyStats.jitter > 200) reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)}`);
-    else if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 1.5) {
+    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)}`);
+    else if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) {
       reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)} (${Math.round(latencyStats.jitter / latencyStats.median * 100)}% of median)`);
     }
   }
 
-  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < 80) {
+  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) {
     reasons.push(`low success rate: ${connectionSuccessRate}%`);
   }
 
@@ -218,4 +240,4 @@ function isValidHealth(value) {
   return _VALID_HEALTH_SET.has(value);
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth };
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth };

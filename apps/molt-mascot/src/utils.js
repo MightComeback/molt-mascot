@@ -17,8 +17,8 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth } from './format-latency.cjs';
-export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth };
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth } from './format-latency.cjs';
+export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth };
 
 /**
  * Capitalize the first character of a string.
@@ -466,33 +466,28 @@ export function computeHealthStatus({ isConnected, isPollingPaused, lastMessageA
   const now = nowOverride ?? Date.now();
 
   // Stale connection check (no messages while polling is active).
-  // >30s stale is unhealthy (connection is effectively dead);
-  // >10s stale is degraded (likely transient hiccup).
   if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
     const staleMs = now - lastMessageAt;
-    if (staleMs > 30000) return 'unhealthy';
-    if (staleMs > 10000) return 'degraded';
+    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) return 'unhealthy';
+    if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) return 'degraded';
   }
 
   // Latency quality check.
-  // Extreme latency (>5s) is unhealthy — the connection is barely functional.
-  // Poor latency (>500ms) is degraded — usable but warrants investigation.
   const source = resolveQualitySource(latencyMs, latencyStats);
   if (source !== null) {
-    if (source > 5000) return 'unhealthy';
+    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) return 'unhealthy';
     const quality = connectionQuality(source);
     if (quality === 'poor') return 'degraded';
   }
 
   // Jitter check: high jitter indicates an unstable connection even when median latency looks fine.
-  // Threshold: jitter >200ms absolute OR jitter >150% of median (whichever triggers first).
   if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    if (latencyStats.jitter > 200) return 'degraded';
-    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 1.5) return 'degraded';
+    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) return 'degraded';
+    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) return 'degraded';
   }
 
   // Connection success rate check
-  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < 80) return 'degraded';
+  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) return 'degraded';
 
   return 'healthy';
 }
