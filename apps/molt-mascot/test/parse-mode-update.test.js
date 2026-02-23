@@ -248,6 +248,20 @@ describe('parse-mode-update', () => {
       expect(parseModeUpdate({ latency: 99 }).latencyMs).toBe(99);
     });
 
+    it('parses connectionSuccessRate as integer percentage 0-100', () => {
+      expect(parseModeUpdate({ connectionSuccessRate: 95 }).connectionSuccessRate).toBe(95);
+      expect(parseModeUpdate({ connectionSuccessRate: 0 }).connectionSuccessRate).toBe(0);
+      expect(parseModeUpdate({ connectionSuccessRate: 100 }).connectionSuccessRate).toBe(100);
+      // rejects out-of-range
+      expect(parseModeUpdate({ connectionSuccessRate: 101 }).connectionSuccessRate).toBeNull();
+      expect(parseModeUpdate({ connectionSuccessRate: -1 }).connectionSuccessRate).toBeNull();
+      // rejects non-integer
+      expect(parseModeUpdate({ connectionSuccessRate: 95.5 }).connectionSuccessRate).toBeNull();
+      // rejects non-number
+      expect(parseModeUpdate({ connectionSuccessRate: '95' }).connectionSuccessRate).toBeNull();
+      expect(parseModeUpdate({ connectionSuccessRate: null }).connectionSuccessRate).toBeNull();
+    });
+
     it('accepts zero for numeric fields where appropriate', () => {
       const result = parseModeUpdate({
         latency: 0,

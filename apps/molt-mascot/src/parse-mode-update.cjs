@@ -31,6 +31,7 @@
  * @property {number|null} pluginStartedAt - Positive epoch ms, or null
  * @property {number|null} lastResetAt - Positive epoch ms, or null
  * @property {"healthy"|"degraded"|"unhealthy"|null} healthStatus - At-a-glance health assessment, or null
+ * @property {number|null} connectionSuccessRate - Integer percentage (0-100), or null
  */
 
 /**
@@ -136,6 +137,11 @@ function parseModeUpdate(raw) {
     pluginStartedAt: posEpoch(update.pluginStartedAt),
     lastResetAt: posEpoch(update.lastResetAt),
     healthStatus: validHealthStatus(update.healthStatus),
+    connectionSuccessRate: (() => {
+      const n = nonNegInt(update.connectionSuccessRate);
+      if (n === null) return null;
+      return n <= 100 ? n : null;
+    })(),
   };
 }
 
