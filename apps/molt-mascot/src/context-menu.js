@@ -245,3 +245,18 @@ export function getSnapshot() {
 export function toJSON() {
   return getSnapshot();
 }
+
+/**
+ * Human-readable one-line summary for quick diagnostic logging.
+ * Example: "ContextMenu<visible>" or "ContextMenu<hidden>"
+ *
+ * Mirrors LatencyTracker.toString(), FpsCounter.toString(),
+ * BlinkState.toString(), PluginSync.toString(), and
+ * GatewayClient.toString() for consistent diagnostic output
+ * across modules.
+ *
+ * @returns {string}
+ */
+export function toString() {
+  return `ContextMenu<${isVisible() ? 'visible' : 'hidden'}>`;
+}

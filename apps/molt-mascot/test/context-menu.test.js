@@ -688,4 +688,12 @@ describe("context-menu", () => {
     expect(JSON.stringify(ctxMenu)).toBe(JSON.stringify({ visible: true }));
     ctxMenu.dismiss();
   });
+
+  it("toString returns human-readable summary for diagnostic logging", () => {
+    expect(ctxMenu.toString()).toBe("ContextMenu<hidden>");
+    ctxMenu.show([{ label: "A" }], { x: 0, y: 0 });
+    expect(ctxMenu.toString()).toBe("ContextMenu<visible>");
+    ctxMenu.dismiss();
+    expect(ctxMenu.toString()).toBe("ContextMenu<hidden>");
+  });
 });
