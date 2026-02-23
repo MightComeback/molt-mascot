@@ -470,6 +470,23 @@ async function captureScreenshots() {
   const sleepImg = await win.webContents.capturePage();
   fs.writeFileSync(path.join(CAPTURE_DIR, 'sleeping.png'), sleepImg.toPNG());
 
+  // Capture tray icon sprites for each mode (useful for docs/README assets).
+  // Renders at 2× scale (32×32) for crisp display on retina/HiDPI screens.
+  const trayScale = 2;
+  const traySize = 16 * trayScale;
+  const allTrayModes = [...modes, 'sleeping'];
+  const trayDir = path.join(CAPTURE_DIR, 'tray');
+  fs.mkdirSync(trayDir, { recursive: true });
+  for (const mode of allTrayModes) {
+    const buf = renderTraySprite(trayScale, { mode });
+    const img = nativeImage.createFromBuffer(buf, { width: traySize, height: traySize });
+    fs.writeFileSync(path.join(trayDir, `tray-${mode}.png`), img.toPNG());
+  }
+  // Also capture base sprite without status dot
+  const baseBuf = renderTraySprite(trayScale);
+  const baseImg = nativeImage.createFromBuffer(baseBuf, { width: traySize, height: traySize });
+  fs.writeFileSync(path.join(trayDir, 'tray-base.png'), baseImg.toPNG());
+
   try { win.close(); } catch {}
 }
 

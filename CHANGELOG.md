@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Tray icon sprite capture in `--capture-dir` mode (generates `tray/tray-{mode}.png` for all modes + base sprite at 2× scale for docs/CI assets)
 - Reconnect attempt number shown in pill label during connecting/disconnected modes
 - `p99` latency in rolling stats and tray tooltip for extreme tail detection
 - `healthStatus` ("healthy"/"degraded"/"unhealthy") surfaced in tray tooltip
