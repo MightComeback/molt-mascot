@@ -353,4 +353,18 @@ describe('formatStatusText', () => {
     const text = formatStatusText(status);
     expect(text).not.toContain('Active env overrides:');
   });
+
+  it('shows uptime when provided', () => {
+    const status = resolveStatusConfig(makeParams({ uptimeSeconds: 3661 }));
+    expect(status.uptime).toBe(3661);
+    const text = formatStatusText(status);
+    expect(text).toContain('Uptime:    1h 1m');
+  });
+
+  it('omits uptime line when not provided', () => {
+    const status = resolveStatusConfig(makeParams());
+    expect(status.uptime).toBeNull();
+    const text = formatStatusText(status);
+    expect(text).not.toContain('Uptime:');
+  });
 });

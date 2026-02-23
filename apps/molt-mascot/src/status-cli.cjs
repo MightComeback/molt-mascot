@@ -1,4 +1,5 @@
 const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } = require('./env-keys.cjs');
+const { formatDuration } = require('@molt/mascot-plugin');
 
 /**
  * Resolve the effective configuration for --status output.
@@ -18,6 +19,7 @@ const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } = require('./env-keys
  * @param {number[]} params.opacityCycle - Opacity presets array
  * @param {typeof import('./is-truthy-env.cjs').isTruthyEnv} params.isTruthyEnv - Boolean env parser
  * @param {typeof import('./parse-cli-arg.cjs').hasBoolFlag} params.hasBoolFlag - Boolean flag checker
+ * @param {number} [params.uptimeSeconds] - Process uptime in seconds (from process.uptime())
  * @returns {object} Resolved status config object
  */
 function resolveStatusConfig({
@@ -34,6 +36,7 @@ function resolveStatusConfig({
   opacityCycle,
   isTruthyEnv,
   hasBoolFlag,
+  uptimeSeconds,
 }) {
   const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, isValidSize, findSizePreset } = sizePresets;
 
@@ -162,6 +165,7 @@ function resolveStatusConfig({
     node: versions.node || null,
     chrome: versions.chrome || null,
     bun: versions.bun || null,
+    uptime: typeof uptimeSeconds === 'number' && uptimeSeconds >= 0 ? uptimeSeconds : null,
   };
 }
 
@@ -226,6 +230,7 @@ function formatStatusText(status) {
   lines.push(`  Node:      ${status.node || 'n/a'}`);
   lines.push(`  Chrome:    ${status.chrome || 'n/a'}`);
   if (status.bun) lines.push(`  Bun:       ${status.bun}`);
+  if (typeof status.uptime === 'number') lines.push(`  Uptime:    ${formatDuration(status.uptime)}`);
   lines.push('');
 
   return lines.join('\n');

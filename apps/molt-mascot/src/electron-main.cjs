@@ -172,6 +172,7 @@ if (hasBoolFlag('--status')) {
     opacityCycle: OPACITY_CYCLE,
     isTruthyEnv,
     hasBoolFlag,
+    uptimeSeconds: Math.round(process.uptime()),
   });
 
   if (hasBoolFlag('--json')) {
