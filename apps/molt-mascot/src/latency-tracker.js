@@ -24,6 +24,7 @@ export function createLatencyTracker(opts = {}) {
   const ring = Array.from({ length: maxSamples });
   let head = 0;
   let _count = 0;
+  let _totalPushed = 0;
   let cache = null;
 
   function push(ms) {
@@ -31,6 +32,7 @@ export function createLatencyTracker(opts = {}) {
     ring[head] = ms;
     head = (head + 1) % maxSamples;
     if (_count < maxSamples) _count++;
+    _totalPushed++;
     cache = null;
   }
 
@@ -94,6 +96,7 @@ export function createLatencyTracker(opts = {}) {
   function reset() {
     head = 0;
     _count = 0;
+    _totalPushed = 0;
     cache = null;
   }
 
@@ -126,17 +129,29 @@ export function createLatencyTracker(opts = {}) {
   }
 
   /**
+   * Total number of samples ever pushed (including evicted ones).
+   * Useful for diagnostics: "15,203 total, 60 in buffer" shows how long
+   * the tracker has been active and whether it's been heavily utilized.
+   *
+   * @returns {number}
+   */
+  function totalPushed() {
+    return _totalPushed;
+  }
+
+  /**
    * Return a snapshot of all latency tracker metrics in one call.
    * Mirrors fpsCounter.getSnapshot() for API consistency across tracker modules.
    * Avoids consumers calling multiple methods (stats(), count()) separately.
    *
-   * @returns {{ stats: object|null, count: number, maxSamples: number }}
+   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number }}
    */
   function getSnapshot() {
     return {
       stats: stats(),
       count: _count,
       maxSamples,
+      totalPushed: _totalPushed,
     };
   }
 
@@ -159,5 +174,5 @@ export function createLatencyTracker(opts = {}) {
     return Math.round((above / _count) * 100);
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, getSnapshot };
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot };
 }

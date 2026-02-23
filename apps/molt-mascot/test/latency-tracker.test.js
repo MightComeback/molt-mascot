@@ -237,4 +237,52 @@ describe('createLatencyTracker', () => {
     t.reset();
     expect(t.percentAbove(50)).toBeNull();
   });
+
+  it('totalPushed() starts at 0', () => {
+    const t = createLatencyTracker();
+    expect(t.totalPushed()).toBe(0);
+  });
+
+  it('totalPushed() increments on each valid push', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.totalPushed()).toBe(3);
+    // Continues incrementing after buffer wraps (eviction doesn't affect total)
+    t.push(40);
+    t.push(50);
+    expect(t.totalPushed()).toBe(5);
+    expect(t.count()).toBe(3); // buffer only holds 3
+  });
+
+  it('totalPushed() ignores invalid pushes', () => {
+    const t = createLatencyTracker();
+    t.push(10);
+    t.push(-1);
+    t.push(NaN);
+    t.push(Infinity);
+    t.push('hello');
+    expect(t.totalPushed()).toBe(1);
+  });
+
+  it('totalPushed() resets to 0 on reset()', () => {
+    const t = createLatencyTracker();
+    t.push(10);
+    t.push(20);
+    expect(t.totalPushed()).toBe(2);
+    t.reset();
+    expect(t.totalPushed()).toBe(0);
+  });
+
+  it('getSnapshot() includes totalPushed', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    t.push(40);
+    const snap = t.getSnapshot();
+    expect(snap.totalPushed).toBe(4);
+    expect(snap.count).toBe(3);
+  });
 });
