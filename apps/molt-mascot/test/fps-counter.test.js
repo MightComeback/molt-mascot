@@ -310,4 +310,67 @@ describe('fps-counter', () => {
     expect(json.avgFrameTimeMs).toBeNull();
     expect(json.worstFrameDeltaMs).toBe(0);
   });
+
+  // trend() tests
+  it('trend() returns null with fewer than 4 frames', () => {
+    const c = createFpsCounter({ bufferSize: 10, windowMs: 10000 });
+    expect(c.trend()).toBeNull();
+    c.update(0);
+    expect(c.trend()).toBeNull();
+    c.update(16);
+    expect(c.trend()).toBeNull();
+    c.update(33);
+    expect(c.trend()).toBeNull();
+  });
+
+  it('trend() returns "stable" for consistent frame times', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 10000 });
+    for (let i = 0; i < 10; i++) c.update(i * 16);
+    expect(c.trend()).toBe('stable');
+  });
+
+  it('trend() returns "degrading" when frame times increase', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 100000 });
+    // Older half: fast frames (10ms apart)
+    for (let i = 0; i < 6; i++) c.update(i * 10);
+    // Newer half: slow frames (50ms apart)
+    let t = 5 * 10;
+    for (let i = 0; i < 6; i++) { t += 50; c.update(t); }
+    expect(c.trend()).toBe('degrading');
+  });
+
+  it('trend() returns "improving" when frame times decrease', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 100000 });
+    // Older half: slow frames (50ms apart)
+    for (let i = 0; i < 6; i++) c.update(i * 50);
+    // Newer half: fast frames (10ms apart)
+    let t = 5 * 50;
+    for (let i = 0; i < 6; i++) { t += 10; c.update(t); }
+    expect(c.trend()).toBe('improving');
+  });
+
+  it('trend() respects custom thresholdPercent', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 100000 });
+    // Older half: 16ms apart, newer half: 20ms apart (~25% increase)
+    for (let i = 0; i < 5; i++) c.update(i * 16);
+    let t = 4 * 16;
+    for (let i = 0; i < 5; i++) { t += 20; c.update(t); }
+    // With default 25% threshold, this is right at the edge
+    // With a higher threshold (50%), it should be stable
+    expect(c.trend({ thresholdPercent: 50 })).toBe('stable');
+  });
+
+  it('trend() handles all-zero deltas (simultaneous timestamps)', () => {
+    const c = createFpsCounter({ bufferSize: 10, windowMs: 10000 });
+    for (let i = 0; i < 6; i++) c.update(0);
+    expect(c.trend()).toBe('stable');
+  });
+
+  it('trend() resets with counter', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 100000 });
+    for (let i = 0; i < 10; i++) c.update(i * 16);
+    expect(c.trend()).toBe('stable');
+    c.reset();
+    expect(c.trend()).toBeNull();
+  });
 });

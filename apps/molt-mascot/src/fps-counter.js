@@ -170,6 +170,59 @@ export function createFpsCounter(opts = {}) {
   }
 
   /**
+   * Compute the FPS trend by comparing inter-frame deltas in the older half of
+   * the buffer to the newer half. Returns "improving", "degrading", or "stable"
+   * based on whether the newer half's average frame time deviates from the older
+   * half by more than a relative threshold.
+   *
+   * Useful for proactive jank detection: "degrading" warns that rendering
+   * performance is dropping before it becomes visually obvious, while
+   * "improving" confirms recovery after a stall.
+   *
+   * Mirrors latencyTracker.trend() for API consistency across tracker modules.
+   *
+   * Requires at least 4 frames (to compute 3+ inter-frame deltas, split into halves).
+   *
+   * @param {{ thresholdPercent?: number }} [opts] - Deviation threshold (default 25%)
+   * @returns {"improving"|"degrading"|"stable"|null} Trend direction, or null if insufficient data
+   */
+  function trend(opts = {}) {
+    if (count < 4) return null;
+    const thresholdPercent = opts.thresholdPercent ?? 25;
+
+    // Collect inter-frame deltas from the ring buffer (oldest → newest).
+    const deltas = [];
+    for (let i = 1; i < count; i++) {
+      const prevIdx = (head - count + i - 1 + bufferSize) % bufferSize;
+      const curIdx = (head - count + i + bufferSize) % bufferSize;
+      deltas.push(ring[curIdx] - ring[prevIdx]);
+    }
+
+    if (deltas.length < 2) return null;
+
+    const midpoint = Math.floor(deltas.length / 2);
+    let olderSum = 0;
+    let newerSum = 0;
+    const newerCount = deltas.length - midpoint;
+
+    for (let i = 0; i < midpoint; i++) olderSum += deltas[i];
+    for (let i = midpoint; i < deltas.length; i++) newerSum += deltas[i];
+
+    const olderAvg = olderSum / midpoint;
+    const newerAvg = newerSum / newerCount;
+
+    // Avoid division by zero when older average is 0.
+    if (olderAvg === 0) return newerAvg === 0 ? 'stable' : 'degrading';
+
+    // Higher frame time = worse performance, so positive change = degrading.
+    const changePercent = ((newerAvg - olderAvg) / olderAvg) * 100;
+
+    if (changePercent > thresholdPercent) return 'degrading';
+    if (changePercent < -thresholdPercent) return 'improving';
+    return 'stable';
+  }
+
+  /**
    * JSON.stringify() support — delegates to getSnapshot() so
    * `JSON.stringify(fpsCounter)` produces a useful diagnostic object
    * without manual plucking (consistent with latencyTracker.toJSON()).
@@ -180,5 +233,5 @@ export function createFpsCounter(opts = {}) {
     return getSnapshot();
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, toJSON };
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, trend, toJSON };
 }
