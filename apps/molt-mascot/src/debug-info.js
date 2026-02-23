@@ -64,7 +64,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji } from './utils.js';
+import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, computeHealthReasons } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -273,6 +273,23 @@ export function buildDebugInfo(params) {
     lines.push(`Last reset: ${formatElapsed(lastResetAt, now)} ago (at ${new Date(lastResetAt).toISOString()})`);
   }
   if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
-  if (typeof healthStatus === 'string' && healthStatus) lines.push(`Health: ${healthStatusEmoji(healthStatus)} ${healthStatus}`);
+  if (typeof healthStatus === 'string' && healthStatus) {
+    let healthLine = `Health: ${healthStatusEmoji(healthStatus)} ${healthStatus}`;
+    // When degraded or unhealthy, append diagnostic reasons so the user can see
+    // *why* without cross-referencing thresholds in the source code.
+    if (healthStatus !== 'healthy') {
+      const reasons = computeHealthReasons({
+        isConnected: !!connectedSince,
+        isPollingPaused,
+        lastMessageAt,
+        latencyMs,
+        latencyStats,
+        connectionSuccessRate,
+        now,
+      });
+      if (reasons.length > 0) healthLine += ` (${reasons.join('; ')})`;
+    }
+    lines.push(healthLine);
+  }
   return lines.join('\n');
 }

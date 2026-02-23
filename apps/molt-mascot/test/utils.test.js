@@ -28,6 +28,7 @@ import {
   computeHealthStatus,
   isRecoverableCloseCode,
   connectionUptimePercent,
+  computeHealthReasons,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1254,6 +1255,76 @@ describe("computeHealthStatus", () => {
       latencyStats: { median: 7000, samples: 10 },
       now,
     })).toBe("unhealthy");
+  });
+});
+
+describe("computeHealthReasons", () => {
+  const now = 1700000000000;
+
+  it("returns empty array when healthy", () => {
+    expect(computeHealthReasons({ isConnected: true, now })).toEqual([]);
+  });
+
+  it("returns 'disconnected' when not connected", () => {
+    expect(computeHealthReasons({ isConnected: false, now })).toEqual(["disconnected"]);
+  });
+
+  it("reports stale connection", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 15000,
+      now,
+    });
+    expect(reasons.length).toBe(1);
+    expect(reasons[0]).toMatch(/stale connection: 15s/);
+  });
+
+  it("reports extreme latency", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      latencyMs: 6000,
+      now,
+    });
+    expect(reasons.some(r => r.includes("extreme latency"))).toBe(true);
+  });
+
+  it("reports poor latency", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      latencyMs: 600,
+      now,
+    });
+    expect(reasons.some(r => r.includes("poor latency"))).toBe(true);
+  });
+
+  it("reports high jitter", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      latencyMs: 50,
+      latencyStats: { median: 50, jitter: 250, samples: 10 },
+      now,
+    });
+    expect(reasons.some(r => r.includes("high jitter"))).toBe(true);
+  });
+
+  it("reports low success rate", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      connectionSuccessRate: 60,
+      now,
+    });
+    expect(reasons.some(r => r.includes("low success rate: 60%"))).toBe(true);
+  });
+
+  it("collects multiple reasons", () => {
+    const reasons = computeHealthReasons({
+      isConnected: true,
+      lastMessageAt: now - 35000,
+      latencyMs: 600,
+      connectionSuccessRate: 50,
+      now,
+    });
+    expect(reasons.length).toBeGreaterThanOrEqual(2);
   });
 });
 

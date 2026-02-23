@@ -699,6 +699,16 @@ describe("healthStatus in debug info", () => {
     expect(info).toContain("Health: 🟢 healthy");
   });
 
+  it("includes diagnostic reasons when degraded", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      healthStatus: "degraded",
+      latencyMs: 600,
+    });
+    expect(info).toContain("Health: ⚠️ degraded (poor latency:");
+  });
+
   it("omits health when not provided", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Health:");
