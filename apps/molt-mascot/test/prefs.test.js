@@ -421,30 +421,36 @@ describe("validatePrefs", () => {
     expect(dropped).toEqual([]);
   });
 
-  it("drops unknown keys", () => {
+  it("drops unknown keys with reason", () => {
     const { clean, dropped } = validatePrefs({ alignment: "center", bogus: 42, foo: "bar" });
     expect(clean).toEqual({ alignment: "center" });
-    expect(dropped).toContain("bogus");
-    expect(dropped).toContain("foo");
+    const droppedKeys = dropped.map((d) => d.key);
+    expect(droppedKeys).toContain("bogus");
+    expect(droppedKeys).toContain("foo");
+    expect(dropped.find((d) => d.key === "bogus").reason).toBe("unknown key");
   });
 
-  it("drops keys with wrong type", () => {
+  it("drops keys with wrong type and includes reason", () => {
     const { clean, dropped } = validatePrefs({ alignment: 123, clickThrough: "yes", sizeIndex: "two" });
     expect(clean).toEqual({});
-    expect(dropped).toEqual(["alignment", "clickThrough", "sizeIndex"]);
+    expect(dropped.map((d) => d.key)).toEqual(["alignment", "clickThrough", "sizeIndex"]);
+    expect(dropped[0].reason).toBe("expected string, got number");
+    expect(dropped[1].reason).toBe("expected boolean, got string");
   });
 
   it("drops numbers that fail validation (negative index, NaN padding)", () => {
     const { clean, dropped } = validatePrefs({ sizeIndex: -1, opacityIndex: 1.5, padding: -10 });
     expect(clean).toEqual({});
-    expect(dropped).toEqual(["sizeIndex", "opacityIndex", "padding"]);
+    expect(dropped.map((d) => d.key)).toEqual(["sizeIndex", "opacityIndex", "padding"]);
+    for (const d of dropped) expect(d.reason).toMatch(/failed validation/);
   });
 
   it("drops NaN and Infinity numbers", () => {
     const { clean, dropped } = validatePrefs({ padding: NaN, sizeIndex: Infinity });
     expect(clean).toEqual({});
-    expect(dropped).toContain("padding");
-    expect(dropped).toContain("sizeIndex");
+    const droppedKeys = dropped.map((d) => d.key);
+    expect(droppedKeys).toContain("padding");
+    expect(droppedKeys).toContain("sizeIndex");
   });
 
   it("validates dragPosition object shape", () => {
@@ -453,13 +459,13 @@ describe("validatePrefs", () => {
 
     const { clean: bad, dropped } = validatePrefs({ dragPosition: { x: "a", y: 10 } });
     expect(bad.dragPosition).toBeUndefined();
-    expect(dropped).toContain("dragPosition");
+    expect(dropped.map((d) => d.key)).toContain("dragPosition");
   });
 
   it("drops null dragPosition", () => {
     const { clean, dropped } = validatePrefs({ dragPosition: null });
     expect(clean.dragPosition).toBeUndefined();
-    expect(dropped).toContain("dragPosition");
+    expect(dropped.map((d) => d.key)).toContain("dragPosition");
   });
 
   it("returns empty clean object for null/undefined/array input", () => {
@@ -471,7 +477,7 @@ describe("validatePrefs", () => {
   it("drops invalid alignment values", () => {
     const { clean, dropped } = validatePrefs({ alignment: "banana" });
     expect(clean).toEqual({});
-    expect(dropped).toContain("alignment");
+    expect(dropped.map((d) => d.key)).toContain("alignment");
   });
 
   it("accepts valid alignment values", () => {
@@ -514,7 +520,7 @@ describe("loadValidated", () => {
     const mgr = createPrefsManager(prefsPath);
     const { clean, dropped } = mgr.loadValidated();
     expect(clean).toEqual({ alignment: "center" });
-    expect(dropped).toContain("bogus");
+    expect(dropped.map((d) => d.key)).toContain("bogus");
   });
 
   it("drops invalid values", () => {

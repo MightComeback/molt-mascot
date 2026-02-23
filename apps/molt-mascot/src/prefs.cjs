@@ -243,7 +243,7 @@ const PREF_SCHEMA = {
  * Does NOT mutate the input.
  *
  * @param {object} raw - Preferences object (e.g. from load())
- * @returns {{ clean: object, dropped: string[] }} Sanitized prefs + list of dropped keys
+ * @returns {{ clean: object, dropped: Array<{ key: string, reason: string }> }} Sanitized prefs + list of dropped keys with reasons
  */
 function validatePrefs(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -254,19 +254,19 @@ function validatePrefs(raw) {
   for (const [key, value] of Object.entries(raw)) {
     const schema = PREF_SCHEMA[key];
     if (!schema) {
-      dropped.push(key);
+      dropped.push({ key, reason: 'unknown key' });
       continue;
     }
     if (typeof value !== schema.type) {
-      dropped.push(key);
+      dropped.push({ key, reason: `expected ${schema.type}, got ${typeof value}` });
       continue;
     }
     if (schema.type === 'number' && !Number.isFinite(value)) {
-      dropped.push(key);
+      dropped.push({ key, reason: `non-finite number: ${value}` });
       continue;
     }
     if (schema.validate && !schema.validate(value)) {
-      dropped.push(key);
+      dropped.push({ key, reason: `failed validation: ${JSON.stringify(value)}` });
       continue;
     }
     clean[key] = value;
