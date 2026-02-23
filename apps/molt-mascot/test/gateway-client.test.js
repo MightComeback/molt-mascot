@@ -680,6 +680,53 @@ describe('GatewayClient', () => {
     });
   });
 
+  describe('latencyTrend', () => {
+    it('returns null when insufficient samples', () => {
+      const client = new GatewayClient();
+      expect(client.latencyTrend).toBeNull();
+      client._latencyTracker.push(10);
+      client._latencyTracker.push(20);
+      expect(client.latencyTrend).toBeNull(); // needs >= 4
+    });
+
+    it('returns stable for consistent latency', () => {
+      const client = new GatewayClient();
+      for (const v of [50, 50, 50, 50]) client._latencyTracker.push(v);
+      expect(client.latencyTrend).toBe('stable');
+    });
+
+    it('returns rising when newer samples are higher', () => {
+      const client = new GatewayClient();
+      for (const v of [10, 10, 100, 100]) client._latencyTracker.push(v);
+      expect(client.latencyTrend).toBe('rising');
+    });
+
+    it('returns falling when newer samples are lower', () => {
+      const client = new GatewayClient();
+      for (const v of [100, 100, 10, 10]) client._latencyTracker.push(v);
+      expect(client.latencyTrend).toBe('falling');
+    });
+
+    it('is included in getStatus()', () => {
+      const client = new GatewayClient();
+      for (const v of [50, 50, 50, 50]) client._latencyTracker.push(v);
+      expect(client.getStatus().latencyTrend).toBe('stable');
+    });
+
+    it('is null in getStatus() when no samples', () => {
+      const client = new GatewayClient();
+      expect(client.getStatus().latencyTrend).toBeNull();
+    });
+
+    it('resets to null after cleanup', () => {
+      const client = new GatewayClient();
+      for (const v of [10, 10, 100, 100]) client._latencyTracker.push(v);
+      expect(client.latencyTrend).toBe('rising');
+      client._cleanup();
+      expect(client.latencyTrend).toBeNull();
+    });
+  });
+
   describe('connectionSuccessRate', () => {
     it('returns null when no attempts', () => {
       expect(client.connectionSuccessRate).toBeNull();

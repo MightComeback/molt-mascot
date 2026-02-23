@@ -644,6 +644,22 @@ export class GatewayClient {
   }
 
   /**
+   * Latency trend direction: "rising", "falling", or "stable".
+   * Delegates to the latency tracker's half-window comparison algorithm.
+   * Returns null if insufficient samples (< 4) for a meaningful comparison.
+   *
+   * Useful for proactive diagnostics: "rising" warns before thresholds are
+   * breached, "falling" confirms recovery after a spike. Consumers (debug info,
+   * tray tooltip) previously had to thread this through params; now it's a
+   * first-class property alongside latencyStats and healthStatus.
+   *
+   * @returns {"rising"|"falling"|"stable"|null}
+   */
+  get latencyTrend() {
+    return this._latencyTracker.trend();
+  }
+
+  /**
    * Connection success rate as an integer percentage (0-100), or null if no attempts.
    * Computed from sessionConnectCount / sessionAttemptCount.
    * Useful for diagnosing flaky connections at a glance (e.g. "50% → half your connects fail").
@@ -784,6 +800,7 @@ export class GatewayClient {
       staleSinceMs: this.staleSinceMs,
       healthStatus: this.healthStatus,
       healthReasons: this.healthReasons,
+      latencyTrend: this.latencyTrend,
       connectionUptimePercent: this.connectionUptimePercent(),
     };
   }
