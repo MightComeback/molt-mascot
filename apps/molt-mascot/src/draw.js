@@ -153,15 +153,11 @@ export const _spriteCache = (() => {
    */
   function warmAll(scale) {
     let count = 0;
+    // Derive sprite list dynamically from lobsterIdle + all overlay entries
+    // so new overlays are automatically warmed without manual enumeration.
     const allSprites = [
       ...lobsterIdle,
-      ...overlay.sleep,
-      ...overlay.thinking,
-      ...overlay.tool,
-      ...overlay.error,
-      ...overlay.connecting,
-      ...overlay.connected,
-      ...overlay.disconnected,
+      ...Object.values(overlay).flat(),
     ];
     for (const sprite of allSprites) {
       if (get(sprite, scale) !== null) count++;
