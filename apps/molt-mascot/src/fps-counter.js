@@ -23,6 +23,12 @@ export function createFpsCounter(opts = {}) {
   let lastFrameTime = -1;
   let worstFrameDeltaMs = 0;
 
+  // Tail tracks the oldest entry still within the rolling window.
+  // By advancing tail forward as entries expire, update() avoids
+  // the O(count) backward scan and becomes O(evicted) — typically O(1).
+  let tail = 0;
+  let inWindow = 0; // count of entries within the rolling window
+
   /**
    * Record a frame timestamp and update the FPS measurement.
    * Call once per rendered frame with the rAF timestamp.
@@ -39,19 +45,30 @@ export function createFpsCounter(opts = {}) {
       if (delta > worstFrameDeltaMs) worstFrameDeltaMs = delta;
     }
     lastFrameTime = t;
+
+    // If the buffer is full, the oldest entry (at head) is evicted.
+    // Adjust inWindow if that evicted entry was still within the window.
+    if (count >= bufferSize) {
+      // head is about to be overwritten; if tail == head, advance tail.
+      if (tail === head) {
+        tail = (tail + 1) % bufferSize;
+        inWindow--;
+      }
+    }
+
     ring[head] = t;
     head = (head + 1) % bufferSize;
     if (count < bufferSize) count++;
+    inWindow++;
 
-    // Count timestamps within the rolling window, scanning backwards.
+    // Advance tail past entries that have fallen outside the window.
     const cutoff = t - windowMs;
-    let n = 0;
-    for (let i = 0; i < count; i++) {
-      const idx = (head - 1 - i + bufferSize) % bufferSize;
-      if (ring[idx] < cutoff) break;
-      n++;
+    while (inWindow > 0 && ring[tail] < cutoff) {
+      tail = (tail + 1) % bufferSize;
+      inWindow--;
     }
-    currentFps = n;
+
+    currentFps = inWindow;
   }
 
   /** Current measured FPS (frames in the last window). */
@@ -63,7 +80,9 @@ export function createFpsCounter(opts = {}) {
   function reset() {
     ring.fill(0);
     head = 0;
+    tail = 0;
     count = 0;
+    inWindow = 0;
     currentFps = 0;
     totalFrames = 0;
     lastFrameTime = -1;
