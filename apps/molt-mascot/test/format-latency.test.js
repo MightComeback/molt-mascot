@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, formatHealthSummary } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, formatHealthSummary, formatActiveSummary } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -400,5 +400,15 @@ describe('formatHealthSummary', () => {
     const result = formatHealthSummary('unhealthy');
     expect(result).not.toBe(null);
     expect(result.text).toContain('🔴 unhealthy');
+  });
+});
+
+describe('formatActiveSummary', () => {
+  it('pluralizes agents and tools correctly', () => {
+    expect(formatActiveSummary(1, 1)).toBe('1 agent, 1 tool');
+    expect(formatActiveSummary(2, 1)).toBe('2 agents, 1 tool');
+    expect(formatActiveSummary(1, 3)).toBe('1 agent, 3 tools');
+    expect(formatActiveSummary(0, 0)).toBe('0 agents, 0 tools');
+    expect(formatActiveSummary(5, 5)).toBe('5 agents, 5 tools');
   });
 });

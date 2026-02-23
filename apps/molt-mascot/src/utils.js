@@ -17,8 +17,8 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary } from './format-latency.cjs';
-export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth };
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary, formatActiveSummary } from './format-latency.cjs';
+export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth, formatActiveSummary };
 
 /**
  * Capitalize the first character of a string.
@@ -243,7 +243,7 @@ export function buildTooltip(params) {
     }
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
-    tip += ` · ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`;
+    tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
     const { text: latencyPart } = formatQualitySummary(latencyMs, latencyStats, { emoji: false });

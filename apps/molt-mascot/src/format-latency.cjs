@@ -309,4 +309,17 @@ function formatHealthSummary(healthStatus, reasonParams) {
   };
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary };
+/**
+ * Format active agent/tool counts as a compact summary string.
+ * DRYs up the repeated pluralization pattern across buildTooltip,
+ * buildTrayTooltip, and buildDebugInfo.
+ *
+ * @param {number} agents - Number of active agent sessions
+ * @param {number} tools - Number of active in-flight tool calls
+ * @returns {string} e.g. "2 agents, 1 tool" or "1 agent, 3 tools"
+ */
+function formatActiveSummary(agents, tools) {
+  return `${agents} agent${agents !== 1 ? 's' : ''}, ${tools} tool${tools !== 1 ? 's' : ''}`;
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary };

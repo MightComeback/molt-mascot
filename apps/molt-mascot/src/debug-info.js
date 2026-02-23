@@ -65,7 +65,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -217,7 +217,7 @@ export function buildDebugInfo(params) {
     lines.push(`Agent sessions: ${formatCount(agentSessions)}`);
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
-    lines.push(`Active: ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`);
+    lines.push(`Active: ${formatActiveSummary(activeAgents, activeTools)}`);
   }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
