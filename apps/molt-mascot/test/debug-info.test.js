@@ -786,3 +786,25 @@ describe("formatElapsed", () => {
     expect(formatElapsed(now + 5000, now)).toBe("0s");
   });
 });
+
+describe("dragPosition", () => {
+  it("shows drag position when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: 123.4, y: 567.8 } });
+    expect(info).toContain("Drag position: 123, 568");
+  });
+
+  it("omits drag position when null", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: null });
+    expect(info).not.toContain("Drag position");
+  });
+
+  it("omits drag position when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS });
+    expect(info).not.toContain("Drag position");
+  });
+
+  it("omits drag position when coordinates are invalid", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: "bad", y: 10 } });
+    expect(info).not.toContain("Drag position");
+  });
+});

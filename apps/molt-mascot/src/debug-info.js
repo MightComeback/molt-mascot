@@ -64,6 +64,7 @@
  * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (appended to stats line for proactive diagnostics)
  * @param {number} [params.minProtocol] - Minimum supported gateway protocol version (shown in diagnostics for version mismatch debugging)
  * @param {number} [params.maxProtocol] - Maximum supported gateway protocol version
+ * @param {{ x: number, y: number }|null} [params.dragPosition] - User-dragged window position (shown when the mascot was manually repositioned, helping diagnose "why is it here?")
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -136,6 +137,7 @@ export function buildDebugInfo(params) {
     latencyTrend,
     minProtocol,
     maxProtocol,
+    dragPosition,
     now: nowOverride,
   } = params;
 
@@ -232,6 +234,9 @@ export function buildDebugInfo(params) {
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
   lines.push(`Alignment: ${alignmentLabel || 'bottom-right'}`);
+  if (dragPosition && typeof dragPosition.x === 'number' && typeof dragPosition.y === 'number') {
+    lines.push(`Drag position: ${Math.round(dragPosition.x)}, ${Math.round(dragPosition.y)}`);
+  }
   lines.push(`Size: ${sizeLabel}, Opacity: ${formatOpacity(opacity)}`);
   lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
   lines.push(`Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
