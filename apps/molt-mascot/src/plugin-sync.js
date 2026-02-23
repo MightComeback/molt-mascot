@@ -73,6 +73,8 @@ function emptyCache() {
  * @param {function} [callbacks.onToolErrors]   - Called with (number) when toolErrors changes.
  * @param {function} [callbacks.onStartedAt]    - Called with (number) when startedAt changes.
  * @param {function} [callbacks.onAgentSessions] - Called with (number) when agentSessions changes (cumulative count).
+ * @param {function} [callbacks.onActiveAgents]  - Called with (number) when activeAgents changes (currently active agent sessions).
+ * @param {function} [callbacks.onActiveTools]   - Called with (number) when activeTools changes (currently in-flight tool calls).
  * @param {function} [callbacks.onCurrentTool]  - Called with (string) when currentTool changes ('' when cleared).
  * @param {function} [callbacks.onLastResetAt]  - Called with (number) when lastResetAt changes (epoch ms of last manual reset).
  * @returns {{ sync: function, reset: function, last: function }}
@@ -138,5 +140,34 @@ export function createPluginSync(callbacks = {}) {
     return { ...last };
   }
 
-  return { sync, reset, last: getLast };
+  /**
+   * Return the number of tracked properties that have a non-null cached value.
+   * Useful for diagnostics: 0 means no plugin state has been received yet.
+   *
+   * @returns {number}
+   */
+  function activeCount() {
+    let n = 0;
+    for (const [key] of SYNC_PROPS) {
+      if (last[key] !== null && last[key] !== undefined) n++;
+    }
+    return n;
+  }
+
+  /**
+   * Return a diagnostic snapshot of the sync state.
+   * Mirrors getSnapshot() on fps-counter and latency-tracker for API consistency
+   * across tracker modules.
+   *
+   * @returns {{ trackedProps: number, activeProps: number, values: object }}
+   */
+  function getSnapshot() {
+    return {
+      trackedProps: SYNC_PROPS.length,
+      activeProps: activeCount(),
+      values: getLast(),
+    };
+  }
+
+  return { sync, reset, last: getLast, activeCount, getSnapshot };
 }

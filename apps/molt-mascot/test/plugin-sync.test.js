@@ -266,4 +266,41 @@ describe('createPluginSync', () => {
     sync.sync({ startedAt: 1700000000000 });
     expect(called).toBe(true);
   });
+
+  it('activeCount() returns 0 before any sync', () => {
+    const sync = createPluginSync({});
+    expect(sync.activeCount()).toBe(0);
+  });
+
+  it('activeCount() counts non-null cached properties', () => {
+    const sync = createPluginSync({});
+    sync.sync({ clickThrough: true, opacity: 0.8 });
+    expect(sync.activeCount()).toBe(2);
+  });
+
+  it('getSnapshot() returns trackedProps, activeProps, and values', () => {
+    const sync = createPluginSync({});
+    const snap = sync.getSnapshot();
+    expect(snap.trackedProps).toBeGreaterThan(0);
+    expect(snap.activeProps).toBe(0);
+    expect(snap.values).toEqual(sync.last());
+  });
+
+  it('getSnapshot() reflects synced state', () => {
+    const sync = createPluginSync({});
+    sync.sync({ clickThrough: false, alignment: 'top-left', opacity: 0.5 });
+    const snap = sync.getSnapshot();
+    expect(snap.activeProps).toBe(3);
+    expect(snap.values.clickThrough).toBe(false);
+    expect(snap.values.alignment).toBe('top-left');
+    expect(snap.values.opacity).toBe(0.5);
+  });
+
+  it('getSnapshot() resets after reset()', () => {
+    const sync = createPluginSync({});
+    sync.sync({ clickThrough: true });
+    sync.reset();
+    const snap = sync.getSnapshot();
+    expect(snap.activeProps).toBe(0);
+  });
 });
