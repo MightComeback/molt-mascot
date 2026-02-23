@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'bun:test';
-import { buildPillLabel } from '../src/pill-label.js';
+import {
+  buildPillLabel,
+  PILL_MAX_ERROR_LEN,
+  PILL_MAX_DISCONNECT_LEN,
+  PILL_MAX_TOOL_LONG_LEN,
+  PILL_MAX_TOOL_SHORT_LEN,
+} from '../src/pill-label.js';
 
 const NOW = 1700000000000;
 const SLEEP_THRESHOLD = 120; // seconds
@@ -384,5 +390,21 @@ describe('buildPillLabel', () => {
     const healthIdx = result.label.indexOf('⚠️');
     const ghostIdx = result.label.indexOf('👻');
     expect(healthIdx).toBeLessThan(ghostIdx);
+  });
+});
+
+describe('pill label length constants', () => {
+  it('exports expected default values', () => {
+    expect(PILL_MAX_ERROR_LEN).toBe(48);
+    expect(PILL_MAX_DISCONNECT_LEN).toBe(40);
+    expect(PILL_MAX_TOOL_LONG_LEN).toBe(32);
+    expect(PILL_MAX_TOOL_SHORT_LEN).toBe(24);
+  });
+
+  it('all constants are positive integers', () => {
+    for (const v of [PILL_MAX_ERROR_LEN, PILL_MAX_DISCONNECT_LEN, PILL_MAX_TOOL_LONG_LEN, PILL_MAX_TOOL_SHORT_LEN]) {
+      expect(Number.isInteger(v)).toBe(true);
+      expect(v).toBeGreaterThan(0);
+    }
   });
 });

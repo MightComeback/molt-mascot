@@ -11,6 +11,16 @@
 import { capitalize, truncate, formatDuration } from './utils.js';
 
 /**
+ * Maximum pill label widths (in characters) per context.
+ * Tuned for the fixed-width HUD pill overlay so labels don't overflow or wrap.
+ * Named constants make limits easy to find, adjust, and test.
+ */
+export const PILL_MAX_ERROR_LEN = 48;
+export const PILL_MAX_DISCONNECT_LEN = 40;
+export const PILL_MAX_TOOL_LONG_LEN = 32;
+export const PILL_MAX_TOOL_SHORT_LEN = 24;
+
+/**
  * @typedef {Object} PillLabelResult
  * @property {string} label - Display text for the pill
  * @property {string} cssClass - CSS class name (e.g. 'pill--idle', 'pill--sleeping')
@@ -82,7 +92,7 @@ export function buildPillLabel(params) {
   } else if (mode === 'disconnected') {
     const retrySuffix = reconnectAttempt > 0 ? ` #${reconnectAttempt}` : '';
     label = lastCloseDetail
-      ? truncate(`Disconnected: ${lastCloseDetail}`, 40 - retrySuffix.length) + retrySuffix
+      ? truncate(`Disconnected: ${lastCloseDetail}`, PILL_MAX_DISCONNECT_LEN - retrySuffix.length) + retrySuffix
       : `Disconnected ${formatDuration(duration)}${retrySuffix}`;
   } else if (mode === 'thinking') {
     if (duration > 2) {
@@ -96,15 +106,15 @@ export function buildPillLabel(params) {
     const toolSuffix = activeTools > 1 ? ` · ${activeTools}` : '';
     if (currentTool) {
       label = duration > 2
-        ? truncate(`${currentTool} ${formatDuration(duration)}`, 32 - toolSuffix.length) + toolSuffix
-        : truncate(currentTool, 24 - toolSuffix.length) + toolSuffix;
+        ? truncate(`${currentTool} ${formatDuration(duration)}`, PILL_MAX_TOOL_LONG_LEN - toolSuffix.length) + toolSuffix
+        : truncate(currentTool, PILL_MAX_TOOL_SHORT_LEN - toolSuffix.length) + toolSuffix;
     } else {
       label = duration > 2
         ? `Tool ${formatDuration(duration)}${toolSuffix}`
         : `Tool${toolSuffix}`;
     }
   } else if (mode === 'error' && lastErrorMessage) {
-    label = truncate(lastErrorMessage, 48);
+    label = truncate(lastErrorMessage, PILL_MAX_ERROR_LEN);
   }
 
   // Surface degraded/unhealthy connection status directly in the pill
