@@ -321,4 +321,65 @@ describe('createLatencyTracker', () => {
     t.reset();
     expect(t.isFull()).toBe(false);
   });
+
+  it('trend() returns null with fewer than 4 samples', () => {
+    const t = createLatencyTracker();
+    expect(t.trend()).toBeNull();
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    expect(t.trend()).toBeNull();
+  });
+
+  it('trend() returns "rising" when newer half is significantly higher', () => {
+    const t = createLatencyTracker();
+    [10, 10, 50, 50].forEach(v => t.push(v));
+    expect(t.trend()).toBe('rising');
+  });
+
+  it('trend() returns "falling" when newer half is significantly lower', () => {
+    const t = createLatencyTracker();
+    [50, 50, 10, 10].forEach(v => t.push(v));
+    expect(t.trend()).toBe('falling');
+  });
+
+  it('trend() returns "stable" when halves are similar', () => {
+    const t = createLatencyTracker();
+    [100, 100, 105, 95].forEach(v => t.push(v));
+    expect(t.trend()).toBe('stable');
+  });
+
+  it('trend() works after ring buffer wraps', () => {
+    const t = createLatencyTracker({ maxSamples: 4 });
+    t.push(10);
+    t.push(10);
+    t.push(10);
+    t.push(10);
+    t.push(50); // evicts oldest, buffer: [10, 10, 10, 50]
+    t.push(50); // buffer: [10, 10, 50, 50]
+    expect(t.trend()).toBe('rising');
+  });
+
+  it('trend() respects custom threshold', () => {
+    const t = createLatencyTracker();
+    [100, 100, 120, 120].forEach(v => t.push(v));
+    // 20% increase, default threshold 25% → stable
+    expect(t.trend()).toBe('stable');
+    // With 15% threshold → rising
+    expect(t.trend({ thresholdPercent: 15 })).toBe('rising');
+  });
+
+  it('trend() handles zero older average', () => {
+    const t = createLatencyTracker();
+    [0, 0, 10, 10].forEach(v => t.push(v));
+    expect(t.trend()).toBe('rising');
+  });
+
+  it('trend() returns null after reset', () => {
+    const t = createLatencyTracker();
+    [10, 10, 50, 50].forEach(v => t.push(v));
+    expect(t.trend()).toBe('rising');
+    t.reset();
+    expect(t.trend()).toBeNull();
+  });
 });

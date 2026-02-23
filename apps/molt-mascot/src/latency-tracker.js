@@ -185,5 +185,50 @@ export function createLatencyTracker(opts = {}) {
     return _count >= maxSamples;
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull };
+  /**
+   * Compute the latency trend by comparing the older half of samples to the newer half.
+   * Returns "rising", "falling", or "stable" based on whether the newer half's average
+   * deviates from the older half by more than a relative threshold.
+   *
+   * Useful for proactive health diagnostics: "latency is rising" warns before
+   * thresholds are breached, while "falling" confirms recovery after a spike.
+   *
+   * Requires at least 4 samples (2 per half) for a meaningful comparison.
+   *
+   * @param {{ thresholdPercent?: number }} [opts] - Deviation threshold (default 25%)
+   * @returns {"rising"|"falling"|"stable"|null} Trend direction, or null if insufficient data
+   */
+  function trend(opts = {}) {
+    if (_count < 4) return null;
+    const thresholdPercent = opts.thresholdPercent ?? 25;
+
+    // Split the buffer into older half and newer half (ordered oldest → newest).
+    const start = _count < maxSamples ? 0 : head;
+    const midpoint = Math.floor(_count / 2);
+
+    let olderSum = 0;
+    let newerSum = 0;
+    const newerCount = _count - midpoint;
+
+    for (let i = 0; i < midpoint; i++) {
+      olderSum += ring[(start + i) % maxSamples];
+    }
+    for (let i = midpoint; i < _count; i++) {
+      newerSum += ring[(start + i) % maxSamples];
+    }
+
+    const olderAvg = olderSum / midpoint;
+    const newerAvg = newerSum / newerCount;
+
+    // Avoid division by zero when older average is 0 (all-zero latencies).
+    if (olderAvg === 0) return newerAvg === 0 ? 'stable' : 'rising';
+
+    const changePercent = ((newerAvg - olderAvg) / olderAvg) * 100;
+
+    if (changePercent > thresholdPercent) return 'rising';
+    if (changePercent < -thresholdPercent) return 'falling';
+    return 'stable';
+  }
+
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend };
 }
