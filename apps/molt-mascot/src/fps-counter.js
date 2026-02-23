@@ -6,6 +6,8 @@
  * to produce a real-time FPS measurement without allocations in the hot path.
  */
 
+import { formatCount } from './utils.js';
+
 /**
  * Create an FPS counter instance.
  *
@@ -245,8 +247,7 @@ export function createFpsCounter(opts = {}) {
     const parts = [`${currentFps}fps`];
     if (totalFrames >= 1000) {
       // Use formatCount for compact display when frame counts are large
-      const { formatCount: fc } = require('@molt/mascot-plugin');
-      parts.push(`${fc(totalFrames)} frames`);
+      parts.push(`${formatCount(totalFrames)} frames`);
     } else {
       parts.push(`${totalFrames} frame${totalFrames !== 1 ? 's' : ''}`);
     }
