@@ -160,6 +160,7 @@ describe("createBlinkState", () => {
 
   it("toString returns human-readable summary", () => {
     const blink = createBlinkState({ initialBlinkAt: 5000 });
+    // oxlint-disable-next-line number-arg-out-of-range -- custom toString(now), not Number.prototype.toString
     const str = blink.toString(3000);
     expect(str).toContain('BlinkState<');
     expect(str).toContain('0 blinks');
@@ -167,6 +168,7 @@ describe("createBlinkState", () => {
     // After triggering a blink
     blink.isBlinking(5000);
     blink.isBlinking(5000 + BLINK_DURATION_MS);
+    // oxlint-disable-next-line number-arg-out-of-range -- custom toString(now), not Number.prototype.toString
     const str2 = blink.toString(6000);
     expect(str2).toContain('1 blink,'); // singular
   });
