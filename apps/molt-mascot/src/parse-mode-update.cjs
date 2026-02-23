@@ -145,4 +145,36 @@ function parseModeUpdate(raw) {
   };
 }
 
-module.exports = { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH };
+/**
+ * Format a parsed mode-update into a compact diagnostic one-liner.
+ * Useful for logging IPC payloads without manual field plucking.
+ *
+ * Only includes non-null fields for brevity. Mirrors the toString() pattern
+ * used across other modules (LatencyTracker, FpsCounter, GatewayClient, etc.).
+ *
+ * @param {ParsedModeUpdate} parsed - Output from parseModeUpdate()
+ * @returns {string} e.g. "ModeUpdate<thinking, 42ms, tool=exec, 🟢 healthy>"
+ */
+function formatModeUpdate(parsed) {
+  if (!parsed || typeof parsed !== 'object') return 'ModeUpdate<invalid>';
+
+  const parts = [];
+
+  if (parsed.mode) parts.push(parsed.mode);
+  if (parsed.latencyMs !== null) parts.push(`${Math.round(parsed.latencyMs)}ms`);
+  if (parsed.tool) parts.push(`tool=${parsed.tool}`);
+  if (parsed.errorMessage) parts.push(`err="${parsed.errorMessage}"`);
+  if (parsed.activeAgents !== null && parsed.activeAgents > 0) parts.push(`agents=${parsed.activeAgents}`);
+  if (parsed.activeTools !== null && parsed.activeTools > 0) parts.push(`tools=${parsed.activeTools}`);
+  if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0) parts.push(`retry #${parsed.reconnectAttempt}`);
+  if (parsed.healthStatus && parsed.healthStatus !== 'healthy') {
+    const emoji = parsed.healthStatus === 'degraded' ? '⚠️' : '🔴';
+    parts.push(`${emoji} ${parsed.healthStatus}`);
+  }
+  if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
+
+  if (parts.length === 0) return 'ModeUpdate<empty>';
+  return `ModeUpdate<${parts.join(', ')}>`;
+}
+
+module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH };

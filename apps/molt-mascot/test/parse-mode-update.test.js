@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -277,6 +277,95 @@ describe('parse-mode-update', () => {
       expect(result.reconnectAttempt).toBe(0);
       expect(result.activeAgents).toBe(0);
       expect(result.activeTools).toBe(0);
+    });
+  });
+
+  describe('formatModeUpdate', () => {
+    it('returns "ModeUpdate<invalid>" for null/undefined input', () => {
+      expect(formatModeUpdate(null)).toBe('ModeUpdate<invalid>');
+      expect(formatModeUpdate(undefined)).toBe('ModeUpdate<invalid>');
+    });
+
+    it('returns "ModeUpdate<empty>" when all fields are null', () => {
+      const parsed = parseModeUpdate({});
+      expect(formatModeUpdate(parsed)).toBe('ModeUpdate<empty>');
+    });
+
+    it('includes mode and latency', () => {
+      const parsed = parseModeUpdate({ mode: 'thinking', latency: 42 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('thinking');
+      expect(str).toContain('42ms');
+    });
+
+    it('includes tool name', () => {
+      const parsed = parseModeUpdate({ mode: 'tool', tool: 'exec' });
+      expect(formatModeUpdate(parsed)).toContain('tool=exec');
+    });
+
+    it('includes error message', () => {
+      const parsed = parseModeUpdate({ mode: 'error', errorMessage: 'connection refused' });
+      expect(formatModeUpdate(parsed)).toContain('err="connection refused"');
+    });
+
+    it('includes active agents and tools when non-zero', () => {
+      const parsed = parseModeUpdate({ mode: 'thinking', activeAgents: 2, activeTools: 3 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('agents=2');
+      expect(str).toContain('tools=3');
+    });
+
+    it('omits zero active agents and tools', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', activeAgents: 0, activeTools: 0 });
+      const str = formatModeUpdate(parsed);
+      expect(str).not.toContain('agents=');
+      expect(str).not.toContain('tools=');
+    });
+
+    it('includes reconnect attempt when non-zero', () => {
+      const parsed = parseModeUpdate({ mode: 'disconnected', reconnectAttempt: 3 });
+      expect(formatModeUpdate(parsed)).toContain('retry #3');
+    });
+
+    it('includes degraded health status with emoji', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', healthStatus: 'degraded' });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('⚠️');
+      expect(str).toContain('degraded');
+    });
+
+    it('includes unhealthy health status with emoji', () => {
+      const parsed = parseModeUpdate({ mode: 'disconnected', healthStatus: 'unhealthy' });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('🔴');
+      expect(str).toContain('unhealthy');
+    });
+
+    it('omits healthy health status', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', healthStatus: 'healthy' });
+      expect(formatModeUpdate(parsed)).not.toContain('healthy');
+    });
+
+    it('includes plugin version', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', pluginVersion: '1.2.3' });
+      expect(formatModeUpdate(parsed)).toContain('v1.2.3');
+    });
+
+    it('formats a full update compactly', () => {
+      const parsed = parseModeUpdate({
+        mode: 'tool',
+        latency: 15,
+        tool: 'web_search',
+        activeAgents: 1,
+        pluginVersion: '0.2.0',
+        healthStatus: 'healthy',
+      });
+      const str = formatModeUpdate(parsed);
+      expect(str).toMatch(/^ModeUpdate<.+>$/);
+      expect(str).toContain('tool');
+      expect(str).toContain('15ms');
+      expect(str).toContain('web_search');
+      expect(str).toContain('v0.2.0');
     });
   });
 });
