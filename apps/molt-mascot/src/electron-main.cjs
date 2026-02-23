@@ -17,6 +17,7 @@ const { OPACITY_PRESETS: OPACITY_CYCLE } = require('./opacity-presets.cjs');
 
 // --- User preference persistence ---
 // Delegated to prefs.cjs for testability (atomic writes, debounced batching).
+const { parseModeUpdate } = require('./parse-mode-update.cjs');
 const { createPrefsManager } = require('./prefs.cjs');
 const PREFS_FILE = path.join(app.getPath('userData'), 'preferences.json');
 const _prefs = createPrefsManager(PREFS_FILE);
@@ -973,86 +974,74 @@ app.whenReady().then(async () => {
   let currentPluginStartedAt = null;
   let currentLastResetAt = null;
   let currentHealthStatus = null;
-  ipcMain.on('molt-mascot:mode-update', (_event, update) => {
-    // Accept both object and legacy positional args for back-compat.
-    const { mode, latency, tool, errorMessage, toolCalls, toolErrors, closeDetail, reconnectAttempt: reconnectAttemptVal, targetUrl, activeAgents, activeTools, pluginVersion: pluginVersionVal, sessionConnectCount: sessionConnectCountVal, sessionAttemptCount: sessionAttemptCountVal, lastMessageAt: lastMessageAtVal, latencyStats: latencyStatsVal, pluginStartedAt: pluginStartedAtVal, healthStatus: healthStatusVal } =
-      (update && typeof update === 'object') ? update : {};
+  ipcMain.on('molt-mascot:mode-update', (_event, raw) => {
+    // Delegate all field validation/coercion to the extracted pure function.
+    // Previously this was ~70 lines of inline typeof checks; now parseModeUpdate
+    // handles type narrowing, NaN guards, and domain validation in one place.
+    const p = parseModeUpdate(raw);
 
-    // Track tool call stats for tray tooltip diagnostics.
-    if (typeof toolCalls === 'number' && toolCalls >= 0) currentToolCalls = toolCalls;
-    if (typeof toolErrors === 'number' && toolErrors >= 0) currentToolErrors = toolErrors;
-    if (typeof activeAgents === 'number' && activeAgents >= 0) currentActiveAgents = activeAgents;
-    if (typeof activeTools === 'number' && activeTools >= 0) currentActiveTools = activeTools;
-    if (typeof pluginVersionVal === 'string' && pluginVersionVal) currentPluginVersion = pluginVersionVal;
-    // Always update latency when provided (even if mode unchanged).
-    if (typeof latency === 'number' && latency >= 0) currentLatencyMs = latency;
-    else if (latency === null || latency === undefined) currentLatencyMs = null;
+    // Apply validated fields to tray state variables.
+    if (p.toolCalls !== null) currentToolCalls = p.toolCalls;
+    if (p.toolErrors !== null) currentToolErrors = p.toolErrors;
+    if (p.activeAgents !== null) currentActiveAgents = p.activeAgents;
+    if (p.activeTools !== null) currentActiveTools = p.activeTools;
+    if (p.pluginVersion !== null) currentPluginVersion = p.pluginVersion;
+    // Latency: update when provided, clear when explicitly null in raw payload.
+    if (p.latencyMs !== null) currentLatencyMs = p.latencyMs;
+    else if (raw && (raw.latency === null || raw.latency === undefined || raw.latencyMs === null || raw.latencyMs === undefined)) currentLatencyMs = null;
 
-    // Track close detail and reconnect attempt for tray tooltip diagnostics.
-    if (typeof closeDetail === 'string' && closeDetail) currentCloseDetail = closeDetail;
-    else if (closeDetail === null) currentCloseDetail = null;
-    if (typeof reconnectAttemptVal === 'number' && reconnectAttemptVal >= 0) currentReconnectAttempt = reconnectAttemptVal;
+    if (p.closeDetail !== null) currentCloseDetail = p.closeDetail;
+    else if (raw && raw.closeDetail === null) currentCloseDetail = null;
+    if (p.reconnectAttempt !== null) currentReconnectAttempt = p.reconnectAttempt;
 
-    // Use the renderer's authoritative sessionConnectCount instead of tracking locally.
-    if (typeof sessionConnectCountVal === 'number' && sessionConnectCountVal >= 0) sessionConnectCount = sessionConnectCountVal;
-    if (typeof sessionAttemptCountVal === 'number' && sessionAttemptCountVal >= 0) sessionAttemptCount = sessionAttemptCountVal;
+    if (p.sessionConnectCount !== null) sessionConnectCount = p.sessionConnectCount;
+    if (p.sessionAttemptCount !== null) sessionAttemptCount = p.sessionAttemptCount;
 
-    // Track target URL for tray tooltip (shows which endpoint is being connected to when disconnected).
-    if (typeof targetUrl === 'string' && targetUrl) currentTargetUrl = targetUrl;
-    else if (targetUrl === null) currentTargetUrl = null;
+    if (p.targetUrl !== null) currentTargetUrl = p.targetUrl;
+    else if (raw && raw.targetUrl === null) currentTargetUrl = null;
 
-    // Track last WS message timestamp for tray tooltip (stale connection diagnostics).
-    if (typeof lastMessageAtVal === 'number' && lastMessageAtVal > 0) currentLastMessageAt = lastMessageAtVal;
-    else if (lastMessageAtVal === null) currentLastMessageAt = null;
+    if (p.lastMessageAt !== null) currentLastMessageAt = p.lastMessageAt;
+    else if (raw && raw.lastMessageAt === null) currentLastMessageAt = null;
 
-    // Track latency stats for tray tooltip (median + connection quality label).
-    if (latencyStatsVal && typeof latencyStatsVal === 'object' && typeof latencyStatsVal.samples === 'number') currentLatencyStats = latencyStatsVal;
-    else if (latencyStatsVal === null) currentLatencyStats = null;
+    if (p.latencyStats !== null) currentLatencyStats = p.latencyStats;
+    else if (raw && raw.latencyStats === null) currentLatencyStats = null;
 
-    // Track plugin start time for tray tooltip uptime display.
-    if (typeof pluginStartedAtVal === 'number' && pluginStartedAtVal > 0) currentPluginStartedAt = pluginStartedAtVal;
-    else if (pluginStartedAtVal === null) currentPluginStartedAt = null;
+    if (p.pluginStartedAt !== null) currentPluginStartedAt = p.pluginStartedAt;
+    else if (raw && raw.pluginStartedAt === null) currentPluginStartedAt = null;
 
-    // Track last manual plugin reset time for tray tooltip diagnostics.
-    const lastResetAtVal = update?.lastResetAt;
-    if (typeof lastResetAtVal === 'number' && lastResetAtVal > 0) currentLastResetAt = lastResetAtVal;
-    else if (lastResetAtVal === null) currentLastResetAt = null;
+    if (p.lastResetAt !== null) currentLastResetAt = p.lastResetAt;
+    else if (raw && raw.lastResetAt === null) currentLastResetAt = null;
 
-    // Track health status for tray tooltip (degraded/unhealthy warnings).
-    if (typeof healthStatusVal === 'string' && (healthStatusVal === 'healthy' || healthStatusVal === 'degraded' || healthStatusVal === 'unhealthy')) currentHealthStatus = healthStatusVal;
-    else if (healthStatusVal === null) currentHealthStatus = null;
+    if (p.healthStatus !== null) currentHealthStatus = p.healthStatus;
+    else if (raw && raw.healthStatus === null) currentHealthStatus = null;
 
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
-    const nextTool = (typeof tool === 'string' && tool) ? tool : null;
+    const nextTool = p.tool;
     if (nextTool !== currentToolName) {
       currentToolName = nextTool;
-      // Rebuild even if mode didn't change — tool name alone is worth updating.
       rebuildTrayMenu();
     }
 
     // Track error message for tray tooltip (e.g. "❌ spawn ENOENT" instead of "❌ error").
-    const nextError = (typeof errorMessage === 'string' && errorMessage) ? errorMessage : null;
+    const nextError = p.errorMessage;
     if (nextError !== currentErrorMessage) {
       currentErrorMessage = nextError;
       rebuildTrayMenu();
     }
 
-    if (typeof mode === 'string' && mode !== currentRendererMode) {
-      currentRendererMode = mode;
+    if (p.mode !== null && p.mode !== currentRendererMode) {
+      currentRendererMode = p.mode;
       modeChangedAt = Date.now();
-      // Reset sleeping tray state when mode changes away from idle.
-      if (mode !== 'idle') trayShowsSleeping = false;
-      // Track connection start for uptime display in tray tooltip.
-      if (mode === 'connected') {
+      if (p.mode !== 'idle') trayShowsSleeping = false;
+      if (p.mode === 'connected') {
         connectedSinceMs = Date.now();
-        // sessionConnectCount is now synced from the renderer's authoritative value.
         currentCloseDetail = null;
         currentReconnectAttempt = 0;
-      } else if (mode === 'disconnected' || mode === 'connecting') {
+      } else if (p.mode === 'disconnected' || p.mode === 'connecting') {
         connectedSinceMs = null;
         currentLatencyMs = null;
       }
-      updateTrayIcon(mode);
+      updateTrayIcon(p.mode);
       rebuildTrayMenu();
     }
   });
