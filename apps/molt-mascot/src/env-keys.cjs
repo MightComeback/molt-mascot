@@ -46,4 +46,20 @@ function resolveEnv(keys, env, fallback) {
 /** Canonical GitHub repository URL (single source of truth for about panel, tray menu, context menu). */
 const REPO_URL = 'https://github.com/MightComeback/molt-mascot';
 
-module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, REPO_URL };
+/**
+ * Like resolveEnv, but also returns the key that matched.
+ * Useful for diagnostics (e.g. "gateway URL came from GATEWAY_URL, not MOLT_MASCOT_GATEWAY_URL").
+ *
+ * @param {string[]} keys - Ordered env var names (first non-empty wins)
+ * @param {object} env - Environment object (e.g. process.env)
+ * @returns {{ key: string, value: string } | null} Matched key+value, or null if none matched
+ */
+function resolveEnvWithSource(keys, env) {
+  for (const key of keys) {
+    const val = env[key];
+    if (val !== undefined && val !== '') return { key, value: val };
+  }
+  return null;
+}
+
+module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, REPO_URL };

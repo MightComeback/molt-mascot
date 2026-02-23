@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, REPO_URL } from '../src/env-keys.cjs';
+import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, REPO_URL } from '../src/env-keys.cjs';
 
 describe('env-keys constants', () => {
   it('GATEWAY_URL_KEYS is a frozen array with expected first entry', () => {
@@ -60,6 +60,35 @@ describe('resolveEnv', () => {
       GATEWAY_URL: 'ws://default:5678',
     };
     expect(resolveEnv(GATEWAY_URL_KEYS, env)).toBe('ws://custom:1234');
+  });
+});
+
+describe('resolveEnvWithSource', () => {
+  it('returns matched key and value', () => {
+    const env = { B: 'second', A: 'first' };
+    expect(resolveEnvWithSource(['A', 'B'], env)).toEqual({ key: 'A', value: 'first' });
+  });
+
+  it('skips empty strings', () => {
+    const env = { A: '', B: 'fallback' };
+    expect(resolveEnvWithSource(['A', 'B'], env)).toEqual({ key: 'B', value: 'fallback' });
+  });
+
+  it('returns null when no key matches', () => {
+    expect(resolveEnvWithSource(['X', 'Y'], {})).toBeNull();
+  });
+
+  it('returns null for empty keys array', () => {
+    expect(resolveEnvWithSource([], { A: 'val' })).toBeNull();
+  });
+
+  it('higher-priority key wins', () => {
+    const env = {
+      MOLT_MASCOT_GATEWAY_URL: 'ws://custom:1234',
+      GATEWAY_URL: 'ws://default:5678',
+    };
+    const result = resolveEnvWithSource(GATEWAY_URL_KEYS, env);
+    expect(result).toEqual({ key: 'MOLT_MASCOT_GATEWAY_URL', value: 'ws://custom:1234' });
   });
 });
 

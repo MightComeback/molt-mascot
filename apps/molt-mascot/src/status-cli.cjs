@@ -1,4 +1,4 @@
-const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } = require('./env-keys.cjs');
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource } = require('./env-keys.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
 /**
@@ -65,8 +65,10 @@ function resolveStatusConfig({
     return 1.0;
   })();
 
-  const gatewayUrl = resolveEnv(GATEWAY_URL_KEYS, env) || null;
-  const hasToken = !!resolveEnv(GATEWAY_TOKEN_KEYS, env);
+  const gatewayUrlSource = resolveEnvWithSource(GATEWAY_URL_KEYS, env);
+  const gatewayUrl = gatewayUrlSource?.value || null;
+  const gatewayTokenSource = resolveEnvWithSource(GATEWAY_TOKEN_KEYS, env);
+  const hasToken = !!gatewayTokenSource;
 
   const resolvedPaddingNum = (() => {
     const envVal = Number(env.MOLT_MASCOT_PADDING);
@@ -139,7 +141,9 @@ function resolveStatusConfig({
     envOverrides,
     config: {
       gatewayUrl,
+      gatewayUrlSource: gatewayUrlSource?.key || null,
       gatewayToken: hasToken,
+      gatewayTokenSource: gatewayTokenSource?.key || null,
       alignment: resolvedAlign,
       size: resolvedSize,
       width: resolvedWidth,
@@ -202,8 +206,8 @@ function formatStatusText(status) {
     `Molt Mascot v${status.version}`,
     '',
     'Config (resolved):',
-    `  Gateway URL:    ${c.gatewayUrl || '(not set)'}`,
-    `  Gateway token:  ${c.gatewayToken ? '(set)' : '(not set)'}`,
+    `  Gateway URL:    ${c.gatewayUrl || '(not set)'}${c.gatewayUrlSource ? ` (via ${c.gatewayUrlSource})` : ''}`,
+    `  Gateway token:  ${c.gatewayToken ? '(set)' : '(not set)'}${c.gatewayTokenSource ? ` (via ${c.gatewayTokenSource})` : ''}`,
     `  Alignment:      ${c.alignment}`,
     `  Size:           ${c.size} (${c.width}×${c.height}px)`,
     `  Padding:        ${c.padding}px`,
