@@ -730,6 +730,20 @@ describe("buildTooltip", () => {
     expect(tip).toContain("🔴 unhealthy");
   });
 
+  it("includes stale connection reason when lastMessageAt is provided", () => {
+    const now = 1000000;
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectedSince: now - 60000,
+      healthStatus: "degraded",
+      lastMessageAt: now - 15000,
+      isPollingPaused: false,
+      now,
+    });
+    expect(tip).toContain("stale connection: 15s");
+  });
+
   it("omits health status when healthy or not provided", () => {
     const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "healthy" });
     expect(tip1).not.toContain("degraded");
