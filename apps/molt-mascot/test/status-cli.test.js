@@ -250,6 +250,13 @@ describe('resolveStatusConfig', () => {
     expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_DEBUG', affects: 'debug' });
   });
 
+  it('envOverrides includes MOLT_MASCOT_CAPTURE_DIR when set', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/screenshots' },
+    }));
+    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_CAPTURE_DIR', affects: 'captureDir' });
+  });
+
   it('envOverrides ignores empty string env vars', () => {
     const status = resolveStatusConfig(makeParams({
       env: { MOLT_MASCOT_ALIGN: '', MOLT_MASCOT_SIZE: 'large' },

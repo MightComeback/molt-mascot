@@ -117,6 +117,7 @@ function resolveStatusConfig({
     ['GATEWAY_MIN_PROTOCOL',       'minProtocol'],
     ['MOLT_MASCOT_MAX_PROTOCOL',   'maxProtocol'],
     ['GATEWAY_MAX_PROTOCOL',       'maxProtocol'],
+    ['MOLT_MASCOT_CAPTURE_DIR',    'captureDir'],
   ];
   const envOverrides = ENV_OVERRIDES_MAP
     .filter(([key]) => env[key] !== undefined && env[key] !== '')
