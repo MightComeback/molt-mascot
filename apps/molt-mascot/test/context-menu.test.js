@@ -670,4 +670,12 @@ describe("context-menu", () => {
 
     ctxMenu.dismiss();
   });
+
+  it("getSnapshot returns visible state", () => {
+    expect(ctxMenu.getSnapshot()).toEqual({ visible: false });
+    ctxMenu.show([{ label: "Test" }], { x: 10, y: 10 });
+    expect(ctxMenu.getSnapshot()).toEqual({ visible: true });
+    ctxMenu.dismiss();
+    expect(ctxMenu.getSnapshot()).toEqual({ visible: false });
+  });
 });

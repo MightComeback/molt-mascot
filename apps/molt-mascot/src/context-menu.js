@@ -222,3 +222,14 @@ export function show(items, { x, y }) {
 
   return menu;
 }
+
+/**
+ * Return a diagnostic snapshot of the context menu state.
+ * Mirrors getSnapshot() on fps-counter, latency-tracker, blink-state,
+ * and plugin-sync for API consistency across modules.
+ *
+ * @returns {{ visible: boolean }}
+ */
+export function getSnapshot() {
+  return { visible: isVisible() };
+}
