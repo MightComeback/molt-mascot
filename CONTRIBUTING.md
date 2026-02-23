@@ -29,6 +29,7 @@ molt-mascot/
 │   │   ├── size-presets.cjs   # Size preset definitions (dimensions, labels)
 │   │   ├── fps-counter.js     # Rolling FPS counter (ring buffer)
 │   │   ├── parse-cli-arg.cjs  # CLI argument parser (--flag value)
+│   │   ├── parse-mode-update.cjs # IPC mode-update payload validation (pure function)
 │   │   ├── prefs.cjs          # User preference persistence (debounced, atomic writes)
 │   │   └── status-cli.cjs    # --status CLI output (resolved config, formatting)
 │   └── test/                  # Bun test files (mirrors src/)
