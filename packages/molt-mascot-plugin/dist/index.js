@@ -40,6 +40,7 @@ __export(index_exports, {
   formatElapsed: () => formatElapsed,
   formatRelativeTime: () => formatRelativeTime,
   formatTimestamp: () => formatTimestamp,
+  formatTimestampLocal: () => formatTimestampLocal,
   id: () => id,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -247,6 +248,24 @@ function formatTimestamp(ts) {
   if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
   return new Date(ts).toISOString();
 }
+function formatTimestampLocal(ts, now) {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
+  const date = new Date(ts);
+  const ref = new Date(now ?? Date.now());
+  const sameDay = date.getFullYear() === ref.getFullYear() && date.getMonth() === ref.getMonth() && date.getDate() === ref.getDate();
+  if (sameDay) {
+    const h2 = String(date.getHours()).padStart(2, "0");
+    const m2 = String(date.getMinutes()).padStart(2, "0");
+    const s = String(date.getSeconds()).padStart(2, "0");
+    return `${h2}:${m2}:${s}`;
+  }
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const mon = MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
+  return `${mon} ${day}, ${h}:${m}`;
+}
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
@@ -391,6 +410,16 @@ var GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
 var IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
+  if (s.trimStart().startsWith("{")) {
+    try {
+      const obj = JSON.parse(s);
+      if (obj && typeof obj === "object") {
+        const msg = obj.error?.message ?? (typeof obj.error === "string" ? obj.error : null) ?? obj.message ?? obj.detail ?? obj.reason;
+        if (typeof msg === "string" && msg.trim()) return cleanErrorString(msg);
+      }
+    } catch {
+    }
+  }
   let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
   str = str.replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "").trim();
   str = str.replace(/^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "").trim();
@@ -929,6 +958,7 @@ function register(api) {
   formatElapsed,
   formatRelativeTime,
   formatTimestamp,
+  formatTimestampLocal,
   id,
   successRate,
   summarizeToolResultMessage,

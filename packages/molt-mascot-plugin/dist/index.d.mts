@@ -156,6 +156,19 @@ declare function formatRelativeTime(since: number, now?: number): string;
  */
 declare function formatTimestamp(ts: number): string;
 /**
+ * Format an epoch-ms timestamp as a compact local time string.
+ * Produces "HH:MM:SS" when the timestamp is today, or "Mon DD, HH:MM" otherwise.
+ * Uses the system locale/timezone so debug output is immediately readable
+ * without mental UTC conversion.
+ *
+ * Falls back to ISO-8601 if Intl is unavailable (e.g. stripped runtimes).
+ *
+ * @param ts - Epoch milliseconds
+ * @param now - Current timestamp for "today" detection (defaults to Date.now())
+ * @returns Compact local time string, or '–' if the input is invalid
+ */
+declare function formatTimestampLocal(ts: number, now?: number): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -194,4 +207,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, id, successRate, summarizeToolResultMessage, truncate, version };

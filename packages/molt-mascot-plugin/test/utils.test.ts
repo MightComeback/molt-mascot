@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1473,5 +1473,30 @@ describe("utils", () => {
     expect(formatTimestamp(-Infinity)).toBe("–");
     expect(formatTimestamp(undefined as any)).toBe("–");
     expect(formatTimestamp("hello" as any)).toBe("–");
+  });
+
+  it("formatTimestampLocal", () => {
+    // Same day: returns HH:MM:SS in local time
+    const now = new Date(2026, 1, 23, 14, 30, 0).getTime(); // Feb 23, 2026 14:30:00 local
+    const sameDay = new Date(2026, 1, 23, 9, 5, 7).getTime(); // Feb 23, 2026 09:05:07 local
+    expect(formatTimestampLocal(sameDay, now)).toBe("09:05:07");
+
+    // Different day: returns "Mon DD, HH:MM"
+    const diffDay = new Date(2026, 0, 15, 18, 42, 0).getTime(); // Jan 15, 2026 18:42 local
+    expect(formatTimestampLocal(diffDay, now)).toBe("Jan 15, 18:42");
+
+    // Invalid inputs
+    expect(formatTimestampLocal(NaN)).toBe("–");
+    expect(formatTimestampLocal(Infinity)).toBe("–");
+    expect(formatTimestampLocal(undefined as any)).toBe("–");
+    expect(formatTimestampLocal("hello" as any)).toBe("–");
+
+    // Midnight edge: same day at 00:00:00
+    const midnight = new Date(2026, 1, 23, 0, 0, 0).getTime();
+    expect(formatTimestampLocal(midnight, now)).toBe("00:00:00");
+
+    // Different month
+    const dec = new Date(2025, 11, 31, 23, 59, 0).getTime();
+    expect(formatTimestampLocal(dec, now)).toBe("Dec 31, 23:59");
   });
 });

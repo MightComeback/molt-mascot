@@ -319,6 +319,43 @@ export function formatTimestamp(ts: number): string {
 }
 
 /**
+ * Format an epoch-ms timestamp as a compact local time string.
+ * Produces "HH:MM:SS" when the timestamp is today, or "Mon DD, HH:MM" otherwise.
+ * Uses the system locale/timezone so debug output is immediately readable
+ * without mental UTC conversion.
+ *
+ * Falls back to ISO-8601 if Intl is unavailable (e.g. stripped runtimes).
+ *
+ * @param ts - Epoch milliseconds
+ * @param now - Current timestamp for "today" detection (defaults to Date.now())
+ * @returns Compact local time string, or '–' if the input is invalid
+ */
+export function formatTimestampLocal(ts: number, now?: number): string {
+  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  const date = new Date(ts);
+  const ref = new Date(now ?? Date.now());
+
+  const sameDay =
+    date.getFullYear() === ref.getFullYear() &&
+    date.getMonth() === ref.getMonth() &&
+    date.getDate() === ref.getDate();
+
+  if (sameDay) {
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    const s = String(date.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mon = MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${mon} ${day}, ${h}:${m}`;
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
