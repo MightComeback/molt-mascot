@@ -144,7 +144,7 @@ export function createLatencyTracker(opts = {}) {
    * Mirrors fpsCounter.getSnapshot() for API consistency across tracker modules.
    * Avoids consumers calling multiple methods (stats(), count()) separately.
    *
-   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number }}
+   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number, trend: "rising"|"falling"|"stable"|null }}
    */
   function getSnapshot() {
     return {
@@ -152,6 +152,7 @@ export function createLatencyTracker(opts = {}) {
       count: _count,
       maxSamples,
       totalPushed: _totalPushed,
+      trend: trend(),
     };
   }
 
@@ -235,7 +236,7 @@ export function createLatencyTracker(opts = {}) {
    * `JSON.stringify(tracker)` produces a clean diagnostic snapshot
    * without manual plucking (consistent with GatewayClient.toJSON()).
    *
-   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number }}
+   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number, trend: "rising"|"falling"|"stable"|null }}
    */
   function toJSON() {
     return getSnapshot();

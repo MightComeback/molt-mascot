@@ -140,12 +140,13 @@ describe('createLatencyTracker', () => {
     expect(t.count()).toBe(2);
   });
 
-  it('getSnapshot() returns stats, count, and maxSamples', () => {
+  it('getSnapshot() returns stats, count, maxSamples, and trend', () => {
     const t = createLatencyTracker({ maxSamples: 10 });
     const empty = t.getSnapshot();
     expect(empty.stats).toBeNull();
     expect(empty.count).toBe(0);
     expect(empty.maxSamples).toBe(10);
+    expect(empty.trend).toBeNull();
 
     t.push(5);
     t.push(15);
@@ -156,6 +157,14 @@ describe('createLatencyTracker', () => {
     expect(snap.stats.min).toBe(5);
     expect(snap.stats.max).toBe(15);
     expect(snap.stats.samples).toBe(2);
+    // Only 2 samples — trend requires ≥4
+    expect(snap.trend).toBeNull();
+
+    // Add enough samples for a rising trend
+    t.push(100);
+    t.push(200);
+    const snap2 = t.getSnapshot();
+    expect(snap2.trend).toBe('rising');
   });
 
   it('getSnapshot() uses cached stats', () => {
