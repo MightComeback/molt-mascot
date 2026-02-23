@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { resolveStatusConfig, formatStatusText, formatProtocolRange } from '../src/status-cli.cjs';
+import { resolveStatusConfig, formatStatusText } from '../src/status-cli.cjs';
+import { formatProtocolRange } from '../src/format-latency.cjs';
 import * as sizePresets from '../src/size-presets.cjs';
 import { isTruthyEnv } from '../src/is-truthy-env.cjs';
 import { hasBoolFlag } from '../src/parse-cli-arg.cjs';

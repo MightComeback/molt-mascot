@@ -256,4 +256,4 @@ function formatStatusText(status) {
   return lines.join('\n');
 }
 
-module.exports = { resolveStatusConfig, formatStatusText, formatProtocolRange };
+module.exports = { resolveStatusConfig, formatStatusText };
