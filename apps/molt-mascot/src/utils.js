@@ -167,6 +167,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (median used for connection quality label when available)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
+ * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (passed through to health reason diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown as a prefix emoji when degraded/unhealthy)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
@@ -199,6 +200,7 @@ export function buildTooltip(params) {
     activeTools = 0,
     targetUrl,
     lastResetAt,
+    isPollingPaused = false,
     healthStatus,
     now: nowOverride,
   } = params;
@@ -261,7 +263,7 @@ export function buildTooltip(params) {
     const emoji = healthStatus === 'degraded' ? '⚠️' : '🔴';
     const reasons = computeHealthReasons({
       isConnected,
-      isPollingPaused: false, // pill tooltip doesn't have this context
+      isPollingPaused,
       lastMessageAt: undefined,
       latencyMs,
       latencyStats,
