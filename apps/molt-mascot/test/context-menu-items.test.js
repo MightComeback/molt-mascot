@@ -232,4 +232,19 @@ describe('buildContextMenuItems', () => {
     expect(item).toBeDefined();
     expect(item.label).toBe('Reset Preferences…');
   });
+
+  it('size item shows pixel dimensions alongside label', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, sizeLabel: 'medium' });
+    const item = result.items.find((i) => i.id === 'size');
+    expect(item).toBeDefined();
+    expect(item.label).toContain('240×200');
+    expect(item.label).toContain('medium');
+  });
+
+  it('size item with unknown label falls back gracefully', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, sizeLabel: 'custom' });
+    const item = result.items.find((i) => i.id === 'size');
+    expect(item).toBeDefined();
+    expect(item.label).toContain('custom');
+  });
 });

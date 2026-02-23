@@ -8,6 +8,7 @@
  */
 
 import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary } from './utils.js';
+import { findSizePreset } from './size-presets.cjs';
 
 /**
  * @typedef {Object} MenuItemDescriptor
@@ -18,6 +19,19 @@ import { capitalize, truncate, formatDuration, formatElapsed, formatCount, succe
  * @property {boolean} [disabled] - Non-interactive
  * @property {boolean} [checked] - Toggle item checked state (renders as menuitemcheckbox with aria-checked)
  */
+
+/**
+ * Format a size label with its pixel dimensions for richer context menu display.
+ * e.g. 'medium' → 'medium 240×200', unknown labels pass through unchanged.
+ *
+ * @param {string} label - Size preset label
+ * @returns {string}
+ */
+function _formatSizeWithDims(label) {
+  const preset = findSizePreset(label);
+  if (preset) return `${preset.label} ${preset.width}×${preset.height}`;
+  return label || 'medium';
+}
 
 /**
  * @param {object} state - Current mascot state snapshot
@@ -122,7 +136,7 @@ export function buildContextMenuItems(state) {
     { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
     { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S` },
-    { id: 'size', label: `Cycle Size (${sizeLabel})`, hint: `${modKey}${shiftKey}Z` },
+    { id: 'size', label: `Cycle Size (${_formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
     { id: 'opacity', label: `Opacity (${Math.round(opacity * 100)}%)`, hint: `${modKey}${shiftKey}O` },
     { id: 'copy-status', label: 'Copy Status' },
     { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
