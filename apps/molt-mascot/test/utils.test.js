@@ -29,6 +29,8 @@ import {
   isRecoverableCloseCode,
   connectionUptimePercent,
   computeHealthReasons,
+  VALID_MODES,
+  isValidMode,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1397,5 +1399,26 @@ describe("connectionUptimePercent", () => {
       now: 1000000,
     });
     expect(result).toBe(100);
+  });
+});
+
+describe("VALID_MODES and isValidMode re-exports", () => {
+  it("VALID_MODES contains all MODE_EMOJI keys", () => {
+    const emojiKeys = Object.keys(MODE_EMOJI);
+    expect(VALID_MODES).toEqual(emojiKeys);
+  });
+
+  it("isValidMode returns true for known modes", () => {
+    for (const mode of VALID_MODES) {
+      expect(isValidMode(mode)).toBe(true);
+    }
+  });
+
+  it("isValidMode returns false for unknown strings and non-strings", () => {
+    expect(isValidMode("banana")).toBe(false);
+    expect(isValidMode("")).toBe(false);
+    expect(isValidMode(null)).toBe(false);
+    expect(isValidMode(42)).toBe(false);
+    expect(isValidMode(undefined)).toBe(false);
   });
 });
