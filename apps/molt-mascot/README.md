@@ -74,7 +74,9 @@ When running the Electron app standalone, you can configure it via environment v
 | `MOLT_MASCOT_NO_SHORTCUTS` | Disable global keyboard shortcuts (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_REDUCED_MOTION` | Force reduced motion (`1`/`true`); overrides OS preference | `0` |
 | `MOLT_MASCOT_START_HIDDEN` | Launch hidden, tray-only (`1`/`true` to enable); toggle with shortcut | `0` |
+| `MOLT_MASCOT_DEBUG` | Open DevTools on launch (`1`/`true` to enable) | `0` |
 | `MOLT_MASCOT_DISABLE_GPU` | Disable hardware acceleration (`1`/`true` to enable) | `0` |
+| `MOLT_MASCOT_CAPTURE_DIR` | Directory path to capture screenshots of all modes and exit (for docs/CI) | *(unset)* |
 
 ### Connection Configuration
 
