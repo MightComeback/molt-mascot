@@ -626,3 +626,40 @@ describe("PREF_SCHEMA", () => {
     }
   });
 });
+
+describe("validatePrefs gatewayUrl", () => {
+  it("accepts valid ws:// URL", () => {
+    const { clean, dropped } = validatePrefs({ gatewayUrl: "ws://127.0.0.1:18789" });
+    expect(clean.gatewayUrl).toBe("ws://127.0.0.1:18789");
+    expect(dropped).toEqual([]);
+  });
+
+  it("accepts valid wss:// URL", () => {
+    const { clean } = validatePrefs({ gatewayUrl: "wss://gateway.example.com/ws" });
+    expect(clean.gatewayUrl).toBe("wss://gateway.example.com/ws");
+  });
+
+  it("accepts empty string (cleared preference)", () => {
+    const { clean, dropped } = validatePrefs({ gatewayUrl: "" });
+    expect(clean.gatewayUrl).toBe("");
+    expect(dropped).toEqual([]);
+  });
+
+  it("rejects http:// URL", () => {
+    const { clean, dropped } = validatePrefs({ gatewayUrl: "http://example.com" });
+    expect(clean.gatewayUrl).toBeUndefined();
+    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+  });
+
+  it("rejects random string", () => {
+    const { clean, dropped } = validatePrefs({ gatewayUrl: "not-a-url" });
+    expect(clean.gatewayUrl).toBeUndefined();
+    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+  });
+
+  it("rejects ws:// with no host", () => {
+    const { clean, dropped } = validatePrefs({ gatewayUrl: "ws://" });
+    expect(clean.gatewayUrl).toBeUndefined();
+    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+  });
+});

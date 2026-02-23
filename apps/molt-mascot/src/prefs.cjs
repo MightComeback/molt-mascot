@@ -262,7 +262,7 @@ const PREF_SCHEMA = {
   opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1 },
   clickThrough: { type: 'boolean' },
   hideText:     { type: 'boolean' },
-  gatewayUrl:   { type: 'string' },
+  gatewayUrl:   { type: 'string', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v) },
   dragPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y) },
 };
 
