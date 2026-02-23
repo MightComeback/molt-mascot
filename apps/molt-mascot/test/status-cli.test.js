@@ -165,6 +165,14 @@ describe('resolveStatusConfig', () => {
     expect(status.electron).toBe('30.0.0');
     expect(status.node).toBe('20.0.0');
     expect(status.chrome).toBe('120.0.0');
+    expect(status.bun).toBeNull();
+  });
+
+  it('includes bun version when provided', () => {
+    const status = resolveStatusConfig(makeParams({
+      versions: { electron: '30.0.0', node: '20.0.0', chrome: '120.0.0', bun: '1.2.0' },
+    }));
+    expect(status.bun).toBe('1.2.0');
   });
 
   it('GATEWAY_URL fallback works', () => {
@@ -267,8 +275,9 @@ describe('formatStatusText', () => {
     expect(text).toContain('Start hidden:   false');
     expect(text).toContain('Debug:          false');
     expect(text).toContain('Disable GPU:    false');
-    expect(text).toContain('PID: 12345');
-    expect(text).toContain('darwin arm64');
+    expect(text).toContain('Runtime:');
+    expect(text).toContain('PID:       12345');
+    expect(text).toContain('Platform:  darwin arm64');
   });
 
   it('shows saved preferences when present', () => {
@@ -316,6 +325,20 @@ describe('formatStatusText', () => {
     expect(status.config.hideText).toBe(true);
     const text = formatStatusText(status);
     expect(text).toContain('MOLT_MASCOT_HIDETEXT → hideText');
+  });
+
+  it('shows bun version when available', () => {
+    const status = resolveStatusConfig(makeParams({
+      versions: { electron: '30.0.0', node: '20.0.0', chrome: '120.0.0', bun: '1.2.0' },
+    }));
+    const text = formatStatusText(status);
+    expect(text).toContain('Bun:       1.2.0');
+  });
+
+  it('omits bun line when not available', () => {
+    const status = resolveStatusConfig(makeParams());
+    const text = formatStatusText(status);
+    expect(text).not.toContain('Bun:');
   });
 
   it('omits env overrides section when no env vars are set', () => {

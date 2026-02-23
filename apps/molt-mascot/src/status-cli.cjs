@@ -158,6 +158,7 @@ function resolveStatusConfig({
     electron: versions.electron || null,
     node: versions.node || null,
     chrome: versions.chrome || null,
+    bun: versions.bun || null,
   };
 }
 
@@ -214,11 +215,13 @@ function formatStatusText(status) {
     }
   }
 
-  lines.push(`Platform: ${status.platform} ${status.arch}`);
-  lines.push(`PID: ${status.pid}`);
-  lines.push(`Electron: ${status.electron || 'n/a'}`);
-  lines.push(`Node: ${status.node || 'n/a'}`);
-  lines.push(`Chrome: ${status.chrome || 'n/a'}`);
+  lines.push('Runtime:');
+  lines.push(`  Platform:  ${status.platform} ${status.arch}`);
+  lines.push(`  PID:       ${status.pid}`);
+  lines.push(`  Electron:  ${status.electron || 'n/a'}`);
+  lines.push(`  Node:      ${status.node || 'n/a'}`);
+  lines.push(`  Chrome:    ${status.chrome || 'n/a'}`);
+  if (status.bun) lines.push(`  Bun:       ${status.bun}`);
   lines.push('');
 
   return lines.join('\n');
