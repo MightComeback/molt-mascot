@@ -1610,3 +1610,92 @@ describe("formatProtocolRange (re-exported from format-latency.cjs)", () => {
     expect(formatProtocolRange(2, 3)).toBe("v2–v3");
   });
 });
+
+describe("formatOpacity (re-exported from opacity-presets.cjs)", () => {
+  const { formatOpacity } = require("../src/utils.js");
+
+  it("formats numeric opacity as percentage string", () => {
+    expect(formatOpacity(1)).toBe("100%");
+    expect(formatOpacity(0.8)).toBe("80%");
+    expect(formatOpacity(0.6)).toBe("60%");
+    expect(formatOpacity(0.4)).toBe("40%");
+    expect(formatOpacity(0.2)).toBe("20%");
+    expect(formatOpacity(0)).toBe("0%");
+  });
+
+  it("returns '100%' for non-finite / non-number inputs", () => {
+    expect(formatOpacity(NaN)).toBe("100%");
+    expect(formatOpacity(Infinity)).toBe("100%");
+    expect(formatOpacity(null)).toBe("100%");
+    expect(formatOpacity(undefined)).toBe("100%");
+    expect(formatOpacity("0.5")).toBe("100%");
+  });
+
+  it("rounds fractional percentages", () => {
+    expect(formatOpacity(0.333)).toBe("33%");
+    expect(formatOpacity(0.666)).toBe("67%");
+    expect(formatOpacity(0.005)).toBe("1%");
+  });
+});
+
+describe("isFalsyEnv (re-exported from is-truthy-env.cjs)", () => {
+  const { isFalsyEnv } = require("../src/utils.js");
+
+  it("returns true for falsy env strings", () => {
+    expect(isFalsyEnv("0")).toBe(true);
+    expect(isFalsyEnv("false")).toBe(true);
+    expect(isFalsyEnv("no")).toBe(true);
+    expect(isFalsyEnv("off")).toBe(true);
+  });
+
+  it("returns false for empty string", () => {
+    expect(isFalsyEnv("")).toBe(false);
+  });
+
+  it("returns false for truthy env strings", () => {
+    expect(isFalsyEnv("1")).toBe(false);
+    expect(isFalsyEnv("true")).toBe(false);
+    expect(isFalsyEnv("yes")).toBe(false);
+  });
+
+  it("returns false for undefined/null", () => {
+    expect(isFalsyEnv(undefined)).toBe(false);
+    expect(isFalsyEnv(null)).toBe(false);
+  });
+});
+
+describe("parseBooleanEnv (re-exported from is-truthy-env.cjs)", () => {
+  const { parseBooleanEnv } = require("../src/utils.js");
+
+  it("returns true for truthy strings", () => {
+    expect(parseBooleanEnv("1")).toBe(true);
+    expect(parseBooleanEnv("true")).toBe(true);
+    expect(parseBooleanEnv("yes")).toBe(true);
+  });
+
+  it("returns false for falsy strings", () => {
+    expect(parseBooleanEnv("0")).toBe(false);
+    expect(parseBooleanEnv("false")).toBe(false);
+    expect(parseBooleanEnv("no")).toBe(false);
+  });
+
+  it("returns undefined for ambiguous/missing values", () => {
+    expect(parseBooleanEnv(undefined)).toBe(undefined);
+    expect(parseBooleanEnv("maybe")).toBe(undefined);
+  });
+});
+
+describe("MODE_DESCRIPTIONS (re-exported from mode-emoji.cjs)", () => {
+  const { MODE_DESCRIPTIONS, VALID_MODES } = require("../src/utils.js");
+
+  it("has a description for every valid mode", () => {
+    for (const mode of VALID_MODES) {
+      expect(typeof MODE_DESCRIPTIONS[mode]).toBe("string");
+      expect(MODE_DESCRIPTIONS[mode].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(MODE_DESCRIPTIONS)).toBe(true);
+  });
+});
