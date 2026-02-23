@@ -221,15 +221,7 @@ export function buildTooltip(params) {
     tip += ` · ${activeAgents} agent${activeAgents !== 1 ? 's' : ''}, ${activeTools} tool${activeTools !== 1 ? 's' : ''}`;
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    let latencyPart = formatLatency(latencyMs);
-    // Append connection quality label (excellent/good/fair/poor) using median when
-    // available (more stable than instant latency), matching tray tooltip behavior.
-    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
-    if (quality) latencyPart += ` [${quality}]`;
-    // Show jitter when it exceeds 50% of median — indicates unstable connection
-    if (latencyStats && typeof latencyStats.jitter === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * 0.5) {
-      latencyPart += `, jitter ${formatLatency(latencyStats.jitter)}`;
-    }
+    const { text: latencyPart } = formatQualitySummary(latencyMs, latencyStats, { emoji: false });
     tip += ` · ${latencyPart}`;
   }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
