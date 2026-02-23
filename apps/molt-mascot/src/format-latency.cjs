@@ -319,7 +319,13 @@ function formatHealthSummary(healthStatus, reasonParams) {
  * @returns {string} e.g. "2 agents, 1 tool" or "1 agent, 3 tools"
  */
 function formatActiveSummary(agents, tools) {
-  return `${agents} agent${agents !== 1 ? 's' : ''}, ${tools} tool${tools !== 1 ? 's' : ''}`;
+  const agentStr = `${agents} agent${agents !== 1 ? 's' : ''}`;
+  const toolStr = `${tools} tool${tools !== 1 ? 's' : ''}`;
+  // Omit the zero-count part for a cleaner display when only agents or only tools are active.
+  // Callers already guard against (0, 0), but handle it gracefully anyway.
+  if (agents > 0 && tools <= 0) return agentStr;
+  if (tools > 0 && agents <= 0) return toolStr;
+  return `${agentStr}, ${toolStr}`;
 }
 
 module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary };

@@ -408,8 +408,18 @@ describe('formatActiveSummary', () => {
     expect(formatActiveSummary(1, 1)).toBe('1 agent, 1 tool');
     expect(formatActiveSummary(2, 1)).toBe('2 agents, 1 tool');
     expect(formatActiveSummary(1, 3)).toBe('1 agent, 3 tools');
-    expect(formatActiveSummary(0, 0)).toBe('0 agents, 0 tools');
     expect(formatActiveSummary(5, 5)).toBe('5 agents, 5 tools');
+  });
+
+  it('omits zero-count part for cleaner display', () => {
+    expect(formatActiveSummary(2, 0)).toBe('2 agents');
+    expect(formatActiveSummary(1, 0)).toBe('1 agent');
+    expect(formatActiveSummary(0, 3)).toBe('3 tools');
+    expect(formatActiveSummary(0, 1)).toBe('1 tool');
+  });
+
+  it('shows both when both are zero (graceful fallback)', () => {
+    expect(formatActiveSummary(0, 0)).toBe('0 agents, 0 tools');
   });
 });
 
