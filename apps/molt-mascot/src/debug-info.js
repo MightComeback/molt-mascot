@@ -62,6 +62,8 @@
  * @param {number} [params.pid] - Electron process PID (useful for Activity Monitor / task kill diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient
  * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (appended to stats line for proactive diagnostics)
+ * @param {number} [params.minProtocol] - Minimum supported gateway protocol version (shown in diagnostics for version mismatch debugging)
+ * @param {number} [params.maxProtocol] - Maximum supported gateway protocol version
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -132,6 +134,8 @@ export function buildDebugInfo(params) {
     pid,
     healthStatus,
     latencyTrend,
+    minProtocol,
+    maxProtocol,
     now: nowOverride,
   } = params;
 
@@ -179,6 +183,9 @@ export function buildDebugInfo(params) {
     if (lastCloseDetail) lines.push(`Close reason: ${lastCloseDetail}`);
     if (savedUrl) lines.push(`Saved URL: ${savedUrl}`);
     if (typeof targetUrl === 'string' && targetUrl) lines.push(`Target URL: ${targetUrl}`);
+  }
+  if (typeof minProtocol === 'number' && typeof maxProtocol === 'number') {
+    lines.push(`Protocol: ${minProtocol === maxProtocol ? `v${minProtocol}` : `v${minProtocol}–v${maxProtocol}`}`);
   }
   lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
   if (hasPlugin) {

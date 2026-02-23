@@ -756,6 +756,23 @@ describe("healthStatus in debug info", () => {
   });
 });
 
+describe("protocol version in debug info", () => {
+  it("shows protocol range when min and max differ", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, minProtocol: 2, maxProtocol: 3 });
+    expect(info).toContain("Protocol: v2–v3");
+  });
+
+  it("shows single version when min equals max", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, minProtocol: 3, maxProtocol: 3 });
+    expect(info).toContain("Protocol: v3");
+  });
+
+  it("omits protocol line when not provided", () => {
+    const info = buildDebugInfo(BASE_PARAMS);
+    expect(info).not.toContain("Protocol:");
+  });
+});
+
 describe("formatElapsed", () => {
   it("returns human-readable duration between two timestamps", () => {
     const now = 1700000000000;
