@@ -39,6 +39,7 @@ __export(index_exports, {
   formatDuration: () => formatDuration,
   formatElapsed: () => formatElapsed,
   formatRelativeTime: () => formatRelativeTime,
+  formatTimestamp: () => formatTimestamp,
   id: () => id,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -241,6 +242,10 @@ function formatRelativeTime(since, now) {
   const diffMs = Math.max(0, n - since);
   if (diffMs < 1e3) return "just now";
   return `${formatDuration(Math.round(diffMs / 1e3))} ago`;
+}
+function formatTimestamp(ts) {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
+  return new Date(ts).toISOString();
 }
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
@@ -923,6 +928,7 @@ function register(api) {
   formatDuration,
   formatElapsed,
   formatRelativeTime,
+  formatTimestamp,
   id,
   successRate,
   summarizeToolResultMessage,

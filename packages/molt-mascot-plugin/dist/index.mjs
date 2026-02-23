@@ -193,6 +193,10 @@ function formatRelativeTime(since, now) {
   if (diffMs < 1e3) return "just now";
   return `${formatDuration(Math.round(diffMs / 1e3))} ago`;
 }
+function formatTimestamp(ts) {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
+  return new Date(ts).toISOString();
+}
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
@@ -874,6 +878,7 @@ export {
   formatDuration,
   formatElapsed,
   formatRelativeTime,
+  formatTimestamp,
   id,
   successRate,
   summarizeToolResultMessage,

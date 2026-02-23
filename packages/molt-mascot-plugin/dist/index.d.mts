@@ -146,6 +146,16 @@ declare function formatElapsed(since: number, now: number): string;
  */
 declare function formatRelativeTime(since: number, now?: number): string;
 /**
+ * Format an epoch-ms timestamp as an ISO-8601 string.
+ * Centralizes the repeated `new Date(ts).toISOString()` pattern used across
+ * debug-info, tray tooltip, and diagnostics — with input validation so callers
+ * don't need to guard against invalid/missing timestamps.
+ *
+ * @param ts - Epoch milliseconds
+ * @returns ISO-8601 string, or '–' if the input is invalid
+ */
+declare function formatTimestamp(ts: number): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -184,4 +194,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, id, successRate, summarizeToolResultMessage, truncate, version };

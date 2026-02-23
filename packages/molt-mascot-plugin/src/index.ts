@@ -305,6 +305,20 @@ export function formatRelativeTime(since: number, now?: number): string {
 }
 
 /**
+ * Format an epoch-ms timestamp as an ISO-8601 string.
+ * Centralizes the repeated `new Date(ts).toISOString()` pattern used across
+ * debug-info, tray tooltip, and diagnostics — with input validation so callers
+ * don't need to guard against invalid/missing timestamps.
+ *
+ * @param ts - Epoch milliseconds
+ * @returns ISO-8601 string, or '–' if the input is invalid
+ */
+export function formatTimestamp(ts: number): string {
+  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  return new Date(ts).toISOString();
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).

@@ -1449,4 +1449,17 @@ describe("utils", () => {
     expect(CONTENT_TOOLS.has("coding_agent")).toBe(true);
     expect(CONTENT_TOOLS.has("coding-agent")).toBe(true);
   });
+
+  it("formatTimestamp", () => {
+    const { formatTimestamp } = require("../src/index");
+    // Valid epoch ms → ISO string
+    expect(formatTimestamp(0)).toBe("1970-01-01T00:00:00.000Z");
+    expect(formatTimestamp(1700000000000)).toBe("2023-11-14T22:13:20.000Z");
+    // Invalid inputs → dash
+    expect(formatTimestamp(NaN)).toBe("–");
+    expect(formatTimestamp(Infinity)).toBe("–");
+    expect(formatTimestamp(-Infinity)).toBe("–");
+    expect(formatTimestamp(undefined as any)).toBe("–");
+    expect(formatTimestamp("hello" as any)).toBe("–");
+  });
 });
