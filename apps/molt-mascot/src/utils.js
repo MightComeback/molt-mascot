@@ -170,6 +170,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {boolean} [params.isPollingPaused] - Whether plugin state polling is paused (passed through to health reason diagnostics)
  * @param {number|null} [params.lastMessageAt] - Epoch ms of last WS message received (used for stale-connection health reason diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown as a prefix emoji when degraded/unhealthy)
+ * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100), used for health reason diagnostics
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -204,6 +205,7 @@ export function buildTooltip(params) {
     isPollingPaused = false,
     lastMessageAt,
     healthStatus,
+    connectionSuccessRate,
     now: nowOverride,
   } = params;
 
@@ -269,7 +271,7 @@ export function buildTooltip(params) {
       lastMessageAt,
       latencyMs,
       latencyStats,
-      connectionSuccessRate: undefined,
+      connectionSuccessRate,
       now,
     });
     const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';

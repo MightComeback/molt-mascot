@@ -744,6 +744,19 @@ describe("buildTooltip", () => {
     expect(tip).toContain("stale connection: 15s");
   });
 
+  it("includes low success rate reason when connectionSuccessRate is provided", () => {
+    const now = 1000000;
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectedSince: now - 60000,
+      healthStatus: "degraded",
+      connectionSuccessRate: 50,
+      now,
+    });
+    expect(tip).toContain("low success rate: 50%");
+  });
+
   it("omits health status when healthy or not provided", () => {
     const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "healthy" });
     expect(tip1).not.toContain("degraded");
