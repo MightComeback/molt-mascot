@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -218,5 +218,32 @@ describe('formatQualitySummary', () => {
   it('handles null stats gracefully', () => {
     const result = formatQualitySummary(200, null);
     expect(result.quality).toBe('fair');
+  });
+});
+
+describe('VALID_HEALTH_STATUSES', () => {
+  it('contains all three health statuses', () => {
+    expect(VALID_HEALTH_STATUSES).toEqual(['healthy', 'degraded', 'unhealthy']);
+  });
+
+  it('is frozen', () => {
+    expect(Object.isFrozen(VALID_HEALTH_STATUSES)).toBe(true);
+  });
+});
+
+describe('isValidHealth', () => {
+  it('accepts valid health statuses', () => {
+    expect(isValidHealth('healthy')).toBe(true);
+    expect(isValidHealth('degraded')).toBe(true);
+    expect(isValidHealth('unhealthy')).toBe(true);
+  });
+
+  it('rejects invalid values', () => {
+    expect(isValidHealth('unknown')).toBe(false);
+    expect(isValidHealth('Healthy')).toBe(false);
+    expect(isValidHealth('')).toBe(false);
+    expect(isValidHealth(null)).toBe(false);
+    expect(isValidHealth(undefined)).toBe(false);
+    expect(isValidHealth(42)).toBe(false);
   });
 });

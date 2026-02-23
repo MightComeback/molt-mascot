@@ -194,4 +194,27 @@ function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, lat
   return reasons;
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, computeHealthReasons };
+/**
+ * Canonical set of valid health status strings.
+ * Single source of truth — consumed by parse-mode-update.cjs, utils.js, etc.
+ */
+const VALID_HEALTH_STATUSES = Object.freeze(['healthy', 'degraded', 'unhealthy']);
+
+/**
+ * Internal Set for O(1) health status validation lookups.
+ * Mirrors the mode-emoji.cjs pattern (Set.has vs Array.includes).
+ */
+const _VALID_HEALTH_SET = new Set(VALID_HEALTH_STATUSES);
+
+/**
+ * Check whether a string is a recognized health status (case-sensitive).
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidHealth(value) {
+  if (typeof value !== 'string') return false;
+  return _VALID_HEALTH_SET.has(value);
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, healthStatusEmoji, computeHealthReasons, VALID_HEALTH_STATUSES, isValidHealth };

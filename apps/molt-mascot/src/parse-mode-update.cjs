@@ -70,13 +70,14 @@ function posEpoch(v) {
  * @returns {"healthy"|"degraded"|"unhealthy"|null}
  */
 const { isValidMode } = require('./mode-emoji.cjs');
+const { VALID_HEALTH_STATUSES, isValidHealth } = require('./format-latency.cjs');
 
-const VALID_HEALTH = Object.freeze(['healthy', 'degraded', 'unhealthy']);
-/** @private Set for O(1) health status validation (matches mode-emoji/size-presets pattern). */
-const _VALID_HEALTH_SET = new Set(VALID_HEALTH);
+// Re-export for back-compat (consumers may import VALID_HEALTH from here).
+const VALID_HEALTH = VALID_HEALTH_STATUSES;
+
 function validHealthStatus(v) {
   if (typeof v !== 'string') return null;
-  return _VALID_HEALTH_SET.has(v) ? v : null;
+  return isValidHealth(v) ? v : null;
 }
 
 /**
