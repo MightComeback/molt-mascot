@@ -1390,6 +1390,7 @@ function showContextMenu(e) {
       label: d.label,
       hint: d.hint,
       disabled: d.disabled,
+      checked: d.checked,
       action: actions[d.id],
     };
   });
