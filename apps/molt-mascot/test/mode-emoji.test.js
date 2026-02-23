@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { MODE_EMOJI, VALID_MODES, isValidMode } from '../src/mode-emoji.cjs';
+import { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from '../src/mode-emoji.cjs';
 
 describe('MODE_EMOJI', () => {
   it('is frozen (immutable)', () => {
@@ -50,6 +50,29 @@ describe('VALID_MODES', () => {
 
   it('matches MODE_EMOJI keys', () => {
     expect([...VALID_MODES].sort()).toEqual(Object.keys(MODE_EMOJI).sort());
+  });
+});
+
+describe('MODE_DESCRIPTIONS', () => {
+  it('is frozen (immutable)', () => {
+    expect(Object.isFrozen(MODE_DESCRIPTIONS)).toBe(true);
+  });
+
+  it('has a description for every MODE_EMOJI key', () => {
+    for (const mode of Object.keys(MODE_EMOJI)) {
+      expect(MODE_DESCRIPTIONS).toHaveProperty(mode);
+      expect(typeof MODE_DESCRIPTIONS[mode]).toBe('string');
+      expect(MODE_DESCRIPTIONS[mode].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('has no extra keys beyond MODE_EMOJI', () => {
+    expect(Object.keys(MODE_DESCRIPTIONS).sort()).toEqual(Object.keys(MODE_EMOJI).sort());
+  });
+
+  it('all descriptions are unique', () => {
+    const values = Object.values(MODE_DESCRIPTIONS);
+    expect(new Set(values).size).toBe(values.length);
   });
 });
 

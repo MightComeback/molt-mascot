@@ -14,6 +14,23 @@ const MODE_EMOJI = Object.freeze({
 });
 
 /**
+ * Human-readable descriptions for each mode.
+ * Useful for accessibility labels (aria-label, aria-description), tooltip alt-text,
+ * About panel, and documentation. Avoids scattering ad-hoc mode descriptions
+ * across renderer, tray, and context-menu code.
+ */
+const MODE_DESCRIPTIONS = Object.freeze({
+  idle: 'Waiting for activity',
+  thinking: 'Processing a response',
+  tool: 'Running a tool',
+  error: 'An error occurred',
+  connecting: 'Connecting to gateway',
+  disconnected: 'Disconnected from gateway',
+  connected: 'Successfully connected',
+  sleeping: 'Idle for an extended period',
+});
+
+/**
  * Canonical set of valid mode strings.
  * Frozen array derived from MODE_EMOJI keys — single source of truth.
  */
@@ -39,4 +56,4 @@ function isValidMode(value) {
   return _VALID_MODES_SET.has(value);
 }
 
-module.exports = { MODE_EMOJI, VALID_MODES, isValidMode };
+module.exports = { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode };
