@@ -242,5 +242,27 @@ export function createLatencyTracker(opts = {}) {
     return getSnapshot();
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend, toJSON };
+  /**
+   * Human-readable one-line summary for quick diagnostic logging.
+   * Example: "LatencyTracker<12 samples, avg=45ms, median=42ms, p95=78ms, jitter=8ms, rising>"
+   * Returns "LatencyTracker<empty>" when no samples are available.
+   *
+   * Mirrors GatewayClient.toString() for consistent diagnostic output.
+   *
+   * @returns {string}
+   */
+  function toString() {
+    if (_count === 0) return 'LatencyTracker<empty>';
+    const s = stats();
+    const parts = [`${s.samples} sample${s.samples !== 1 ? 's' : ''}`];
+    parts.push(`avg=${s.avg}ms`);
+    parts.push(`median=${s.median}ms`);
+    if (s.samples >= 5) parts.push(`p95=${s.p95}ms`);
+    parts.push(`jitter=${s.jitter}ms`);
+    const t = trend();
+    if (t) parts.push(t);
+    return `LatencyTracker<${parts.join(', ')}>`;
+  }
+
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend, toJSON, toString };
 }

@@ -418,4 +418,39 @@ describe('createLatencyTracker', () => {
     expect(json.stats).toBeNull();
     expect(json.count).toBe(0);
   });
+
+  it('toString() returns "LatencyTracker<empty>" when no samples', () => {
+    const t = createLatencyTracker();
+    expect(t.toString()).toBe('LatencyTracker<empty>');
+  });
+
+  it('toString() includes stats summary for a single sample', () => {
+    const t = createLatencyTracker();
+    t.push(42);
+    const str = t.toString();
+    expect(str).toStartWith('LatencyTracker<');
+    expect(str).toContain('1 sample,');
+    expect(str).toContain('avg=42ms');
+    expect(str).toContain('median=42ms');
+    expect(str).toContain('jitter=0ms');
+    // p95 omitted for < 5 samples
+    expect(str).not.toContain('p95=');
+  });
+
+  it('toString() includes p95 and trend when enough samples', () => {
+    const t = createLatencyTracker();
+    [10, 10, 50, 50, 90].forEach(v => t.push(v));
+    const str = t.toString();
+    expect(str).toContain('5 samples');
+    expect(str).toContain('p95=');
+    expect(str).toContain('rising');
+  });
+
+  it('toString() returns empty after reset', () => {
+    const t = createLatencyTracker();
+    t.push(10);
+    t.push(20);
+    t.reset();
+    expect(t.toString()).toBe('LatencyTracker<empty>');
+  });
 });
