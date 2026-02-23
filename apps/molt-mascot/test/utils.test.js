@@ -862,6 +862,12 @@ describe("validateWsUrl", () => {
     expect(validateWsUrl("ws://localhost")).toBe(null);
     expect(validateWsUrl("wss://example.com/path")).toBe(null);
   });
+
+  it("rejects URLs with embedded credentials", () => {
+    expect(validateWsUrl("ws://user:pass@localhost:8080")).toMatch(/credentials/i);
+    expect(validateWsUrl("wss://admin:secret@example.com/ws")).toMatch(/credentials/i);
+    expect(validateWsUrl("ws://user@localhost")).toMatch(/credentials/i);
+  });
 });
 
 describe("formatCloseDetail", () => {

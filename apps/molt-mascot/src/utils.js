@@ -336,6 +336,13 @@ export function validateWsUrl(url) {
 
   if (!parsed.hostname) return 'URL is missing a hostname';
 
+  // Reject URLs with embedded credentials (ws://user:pass@host).
+  // Most WebSocket implementations silently strip or reject userinfo,
+  // and it's a security anti-pattern (credentials visible in logs/tooltips).
+  if (parsed.username || parsed.password) {
+    return 'URL must not contain credentials (user:pass@)';
+  }
+
   // Port range check (URL constructor accepts any digits but WebSocket connect will fail).
   if (parsed.port) {
     const port = Number(parsed.port);
