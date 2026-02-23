@@ -16,6 +16,7 @@ import { capitalize, truncate, formatDuration, formatElapsed, formatCount, succe
  * @property {string} [hint] - Keyboard shortcut hint
  * @property {boolean} [separator] - Render as divider
  * @property {boolean} [disabled] - Non-interactive
+ * @property {boolean} [checked] - Toggle item checked state (renders as menuitemcheckbox with aria-checked)
  */
 
 /**
@@ -115,8 +116,8 @@ export function buildContextMenuItems(state) {
   const items = [
     { id: 'status', label: statusLine, disabled: true },
     { id: 'sep-1', separator: true },
-    { id: 'ghost', label: `${isClickThrough ? '✓ ' : ''}Ghost Mode`, hint: `${modKey}${shiftKey}M` },
-    { id: 'hide-text', label: `${isTextHidden ? '✓ ' : ''}Hide Text`, hint: `${modKey}${shiftKey}H` },
+    { id: 'ghost', label: 'Ghost Mode', hint: `${modKey}${shiftKey}M`, checked: isClickThrough },
+    { id: 'hide-text', label: 'Hide Text', hint: `${modKey}${shiftKey}H`, checked: isTextHidden },
     { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
     { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S` },

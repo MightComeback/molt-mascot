@@ -10,6 +10,7 @@
  * @property {() => void} [action]
  * @property {boolean} [separator] - Render as a visual divider instead of a clickable item
  * @property {boolean} [disabled] - Render as non-interactive (skipped by keyboard nav)
+ * @property {boolean} [checked] - Toggle state (renders as menuitemcheckbox with aria-checked)
  */
 
 let activeCleanup = null;
@@ -61,18 +62,18 @@ export function show(items, { x, y }) {
       continue;
     }
     const row = document.createElement('div');
-    // Use 'menuitemcheckbox' role for toggle items (indicated by ✓ prefix)
-    // so screen readers announce the checked/unchecked state.
-    const isToggle = item.label?.startsWith('✓ ');
+    // Use 'menuitemcheckbox' role for toggle items so screen readers
+    // announce the checked/unchecked state correctly.
+    const isToggle = typeof item.checked === 'boolean';
     row.setAttribute('role', isToggle ? 'menuitemcheckbox' : 'menuitem');
-    if (isToggle) row.setAttribute('aria-checked', 'true');
+    if (isToggle) row.setAttribute('aria-checked', String(item.checked));
     row.tabIndex = -1;
     if (item.disabled) {
       row.setAttribute('aria-disabled', 'true');
       row.dataset.disabled = '';
     }
     const labelSpan = document.createElement('span');
-    labelSpan.textContent = item.label;
+    labelSpan.textContent = (isToggle && item.checked ? '✓ ' : '') + (item.label || '');
     row.appendChild(labelSpan);
     if (item.hint) {
       const hintSpan = document.createElement('span');

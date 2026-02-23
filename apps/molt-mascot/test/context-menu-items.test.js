@@ -75,22 +75,25 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).toContain('connection refused');
   });
 
-  it('shows checkmark prefix on ghost mode when active', () => {
+  it('ghost mode item has checked=true when active', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, isClickThrough: true });
     const ghost = result.items.find((i) => i.id === 'ghost');
-    expect(ghost.label).toStartWith('✓ ');
+    expect(ghost.checked).toBe(true);
+    expect(ghost.label).toBe('Ghost Mode');
   });
 
-  it('no checkmark on ghost mode when inactive', () => {
+  it('ghost mode item has checked=false when inactive', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, isClickThrough: false });
     const ghost = result.items.find((i) => i.id === 'ghost');
-    expect(ghost.label).not.toStartWith('✓ ');
+    expect(ghost.checked).toBe(false);
+    expect(ghost.label).toBe('Ghost Mode');
   });
 
-  it('shows checkmark on hide text when active', () => {
+  it('hide text item has checked=true when active', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, isTextHidden: true });
     const item = result.items.find((i) => i.id === 'hide-text');
-    expect(item.label).toStartWith('✓ ');
+    expect(item.checked).toBe(true);
+    expect(item.label).toBe('Hide Text');
   });
 
   it('shows "Reconnect Now" when disconnected', () => {

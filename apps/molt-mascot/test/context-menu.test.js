@@ -403,7 +403,7 @@ describe("context-menu", () => {
     const menu = ctxMenu.show(
       [
         { label: "Alpha", action: () => {} },
-        { label: "✓ Ghost Mode", action: () => {} },
+        { label: "Ghost Mode", checked: true, action: () => {} },
         { label: "Beta", action: () => {} },
       ],
       { x: 0, y: 0 }
@@ -525,15 +525,23 @@ describe("context-menu", () => {
   it("toggle items use menuitemcheckbox role with aria-checked", () => {
     const menu = ctxMenu.show(
       [
-        { label: "✓ Ghost Mode", action: () => {} },
+        { label: "Ghost Mode", checked: true, action: () => {} },
+        { label: "Hide Text", checked: false, action: () => {} },
         { label: "Normal Item", action: () => {} },
       ],
       { x: 0, y: 0 }
     );
+    // checked=true → menuitemcheckbox with aria-checked="true" and ✓ prefix
     expect(menu._children[0]._attrs["role"]).toBe("menuitemcheckbox");
     expect(menu._children[0]._attrs["aria-checked"]).toBe("true");
-    expect(menu._children[1]._attrs["role"]).toBe("menuitem");
-    expect(menu._children[1]._attrs["aria-checked"]).toBeUndefined();
+    expect(menu._children[0]._children[0].textContent).toBe("✓ Ghost Mode");
+    // checked=false → menuitemcheckbox with aria-checked="false" and no ✓ prefix
+    expect(menu._children[1]._attrs["role"]).toBe("menuitemcheckbox");
+    expect(menu._children[1]._attrs["aria-checked"]).toBe("false");
+    expect(menu._children[1]._children[0].textContent).toBe("Hide Text");
+    // no checked property → plain menuitem
+    expect(menu._children[2]._attrs["role"]).toBe("menuitem");
+    expect(menu._children[2]._attrs["aria-checked"]).toBeUndefined();
   });
 
   it("sets aria-keyshortcuts on items with hint text", () => {
