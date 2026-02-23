@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, formatHealthSummary } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -355,5 +355,50 @@ describe('computeHealthReasons', () => {
       now,
     });
     expect(reasons.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('formatHealthSummary', () => {
+  const now = 1700000000000;
+
+  it('returns null for healthy status', () => {
+    expect(formatHealthSummary('healthy', { isConnected: true, now })).toBe(null);
+  });
+
+  it('returns null for null/undefined status', () => {
+    expect(formatHealthSummary(null, { isConnected: true, now })).toBe(null);
+    expect(formatHealthSummary(undefined, { isConnected: true, now })).toBe(null);
+  });
+
+  it('returns summary for degraded status', () => {
+    const result = formatHealthSummary('degraded', { isConnected: true, latencyMs: 600, now });
+    expect(result).not.toBe(null);
+    expect(result.text).toContain('⚠️');
+    expect(result.text).toContain('degraded');
+    expect(result.text).toContain('poor latency');
+    expect(result.emoji).toBe('⚠️');
+    expect(result.reasons.length).toBeGreaterThan(0);
+  });
+
+  it('returns summary for unhealthy status', () => {
+    const result = formatHealthSummary('unhealthy', { isConnected: false, now });
+    expect(result).not.toBe(null);
+    expect(result.text).toContain('🔴');
+    expect(result.text).toContain('unhealthy');
+    expect(result.text).toContain('disconnected');
+    expect(result.emoji).toBe('🔴');
+  });
+
+  it('returns summary with no reasons when params are minimal', () => {
+    const result = formatHealthSummary('degraded', { isConnected: true, now });
+    expect(result).not.toBe(null);
+    expect(result.text).toBe('⚠️ degraded');
+    expect(result.reasons).toEqual([]);
+  });
+
+  it('handles missing reasonParams gracefully', () => {
+    const result = formatHealthSummary('unhealthy');
+    expect(result).not.toBe(null);
+    expect(result.text).toContain('🔴 unhealthy');
   });
 });

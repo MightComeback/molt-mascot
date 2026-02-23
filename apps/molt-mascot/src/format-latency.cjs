@@ -286,4 +286,27 @@ function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, late
   return 'healthy';
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth };
+/**
+ * Build a compact health summary string: "emoji status (reason1; reason2)".
+ * Consolidates the repeated pattern across buildTooltip, buildTrayTooltip,
+ * and buildDebugInfo into a single reusable function.
+ *
+ * Returns null when health is "healthy" or not provided (nothing to display).
+ *
+ * @param {"healthy"|"degraded"|"unhealthy"|string|null} healthStatus
+ * @param {object} reasonParams - Parameters for computeHealthReasons()
+ * @returns {{ text: string, emoji: string, reasons: string[] }|null}
+ */
+function formatHealthSummary(healthStatus, reasonParams) {
+  if (!healthStatus || healthStatus === 'healthy') return null;
+  const emoji = healthStatusEmoji(healthStatus);
+  const reasons = computeHealthReasons(reasonParams || {});
+  const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';
+  return {
+    text: `${emoji} ${healthStatus}${reasonsSuffix}`,
+    emoji,
+    reasons,
+  };
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary };

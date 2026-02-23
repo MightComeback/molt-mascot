@@ -17,7 +17,7 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth } from './format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary } from './format-latency.cjs';
 export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth };
 
 /**
@@ -263,19 +263,17 @@ export function buildTooltip(params) {
   }
   // Show health status when degraded or unhealthy for at-a-glance diagnostics.
   // "healthy" is omitted to keep the tooltip clean when everything is fine.
-  if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
-    const emoji = healthStatus === 'degraded' ? '⚠️' : '🔴';
-    const reasons = computeHealthReasons({
-      isConnected,
-      isPollingPaused,
-      lastMessageAt,
-      latencyMs,
-      latencyStats,
-      connectionSuccessRate,
-      now,
-    });
-    const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';
-    tip += ` · ${emoji} ${healthStatus}${reasonsSuffix}`;
+  const healthSummary = _formatHealthSummary(healthStatus, {
+    isConnected,
+    isPollingPaused,
+    lastMessageAt,
+    latencyMs,
+    latencyStats,
+    connectionSuccessRate,
+    now,
+  });
+  if (healthSummary) {
+    tip += ` · ${healthSummary.text}`;
   }
   const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
   if (verParts) tip += ` (${verParts})`;
@@ -523,6 +521,19 @@ export const computeHealthStatus = _computeHealthStatus;
  * @returns {string[]} Array of reason strings (e.g. ["stale connection: 15s", "high jitter: 250ms"])
  */
 export const computeHealthReasons = _computeHealthReasons;
+
+/**
+ * Build a compact health summary string: "emoji status (reason1; reason2)".
+ * Delegates to the canonical implementation in format-latency.cjs (single source of truth).
+ * Re-exported here for ESM consumers (renderer, debug-info, pill tooltip).
+ *
+ * Returns null when health is "healthy" or not provided (nothing to display).
+ *
+ * @param {"healthy"|"degraded"|"unhealthy"|string|null} healthStatus
+ * @param {object} reasonParams - Parameters for computeHealthReasons()
+ * @returns {{ text: string, emoji: string, reasons: string[] }|null}
+ */
+export const formatHealthSummary = _formatHealthSummary;
 
 /**
  * Approximate connection uptime as a percentage of total process lifetime.

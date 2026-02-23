@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, formatQualitySummary, healthStatusEmoji, computeHealthReasons } = require('./format-latency.cjs');
+const { formatLatency, formatQualitySummary, formatHealthSummary } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -256,7 +256,7 @@ function buildTrayTooltip(params) {
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
   // with diagnostic reasons so users can see *why* without opening debug info.
   // "healthy" is omitted to keep it clean.
-  if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
+  {
     // Use the caller-provided connectionSuccessRate when available (avoids
     // redundant computation when the caller already has it, e.g. from
     // GatewayClient.connectionSuccessRate). Fall back to inline computation
@@ -266,7 +266,7 @@ function buildTrayTooltip(params) {
       : (typeof sessionConnectCount === 'number' && typeof sessionAttemptCount === 'number' && sessionAttemptCount > 0)
         ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
         : undefined;
-    const reasons = computeHealthReasons({
+    const summary = formatHealthSummary(healthStatus, {
       isConnected: !!uptimeStr,
       isPollingPaused: false,
       lastMessageAt: lastMessageAt || undefined,
@@ -275,8 +275,7 @@ function buildTrayTooltip(params) {
       connectionSuccessRate: resolvedSuccessRate,
       now,
     });
-    const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';
-    parts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}${reasonsSuffix}`);
+    if (summary) parts.push(summary.text);
   }
   return parts.join(' · ');
 }
