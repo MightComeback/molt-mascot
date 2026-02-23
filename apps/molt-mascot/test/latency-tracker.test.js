@@ -196,4 +196,45 @@ describe('createLatencyTracker', () => {
     t.reset();
     expect(t.last()).toBeNull();
   });
+
+  it('percentAbove() returns null when empty', () => {
+    const t = createLatencyTracker();
+    expect(t.percentAbove(100)).toBeNull();
+  });
+
+  it('percentAbove() returns null for invalid threshold', () => {
+    const t = createLatencyTracker();
+    t.push(50);
+    expect(t.percentAbove(NaN)).toBeNull();
+    expect(t.percentAbove(Infinity)).toBeNull();
+  });
+
+  it('percentAbove() computes correct percentage', () => {
+    const t = createLatencyTracker();
+    [50, 100, 150, 200, 250].forEach(v => t.push(v));
+    // 3 of 5 are above 100 (150, 200, 250)
+    expect(t.percentAbove(100)).toBe(60);
+    // All above 0
+    expect(t.percentAbove(0)).toBe(100);
+    // None above 300
+    expect(t.percentAbove(300)).toBe(0);
+    // Threshold is exclusive: exactly 200 is not "above 200"
+    expect(t.percentAbove(200)).toBe(20); // only 250
+  });
+
+  it('percentAbove() works after ring buffer wraps', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(10);
+    t.push(20);
+    t.push(30);
+    t.push(40); // evicts 10, buffer is [20, 30, 40]
+    expect(t.percentAbove(25)).toBe(67); // 30 and 40 above 25 → 2/3 ≈ 67%
+  });
+
+  it('percentAbove() returns 0 after reset', () => {
+    const t = createLatencyTracker();
+    t.push(100);
+    t.reset();
+    expect(t.percentAbove(50)).toBeNull();
+  });
 });

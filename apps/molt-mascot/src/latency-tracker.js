@@ -140,5 +140,24 @@ export function createLatencyTracker(opts = {}) {
     };
   }
 
-  return { push, stats, reset, samples, count, last, getSnapshot };
+  /**
+   * Return the percentage of samples that exceed a given threshold.
+   * Useful for diagnostics like "what % of polls are above 200ms?"
+   * and for more nuanced health assessments than a single median check.
+   *
+   * @param {number} thresholdMs - Threshold in milliseconds (exclusive)
+   * @returns {number|null} Integer percentage (0-100), or null if no samples
+   */
+  function percentAbove(thresholdMs) {
+    if (_count === 0) return null;
+    if (typeof thresholdMs !== 'number' || !Number.isFinite(thresholdMs)) return null;
+    const start = _count < maxSamples ? 0 : head;
+    let above = 0;
+    for (let i = 0; i < _count; i++) {
+      if (ring[(start + i) % maxSamples] > thresholdMs) above++;
+    }
+    return Math.round((above / _count) * 100);
+  }
+
+  return { push, stats, reset, samples, count, last, percentAbove, getSnapshot };
 }
