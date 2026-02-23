@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, computeHealthReasons, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import { createLatencyTracker } from './latency-tracker.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
@@ -804,8 +804,19 @@ export class GatewayClient {
         parts.push(`${formatLatency(source ?? this.latencyMs)}${emoji}`);
       }
       const health = this.healthStatus;
-      if (health === 'degraded') parts.push('⚠️ degraded');
-      else if (health === 'unhealthy') parts.push('🔴 unhealthy');
+      if (health === 'degraded' || health === 'unhealthy') {
+        const emoji = health === 'degraded' ? '⚠️' : '🔴';
+        const reasons = computeHealthReasons({
+          isConnected: this.isConnected,
+          isPollingPaused: this._pollingPaused,
+          lastMessageAt: this._lastMessageAt || null,
+          latencyMs: this.latencyMs,
+          latencyStats: this.latencyStats,
+          connectionSuccessRate: this.connectionSuccessRate,
+        });
+        const reasonsSuffix = reasons.length > 0 ? `: ${reasons.join('; ')}` : '';
+        parts.push(`${emoji} ${health}${reasonsSuffix}`);
+      }
     } else {
       parts.push('disconnected');
       if (this.targetUrl) parts.push(this.targetUrl);

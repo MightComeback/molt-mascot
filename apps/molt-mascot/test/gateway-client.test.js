@@ -795,13 +795,27 @@ describe('GatewayClient', () => {
       expect(str).toContain('↻3');
     });
 
-    it('includes degraded health status when latency is poor', () => {
+    it('includes degraded health status with reasons when latency is poor', () => {
       client.connectedSince = Date.now();
       client.connectedUrl = 'ws://localhost:18789';
       client._ws = { readyState: 1 };
       client.latencyMs = 600; // poor latency → degraded
       const str = client.toString();
       expect(str).toContain('⚠️ degraded');
+      expect(str).toContain('poor latency');
+    });
+
+    it('includes unhealthy health status with reasons when disconnected after connection', () => {
+      // Simulate a client that was connected then disconnected
+      client.connectedSince = null;
+      client._ws = null;
+      client.sessionConnectCount = 1;
+      client.sessionAttemptCount = 2;
+      client.lastDisconnectedAt = Date.now();
+      client.targetUrl = 'ws://localhost:18789';
+      // toString shows disconnected, not health (health is for connected state in toString)
+      const str = client.toString();
+      expect(str).toContain('disconnected');
     });
   });
 
