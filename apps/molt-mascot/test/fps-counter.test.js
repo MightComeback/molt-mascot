@@ -206,4 +206,63 @@ describe('fps-counter', () => {
     c.reset();
     expect(c.last()).toBeNull();
   });
+
+  it('percentAboveThreshold returns null with fewer than 2 frames', () => {
+    const c = createFpsCounter();
+    expect(c.percentAboveThreshold(16)).toBeNull();
+    c.update(0);
+    expect(c.percentAboveThreshold(16)).toBeNull();
+  });
+
+  it('percentAboveThreshold returns null for invalid threshold', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(16);
+    expect(c.percentAboveThreshold(NaN)).toBeNull();
+    expect(c.percentAboveThreshold(Infinity)).toBeNull();
+  });
+
+  it('percentAboveThreshold computes correct percentage for uniform frames', () => {
+    const c = createFpsCounter();
+    // 5 frames at 16ms apart → all deltas = 16ms
+    for (let i = 0; i < 5; i++) c.update(i * 16);
+    // threshold 15 → all 4 deltas exceed it → 100%
+    expect(c.percentAboveThreshold(15)).toBe(100);
+    // threshold 16 → none exceed it (16 is not > 16) → 0%
+    expect(c.percentAboveThreshold(16)).toBe(0);
+  });
+
+  it('percentAboveThreshold detects jank spikes', () => {
+    const c = createFpsCounter();
+    // 4 normal frames (16ms) then one jank (200ms)
+    c.update(0);
+    c.update(16);
+    c.update(32);
+    c.update(48);
+    c.update(248); // 200ms jank
+    // deltas: 16, 16, 16, 200 → 1/4 above 33ms = 25%
+    expect(c.percentAboveThreshold(33)).toBe(25);
+  });
+
+  it('percentAboveThreshold works after buffer wraps', () => {
+    const c = createFpsCounter({ bufferSize: 4 });
+    c.update(0);
+    c.update(16);
+    c.update(32);
+    c.update(48);
+    c.update(64); // wraps, buffer now holds [64, 16, 32, 48] with head=1
+    // Consecutive stored frames: 16, 32, 48, 64 → deltas: 16, 16, 16 → 0% above 33ms
+    expect(c.percentAboveThreshold(33)).toBe(0);
+  });
+
+  it('percentAboveThreshold returns 0 after reset with new frames', () => {
+    const c = createFpsCounter();
+    c.update(0);
+    c.update(500); // big jank
+    expect(c.percentAboveThreshold(33)).toBe(100);
+    c.reset();
+    c.update(1000);
+    c.update(1016);
+    expect(c.percentAboveThreshold(33)).toBe(0);
+  });
 });
