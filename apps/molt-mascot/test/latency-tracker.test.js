@@ -382,4 +382,31 @@ describe('createLatencyTracker', () => {
     t.reset();
     expect(t.trend()).toBeNull();
   });
+
+  it('toJSON() delegates to getSnapshot()', () => {
+    const t = createLatencyTracker({ maxSamples: 10 });
+    t.push(5);
+    t.push(15);
+    const json = t.toJSON();
+    const snap = t.getSnapshot();
+    expect(json).toEqual(snap);
+  });
+
+  it('toJSON() works with JSON.stringify()', () => {
+    const t = createLatencyTracker({ maxSamples: 5 });
+    t.push(42);
+    const parsed = JSON.parse(JSON.stringify(t));
+    expect(parsed.count).toBe(1);
+    expect(parsed.maxSamples).toBe(5);
+    expect(parsed.totalPushed).toBe(1);
+    expect(parsed.stats).not.toBeNull();
+    expect(parsed.stats.min).toBe(42);
+  });
+
+  it('toJSON() returns null stats when empty', () => {
+    const t = createLatencyTracker();
+    const json = t.toJSON();
+    expect(json.stats).toBeNull();
+    expect(json.count).toBe(0);
+  });
 });

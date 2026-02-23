@@ -230,5 +230,16 @@ export function createLatencyTracker(opts = {}) {
     return 'stable';
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend };
+  /**
+   * JSON.stringify() support — delegates to getSnapshot() so
+   * `JSON.stringify(tracker)` produces a clean diagnostic snapshot
+   * without manual plucking (consistent with GatewayClient.toJSON()).
+   *
+   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number }}
+   */
+  function toJSON() {
+    return getSnapshot();
+  }
+
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend, toJSON };
 }
