@@ -192,7 +192,19 @@ export const _spriteCache = (() => {
     return getSnapshot();
   }
 
-  return { get, clear, size, warmAll, getSnapshot, toJSON };
+  /**
+   * Human-readable one-line summary for quick diagnostic logging.
+   * Example: "SpriteCache<12 entries, scale=4>"
+   * Mirrors BlinkState.toString(), LatencyTracker.toString(), and
+   * PluginSync.toString() for consistent diagnostic output across modules.
+   *
+   * @returns {string}
+   */
+  function toString() {
+    return `SpriteCache<${cache.size} entr${cache.size === 1 ? 'y' : 'ies'}, scale=${lastScale}>`;
+  }
+
+  return { get, clear, size, warmAll, getSnapshot, toJSON, toString };
 })();
 
 // Blink timing constants.

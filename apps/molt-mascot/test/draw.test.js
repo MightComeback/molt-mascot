@@ -522,6 +522,22 @@ describe("_spriteCache", () => {
     expect(typeof parsed.scale).toBe("number");
     expect(typeof parsed.spriteIds).toBe("number");
   });
+
+  it("toString() returns human-readable summary", () => {
+    _spriteCache.clear();
+    expect(_spriteCache.toString()).toBe("SpriteCache<0 entries, scale=-1>");
+    _spriteCache.warmAll(4);
+    const str = _spriteCache.toString();
+    expect(str).toMatch(/^SpriteCache<\d+ entr(y|ies), scale=4>$/);
+    expect(str).toContain("entries");
+  });
+
+  it("toString() uses correct plural/singular grammar", () => {
+    _spriteCache.clear();
+    // In test env without OffscreenCanvas, cache stays empty — verify plural "entries"
+    expect(_spriteCache.toString()).toContain("entries");
+    // The singular "entry" path is exercised when size() === 1 (requires canvas env)
+  });
 });
 
 describe("OVERLAY_TIMING", () => {
