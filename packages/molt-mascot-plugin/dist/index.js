@@ -25,6 +25,7 @@ __export(index_exports, {
   ERROR_PREFIX_REGEX: () => ERROR_PREFIX_REGEX,
   allowedAlignments: () => allowedAlignments,
   allowedSizes: () => allowedSizes,
+  clamp: () => clamp,
   cleanErrorString: () => cleanErrorString,
   coerceAlignment: () => coerceAlignment,
   coerceBoolean: () => coerceBoolean,
@@ -37,6 +38,7 @@ __export(index_exports, {
   formatCount: () => formatCount,
   formatDuration: () => formatDuration,
   formatElapsed: () => formatElapsed,
+  formatRelativeTime: () => formatRelativeTime,
   id: () => id,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -160,6 +162,10 @@ function coercePadding(v, fallback) {
   if (Number.isFinite(n) && n >= 0) return n;
   return fallback;
 }
+function clamp(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.max(min, Math.min(value, max));
+}
 function successRate(totalCalls, errorCount) {
   if (!totalCalls || totalCalls <= 0) return null;
   const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
@@ -226,6 +232,15 @@ function formatElapsed(since, now) {
     return "0s";
   }
   return formatDuration(Math.max(0, Math.round((now - since) / 1e3)));
+}
+function formatRelativeTime(since, now) {
+  const n = now ?? Date.now();
+  if (typeof since !== "number" || typeof n !== "number" || !Number.isFinite(since) || !Number.isFinite(n)) {
+    return "just now";
+  }
+  const diffMs = Math.max(0, n - since);
+  if (diffMs < 1e3) return "just now";
+  return `${formatDuration(Math.round(diffMs / 1e3))} ago`;
 }
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
@@ -588,6 +603,7 @@ function register(api) {
     version,
     toolCalls: 0,
     toolErrors: 0,
+    agentSessions: 0,
     startedAt
   };
   let idleTimer = null;
@@ -705,6 +721,7 @@ function register(api) {
     delete state.currentTool;
     state.toolCalls = 0;
     state.toolErrors = 0;
+    state.agentSessions = 0;
     state.activeAgents = 0;
     state.activeTools = 0;
     agentToolStacks.clear();
@@ -716,6 +733,7 @@ function register(api) {
   registerAlias("reset", (_params, { respond }) => {
     api?.logger?.info?.(`${pluginId}: manual reset triggered`);
     resetInternalState();
+    state.lastResetAt = Date.now();
     respond(true, { ok: true, state });
   });
   const on = api?.on;
@@ -736,6 +754,7 @@ function register(api) {
         delete state.currentTool;
       }
       activeAgents.add(sessionKey);
+      state.agentSessions = (state.agentSessions ?? 0) + 1;
       agentToolStacks.set(sessionKey, []);
       agentLastToolTs.set(sessionKey, 0);
       const mode = resolveNativeMode();
@@ -891,6 +910,7 @@ function register(api) {
   ERROR_PREFIX_REGEX,
   allowedAlignments,
   allowedSizes,
+  clamp,
   cleanErrorString,
   coerceAlignment,
   coerceBoolean,
@@ -902,6 +922,7 @@ function register(api) {
   formatCount,
   formatDuration,
   formatElapsed,
+  formatRelativeTime,
   id,
   successRate,
   summarizeToolResultMessage,

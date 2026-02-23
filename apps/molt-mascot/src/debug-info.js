@@ -65,7 +65,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, computeHealthReasons } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, computeHealthReasons } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -149,17 +149,17 @@ export function buildDebugInfo(params) {
     // Show first-ever connection time when the connection has flapped (reconnected at least once).
     // Helps diagnose "app running for 8h but current uptime is only 2m" scenarios.
     if (typeof firstConnectedAt === 'number' && firstConnectedAt > 0 && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-      lines.push(`First connected: ${formatElapsed(firstConnectedAt, now)} ago (at ${new Date(firstConnectedAt).toISOString()})`);
+      lines.push(`First connected: ${formatRelativeTime(firstConnectedAt, now)} (at ${new Date(firstConnectedAt).toISOString()})`);
     }
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     // Show time since last WS message — helps diagnose stale connections before they trip the timeout.
     if (typeof lastMessageAt === 'number' && lastMessageAt > 0) {
-      lines.push(`Last message: ${formatElapsed(lastMessageAt, now)} ago`);
+      lines.push(`Last message: ${formatRelativeTime(lastMessageAt, now)}`);
     }
     // Show last disconnect even when connected — helps debug flaky connections
     if (lastDisconnectedAt) {
-      lines.push(`Last disconnect: ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+      lines.push(`Last disconnect: ${formatRelativeTime(lastDisconnectedAt, now)} (at ${new Date(lastDisconnectedAt).toISOString()})`);
     }
     // Show last close reason when connected but flappy (sessionConnectCount > 1)
     // to help diagnose why the previous disconnect happened without opening DevTools.
@@ -168,7 +168,7 @@ export function buildDebugInfo(params) {
     }
   } else {
     if (lastDisconnectedAt) {
-      lines.push(`Gateway: disconnected ${formatElapsed(lastDisconnectedAt, now)} ago (at ${new Date(lastDisconnectedAt).toISOString()})`);
+      lines.push(`Gateway: disconnected ${formatRelativeTime(lastDisconnectedAt, now)} (at ${new Date(lastDisconnectedAt).toISOString()})`);
     } else {
       lines.push(`Gateway: disconnected`);
     }
@@ -275,7 +275,7 @@ export function buildDebugInfo(params) {
     lines.push(`Connection uptime: ~${uptimePercent}%`);
   }
   if (typeof lastResetAt === 'number' && lastResetAt > 0) {
-    lines.push(`Last reset: ${formatElapsed(lastResetAt, now)} ago (at ${new Date(lastResetAt).toISOString()})`);
+    lines.push(`Last reset: ${formatRelativeTime(lastResetAt, now)} (at ${new Date(lastResetAt).toISOString()})`);
   }
   if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
   if (typeof healthStatus === 'string' && healthStatus) {

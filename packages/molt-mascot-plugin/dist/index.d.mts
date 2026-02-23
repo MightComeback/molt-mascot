@@ -33,10 +33,14 @@ type State = {
     toolErrors?: number;
     /** Epoch ms when the plugin was registered (for uptime calculation). */
     startedAt?: number;
+    /** Cumulative count of agent sessions started since plugin start. */
+    agentSessions?: number;
     /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
     activeAgents?: number;
     /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
     activeTools?: number;
+    /** Epoch ms of the last manual reset (undefined if never reset). */
+    lastResetAt?: number;
 };
 interface PluginApi {
     id?: string;
@@ -79,6 +83,20 @@ declare function coerceOpacity(v: unknown, fallback: number): number;
  */
 declare function coercePadding(v: unknown, fallback: number): number;
 /**
+ * Clamp a number to a [min, max] range.
+ * Returns min if value is below min, max if above max, otherwise value.
+ * Non-finite inputs (NaN, ±Infinity) return min as a safe fallback.
+ *
+ * Centralizes the repeated `Math.max(min, Math.min(value, max))` pattern
+ * used across opacity clamping, padding bounds, position clamping, etc.
+ *
+ * @param value - The number to clamp
+ * @param min - Lower bound (inclusive)
+ * @param max - Upper bound (inclusive)
+ * @returns Clamped value
+ */
+declare function clamp(value: number, min: number, max: number): number;
+/**
  * Compute a success-rate percentage from total calls and error count.
  * Returns null if totalCalls is 0 (avoids division by zero).
  *
@@ -118,6 +136,16 @@ declare function formatDuration(seconds: number): string;
  */
 declare function formatElapsed(since: number, now: number): string;
 /**
+ * Format a past timestamp as a human-readable relative time string.
+ * Consolidates the repeated `formatElapsed(ts, now) + " ago"` pattern
+ * and adds a "just now" threshold for sub-second durations.
+ *
+ * @param since - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
+ * @returns Relative time string (e.g. "just now", "5m ago", "2h ago")
+ */
+declare function formatRelativeTime(since: number, now?: number): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -156,4 +184,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, id, successRate, summarizeToolResultMessage, truncate, version };
