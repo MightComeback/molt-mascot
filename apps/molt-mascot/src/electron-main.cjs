@@ -19,7 +19,7 @@ const { OPACITY_PRESETS: OPACITY_CYCLE, formatOpacity } = require('./opacity-pre
 // --- User preference persistence ---
 // Delegated to prefs.cjs for testability (atomic writes, debounced batching).
 const { parseModeUpdate } = require('./parse-mode-update.cjs');
-const { createPrefsManager } = require('./prefs.cjs');
+const { createPrefsManager, validatePrefs } = require('./prefs.cjs');
 const PREFS_FILE = path.join(app.getPath('userData'), 'preferences.json');
 const _prefs = createPrefsManager(PREFS_FILE);
 const loadPrefs = _prefs.load;
@@ -153,6 +153,18 @@ if (hasBoolFlag('--list-prefs')) {
     if (fs.existsSync(prefsPath)) {
       const data = fs.readFileSync(prefsPath, 'utf8');
       process.stdout.write(`${prefsPath}\n${data}\n`);
+      // Validate and warn about invalid/unknown keys so users can diagnose
+      // hand-edited preferences that silently fail at runtime.
+      try {
+        const parsed = JSON.parse(data);
+        const { dropped } = validatePrefs(parsed);
+        if (dropped.length > 0) {
+          process.stdout.write('\nWarnings:\n');
+          for (const { key, reason } of dropped) {
+            process.stdout.write(`  ⚠ ${key}: ${reason}\n`);
+          }
+        }
+      } catch {}
     } else {
       process.stdout.write(`No preferences file found (${prefsPath})\n`);
     }
