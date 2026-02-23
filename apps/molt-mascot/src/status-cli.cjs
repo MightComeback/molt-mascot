@@ -1,5 +1,6 @@
 const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource } = require('./env-keys.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
+const { formatOpacity } = require('./opacity-presets.cjs');
 
 /**
  * Resolve the effective configuration for --status output.
@@ -211,7 +212,7 @@ function formatStatusText(status) {
     `  Alignment:      ${c.alignment}`,
     `  Size:           ${c.size} (${c.width}×${c.height}px)`,
     `  Padding:        ${c.padding}px`,
-    `  Opacity:        ${Math.round(c.opacity * 100)}%`,
+    `  Opacity:        ${formatOpacity(c.opacity)}`,
     `  Ghost mode:     ${c.clickThrough}`,
     `  Hide text:      ${c.hideText}`,
     `  Reduced motion: ${c.reducedMotion}`,

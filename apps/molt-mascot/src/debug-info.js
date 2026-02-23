@@ -65,7 +65,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -222,7 +222,7 @@ export function buildDebugInfo(params) {
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
   lines.push(`Alignment: ${alignmentLabel || 'bottom-right'}`);
-  lines.push(`Size: ${sizeLabel}, Opacity: ${Math.round(opacity * 100)}%`);
+  lines.push(`Size: ${sizeLabel}, Opacity: ${formatOpacity(opacity)}`);
   lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
   lines.push(`Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
   lines.push(`Reduced motion: ${reducedMotion}`);

@@ -7,7 +7,7 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary } from './utils.js';
+import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity } from './utils.js';
 import { findSizePreset } from './size-presets.cjs';
 
 /**
@@ -137,7 +137,7 @@ export function buildContextMenuItems(state) {
     { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S` },
     { id: 'size', label: `Cycle Size (${_formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
-    { id: 'opacity', label: `Opacity (${Math.round(opacity * 100)}%)`, hint: `${modKey}${shiftKey}O` },
+    { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },
     { id: 'copy-status', label: 'Copy Status' },
     { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
     ...(connectedSince ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),

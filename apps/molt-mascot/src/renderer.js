@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS, formatOpacity } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -1228,7 +1228,7 @@ canvas.addEventListener('wheel', (e) => {
   window.moltMascot.setOpacity(currentOpacity);
   // Brief visual feedback in the pill so the user sees the current opacity level
   // while scrolling (the tooltip updates too, but it's not always visible).
-  showTransientFeedback(`Opacity ${Math.round(currentOpacity * 100)}%`);
+  showTransientFeedback(`Opacity ${formatOpacity(currentOpacity)}`);
   syncPill();
 }, { passive: false });
 

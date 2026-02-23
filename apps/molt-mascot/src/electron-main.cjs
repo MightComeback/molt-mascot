@@ -14,7 +14,7 @@ const APP_VERSION = require('../package.json').version;
 // Opacity presets cycled by the keyboard shortcut / context menu.
 // Imported from the shared module (single source of truth) so electron-main,
 // status-cli, and opacity-presets.test all reference the same values.
-const { OPACITY_PRESETS: OPACITY_CYCLE } = require('./opacity-presets.cjs');
+const { OPACITY_PRESETS: OPACITY_CYCLE, formatOpacity } = require('./opacity-presets.cjs');
 
 // --- User preference persistence ---
 // Delegated to prefs.cjs for testability (atomic writes, debounced batching).
@@ -912,7 +912,7 @@ app.whenReady().then(async () => {
         click: actionCycleSize,
       },
       {
-        label: `Opacity: ${Math.round(opacityCycle[opacityIndex] * 100)}%`,
+        label: `Opacity: ${formatOpacity(opacityCycle[opacityIndex])}`,
         accelerator: 'CommandOrControl+Shift+O',
         click: actionCycleOpacity,
       },

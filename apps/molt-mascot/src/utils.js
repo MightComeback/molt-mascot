@@ -252,7 +252,7 @@ export function buildTooltip(params) {
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
-  if (typeof opacity === 'number' && opacity < 1) tip += ` · ${Math.round(opacity * 100)}%`;
+  if (typeof opacity === 'number' && opacity < 1) tip += ` · ${_formatOpacity(opacity)}`;
   // Show reconnect count when the connection has flapped (>1 handshake since launch).
   // Helps users diagnose flaky gateway connections without opening debug info.
   if (typeof lastResetAt === 'number' && lastResetAt > 0) {
@@ -583,3 +583,5 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
 export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';
 export { MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from './mode-emoji.cjs';
 export { REPO_URL } from './env-keys.cjs';
+import { formatOpacity as _formatOpacity } from './opacity-presets.cjs';
+export { _formatOpacity as formatOpacity };
