@@ -2,7 +2,7 @@ const { app, BrowserWindow, screen, globalShortcut, ipcMain, Tray, Menu, nativeI
 const path = require('path');
 const fs = require('fs');
 
-const { isTruthyEnv } = require('./is-truthy-env.cjs');
+const { isTruthyEnv, parseBooleanEnv } = require('./is-truthy-env.cjs');
 const { REPO_URL } = require('./env-keys.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
@@ -578,11 +578,11 @@ app.whenReady().then(async () => {
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
   const envClickThrough = process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH;
-  let clickThrough = envClickThrough ? isTruthyEnv(envClickThrough) : (savedPrefs.clickThrough ?? false);
+  let clickThrough = parseBooleanEnv(envClickThrough) ?? savedPrefs.clickThrough ?? false;
 
   // Back-compat: accept both MOLT_MASCOT_HIDETEXT and MOLT_MASCOT_HIDE_TEXT
   const envHideText = process.env.MOLT_MASCOT_HIDETEXT ?? process.env.MOLT_MASCOT_HIDE_TEXT;
-  let hideText = envHideText ? isTruthyEnv(envHideText) : (savedPrefs.hideText ?? false);
+  let hideText = parseBooleanEnv(envHideText) ?? savedPrefs.hideText ?? false;
 
   // Restore saved alignment if no env override
   if (!alignmentOverride && savedPrefs.alignment) {
@@ -600,7 +600,7 @@ app.whenReady().then(async () => {
 
   function actionToggleGhostMode(forceValue) {
     clickThrough = forceValue !== undefined
-      ? ((typeof forceValue === 'boolean') ? forceValue : isTruthyEnv(forceValue))
+      ? (parseBooleanEnv(forceValue) ?? !clickThrough)
       : !clickThrough;
     withMainWin((w) => {
       applyClickThrough(w, clickThrough);
@@ -612,7 +612,7 @@ app.whenReady().then(async () => {
 
   function actionToggleHideText(forceValue) {
     hideText = forceValue !== undefined
-      ? ((typeof forceValue === 'boolean') ? forceValue : isTruthyEnv(forceValue))
+      ? (parseBooleanEnv(forceValue) ?? !hideText)
       : !hideText;
     withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
     savePrefs({ hideText });
