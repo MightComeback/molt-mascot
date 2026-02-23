@@ -356,6 +356,31 @@ export function formatTimestampLocal(ts: number, now?: number): string {
 }
 
 /**
+ * Format a timestamp with both relative age and absolute time.
+ * Consolidates the repeated `formatRelativeTime(ts, now) + " (at " + formatTimestamp(ts) + ")"`
+ * and `formatElapsed(ts, now) + " (since " + formatTimestamp(ts) + ")"` patterns
+ * used 5+ times across debug-info, tray tooltip, and diagnostics.
+ *
+ * @param ts - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
+ * @param style - 'ago' for "5m ago (at ...)" or 'since' for "5m (since ...)"
+ * @returns Formatted string, or '–' if the input is invalid
+ */
+export function formatTimestampWithAge(
+  ts: number,
+  now?: number,
+  style: 'ago' | 'since' = 'ago',
+): string {
+  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  const n = now ?? Date.now();
+  const iso = formatTimestamp(ts);
+  if (style === 'since') {
+    return `${formatElapsed(ts, n)} (since ${iso})`;
+  }
+  return `${formatRelativeTime(ts, n)} (at ${iso})`;
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).

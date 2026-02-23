@@ -215,6 +215,15 @@ function formatTimestampLocal(ts, now) {
   const m = String(date.getMinutes()).padStart(2, "0");
   return `${mon} ${day}, ${h}:${m}`;
 }
+function formatTimestampWithAge(ts, now, style = "ago") {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
+  const n = now ?? Date.now();
+  const iso = formatTimestamp(ts);
+  if (style === "since") {
+    return `${formatElapsed(ts, n)} (since ${iso})`;
+  }
+  return `${formatRelativeTime(ts, n)} (at ${iso})`;
+}
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
@@ -908,6 +917,7 @@ export {
   formatRelativeTime,
   formatTimestamp,
   formatTimestampLocal,
+  formatTimestampWithAge,
   id,
   successRate,
   summarizeToolResultMessage,

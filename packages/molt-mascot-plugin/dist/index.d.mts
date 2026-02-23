@@ -169,6 +169,18 @@ declare function formatTimestamp(ts: number): string;
  */
 declare function formatTimestampLocal(ts: number, now?: number): string;
 /**
+ * Format a timestamp with both relative age and absolute time.
+ * Consolidates the repeated `formatRelativeTime(ts, now) + " (at " + formatTimestamp(ts) + ")"`
+ * and `formatElapsed(ts, now) + " (since " + formatTimestamp(ts) + ")"` patterns
+ * used 5+ times across debug-info, tray tooltip, and diagnostics.
+ *
+ * @param ts - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
+ * @param style - 'ago' for "5m ago (at ...)" or 'since' for "5m (since ...)"
+ * @returns Formatted string, or '–' if the input is invalid
+ */
+declare function formatTimestampWithAge(ts: number, now?: number, style?: 'ago' | 'since'): string;
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
@@ -207,4 +219,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, successRate, summarizeToolResultMessage, truncate, version };

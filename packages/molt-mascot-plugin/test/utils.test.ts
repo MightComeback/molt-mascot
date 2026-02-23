@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, formatTimestampWithAge, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1498,5 +1498,31 @@ describe("utils", () => {
     // Different month
     const dec = new Date(2025, 11, 31, 23, 59, 0).getTime();
     expect(formatTimestampLocal(dec, now)).toBe("Dec 31, 23:59");
+  });
+
+  it("formatTimestampWithAge", () => {
+    const now = 1708700000000; // fixed reference
+    const ts = now - 300_000; // 5 minutes ago
+
+    // Default 'ago' style
+    const ago = formatTimestampWithAge(ts, now);
+    expect(ago).toContain("5m ago");
+    expect(ago).toContain("(at ");
+    expect(ago).toContain(new Date(ts).toISOString());
+
+    // Explicit 'ago' style
+    expect(formatTimestampWithAge(ts, now, 'ago')).toBe(ago);
+
+    // 'since' style
+    const since = formatTimestampWithAge(ts, now, 'since');
+    expect(since).toContain("5m");
+    expect(since).toContain("(since ");
+    expect(since).toContain(new Date(ts).toISOString());
+    expect(since).not.toContain("ago");
+
+    // Invalid inputs return '–'
+    expect(formatTimestampWithAge(NaN)).toBe("–");
+    expect(formatTimestampWithAge(Infinity)).toBe("–");
+    expect(formatTimestampWithAge(undefined as any)).toBe("–");
   });
 });

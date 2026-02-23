@@ -68,7 +68,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -151,11 +151,11 @@ export function buildDebugInfo(params) {
   lines.push(`Mode: ${effectiveMode}`);
   lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
   if (connectedSince) {
-    lines.push(`Uptime: ${formatElapsed(connectedSince, now)} (since ${formatTimestamp(connectedSince)})`);
+    lines.push(`Uptime: ${formatTimestampWithAge(connectedSince, now, 'since')}`);
     // Show first-ever connection time when the connection has flapped (reconnected at least once).
     // Helps diagnose "app running for 8h but current uptime is only 2m" scenarios.
     if (typeof firstConnectedAt === 'number' && firstConnectedAt > 0 && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-      lines.push(`First connected: ${formatRelativeTime(firstConnectedAt, now)} (at ${formatTimestamp(firstConnectedAt)})`);
+      lines.push(`First connected: ${formatTimestampWithAge(firstConnectedAt, now)}`);
     }
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
@@ -165,7 +165,7 @@ export function buildDebugInfo(params) {
     }
     // Show last disconnect even when connected — helps debug flaky connections
     if (lastDisconnectedAt) {
-      lines.push(`Last disconnect: ${formatRelativeTime(lastDisconnectedAt, now)} (at ${formatTimestamp(lastDisconnectedAt)})`);
+      lines.push(`Last disconnect: ${formatTimestampWithAge(lastDisconnectedAt, now)}`);
     }
     // Show last close reason when connected but flappy (sessionConnectCount > 1)
     // to help diagnose why the previous disconnect happened without opening DevTools.
@@ -174,7 +174,7 @@ export function buildDebugInfo(params) {
     }
   } else {
     if (lastDisconnectedAt) {
-      lines.push(`Gateway: disconnected ${formatRelativeTime(lastDisconnectedAt, now)} (at ${formatTimestamp(lastDisconnectedAt)})`);
+      lines.push(`Gateway: disconnected ${formatTimestampWithAge(lastDisconnectedAt, now)}`);
     } else {
       lines.push(`Gateway: disconnected`);
     }
@@ -196,7 +196,7 @@ export function buildDebugInfo(params) {
       lines.push(methodLine);
     }
     if (pluginStartedAt) {
-      lines.push(`Plugin uptime: ${formatElapsed(pluginStartedAt, now)} (since ${formatTimestamp(pluginStartedAt)})`);
+      lines.push(`Plugin uptime: ${formatTimestampWithAge(pluginStartedAt, now, 'since')}`);
     }
   }
   if (isPollingPaused) lines.push('Polling: paused');
@@ -286,7 +286,7 @@ export function buildDebugInfo(params) {
     lines.push(`Connection uptime: ~${uptimePercent}%`);
   }
   if (typeof lastResetAt === 'number' && lastResetAt > 0) {
-    lines.push(`Last reset: ${formatRelativeTime(lastResetAt, now)} (at ${formatTimestamp(lastResetAt)})`);
+    lines.push(`Last reset: ${formatTimestampWithAge(lastResetAt, now)}`);
   }
   if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
   if (typeof healthStatus === 'string' && healthStatus) {
