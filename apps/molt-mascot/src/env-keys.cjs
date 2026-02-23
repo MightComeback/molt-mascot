@@ -43,4 +43,7 @@ function resolveEnv(keys, env, fallback) {
   return fallback;
 }
 
-module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv };
+/** Canonical GitHub repository URL (single source of truth for about panel, tray menu, context menu). */
+const REPO_URL = 'https://github.com/MightComeback/molt-mascot';
+
+module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, REPO_URL };

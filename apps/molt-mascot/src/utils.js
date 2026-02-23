@@ -566,3 +566,4 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv, isFalsyEnv } from './is-truthy-env.cjs';
 export { MODE_EMOJI, VALID_MODES, isValidMode } from './mode-emoji.cjs';
+export { REPO_URL } from './env-keys.cjs';

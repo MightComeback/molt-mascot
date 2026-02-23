@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -1378,7 +1378,7 @@ function showContextMenu(e) {
     'reset-prefs': () => { if (window.moltMascot?.resetPrefs) window.moltMascot.resetPrefs(); },
     hide: () => { if (window.moltMascot?.hide) window.moltMascot.hide(); },
     about: () => { if (window.moltMascot?.showAbout) window.moltMascot.showAbout(); },
-    github: () => { if (window.moltMascot?.openExternal) window.moltMascot.openExternal('https://github.com/MightComeback/molt-mascot'); },
+    github: () => { if (window.moltMascot?.openExternal) window.moltMascot.openExternal(REPO_URL); },
     devtools: () => { if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools(); },
     quit: () => { if (window.moltMascot?.quit) window.moltMascot.quit(); else window.close(); },
   };

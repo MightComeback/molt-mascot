@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { isTruthyEnv } = require('./is-truthy-env.cjs');
+const { REPO_URL } = require('./env-keys.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
 const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, VALID_SIZES, isValidSize } = require('./size-presets.cjs');
@@ -460,7 +461,7 @@ app.whenReady().then(async () => {
         ? `© ${startYear}–${currentYear} MightComeback`
         : `© ${startYear} MightComeback`;
     })(),
-    website: 'https://github.com/MightComeback/molt-mascot',
+    website: REPO_URL,
   });
 
   // Hide dock icon on macOS for a true desktop widget experience
@@ -776,7 +777,7 @@ app.whenReady().then(async () => {
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${APP_VERSION}`, enabled: false },
       { label: 'About Molt Mascot', click: () => app.showAboutPanel() },
-      { label: 'Open on GitHub…', click: () => { const { shell } = require('electron'); shell.openExternal('https://github.com/MightComeback/molt-mascot'); } },
+      { label: 'Open on GitHub…', click: () => { const { shell } = require('electron'); shell.openExternal(REPO_URL); } },
       { type: 'separator' },
       {
         label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',

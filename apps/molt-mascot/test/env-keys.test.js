@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } from '../src/env-keys.cjs';
+import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, REPO_URL } from '../src/env-keys.cjs';
 
 describe('env-keys constants', () => {
   it('GATEWAY_URL_KEYS is a frozen array with expected first entry', () => {
@@ -60,5 +60,12 @@ describe('resolveEnv', () => {
       GATEWAY_URL: 'ws://default:5678',
     };
     expect(resolveEnv(GATEWAY_URL_KEYS, env)).toBe('ws://custom:1234');
+  });
+});
+
+describe('REPO_URL', () => {
+  it('is a valid GitHub HTTPS URL', () => {
+    expect(typeof REPO_URL).toBe('string');
+    expect(REPO_URL).toMatch(/^https:\/\/github\.com\//);
   });
 });
