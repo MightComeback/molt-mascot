@@ -377,4 +377,27 @@ describe('fps-counter', () => {
     c.reset();
     expect(c.trend()).toBeNull();
   });
+
+  it('toString() returns empty tag when no frames', () => {
+    const c = createFpsCounter();
+    expect(c.toString()).toBe('FpsCounter<empty>');
+  });
+
+  it('toString() includes fps, frames, worst delta, and trend', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 10000 });
+    for (let i = 0; i < 10; i++) c.update(i * 16);
+    const str = c.toString();
+    expect(str).toMatch(/^FpsCounter</);
+    expect(str).toContain('fps');
+    expect(str).toContain('frames');
+    expect(str).toContain('worst');
+  });
+
+  it('toString() uses compact format for large frame counts', () => {
+    const c = createFpsCounter({ bufferSize: 20, windowMs: 100000 });
+    // Simulate many frames by updating 1100 times
+    for (let i = 0; i < 1100; i++) c.update(i * 16);
+    const str = c.toString();
+    expect(str).toContain('1.1K frames');
+  });
 });

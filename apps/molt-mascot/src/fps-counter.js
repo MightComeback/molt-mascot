@@ -234,5 +234,27 @@ export function createFpsCounter(opts = {}) {
     return getSnapshot();
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, trend, toJSON };
+  /**
+   * Human-readable diagnostic string for logging parity with
+   * latencyTracker.toString() and GatewayClient.toString().
+   *
+   * @returns {string} e.g. "FpsCounter<15fps, 1.2K frames, worst 42ms, stable>"
+   */
+  function toString() {
+    if (totalFrames === 0) return 'FpsCounter<empty>';
+    const parts = [`${currentFps}fps`];
+    if (totalFrames >= 1000) {
+      // Use formatCount for compact display when frame counts are large
+      const { formatCount: fc } = require('@molt/mascot-plugin');
+      parts.push(`${fc(totalFrames)} frames`);
+    } else {
+      parts.push(`${totalFrames} frame${totalFrames !== 1 ? 's' : ''}`);
+    }
+    if (worstFrameDeltaMs > 0) parts.push(`worst ${Math.round(worstFrameDeltaMs)}ms`);
+    const t = trend();
+    if (t) parts.push(t);
+    return `FpsCounter<${parts.join(', ')}>`;
+  }
+
+  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, trend, toJSON, toString };
 }
