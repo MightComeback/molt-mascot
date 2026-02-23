@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, healthStatusEmoji } = require('./format-latency.cjs');
+const { formatLatency, formatQualitySummary, healthStatusEmoji } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
