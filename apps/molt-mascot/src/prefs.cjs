@@ -244,7 +244,26 @@ function createPrefsManager(filePath, opts = {}) {
     return getSnapshot();
   }
 
-  return { load, loadValidated, save, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, filePath };
+  /**
+   * Save a preferences patch after validating it through PREF_SCHEMA.
+   * Invalid or unknown keys are silently dropped (not persisted).
+   * Returns the validation result so callers can log warnings if needed.
+   *
+   * Use this instead of save() when the input is untrusted (e.g. user-facing
+   * forms, plugin config sync, or IPC from the renderer process).
+   *
+   * @param {object} patch - Key-value pairs to validate and merge into preferences
+   * @returns {{ applied: object, dropped: Array<{ key: string, reason: string }> }}
+   */
+  function saveValidated(patch) {
+    const { clean, dropped } = validatePrefs(patch);
+    if (Object.keys(clean).length > 0) {
+      save(clean);
+    }
+    return { applied: clean, dropped };
+  }
+
+  return { load, loadValidated, save, saveValidated, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, filePath };
 }
 
 /**

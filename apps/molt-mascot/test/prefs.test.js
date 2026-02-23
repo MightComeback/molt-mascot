@@ -663,3 +663,66 @@ describe("validatePrefs gatewayUrl", () => {
     expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
   });
 });
+
+describe("saveValidated", () => {
+  let tmpDir;
+  let prefsPath;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "molt-prefs-sv-"));
+    prefsPath = path.join(tmpDir, "preferences.json");
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+  });
+
+  it("persists valid keys and drops invalid ones", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 0 });
+    const { applied, dropped } = mgr.saveValidated({
+      alignment: "top-left",
+      opacity: 0.5,
+      bogus: 42,
+      sizeIndex: -1,
+    });
+    mgr.flush();
+    expect(applied).toEqual({ alignment: "top-left", opacity: 0.5 });
+    expect(dropped).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "bogus", reason: "unknown key" }),
+        expect.objectContaining({ key: "sizeIndex" }),
+      ])
+    );
+    const saved = mgr.load();
+    expect(saved.alignment).toBe("top-left");
+    expect(saved.opacity).toBe(0.5);
+    expect(saved.bogus).toBeUndefined();
+    expect(saved.sizeIndex).toBeUndefined();
+  });
+
+  it("does not write to disk when all keys are invalid", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 0 });
+    const { applied, dropped } = mgr.saveValidated({ bogus: 1, other: "x" });
+    mgr.flush();
+    expect(Object.keys(applied)).toHaveLength(0);
+    expect(dropped).toHaveLength(2);
+    expect(fs.existsSync(prefsPath)).toBe(false);
+  });
+
+  it("merges with existing preferences", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ clickThrough: true }));
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 0 });
+    mgr.saveValidated({ hideText: true });
+    mgr.flush();
+    const saved = mgr.load();
+    expect(saved.clickThrough).toBe(true);
+    expect(saved.hideText).toBe(true);
+  });
+
+  it("returns empty applied for empty patch", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 0 });
+    const { applied, dropped } = mgr.saveValidated({});
+    expect(Object.keys(applied)).toHaveLength(0);
+    expect(dropped).toHaveLength(0);
+  });
+});
