@@ -20,6 +20,9 @@ import {
   SHADOW_BOB_RY_FACTOR,
   SHADOW_BOB_ALPHA_FACTOR,
   OVERLAY_Y_OFFSET_PX,
+  BLINK_DURATION_MS,
+  BLINK_MIN_INTERVAL_MS,
+  BLINK_MAX_INTERVAL_MS,
 } from "../src/draw.js";
 
 // Minimal canvas context mock that records draw calls
@@ -115,6 +118,55 @@ describe("createBlinkState", () => {
     expect(blink.isBlinking(0)).toBe(false);
     expect(blink.isBlinking(100)).toBe(false);
     expect(blink.isBlinking(5000)).toBe(false);
+  });
+
+  it("tracks blinkCount across multiple blinks", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    expect(blink.blinkCount).toBe(0);
+    // Trigger first blink then end it
+    blink.isBlinking(1000);
+    blink.isBlinking(1000 + BLINK_DURATION_MS); // ends first blink
+    expect(blink.blinkCount).toBe(1);
+    // Trigger second blink
+    const next = blink.nextBlinkAt;
+    blink.isBlinking(next);
+    blink.isBlinking(next + BLINK_DURATION_MS); // ends second blink
+    expect(blink.blinkCount).toBe(2);
+  });
+
+  it("getSnapshot returns diagnostic object", () => {
+    const blink = createBlinkState({ initialBlinkAt: 2000 });
+    const snap = blink.getSnapshot();
+    expect(snap).toEqual({
+      blinkCount: 0,
+      nextBlinkAt: 2000,
+      reducedMotion: false,
+    });
+  });
+
+  it("getSnapshot reflects reducedMotion", () => {
+    const blink = createBlinkState({ initialBlinkAt: 0, reducedMotion: true });
+    expect(blink.getSnapshot().reducedMotion).toBe(true);
+  });
+});
+
+describe("blink timing constants", () => {
+  it("BLINK_DURATION_MS is 150", () => {
+    expect(BLINK_DURATION_MS).toBe(150);
+  });
+
+  it("BLINK_MIN_INTERVAL_MS < BLINK_MAX_INTERVAL_MS", () => {
+    expect(BLINK_MIN_INTERVAL_MS).toBeLessThan(BLINK_MAX_INTERVAL_MS);
+  });
+
+  it("next blink interval uses exported constants", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    blink.isBlinking(1000);
+    blink.isBlinking(1000 + BLINK_DURATION_MS);
+    const next = blink.nextBlinkAt;
+    const elapsed = 1000 + BLINK_DURATION_MS;
+    expect(next).toBeGreaterThanOrEqual(elapsed + BLINK_MIN_INTERVAL_MS);
+    expect(next).toBeLessThanOrEqual(elapsed + BLINK_MAX_INTERVAL_MS);
   });
 });
 

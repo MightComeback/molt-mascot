@@ -172,6 +172,14 @@ export const _spriteCache = (() => {
   return { get, clear, size, warmAll };
 })();
 
+// Blink timing constants.
+// BLINK_DURATION_MS is how long each blink lasts (eyelids closed).
+// BLINK_MIN_INTERVAL_MS / BLINK_MAX_INTERVAL_MS define the random range
+// between consecutive blinks (3-6 seconds, mimicking natural blink cadence).
+export const BLINK_DURATION_MS = 150;
+export const BLINK_MIN_INTERVAL_MS = 3000;
+export const BLINK_MAX_INTERVAL_MS = 6000;
+
 /**
  * Blink state manager.
  * The lobster blinks every 3-6 seconds for ~150ms.
@@ -180,8 +188,8 @@ export const _spriteCache = (() => {
  * @param {{ reducedMotion?: boolean, initialBlinkAt?: number }} [opts]
  */
 export function createBlinkState(opts = {}) {
-  const BLINK_DURATION_MS = 150;
   let nextBlinkAt = opts.initialBlinkAt ?? (2000 + Math.random() * 4000);
+  let blinkCount = 0;
 
   return {
     /** Whether the lobster should be blinking at time t (ms). */
@@ -190,12 +198,28 @@ export function createBlinkState(opts = {}) {
       if (t >= nextBlinkAt) {
         if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
         // Schedule next blink 3-6s from now
-        nextBlinkAt = t + 3000 + Math.random() * 3000;
+        blinkCount++;
+        nextBlinkAt = t + BLINK_MIN_INTERVAL_MS + Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
       }
       return false;
     },
     /** Current next-blink timestamp (for testing). */
     get nextBlinkAt() { return nextBlinkAt; },
+    /** Total blinks completed since creation (for diagnostics). */
+    get blinkCount() { return blinkCount; },
+    /**
+     * Diagnostic snapshot for API consistency with fps-counter,
+     * latency-tracker, and plugin-sync tracker modules.
+     *
+     * @returns {{ blinkCount: number, nextBlinkAt: number, reducedMotion: boolean }}
+     */
+    getSnapshot() {
+      return {
+        blinkCount,
+        nextBlinkAt,
+        reducedMotion: !!opts.reducedMotion,
+      };
+    },
   };
 }
 
