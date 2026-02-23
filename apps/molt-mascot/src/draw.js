@@ -36,6 +36,11 @@ export const SHADOW_BOB_RX_FACTOR = 0.4;
 export const SHADOW_BOB_RY_FACTOR = 0.2;
 export const SHADOW_BOB_ALPHA_FACTOR = 0.02;
 
+// Overlay vertical offset in canvas pixels (negative = above sprite).
+// Shifts mode overlays (thinking, tool, error, etc.) slightly upward
+// so they appear to float above the lobster's head rather than overlapping it.
+export const OVERLAY_Y_OFFSET_PX = -2;
+
 /**
  * Draw a pixel-art sprite onto a 2D canvas context.
  *
@@ -270,7 +275,7 @@ export function drawLobster(ctx, params) {
 
   // Overlays (simple icons) — attached to bob; modes are mutually exclusive.
   // Resolved via the declarative OVERLAY_TIMING map for maintainability.
-  const overlayOpts = { x: 0, y: bobY - 2, scale: s };
+  const overlayOpts = { x: 0, y: bobY + OVERLAY_Y_OFFSET_PX, scale: s };
   const effectiveMode = (mode === 'idle' && idleDurationMs > sleepThresholdMs) ? 'sleep' : mode;
   const timing = OVERLAY_TIMING[effectiveMode];
   if (timing) {

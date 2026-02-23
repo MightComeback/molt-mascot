@@ -19,6 +19,7 @@ import {
   SHADOW_BOB_RX_FACTOR,
   SHADOW_BOB_RY_FACTOR,
   SHADOW_BOB_ALPHA_FACTOR,
+  OVERLAY_Y_OFFSET_PX,
 } from "../src/draw.js";
 
 // Minimal canvas context mock that records draw calls
@@ -493,5 +494,11 @@ describe("animation constants", () => {
       c.args[3] === EYE_SIZE * 3
     );
     expect(eyeFills.length).toBe(2);
+  });
+
+  it("OVERLAY_Y_OFFSET_PX is a negative finite number (shifts overlays above sprite)", () => {
+    expect(typeof OVERLAY_Y_OFFSET_PX).toBe("number");
+    expect(Number.isFinite(OVERLAY_Y_OFFSET_PX)).toBe(true);
+    expect(OVERLAY_Y_OFFSET_PX).toBeLessThan(0);
   });
 });
