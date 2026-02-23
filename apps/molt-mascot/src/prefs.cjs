@@ -263,7 +263,21 @@ function createPrefsManager(filePath, opts = {}) {
     return { applied: clean, dropped };
   }
 
-  return { load, loadValidated, save, saveValidated, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, filePath };
+  /**
+   * Human-readable one-line summary for quick diagnostic logging.
+   * Example: "PrefsManager<3 keys, no pending>"
+   * Mirrors BlinkState.toString(), LatencyTracker.toString(), SpriteCache.toString(),
+   * and PluginSync.toString() for consistent diagnostic output across modules.
+   *
+   * @returns {string}
+   */
+  function toString() {
+    const n = size();
+    const pendingStr = _pending !== null ? 'pending' : 'no pending';
+    return `PrefsManager<${n} key${n !== 1 ? 's' : ''}, ${pendingStr}>`;
+  }
+
+  return { load, loadValidated, save, saveValidated, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, toString, filePath };
 }
 
 /**

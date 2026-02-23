@@ -726,3 +726,40 @@ describe("saveValidated", () => {
     expect(dropped).toHaveLength(0);
   });
 });
+
+describe("toString", () => {
+  let tmpDir;
+  let prefsPath;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "molt-prefs-tostr-"));
+    prefsPath = path.join(tmpDir, "preferences.json");
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+  });
+
+  it("returns summary with key count and no pending when clean", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", clickThrough: true }));
+    const mgr = createPrefsManager(prefsPath);
+    expect(mgr.toString()).toBe("PrefsManager<2 keys, no pending>");
+  });
+
+  it("returns singular 'key' for single preference", () => {
+    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "center" }));
+    const mgr = createPrefsManager(prefsPath);
+    expect(mgr.toString()).toBe("PrefsManager<1 key, no pending>");
+  });
+
+  it("shows pending when unsaved writes exist", () => {
+    const mgr = createPrefsManager(prefsPath, { debounceMs: 60000 });
+    mgr.save({ alignment: "top-left", hideText: true });
+    expect(mgr.toString()).toBe("PrefsManager<2 keys, pending>");
+  });
+
+  it("returns 0 keys for empty prefs", () => {
+    const mgr = createPrefsManager(prefsPath);
+    expect(mgr.toString()).toBe("PrefsManager<0 keys, no pending>");
+  });
+});
