@@ -39,7 +39,7 @@
  * @param {string} [params.platform] - navigator.platform
  * @param {number} [params.devicePixelRatio] - window.devicePixelRatio
  * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} [params.memory] - performance.memory
- * @param {{ electron?: string, chrome?: string, node?: string }} [params.versions] - Runtime versions
+ * @param {{ electron?: string, chrome?: string, node?: string, bun?: string }} [params.versions] - Runtime versions
  * @param {number} [params.canvasWidth] - Canvas element width in pixels
  * @param {number} [params.canvasHeight] - Canvas element height in pixels
  * @param {string} [params.lastCloseDetail] - Human-readable WebSocket close reason (e.g. "abnormal closure", "code 1006")
@@ -251,6 +251,7 @@ export function buildDebugInfo(params) {
     versions?.electron ? `Electron ${versions.electron}` : null,
     versions?.chrome ? `Chrome ${versions.chrome}` : null,
     versions?.node ? `Node ${versions.node}` : null,
+    versions?.bun ? `Bun ${versions.bun}` : null,
   ].filter(Boolean);
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {

@@ -51,6 +51,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
     electron: process.versions.electron || '',
     chrome: process.versions.chrome || '',
     node: process.versions.node || '',
+    bun: process.versions.bun || '',
   },
   env: {
     gatewayUrl: process.env.MOLT_MASCOT_GATEWAY_URL || process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || process.env.gatewayUrl || '',

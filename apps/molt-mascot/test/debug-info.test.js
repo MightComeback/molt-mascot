@@ -257,6 +257,14 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Runtime: Electron 30.0.0, Chrome 124.0.0, Node 20.0.0");
   });
 
+  it("shows bun version in runtime line when available", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      versions: { electron: "30.0.0", node: "20.0.0", bun: "1.3.7" },
+    });
+    expect(info).toContain("Bun 1.3.7");
+  });
+
   it("omits runtime line when no versions", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Runtime:");
