@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1412,6 +1412,28 @@ describe("utils", () => {
     expect(formatElapsed(NaN, 1000)).toBe("0s");
     expect(formatElapsed(Infinity, 1000)).toBe("0s");
     expect(formatElapsed(1000, -Infinity)).toBe("0s");
+  });
+
+  it("formatRelativeTime", () => {
+    const now = Date.now();
+    // Sub-second → "just now"
+    expect(formatRelativeTime(now, now)).toBe("just now");
+    expect(formatRelativeTime(now - 500, now)).toBe("just now");
+    // Seconds
+    expect(formatRelativeTime(now - 45000, now)).toBe("45s ago");
+    // Minutes
+    expect(formatRelativeTime(now - 90000, now)).toBe("1m 30s ago");
+    // Hours
+    expect(formatRelativeTime(now - 3600000, now)).toBe("1h ago");
+    // Future timestamps clamp to "just now"
+    expect(formatRelativeTime(now + 5000, now)).toBe("just now");
+    // Invalid inputs
+    expect(formatRelativeTime(NaN, now)).toBe("just now");
+    expect(formatRelativeTime(null as any, now)).toBe("just now");
+    expect(formatRelativeTime(undefined as any, now)).toBe("just now");
+    // now defaults to Date.now() when omitted
+    const recent = Date.now() - 500;
+    expect(formatRelativeTime(recent)).toBe("just now");
   });
 
   it("CONTENT_TOOLS is a non-empty ReadonlySet containing core tools", () => {

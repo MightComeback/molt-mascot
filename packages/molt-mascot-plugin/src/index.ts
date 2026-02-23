@@ -286,6 +286,25 @@ export function formatElapsed(since: number, now: number): string {
 }
 
 /**
+ * Format a past timestamp as a human-readable relative time string.
+ * Consolidates the repeated `formatElapsed(ts, now) + " ago"` pattern
+ * and adds a "just now" threshold for sub-second durations.
+ *
+ * @param since - Past timestamp in milliseconds (epoch)
+ * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
+ * @returns Relative time string (e.g. "just now", "5m ago", "2h ago")
+ */
+export function formatRelativeTime(since: number, now?: number): string {
+  const n = now ?? Date.now();
+  if (typeof since !== 'number' || typeof n !== 'number' || !Number.isFinite(since) || !Number.isFinite(n)) {
+    return 'just now';
+  }
+  const diffMs = Math.max(0, n - since);
+  if (diffMs < 1000) return 'just now';
+  return `${formatDuration(Math.round(diffMs / 1000))} ago`;
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).
