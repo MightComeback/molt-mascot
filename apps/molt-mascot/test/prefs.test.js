@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager } from "../src/prefs.cjs";
+import { createPrefsManager, validatePrefs, PREF_SCHEMA } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -410,5 +410,77 @@ describe("createPrefsManager", () => {
       mgr.clear();
       expect(mgr.size()).toBe(0);
     });
+  });
+});
+
+describe("validatePrefs", () => {
+  it("passes through valid preferences unchanged", () => {
+    const raw = { alignment: "top-left", sizeIndex: 2, clickThrough: true, padding: 10 };
+    const { clean, dropped } = validatePrefs(raw);
+    expect(clean).toEqual(raw);
+    expect(dropped).toEqual([]);
+  });
+
+  it("drops unknown keys", () => {
+    const { clean, dropped } = validatePrefs({ alignment: "center", bogus: 42, foo: "bar" });
+    expect(clean).toEqual({ alignment: "center" });
+    expect(dropped).toContain("bogus");
+    expect(dropped).toContain("foo");
+  });
+
+  it("drops keys with wrong type", () => {
+    const { clean, dropped } = validatePrefs({ alignment: 123, clickThrough: "yes", sizeIndex: "two" });
+    expect(clean).toEqual({});
+    expect(dropped).toEqual(["alignment", "clickThrough", "sizeIndex"]);
+  });
+
+  it("drops numbers that fail validation (negative index, NaN padding)", () => {
+    const { clean, dropped } = validatePrefs({ sizeIndex: -1, opacityIndex: 1.5, padding: -10 });
+    expect(clean).toEqual({});
+    expect(dropped).toEqual(["sizeIndex", "opacityIndex", "padding"]);
+  });
+
+  it("drops NaN and Infinity numbers", () => {
+    const { clean, dropped } = validatePrefs({ padding: NaN, sizeIndex: Infinity });
+    expect(clean).toEqual({});
+    expect(dropped).toContain("padding");
+    expect(dropped).toContain("sizeIndex");
+  });
+
+  it("validates dragPosition object shape", () => {
+    const { clean: good } = validatePrefs({ dragPosition: { x: 100, y: 200 } });
+    expect(good.dragPosition).toEqual({ x: 100, y: 200 });
+
+    const { clean: bad, dropped } = validatePrefs({ dragPosition: { x: "a", y: 10 } });
+    expect(bad.dragPosition).toBeUndefined();
+    expect(dropped).toContain("dragPosition");
+  });
+
+  it("drops null dragPosition", () => {
+    const { clean, dropped } = validatePrefs({ dragPosition: null });
+    expect(clean.dragPosition).toBeUndefined();
+    expect(dropped).toContain("dragPosition");
+  });
+
+  it("returns empty clean object for null/undefined/array input", () => {
+    expect(validatePrefs(null).clean).toEqual({});
+    expect(validatePrefs(undefined).clean).toEqual({});
+    expect(validatePrefs([1, 2]).clean).toEqual({});
+  });
+
+  it("does not mutate input", () => {
+    const raw = { alignment: "center", bogus: 42 };
+    const copy = { ...raw };
+    validatePrefs(raw);
+    expect(raw).toEqual(copy);
+  });
+});
+
+describe("PREF_SCHEMA", () => {
+  it("covers all expected preference keys", () => {
+    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "padding", "clickThrough", "hideText", "gatewayUrl", "dragPosition"];
+    for (const key of expectedKeys) {
+      expect(PREF_SCHEMA[key]).toBeDefined();
+    }
   });
 });

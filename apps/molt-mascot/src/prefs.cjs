@@ -203,4 +203,61 @@ function createPrefsManager(filePath, opts = {}) {
   return { load, save, set, remove, flush, clear, has, get, getAll, keys, size, filePath };
 }
 
-module.exports = { createPrefsManager };
+/**
+ * Known preference keys with their expected types and optional validation.
+ * Used by validatePrefs() to sanitize loaded preferences — hand-edited or
+ * corrupted JSON doesn't cascade into unexpected app behavior.
+ *
+ * Adding a new pref? Add an entry here and it's automatically validated.
+ */
+const PREF_SCHEMA = {
+  alignment:    { type: 'string' },
+  sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
+  opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
+  padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
+  clickThrough: { type: 'boolean' },
+  hideText:     { type: 'boolean' },
+  gatewayUrl:   { type: 'string' },
+  dragPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y) },
+};
+
+/**
+ * Validate and sanitize a preferences object.
+ * Drops keys that are unknown, have the wrong type, or fail domain validation.
+ * Returns a clean object safe to use without additional checks.
+ *
+ * Does NOT mutate the input.
+ *
+ * @param {object} raw - Preferences object (e.g. from load())
+ * @returns {{ clean: object, dropped: string[] }} Sanitized prefs + list of dropped keys
+ */
+function validatePrefs(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { clean: {}, dropped: [] };
+  }
+  const clean = {};
+  const dropped = [];
+  for (const [key, value] of Object.entries(raw)) {
+    const schema = PREF_SCHEMA[key];
+    if (!schema) {
+      dropped.push(key);
+      continue;
+    }
+    if (typeof value !== schema.type) {
+      dropped.push(key);
+      continue;
+    }
+    if (schema.type === 'number' && !Number.isFinite(value)) {
+      dropped.push(key);
+      continue;
+    }
+    if (schema.validate && !schema.validate(value)) {
+      dropped.push(key);
+      continue;
+    }
+    clean[key] = value;
+  }
+  return { clean, dropped };
+}
+
+module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA };
