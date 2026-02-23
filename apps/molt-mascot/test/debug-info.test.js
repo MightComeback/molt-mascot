@@ -473,6 +473,29 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("jitter 1.2s");
   });
 
+  it("includes latency trend when rising or falling", () => {
+    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
+    const rising = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'rising' });
+    expect(rising).toContain(", rising (30 samples)");
+    const falling = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'falling' });
+    expect(falling).toContain(", falling (30 samples)");
+  });
+
+  it("omits latency trend when stable", () => {
+    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'stable' });
+    expect(info).not.toContain("stable");
+    expect(info).not.toContain("rising");
+    expect(info).not.toContain("falling");
+  });
+
+  it("omits latency trend when null", () => {
+    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
+    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: null });
+    expect(info).not.toContain("rising");
+    expect(info).not.toContain("falling");
+  });
+
   it("omits latency stats when only 1 sample (not useful)", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 10, max: 10, avg: 10, samples: 1 } });
     expect(info).not.toContain("Latency stats");

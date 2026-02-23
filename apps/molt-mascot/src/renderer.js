@@ -1323,6 +1323,7 @@ function buildDebugInfo() {
     firstConnectedAt,
     lastMessageAt,
     latencyStats: getLatencyStats(),
+    latencyTrend: _latencyTracker.trend(),
     instanceId: INSTANCE_ID,
     lastResetAt: pluginLastResetAt,
     pid: window.moltMascot?.pid,

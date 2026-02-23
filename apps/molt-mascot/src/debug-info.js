@@ -61,6 +61,7 @@
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (helps diagnose ghost state recovery)
  * @param {number} [params.pid] - Electron process PID (useful for Activity Monitor / task kill diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient
+ * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (appended to stats line for proactive diagnostics)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -130,6 +131,7 @@ export function buildDebugInfo(params) {
     lastResetAt,
     pid,
     healthStatus,
+    latencyTrend,
     now: nowOverride,
   } = params;
 
@@ -205,7 +207,8 @@ export function buildDebugInfo(params) {
     const p95Str = typeof latencyStats.p95 === 'number' ? `, p95 ${latencyStats.p95}ms` : '';
     const p99Str = typeof latencyStats.p99 === 'number' ? `, p99 ${latencyStats.p99}ms` : '';
     const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
-    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${p99Str}${jitterStr} (${latencyStats.samples} samples)`);
+    const trendStr = typeof latencyTrend === 'string' && latencyTrend !== 'stable' ? `, ${latencyTrend}` : '';
+    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${p99Str}${jitterStr}${trendStr} (${latencyStats.samples} samples)`);
   }
   if (pluginToolCalls > 0) {
     const rateSuffix = pluginToolErrors > 0
