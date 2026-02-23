@@ -433,6 +433,38 @@ export function formatCloseDetail(code, reason) {
 }
 
 /**
+ * Set of WebSocket close codes that indicate recoverable (transient) disconnections
+ * worth auto-reconnecting. Exported so consumers (tests, reconnect policies, monitoring)
+ * can inspect or extend the recoverable set without duplicating the list.
+ *
+ * Standard codes:
+ * - 1000: normal closure (reconnectable on force-reconnect)
+ * - 1001: going away / server restart
+ * - 1006: abnormal closure (no close frame — network issue)
+ * - 1012: service restart
+ * - 1013: try again later
+ *
+ * Application codes (4000–4999):
+ * - 4000: unknown error
+ * - 4002: rate limited
+ * - 4005: already connected (stale session)
+ * - 4006: session replaced
+ * - 4008: request timeout
+ * - 4009: session expired
+ * - 4010: server restart
+ * - 4011: reconnect required
+ *
+ * Fatal codes NOT in this set (reconnect should stop or require user intervention):
+ * 1002 (protocol error), 1003 (unsupported data), 1008 (policy violation),
+ * 4001 (auth failed), 4003 (forbidden), 4004 (not found),
+ * 4007 (invalid payload), 4012 (invalid version), 4013/4014 (intent errors)
+ */
+export const RECOVERABLE_CLOSE_CODES = new Set([
+  1000, 1001, 1006, 1012, 1013,
+  4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011,
+]);
+
+/**
  * Classify whether a WebSocket close code indicates a recoverable (transient)
  * disconnection that is worth auto-reconnecting, vs. a fatal condition where
  * reconnect attempts should stop (or require user intervention).
@@ -445,30 +477,7 @@ export function formatCloseDetail(code, reason) {
  */
 export function isRecoverableCloseCode(code) {
   if (code == null) return true; // no code = abnormal drop, always retry
-  // Normal closure initiated by client — not an error, but reconnectable
-  // if the client wants to reconnect (e.g. force-reconnect action).
-  if (code === 1000) return true;
-  // Server going away / restart — transient, reconnect
-  if (code === 1001) return true;
-  // Abnormal closure (no close frame) — network issue, reconnect
-  if (code === 1006) return true;
-  // Service restart / try again later — explicitly transient
-  if (code === 1012 || code === 1013) return true;
-  // Application codes: transient server-side conditions
-  if (code === 4000) return true; // unknown error
-  if (code === 4002) return true; // rate limited
-  if (code === 4005) return true; // already connected (stale session)
-  if (code === 4006) return true; // session replaced
-  if (code === 4008) return true; // request timeout
-  if (code === 4009) return true; // session expired
-  if (code === 4010) return true; // server restart
-  if (code === 4011) return true; // reconnect required
-
-  // Fatal: auth failed, forbidden, protocol errors, bad version/intent
-  // 1002 (protocol error), 1003 (unsupported data), 1008 (policy violation)
-  // 4001 (auth failed), 4003 (forbidden), 4004 (not found),
-  // 4007 (invalid payload), 4012 (invalid version), 4013/4014 (intent errors)
-  return false;
+  return RECOVERABLE_CLOSE_CODES.has(code);
 }
 
 /**

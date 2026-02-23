@@ -27,6 +27,7 @@ import {
   MODE_EMOJI,
   computeHealthStatus,
   isRecoverableCloseCode,
+  RECOVERABLE_CLOSE_CODES,
   connectionUptimePercent,
   computeHealthReasons,
   validateWsUrl,
@@ -1443,6 +1444,28 @@ describe("isRecoverableCloseCode", () => {
   it("returns false for fatal codes", () => {
     for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
       expect(isRecoverableCloseCode(code)).toBe(false);
+    }
+  });
+});
+
+describe("RECOVERABLE_CLOSE_CODES", () => {
+  it("is a non-empty Set containing all recoverable codes", () => {
+    expect(RECOVERABLE_CLOSE_CODES).toBeInstanceOf(Set);
+    expect(RECOVERABLE_CLOSE_CODES.size).toBeGreaterThan(0);
+    for (const code of [1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011]) {
+      expect(RECOVERABLE_CLOSE_CODES.has(code)).toBe(true);
+    }
+  });
+
+  it("does not contain fatal codes", () => {
+    for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
+      expect(RECOVERABLE_CLOSE_CODES.has(code)).toBe(false);
+    }
+  });
+
+  it("is consistent with isRecoverableCloseCode", () => {
+    for (const code of RECOVERABLE_CLOSE_CODES) {
+      expect(isRecoverableCloseCode(code)).toBe(true);
     }
   });
 });
