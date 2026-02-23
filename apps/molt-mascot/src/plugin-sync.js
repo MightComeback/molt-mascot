@@ -169,5 +169,17 @@ export function createPluginSync(callbacks = {}) {
     };
   }
 
-  return { sync, reset, last: getLast, activeCount, getSnapshot };
+  /**
+   * JSON.stringify() support — delegates to getSnapshot() so
+   * `JSON.stringify(pluginSync)` produces a useful diagnostic object
+   * without manual plucking (consistent with fpsCounter.toJSON(),
+   * latencyTracker.toJSON(), and blinkState.toJSON()).
+   *
+   * @returns {{ trackedProps: number, activeProps: number, values: object }}
+   */
+  function toJSON() {
+    return getSnapshot();
+  }
+
+  return { sync, reset, last: getLast, activeCount, getSnapshot, toJSON };
 }

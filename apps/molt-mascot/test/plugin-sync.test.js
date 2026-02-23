@@ -303,4 +303,24 @@ describe('createPluginSync', () => {
     const snap = sync.getSnapshot();
     expect(snap.activeProps).toBe(0);
   });
+
+  it('toJSON() delegates to getSnapshot()', () => {
+    const sync = createPluginSync({});
+    sync.sync({ clickThrough: true, opacity: 0.8 });
+    const json = sync.toJSON();
+    const snap = sync.getSnapshot();
+    expect(json).toEqual(snap);
+    expect(json.activeProps).toBe(2);
+  });
+
+  it('toJSON() produces valid JSON.stringify output', () => {
+    const sync = createPluginSync({});
+    sync.sync({ alignment: 'top-left', size: 'large' });
+    const str = JSON.stringify(sync);
+    const parsed = JSON.parse(str);
+    expect(parsed.trackedProps).toBeGreaterThan(0);
+    expect(parsed.activeProps).toBe(2);
+    expect(parsed.values.alignment).toBe('top-left');
+    expect(parsed.values.size).toBe('large');
+  });
 });
