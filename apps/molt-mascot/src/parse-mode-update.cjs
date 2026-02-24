@@ -121,6 +121,26 @@ function nonEmptyStr(v) {
 }
 
 /**
+ * Validate and sanitize a latencyStats object from an IPC payload.
+ * Ensures all numeric fields are finite and non-negative, and that the
+ * required `samples` field is a positive integer. Returns null for invalid input.
+ *
+ * @param {*} raw
+ * @returns {object|null}
+ */
+function validateLatencyStats(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  if (typeof raw.samples !== 'number' || !Number.isFinite(raw.samples) || raw.samples < 1 || !Number.isInteger(raw.samples)) return null;
+  // Validate core numeric fields: must be finite and non-negative when present.
+  for (const key of ['min', 'max', 'avg', 'median', 'p95', 'p99', 'jitter']) {
+    if (key in raw) {
+      if (typeof raw[key] !== 'number' || !Number.isFinite(raw[key]) || raw[key] < 0) return null;
+    }
+  }
+  return raw;
+}
+
+/**
  * Parse a raw mode-update IPC payload into a validated, normalized object.
  *
  * All fields are optional and independently validated — a single invalid
@@ -150,9 +170,7 @@ function parseModeUpdate(raw) {
     agentSessions: nonNegInt(update.agentSessions),
     pluginVersion: nonEmptyStr(update.pluginVersion),
     lastMessageAt: posEpoch(update.lastMessageAt),
-    latencyStats: (update.latencyStats && typeof update.latencyStats === 'object' && typeof update.latencyStats.samples === 'number')
-      ? update.latencyStats
-      : null,
+    latencyStats: validateLatencyStats(update.latencyStats),
     pluginStartedAt: posEpoch(update.pluginStartedAt),
     lastResetAt: posEpoch(update.lastResetAt),
     healthStatus: validHealthStatus(update.healthStatus),
@@ -208,4 +226,4 @@ function formatModeUpdate(parsed) {
   return `ModeUpdate<${parts.join(', ')}>`;
 }
 
-module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, VALID_HEALTH, VALID_LATENCY_TRENDS };
+module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, validateLatencyStats, VALID_HEALTH, VALID_LATENCY_TRENDS };

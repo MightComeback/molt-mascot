@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, VALID_HEALTH, VALID_LATENCY_TRENDS } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, validateLatencyStats, VALID_HEALTH, VALID_LATENCY_TRENDS } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -271,6 +271,31 @@ describe('parse-mode-update', () => {
 
     it('accepts latencyStats with numeric samples field', () => {
       const stats = { samples: 5, median: 20 };
+      expect(parseModeUpdate({ latencyStats: stats }).latencyStats).toEqual(stats);
+    });
+
+    it('rejects latencyStats with non-integer samples', () => {
+      expect(parseModeUpdate({ latencyStats: { samples: 1.5 } }).latencyStats).toBeNull();
+    });
+
+    it('rejects latencyStats with zero samples', () => {
+      expect(parseModeUpdate({ latencyStats: { samples: 0 } }).latencyStats).toBeNull();
+    });
+
+    it('rejects latencyStats with NaN/Infinity in numeric fields', () => {
+      expect(parseModeUpdate({ latencyStats: { samples: 5, min: NaN } }).latencyStats).toBeNull();
+      expect(parseModeUpdate({ latencyStats: { samples: 5, max: Infinity } }).latencyStats).toBeNull();
+      expect(parseModeUpdate({ latencyStats: { samples: 5, avg: -Infinity } }).latencyStats).toBeNull();
+    });
+
+    it('rejects latencyStats with negative numeric fields', () => {
+      expect(parseModeUpdate({ latencyStats: { samples: 5, median: -1 } }).latencyStats).toBeNull();
+      expect(parseModeUpdate({ latencyStats: { samples: 5, p95: -10 } }).latencyStats).toBeNull();
+      expect(parseModeUpdate({ latencyStats: { samples: 5, jitter: -5 } }).latencyStats).toBeNull();
+    });
+
+    it('accepts latencyStats with all valid numeric fields', () => {
+      const stats = { samples: 10, min: 5, max: 100, avg: 42, median: 38, p95: 80, p99: 95, jitter: 12 };
       expect(parseModeUpdate({ latencyStats: stats }).latencyStats).toEqual(stats);
     });
 
