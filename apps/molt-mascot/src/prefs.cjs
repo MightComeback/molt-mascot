@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { isValidAlignment } = require('./get-position.cjs');
+const { isValidSize } = require('./size-presets.cjs');
 
 /**
  * Create a preferences manager.
@@ -290,6 +291,7 @@ function createPrefsManager(filePath, opts = {}) {
 const PREF_SCHEMA = {
   alignment:    { type: 'string', validate: (v) => isValidAlignment(v) },
   sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
+  size:         { type: 'string', validate: (v) => isValidSize(v) },
   opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
   padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
   opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1 },

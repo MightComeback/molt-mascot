@@ -517,6 +517,18 @@ describe("validatePrefs", () => {
     expect(dropped.map((d) => d.key)).toContain("reducedMotion");
   });
 
+  it("accepts valid size labels and rejects invalid ones", () => {
+    const { clean: good } = validatePrefs({ size: "small" });
+    expect(good.size).toBe("small");
+
+    const { clean: good2 } = validatePrefs({ size: "xlarge" });
+    expect(good2.size).toBe("xlarge");
+
+    const { clean: bad, dropped } = validatePrefs({ size: "gigantic" });
+    expect(bad.size).toBeUndefined();
+    expect(dropped.map((d) => d.key)).toContain("size");
+  });
+
   it("does not mutate input", () => {
     const raw = { alignment: "center", bogus: 42 };
     const copy = { ...raw };

@@ -633,7 +633,7 @@ app.whenReady().then(async () => {
       repositionMainWindow({ force: true });
       w.webContents.send('molt-mascot:size', label);
     });
-    savePrefs({ sizeIndex });
+    savePrefs({ sizeIndex, size: label });
     rebuildTrayMenu();
   }
 
@@ -717,8 +717,14 @@ app.whenReady().then(async () => {
 
   // Size presets from shared module (single source of truth).
   const sizeCycle = SIZE_PRESETS;
-  let sizeIndex = (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length)
-    ? savedPrefs.sizeIndex : DEFAULT_SIZE_INDEX;
+  let sizeIndex = DEFAULT_SIZE_INDEX;
+  // Prefer saved size label (robust across preset reorder) over numeric index.
+  if (typeof savedPrefs.size === 'string' && savedPrefs.size) {
+    const labelIdx = sizeCycle.findIndex((s) => s.label === savedPrefs.size.toLowerCase());
+    if (labelIdx >= 0) sizeIndex = labelIdx;
+  } else if (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length) {
+    sizeIndex = savedPrefs.sizeIndex;
+  }
   // Env var MOLT_MASCOT_SIZE overrides saved preference (parity with MOLT_MASCOT_ALIGN etc.).
   const envSize = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
   if (envSize) {
@@ -1267,7 +1273,7 @@ app.whenReady().then(async () => {
         repositionMainWindow({ force: true });
         win.webContents.send('molt-mascot:size', label);
       });
-      savePrefs({ sizeIndex });
+      savePrefs({ sizeIndex, size: label });
       rebuildTrayMenu();
       return;
     }
