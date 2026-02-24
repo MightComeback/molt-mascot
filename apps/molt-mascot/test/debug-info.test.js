@@ -280,6 +280,12 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Process uptime: 1h 1m");
   });
 
+  it("shows process started-at timestamp alongside uptime", () => {
+    const startedAt = Date.UTC(2026, 1, 24, 5, 0, 0); // 2026-02-24T05:00:00Z
+    const info = buildDebugInfo({ ...BASE_PARAMS, processUptimeS: 3600, processStartedAt: startedAt });
+    expect(info).toContain("Process uptime: 1h (since 2026-02-24T05:00:00.000Z)");
+  });
+
   it("omits process uptime when not provided", () => {
     const info = buildDebugInfo(BASE_PARAMS);
     expect(info).not.toContain("Process uptime:");

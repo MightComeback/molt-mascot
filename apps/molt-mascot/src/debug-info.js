@@ -65,6 +65,7 @@
  * @param {number} [params.minProtocol] - Minimum supported gateway protocol version (shown in diagnostics for version mismatch debugging)
  * @param {number} [params.maxProtocol] - Maximum supported gateway protocol version
  * @param {{ x: number, y: number }|null} [params.dragPosition] - User-dragged window position (shown when the mascot was manually repositioned, helping diagnose "why is it here?")
+ * @param {number|null} [params.processStartedAt] - Epoch ms when the Electron process started (shown alongside uptime for absolute reference)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -138,6 +139,7 @@ export function buildDebugInfo(params) {
     minProtocol,
     maxProtocol,
     dragPosition,
+    processStartedAt,
     now: nowOverride,
   } = params;
 
@@ -270,7 +272,10 @@ export function buildDebugInfo(params) {
   ].filter(Boolean);
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
-    lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}`);
+    const startedSuffix = typeof processStartedAt === 'number' && processStartedAt > 0
+      ? ` (since ${formatTimestamp(processStartedAt)})`
+      : '';
+    lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`);
   }
   if (typeof pid === 'number' && pid > 0) {
     lines.push(`PID: ${pid}`);
