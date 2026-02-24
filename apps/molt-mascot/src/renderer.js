@@ -1372,6 +1372,10 @@ function showContextMenu(e) {
     hasDragPosition,
     latencyStats: getLatencyStats(),
     latencyTrend: _latencyTracker.trend(),
+    pluginVersion,
+    processUptimeS: window.moltMascot?.processUptimeS?.(),
+    processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
+    targetUrl: connectedUrl || loadCfg()?.url || undefined,
   });
 
   // Map descriptor IDs to action callbacks
