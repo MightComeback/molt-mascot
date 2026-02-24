@@ -11,13 +11,22 @@
  * @module plugin-sync
  */
 
+import { allowedAlignments, allowedSizes } from '@molt/mascot-plugin';
+
+// Pre-build Sets for O(1) lookup in the hot sync path.
+const _validAlignments = new Set(allowedAlignments);
+const _validSizes = new Set(allowedSizes);
+
 /**
  * Optional per-property validation.
  * Return true if the value is acceptable, false to skip the update.
- * Only needed for numeric properties with domain constraints;
- * type checking is handled generically by the sync loop.
+ * Numeric properties have domain constraints; string properties like
+ * alignment and size are validated against canonical allowed values
+ * to prevent invalid state from propagating to the renderer.
  */
 const VALIDATORS = {
+  alignment: (v) => _validAlignments.has(v),
+  size: (v) => _validSizes.has(v),
   opacity: (v) => v >= 0 && v <= 1,
   padding: (v) => v >= 0,
   toolCalls: (v) => v >= 0 && Number.isInteger(v),

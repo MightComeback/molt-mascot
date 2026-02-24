@@ -147,6 +147,38 @@ describe('createPluginSync', () => {
     expect(called).toBe(true);
   });
 
+  it('rejects invalid alignment values', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onAlignment: () => { called = true; },
+    });
+
+    sync.sync({ alignment: 'middle-left' });
+    expect(called).toBe(false);
+
+    sync.sync({ alignment: 'banana' });
+    expect(called).toBe(false);
+
+    sync.sync({ alignment: 'top-left' });
+    expect(called).toBe(true);
+  });
+
+  it('rejects invalid size values', () => {
+    let called = false;
+    const sync = createPluginSync({
+      onSize: () => { called = true; },
+    });
+
+    sync.sync({ size: 'huge' });
+    expect(called).toBe(false);
+
+    sync.sync({ size: 'xxxl' });
+    expect(called).toBe(false);
+
+    sync.sync({ size: 'small' });
+    expect(called).toBe(true);
+  });
+
   it('validates toolCalls is a non-negative integer', () => {
     const values = [];
     const sync = createPluginSync({
