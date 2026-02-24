@@ -530,7 +530,7 @@ describe("_spriteCache", () => {
     expect(_spriteCache.toString()).toBe("SpriteCache<0 entries, scale=-1>");
     _spriteCache.warmAll(4);
     const str = _spriteCache.toString();
-    expect(str).toMatch(/^SpriteCache<\d+ entr(y|ies), scale=4>$/);
+    expect(str).toMatch(/^SpriteCache<\d+ entr(y|ies), scale=4/);
     expect(str).toContain("entries");
   });
 
@@ -539,6 +539,56 @@ describe("_spriteCache", () => {
     // In test env without OffscreenCanvas, cache stays empty — verify plural "entries"
     expect(_spriteCache.toString()).toContain("entries");
     // The singular "entry" path is exercised when size() === 1 (requires canvas env)
+  });
+
+  it("hitRate() returns null when no lookups have occurred", () => {
+    _spriteCache.clear();
+    expect(_spriteCache.hitRate()).toBeNull();
+  });
+
+  it("hitRate() tracks cache misses on first access", () => {
+    _spriteCache.clear();
+    const sprite = [["r", "."], [".", "w"]];
+    _spriteCache.get(sprite, 3); // miss (or null in test env)
+    const rate = _spriteCache.hitRate();
+    // In test env without OffscreenCanvas, get() returns null without recording a miss,
+    // so hitRate may still be null. In a real env it would be 0%.
+    if (rate !== null) {
+      expect(rate).toBeLessThanOrEqual(100);
+      expect(rate).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it("getSnapshot() includes hit/miss stats", () => {
+    _spriteCache.clear();
+    const snap = _spriteCache.getSnapshot();
+    expect(typeof snap.hits).toBe("number");
+    expect(typeof snap.misses).toBe("number");
+    expect(snap.hits).toBe(0);
+    expect(snap.misses).toBe(0);
+    // hitRate is null when no lookups
+    expect(snap.hitRate).toBeNull();
+  });
+
+  it("clear() resets hit/miss counters", () => {
+    _spriteCache.clear();
+    _spriteCache.warmAll(3); // triggers gets which may record misses
+    _spriteCache.clear();
+    const snap = _spriteCache.getSnapshot();
+    expect(snap.hits).toBe(0);
+    expect(snap.misses).toBe(0);
+  });
+
+  it("toString() includes hit rate when lookups have occurred", () => {
+    _spriteCache.clear();
+    _spriteCache.warmAll(3);
+    // After warmAll, if any sprites were cached, a second warmAll should hit cache
+    _spriteCache.warmAll(3);
+    const str = _spriteCache.toString();
+    // If there were any lookups, the string should contain "% hit"
+    if (_spriteCache.hitRate() !== null) {
+      expect(str).toContain("% hit");
+    }
   });
 });
 

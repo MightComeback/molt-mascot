@@ -81,6 +81,8 @@ export const _spriteCache = (() => {
   /** @type {Map<number, OffscreenCanvas|HTMLCanvasElement>} */
   const cache = new Map();
   let lastScale = -1;
+  let _hits = 0;
+  let _misses = 0;
 
   // Stable identity key for a sprite array. We use a WeakMap to assign
   // incrementing IDs so we never stringify the full sprite data.
@@ -104,7 +106,7 @@ export const _spriteCache = (() => {
     }
     const key = spriteKey(sprite);
     const entry = cache.get(key);
-    if (entry) return entry;
+    if (entry) { _hits++; return entry; }
 
     // Pre-render
     const w = sprite[0].length * scale;
@@ -135,11 +137,12 @@ export const _spriteCache = (() => {
       }
     }
     cache.set(key, offscreen);
+    _misses++;
     return offscreen;
   }
 
   /** Flush the cache (useful for tests). */
-  function clear() { cache.clear(); lastScale = -1; }
+  function clear() { cache.clear(); lastScale = -1; _hits = 0; _misses = 0; }
 
   /** Number of cached entries. */
   function size() { return cache.size; }
@@ -173,11 +176,27 @@ export const _spriteCache = (() => {
    *
    * @returns {{ size: number, scale: number, spriteIds: number }}
    */
+  /**
+   * Cache hit rate as an integer percentage (0-100), or null if no lookups yet.
+   * Useful for verifying that warmAll() is effective and the hot render path
+   * isn't falling back to per-pixel fillRect.
+   *
+   * @returns {number|null}
+   */
+  function hitRate() {
+    const total = _hits + _misses;
+    if (total === 0) return null;
+    return Math.round((_hits / total) * 100);
+  }
+
   function getSnapshot() {
     return {
       size: cache.size,
       scale: lastScale,
       spriteIds: nextSpriteId,
+      hits: _hits,
+      misses: _misses,
+      hitRate: hitRate(),
     };
   }
 
@@ -201,10 +220,12 @@ export const _spriteCache = (() => {
    * @returns {string}
    */
   function toString() {
-    return `SpriteCache<${cache.size} entr${cache.size === 1 ? 'y' : 'ies'}, scale=${lastScale}>`;
+    const rate = hitRate();
+    const rateSuffix = rate !== null ? `, ${rate}% hit` : '';
+    return `SpriteCache<${cache.size} entr${cache.size === 1 ? 'y' : 'ies'}, scale=${lastScale}${rateSuffix}>`;
   }
 
-  return { get, clear, size, warmAll, getSnapshot, toJSON, toString };
+  return { get, clear, size, warmAll, hitRate, getSnapshot, toJSON, toString };
 })();
 
 // Blink timing constants.
