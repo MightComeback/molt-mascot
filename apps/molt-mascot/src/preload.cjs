@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   onDragPosition: (cb) => onIpc('molt-mascot:drag-position', cb),
   processUptimeS: () => process.uptime(),
   processMemoryRssBytes: () => (typeof process.memoryUsage.rss === 'function' ? process.memoryUsage.rss() : process.memoryUsage().rss),
+  processStartedAt: Date.now() - Math.round(process.uptime() * 1000),
   pid: process.pid,
   platform: process.platform,
   arch: process.arch,
