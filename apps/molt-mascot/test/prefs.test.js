@@ -763,3 +763,49 @@ describe("toString", () => {
     expect(mgr.toString()).toBe("PrefsManager<0 keys, no pending>");
   });
 });
+
+describe("validatePrefs timing prefs", () => {
+  it("accepts valid sleepThresholdS", () => {
+    const { clean } = validatePrefs({ sleepThresholdS: 60 });
+    expect(clean.sleepThresholdS).toBe(60);
+  });
+
+  it("accepts sleepThresholdS of 0 (disable sleep)", () => {
+    const { clean } = validatePrefs({ sleepThresholdS: 0 });
+    expect(clean.sleepThresholdS).toBe(0);
+  });
+
+  it("rejects negative sleepThresholdS", () => {
+    const { clean, dropped } = validatePrefs({ sleepThresholdS: -10 });
+    expect(clean.sleepThresholdS).toBeUndefined();
+    expect(dropped.some(d => d.key === "sleepThresholdS")).toBe(true);
+  });
+
+  it("rejects non-number sleepThresholdS", () => {
+    const { clean, dropped } = validatePrefs({ sleepThresholdS: "120" });
+    expect(clean.sleepThresholdS).toBeUndefined();
+    expect(dropped.some(d => d.key === "sleepThresholdS")).toBe(true);
+  });
+
+  it("accepts valid idleDelayMs", () => {
+    const { clean } = validatePrefs({ idleDelayMs: 500 });
+    expect(clean.idleDelayMs).toBe(500);
+  });
+
+  it("rejects non-integer idleDelayMs", () => {
+    const { clean, dropped } = validatePrefs({ idleDelayMs: 500.5 });
+    expect(clean.idleDelayMs).toBeUndefined();
+    expect(dropped.some(d => d.key === "idleDelayMs")).toBe(true);
+  });
+
+  it("accepts valid errorHoldMs", () => {
+    const { clean } = validatePrefs({ errorHoldMs: 3000 });
+    expect(clean.errorHoldMs).toBe(3000);
+  });
+
+  it("rejects negative errorHoldMs", () => {
+    const { clean, dropped } = validatePrefs({ errorHoldMs: -1 });
+    expect(clean.errorHoldMs).toBeUndefined();
+    expect(dropped.some(d => d.key === "errorHoldMs")).toBe(true);
+  });
+});

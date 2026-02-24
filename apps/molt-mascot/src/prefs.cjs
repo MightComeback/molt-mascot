@@ -297,6 +297,9 @@ const PREF_SCHEMA = {
   hideText:     { type: 'boolean' },
   gatewayUrl:   { type: 'string', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v) },
   draggedPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y) },
+  sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
+  idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
+  errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
 };
 
 /**
