@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS } from "../src/prefs.cjs";
+import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -858,5 +858,48 @@ describe("VALID_PREF_KEYS", () => {
 
   it("has no duplicates", () => {
     expect(new Set(VALID_PREF_KEYS).size).toBe(VALID_PREF_KEYS.length);
+  });
+});
+
+describe("PREF_SCHEMA descriptions", () => {
+  it("every schema entry has a non-empty description string", () => {
+    for (const [key, entry] of Object.entries(PREF_SCHEMA)) {
+      expect(typeof entry.description).toBe("string");
+      expect(entry.description.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("formatPrefSchema", () => {
+  it("returns a non-empty string", () => {
+    const output = formatPrefSchema();
+    expect(typeof output).toBe("string");
+    expect(output.length).toBeGreaterThan(0);
+  });
+
+  it("includes every VALID_PREF_KEYS entry", () => {
+    const output = formatPrefSchema();
+    for (const key of VALID_PREF_KEYS) {
+      expect(output).toContain(key);
+    }
+  });
+
+  it("includes type annotations for each key", () => {
+    const output = formatPrefSchema();
+    for (const [key, entry] of Object.entries(PREF_SCHEMA)) {
+      expect(output).toContain(`${key} (${entry.type})`);
+    }
+  });
+
+  it("includes descriptions for each key", () => {
+    const output = formatPrefSchema();
+    for (const entry of Object.values(PREF_SCHEMA)) {
+      expect(output).toContain(entry.description);
+    }
+  });
+
+  it("has one line per key", () => {
+    const lines = formatPrefSchema().split('\n');
+    expect(lines.length).toBe(VALID_PREF_KEYS.length);
   });
 });

@@ -289,20 +289,20 @@ function createPrefsManager(filePath, opts = {}) {
  * Adding a new pref? Add an entry here and it's automatically validated.
  */
 const PREF_SCHEMA = {
-  alignment:    { type: 'string', validate: (v) => isValidAlignment(v) },
-  sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
-  size:         { type: 'string', validate: (v) => isValidSize(v) },
-  opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0 },
-  padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
-  opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1 },
-  clickThrough: { type: 'boolean' },
-  hideText:     { type: 'boolean' },
-  gatewayUrl:   { type: 'string', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v) },
-  draggedPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y) },
-  sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
-  idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
-  errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
-  reducedMotion:   { type: 'boolean' },
+  alignment:    { type: 'string', validate: (v) => isValidAlignment(v), description: 'Window alignment position (e.g. bottom-right, top-left, center)' },
+  sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into SIZE_PRESETS (legacy; prefer "size")' },
+  size:         { type: 'string', validate: (v) => isValidSize(v), description: 'Window size preset label (tiny, small, medium, large, xlarge)' },
+  opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")' },
+  padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0, description: 'Edge padding in pixels when snapped to an alignment' },
+  opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
+  clickThrough: { type: 'boolean', description: 'Ghost mode — clicks pass through the mascot window' },
+  hideText:     { type: 'boolean', description: 'Hide the HUD pill text overlay' },
+  gatewayUrl:   { type: 'string', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v), description: 'Gateway WebSocket URL (ws:// or wss://)' },
+  draggedPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y), description: 'Last user-dragged window position {x, y}' },
+  sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0, description: 'Seconds of idle before entering sleeping state' },
+  idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
+  errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
+  reducedMotion:   { type: 'boolean', description: 'Disable pill animations for accessibility' },
 };
 
 /**
@@ -353,4 +353,21 @@ function validatePrefs(raw) {
  */
 const VALID_PREF_KEYS = Object.freeze(Object.keys(PREF_SCHEMA));
 
-module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS };
+/**
+ * Format all known preference keys with their types and descriptions.
+ * Useful for CLI --help-prefs output, auto-generated documentation,
+ * and interactive preference editors.
+ *
+ * @returns {string} Multi-line formatted preference reference
+ */
+function formatPrefSchema() {
+  const lines = [];
+  for (const key of VALID_PREF_KEYS) {
+    const entry = PREF_SCHEMA[key];
+    const desc = entry.description || '(no description)';
+    lines.push(`  ${key} (${entry.type}) — ${desc}`);
+  }
+  return lines.join('\n');
+}
+
+module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema };
