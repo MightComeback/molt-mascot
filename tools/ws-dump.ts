@@ -398,10 +398,16 @@ ws.addEventListener("message", (ev) => {
         const median = sorted.length % 2 === 0
           ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
           : sorted[mid];
+        // Jitter: mean absolute deviation from the average — same definition as
+        // the latency-tracker module uses, giving a consistent metric across
+        // the desktop app's rolling stats and the CLI's one-shot ping summary.
+        const jitter = sorted.length > 1
+          ? Math.round((sorted.reduce((s, v) => s + Math.abs(v - avg), 0) / sorted.length) * 100) / 100
+          : 0;
 
         console.log(compact
-          ? JSON.stringify({ count: pingCount, min, max, avg, median })
-          : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms`
+          ? JSON.stringify({ count: pingCount, min, max, avg, median, jitter })
+          : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`
         );
         try { ws.close(); } catch {}
         return;
