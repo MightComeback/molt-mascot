@@ -811,6 +811,21 @@ export function summarizeToolResultMessage(msg: any): string {
 }
 
 /**
+ * Strip common tool-name prefixes added by LLM function-calling wrappers.
+ * e.g. "default_api:exec" → "exec", "functions.read" → "read",
+ * "multi_tool_use.parallel" → "parallel".
+ *
+ * Centralizes the repeated 3-replace chain used in onToolStart, recalcCurrentTool,
+ * and onToolEnd to avoid drift and make the stripping logic testable.
+ */
+export function sanitizeToolName(raw: string): string {
+  return raw
+    .replace(/^default_api:/, "")
+    .replace(/^functions\./, "")
+    .replace(/^multi_tool_use\./, "");
+}
+
+/**
  * Tools that return raw content (like 'read') can contain "error:" in the text
  * without actually failing. For these tools we disable text-sniffing for errors
  * and rely on explicit failure signals (status/exitCode/success/isError).
@@ -984,10 +999,7 @@ export default function register(api: PluginApi) {
     }
 
     if (found) {
-      state.currentTool = found
-        .replace(/^default_api:/, "")
-        .replace(/^functions\./, "")
-        .replace(/^multi_tool_use\./, "");
+      state.currentTool = sanitizeToolName(found);
     } else {
       delete state.currentTool;
     }
@@ -1190,10 +1202,7 @@ export default function register(api: PluginApi) {
       state.toolCalls = (state.toolCalls ?? 0) + 1;
 
       // Always update currentTool on tool start, even if the event didn't provide a name.
-      state.currentTool = toolName
-        .replace(/^default_api:/, "")
-        .replace(/^functions\./, "")
-        .replace(/^multi_tool_use\./, "");
+      state.currentTool = sanitizeToolName(toolName);
 
       syncModeFromCounters();
     };
@@ -1222,12 +1231,8 @@ export default function register(api: PluginApi) {
       const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
       
       // UX: Remove verbose prefixes for compact display
-      const toolName = rawToolName
-        .replace(/^default_api:/, "")
-        .replace(/^functions\./, "")
-        .replace(/^multi_tool_use\./, "")
-        // Truncate tool name if absurdly long to save space on the pixel display
-        .slice(0, 20);
+      // Truncate tool name if absurdly long to save space on the pixel display
+      const toolName = sanitizeToolName(rawToolName).slice(0, 20);
 
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";

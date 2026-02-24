@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, formatTimestampWithAge, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, formatTimestampWithAge, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, sanitizeToolName, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -1408,6 +1408,19 @@ describe("utils", () => {
     // Null/undefined errorCount treated as 0
     expect(successRate(10, null as any)).toBe(100);
     expect(successRate(10, undefined as any)).toBe(100);
+  });
+
+  it("sanitizeToolName", () => {
+    expect(sanitizeToolName("default_api:exec")).toBe("exec");
+    expect(sanitizeToolName("functions.read")).toBe("read");
+    expect(sanitizeToolName("multi_tool_use.parallel")).toBe("parallel");
+    // Combined: default_api prefix with functions. inside — only strips leading prefix
+    expect(sanitizeToolName("default_api:functions.web_search")).toBe("web_search");
+    // No prefix — pass through unchanged
+    expect(sanitizeToolName("exec")).toBe("exec");
+    expect(sanitizeToolName("web_search")).toBe("web_search");
+    // Empty string
+    expect(sanitizeToolName("")).toBe("");
   });
 
   it("formatElapsed", () => {
