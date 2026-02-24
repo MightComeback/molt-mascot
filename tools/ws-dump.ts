@@ -548,14 +548,19 @@ ws.addEventListener("message", (ev) => {
     // --state mode: handle plugin state response
     if (stateMode && msg.type === "res" && msg.id === stateReqId) {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
-        // Include round-trip latency in the output for quick diagnostics
-        // (parity with --health and --watch modes which already report RTT).
+        // Include round-trip latency, connection quality, and health status
+        // in the output for quick diagnostics (parity with --health mode).
         const rtt = pingSentAt > 0
           ? Math.round((performance.now() - pingSentAt) * 100) / 100
           : undefined;
-        const output = rtt !== undefined
-          ? { ...msg.payload.state, latencyMs: rtt }
-          : msg.payload.state;
+        const extras: Record<string, unknown> = {};
+        if (rtt !== undefined) {
+          extras.latencyMs = rtt;
+          const q = connectionQuality(rtt);
+          if (q) extras.quality = q;
+          extras.healthStatus = computeHealthStatus({ isConnected: true, latencyMs: rtt });
+        }
+        const output = { ...msg.payload.state, ...extras };
         console.log(compact ? JSON.stringify(output) : JSON.stringify(output, null, 2));
         try { ws.close(); } catch {}
         return;
