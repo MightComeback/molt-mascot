@@ -140,10 +140,14 @@ describe('parse-mode-update', () => {
 
   describe('VALID_LATENCY_TRENDS', () => {
     it('contains expected trend values', () => {
-      expect(VALID_LATENCY_TRENDS.has('rising')).toBe(true);
-      expect(VALID_LATENCY_TRENDS.has('falling')).toBe(true);
-      expect(VALID_LATENCY_TRENDS.has('stable')).toBe(true);
-      expect(VALID_LATENCY_TRENDS.size).toBe(3);
+      expect(VALID_LATENCY_TRENDS).toContain('rising');
+      expect(VALID_LATENCY_TRENDS).toContain('falling');
+      expect(VALID_LATENCY_TRENDS).toContain('stable');
+      expect(VALID_LATENCY_TRENDS).toHaveLength(3);
+    });
+
+    it('is frozen', () => {
+      expect(Object.isFrozen(VALID_LATENCY_TRENDS)).toBe(true);
     });
   });
 

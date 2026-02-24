@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -698,5 +698,36 @@ describe('connectionUptimePercent', () => {
       lastDisconnectedAt: null,
       now: 101000,
     })).toBe(100);
+  });
+});
+
+describe('VALID_LATENCY_TRENDS', () => {
+  it('contains exactly the three trend directions', () => {
+    expect(VALID_LATENCY_TRENDS).toEqual(['rising', 'falling', 'stable']);
+  });
+
+  it('is frozen', () => {
+    expect(Object.isFrozen(VALID_LATENCY_TRENDS)).toBe(true);
+  });
+});
+
+describe('isValidLatencyTrend', () => {
+  it('accepts valid trends', () => {
+    expect(isValidLatencyTrend('rising')).toBe(true);
+    expect(isValidLatencyTrend('falling')).toBe(true);
+    expect(isValidLatencyTrend('stable')).toBe(true);
+  });
+
+  it('rejects invalid strings', () => {
+    expect(isValidLatencyTrend('unknown')).toBe(false);
+    expect(isValidLatencyTrend('RISING')).toBe(false);
+    expect(isValidLatencyTrend('')).toBe(false);
+  });
+
+  it('rejects non-strings', () => {
+    expect(isValidLatencyTrend(null)).toBe(false);
+    expect(isValidLatencyTrend(undefined)).toBe(false);
+    expect(isValidLatencyTrend(42)).toBe(false);
+    expect(isValidLatencyTrend(true)).toBe(false);
   });
 });

@@ -73,7 +73,7 @@ function posEpoch(v) {
  * @returns {"healthy"|"degraded"|"unhealthy"|null}
  */
 const { isValidMode } = require('./mode-emoji.cjs');
-const { VALID_HEALTH_STATUSES, isValidHealth } = require('./format-latency.cjs');
+const { VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend } = require('./format-latency.cjs');
 
 // Re-export for back-compat (consumers may import VALID_HEALTH from here).
 const VALID_HEALTH = VALID_HEALTH_STATUSES;
@@ -84,19 +84,14 @@ function validHealthStatus(v) {
 }
 
 /**
- * Valid latency trend values.
- * @type {Set<string>}
- */
-const VALID_LATENCY_TRENDS = new Set(['rising', 'falling', 'stable']);
-
-/**
  * Validate a latency trend string.
+ * Delegates to the canonical isValidLatencyTrend from format-latency.cjs.
  * @param {*} v
  * @returns {"rising"|"falling"|"stable"|null}
  */
 function validLatencyTrend(v) {
   if (typeof v !== 'string') return null;
-  return VALID_LATENCY_TRENDS.has(v) ? v : null;
+  return isValidLatencyTrend(v) ? v : null;
 }
 
 /**

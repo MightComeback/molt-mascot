@@ -387,4 +387,28 @@ function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSi
   return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent };
+/**
+ * Canonical set of valid latency trend direction strings.
+ * Single source of truth — consumed by parse-mode-update.cjs, utils.js, etc.
+ * Mirrors VALID_HEALTH_STATUSES for consistency.
+ */
+const VALID_LATENCY_TRENDS = Object.freeze(['rising', 'falling', 'stable']);
+
+/**
+ * Internal Set for O(1) latency trend validation lookups.
+ * Mirrors the _VALID_HEALTH_SET pattern.
+ */
+const _VALID_TREND_SET = new Set(VALID_LATENCY_TRENDS);
+
+/**
+ * Check whether a string is a recognized latency trend direction (case-sensitive).
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidLatencyTrend(value) {
+  if (typeof value !== 'string') return false;
+  return _VALID_TREND_SET.has(value);
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent };
