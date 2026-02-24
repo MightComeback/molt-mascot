@@ -195,7 +195,6 @@ if (hasBoolFlag('--status')) {
     prefsPath: prefsExist ? prefsPath : null,
     sizePresets: require('./size-presets.cjs'),
     opacityCycle: OPACITY_CYCLE,
-    isTruthyEnv,
     hasBoolFlag,
     uptimeSeconds: Math.round(process.uptime()),
     startedAt: Date.now() - Math.round(process.uptime()) * 1000,

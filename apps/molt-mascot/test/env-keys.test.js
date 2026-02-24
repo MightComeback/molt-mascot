@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, REPO_URL } from '../src/env-keys.cjs';
+import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, parseEnvBoolean, REPO_URL } from '../src/env-keys.cjs';
 
 describe('env-keys constants', () => {
   it('GATEWAY_URL_KEYS is a frozen array with expected first entry', () => {
@@ -139,6 +139,44 @@ describe('parseEnvNumber', () => {
 
   it('parses float values', () => {
     expect(parseEnvNumber({ FOO: '0.5' }, 'FOO', 1)).toBe(0.5);
+  });
+});
+
+describe('parseEnvBoolean', () => {
+  it('returns true for truthy values', () => {
+    for (const v of ['true', 'TRUE', 'True', '1', 'yes', 'YES', 'on', 'ON']) {
+      expect(parseEnvBoolean({ FOO: v }, 'FOO', false)).toBe(true);
+    }
+  });
+
+  it('returns false for falsy values', () => {
+    for (const v of ['false', 'FALSE', 'False', '0', 'no', 'NO', 'off', 'OFF']) {
+      expect(parseEnvBoolean({ FOO: v }, 'FOO', true)).toBe(false);
+    }
+  });
+
+  it('returns fallback when key is absent', () => {
+    expect(parseEnvBoolean({}, 'FOO', true)).toBe(true);
+    expect(parseEnvBoolean({}, 'FOO', false)).toBe(false);
+  });
+
+  it('returns fallback for empty string', () => {
+    expect(parseEnvBoolean({ FOO: '' }, 'FOO', true)).toBe(true);
+  });
+
+  it('returns fallback for unrecognized value', () => {
+    expect(parseEnvBoolean({ FOO: 'maybe' }, 'FOO', false)).toBe(false);
+    expect(parseEnvBoolean({ FOO: '2' }, 'FOO', true)).toBe(true);
+  });
+
+  it('accepts array of keys (first non-empty wins)', () => {
+    expect(parseEnvBoolean({ B: 'true' }, ['A', 'B'], false)).toBe(true);
+    expect(parseEnvBoolean({ A: 'false', B: 'true' }, ['A', 'B'], true)).toBe(false);
+  });
+
+  it('trims whitespace', () => {
+    expect(parseEnvBoolean({ FOO: '  true  ' }, 'FOO', false)).toBe(true);
+    expect(parseEnvBoolean({ FOO: ' off ' }, 'FOO', true)).toBe(false);
   });
 });
 

@@ -85,4 +85,31 @@ function parseEnvNumber(env, keys, fallback, opts) {
   return n;
 }
 
-module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, REPO_URL };
+/**
+ * Parse a boolean value from environment variables with multi-key fallback.
+ * Mirrors parseEnvNumber for booleans — checks keys in order, returns the first
+ * non-empty truthy/falsy result, or the fallback if none match.
+ *
+ * Eliminates the repeated `isTruthyEnv(env.X || env.Y) || prefs.z || false`
+ * pattern used ~6 times in status-cli.cjs and electron-main.cjs.
+ *
+ * Truthy: "true", "1", "yes", "on" (case-insensitive)
+ * Falsy:  "false", "0", "no", "off" (case-insensitive)
+ * Absent/empty/unrecognized: returns fallback
+ *
+ * @param {object} env - Environment object (e.g. process.env)
+ * @param {string|string[]} keys - Env var name(s) to check (first non-empty wins when array)
+ * @param {boolean} fallback - Value to return if all keys are absent or unrecognized
+ * @returns {boolean}
+ */
+function parseEnvBoolean(env, keys, fallback) {
+  const keyList = Array.isArray(keys) ? keys : [keys];
+  const raw = resolveEnv(keyList, env, '');
+  if (raw === '') return fallback;
+  const lower = raw.trim().toLowerCase();
+  if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') return true;
+  if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return false;
+  return fallback;
+}
+
+module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, parseEnvBoolean, REPO_URL };

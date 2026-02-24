@@ -1,4 +1,4 @@
-const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource, parseEnvNumber } = require('./env-keys.cjs');
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource, parseEnvNumber, parseEnvBoolean } = require('./env-keys.cjs');
 const { formatDuration, formatTimestampLocal } = require('@molt/mascot-plugin');
 const { formatOpacity } = require('./opacity-presets.cjs');
 const { formatProtocolRange } = require('./format-latency.cjs');
@@ -19,7 +19,6 @@ const { formatProtocolRange } = require('./format-latency.cjs');
  * @param {string|null} params.prefsPath - Path to preferences file (null if not found)
  * @param {typeof import('./size-presets.cjs')} params.sizePresets - Size presets module
  * @param {number[]} params.opacityCycle - Opacity presets array
- * @param {typeof import('./is-truthy-env.cjs').isTruthyEnv} params.isTruthyEnv - Boolean env parser
  * @param {typeof import('./parse-cli-arg.cjs').hasBoolFlag} params.hasBoolFlag - Boolean flag checker
  * @param {number} [params.uptimeSeconds] - Process uptime in seconds (from process.uptime())
  * @param {number} [params.startedAt] - Epoch ms when the process started (Date.now() - uptime*1000)
@@ -37,7 +36,6 @@ function resolveStatusConfig({
   prefsPath,
   sizePresets,
   opacityCycle,
-  isTruthyEnv,
   hasBoolFlag,
   uptimeSeconds,
   startedAt,
@@ -81,14 +79,14 @@ function resolveStatusConfig({
     return 24;
   })();
 
-  const clickThrough = isTruthyEnv(env.MOLT_MASCOT_CLICK_THROUGH || env.MOLT_MASCOT_CLICKTHROUGH) || prefs.clickThrough || false;
-  const hideText = isTruthyEnv(env.MOLT_MASCOT_HIDETEXT || env.MOLT_MASCOT_HIDE_TEXT) || prefs.hideText || false;
-  const reducedMotion = isTruthyEnv(env.MOLT_MASCOT_REDUCED_MOTION);
-  const startHidden = hasBoolFlag('--start-hidden', argv) || isTruthyEnv(env.MOLT_MASCOT_START_HIDDEN);
-  const debug = hasBoolFlag('--debug', argv) || isTruthyEnv(env.MOLT_MASCOT_DEBUG);
-  const disableGpu = hasBoolFlag('--disable-gpu', argv) || isTruthyEnv(env.MOLT_MASCOT_DISABLE_GPU);
-  const noTray = hasBoolFlag('--no-tray', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_TRAY);
-  const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_SHORTCUTS);
+  const clickThrough = parseEnvBoolean(env, ['MOLT_MASCOT_CLICK_THROUGH', 'MOLT_MASCOT_CLICKTHROUGH'], prefs.clickThrough || false);
+  const hideText = parseEnvBoolean(env, ['MOLT_MASCOT_HIDETEXT', 'MOLT_MASCOT_HIDE_TEXT'], prefs.hideText || false);
+  const reducedMotion = parseEnvBoolean(env, 'MOLT_MASCOT_REDUCED_MOTION', false);
+  const startHidden = hasBoolFlag('--start-hidden', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_START_HIDDEN', false);
+  const debug = hasBoolFlag('--debug', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_DEBUG', false);
+  const disableGpu = hasBoolFlag('--disable-gpu', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_DISABLE_GPU', false);
+  const noTray = hasBoolFlag('--no-tray', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_NO_TRAY', false);
+  const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_NO_SHORTCUTS', false);
   const captureDir = env.MOLT_MASCOT_CAPTURE_DIR || null;
 
   const sleepThresholdS = parseEnvNumber(env, 'MOLT_MASCOT_SLEEP_THRESHOLD_S', 120, { min: 0 });

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'bun:test';
 import { resolveStatusConfig, formatStatusText } from '../src/status-cli.cjs';
 import { formatProtocolRange } from '../src/format-latency.cjs';
 import * as sizePresets from '../src/size-presets.cjs';
-import { isTruthyEnv } from '../src/is-truthy-env.cjs';
 import { hasBoolFlag } from '../src/parse-cli-arg.cjs';
 
 const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4, 0.2];
@@ -20,7 +19,6 @@ function makeParams(overrides = {}) {
     prefsPath: null,
     sizePresets,
     opacityCycle: OPACITY_CYCLE,
-    isTruthyEnv,
     hasBoolFlag,
     ...overrides,
   };
