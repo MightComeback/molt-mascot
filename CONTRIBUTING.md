@@ -120,6 +120,33 @@ const minProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MIN_PROTOCOL', 'GATEWAY_MI
 
 This eliminates repeated `Number(env.X)` + `isFinite` + range-check boilerplate and keeps all numeric env var parsing consistent.
 
+## Adding a New Boolean Env Var
+
+For boolean environment variables (feature flags, toggles), use `parseEnvBoolean` from `env-keys.cjs` instead of manual `isTruthyEnv()` + fallback chains:
+
+```js
+const { parseEnvBoolean } = require('./env-keys.cjs');
+
+// Single key with fallback to saved preference:
+const debug = parseEnvBoolean(env, 'MOLT_MASCOT_DEBUG', false);
+
+// Multiple fallback keys (first non-empty wins):
+const clickThrough = parseEnvBoolean(env, ['MOLT_MASCOT_CLICK_THROUGH', 'MOLT_MASCOT_CLICKTHROUGH'], prefs.clickThrough || false);
+```
+
+Recognized truthy values: `true`, `t`, `1`, `yes`, `y`, `on` (case-insensitive).
+Recognized falsy values: `false`, `f`, `0`, `no`, `n`, `off` (case-insensitive).
+Unrecognized/empty values return the fallback.
+
+## Adding a New Env Var Fallback Key
+
+Gateway configuration env vars support ordered fallback chains (first non-empty wins). To add a new fallback key:
+
+1. **Add the key** to the appropriate array in `env-keys.cjs` (`GATEWAY_URL_KEYS` or `GATEWAY_TOKEN_KEYS`). Order matters — earlier entries take priority.
+2. **Update `ENV_OVERRIDES_MAP`** in `status-cli.cjs` so `--status` shows when the new key is active.
+3. **Update help text** in `electron-main.cjs` (Environment section) and `README.md`.
+4. **Add tests** in `apps/molt-mascot/test/env-keys.test.js` for the new fallback order.
+
 ## Adding a New Mode
 
 1. **Sprite**: Add overlay frames to `sprites.js` → `overlay.<mode>`.
