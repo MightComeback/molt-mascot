@@ -25,6 +25,8 @@ export function createLatencyTracker(opts = {}) {
   let head = 0;
   let _count = 0;
   let _totalPushed = 0;
+  let _allTimeMin = Infinity;
+  let _allTimeMax = -Infinity;
   let cache = null;
 
   function push(ms) {
@@ -33,6 +35,8 @@ export function createLatencyTracker(opts = {}) {
     head = (head + 1) % maxSamples;
     if (_count < maxSamples) _count++;
     _totalPushed++;
+    if (ms < _allTimeMin) _allTimeMin = ms;
+    if (ms > _allTimeMax) _allTimeMax = ms;
     cache = null;
   }
 
@@ -97,6 +101,8 @@ export function createLatencyTracker(opts = {}) {
     head = 0;
     _count = 0;
     _totalPushed = 0;
+    _allTimeMin = Infinity;
+    _allTimeMax = -Infinity;
     cache = null;
   }
 
@@ -140,11 +146,33 @@ export function createLatencyTracker(opts = {}) {
   }
 
   /**
+   * All-time minimum latency observed since creation or last reset.
+   * Unlike stats().min (which reflects only the current ring buffer window),
+   * this survives sample eviction — useful for "best latency ever" diagnostics.
+   *
+   * @returns {number|null} All-time min in ms, or null if no samples pushed
+   */
+  function allTimeMin() {
+    return _totalPushed > 0 ? Math.round(_allTimeMin) : null;
+  }
+
+  /**
+   * All-time maximum latency observed since creation or last reset.
+   * Unlike stats().max (which reflects only the current ring buffer window),
+   * this survives sample eviction — useful for "worst latency ever" diagnostics.
+   *
+   * @returns {number|null} All-time max in ms, or null if no samples pushed
+   */
+  function allTimeMax() {
+    return _totalPushed > 0 ? Math.round(_allTimeMax) : null;
+  }
+
+  /**
    * Return a snapshot of all latency tracker metrics in one call.
    * Mirrors fpsCounter.getSnapshot() for API consistency across tracker modules.
    * Avoids consumers calling multiple methods (stats(), count()) separately.
    *
-   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number, trend: "rising"|"falling"|"stable"|null }}
+   * @returns {{ stats: object|null, count: number, maxSamples: number, totalPushed: number, trend: "rising"|"falling"|"stable"|null, allTimeMin: number|null, allTimeMax: number|null }}
    */
   function getSnapshot() {
     return {
@@ -153,6 +181,8 @@ export function createLatencyTracker(opts = {}) {
       maxSamples,
       totalPushed: _totalPushed,
       trend: trend(),
+      allTimeMin: allTimeMin(),
+      allTimeMax: allTimeMax(),
     };
   }
 
@@ -259,10 +289,15 @@ export function createLatencyTracker(opts = {}) {
     parts.push(`median=${s.median}ms`);
     if (s.samples >= 5) parts.push(`p95=${s.p95}ms`);
     parts.push(`jitter=${s.jitter}ms`);
+    // Show all-time extremes when they differ from the current window (samples were evicted).
+    const atMin = allTimeMin();
+    const atMax = allTimeMax();
+    if (atMin !== null && atMin < s.min) parts.push(`all-time-min=${atMin}ms`);
+    if (atMax !== null && atMax > s.max) parts.push(`all-time-max=${atMax}ms`);
     const t = trend();
     if (t) parts.push(t);
     return `LatencyTracker<${parts.join(', ')}>`;
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, getSnapshot, isFull, trend, toJSON, toString };
+  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, allTimeMin, allTimeMax, getSnapshot, isFull, trend, toJSON, toString };
 }

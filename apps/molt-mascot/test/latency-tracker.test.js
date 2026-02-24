@@ -453,4 +453,72 @@ describe('createLatencyTracker', () => {
     t.reset();
     expect(t.toString()).toBe('LatencyTracker<empty>');
   });
+
+  it('allTimeMin/allTimeMax return null when empty', () => {
+    const t = createLatencyTracker();
+    expect(t.allTimeMin()).toBeNull();
+    expect(t.allTimeMax()).toBeNull();
+  });
+
+  it('allTimeMin/allTimeMax track extremes across evictions', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(100);
+    t.push(5);    // all-time min
+    t.push(200);  // all-time max
+    t.push(50);   // evicts 100
+    t.push(60);   // evicts 5
+    t.push(70);   // evicts 200
+    // Window now has [50, 60, 70] but all-time extremes survive
+    const s = t.stats();
+    expect(s.min).toBe(50);
+    expect(s.max).toBe(70);
+    expect(t.allTimeMin()).toBe(5);
+    expect(t.allTimeMax()).toBe(200);
+  });
+
+  it('allTimeMin/allTimeMax match window stats when no eviction', () => {
+    const t = createLatencyTracker({ maxSamples: 10 });
+    t.push(30);
+    t.push(10);
+    t.push(50);
+    expect(t.allTimeMin()).toBe(10);
+    expect(t.allTimeMax()).toBe(50);
+    const s = t.stats();
+    expect(t.allTimeMin()).toBe(s.min);
+    expect(t.allTimeMax()).toBe(s.max);
+  });
+
+  it('allTimeMin/allTimeMax reset on reset()', () => {
+    const t = createLatencyTracker();
+    t.push(5);
+    t.push(500);
+    t.reset();
+    expect(t.allTimeMin()).toBeNull();
+    expect(t.allTimeMax()).toBeNull();
+    t.push(100);
+    expect(t.allTimeMin()).toBe(100);
+    expect(t.allTimeMax()).toBe(100);
+  });
+
+  it('getSnapshot includes allTimeMin/allTimeMax', () => {
+    const t = createLatencyTracker({ maxSamples: 2 });
+    t.push(10);
+    t.push(200);
+    t.push(50); // evicts 10
+    const snap = t.getSnapshot();
+    expect(snap.allTimeMin).toBe(10);
+    expect(snap.allTimeMax).toBe(200);
+  });
+
+  it('toString shows all-time extremes when they differ from window', () => {
+    const t = createLatencyTracker({ maxSamples: 3 });
+    t.push(1);
+    t.push(50);
+    t.push(50);
+    t.push(50); // evicts 1
+    t.push(50);
+    t.push(50);
+    const str = t.toString();
+    expect(str).toContain('all-time-min=1ms');
+  });
 });
