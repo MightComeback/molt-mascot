@@ -39,10 +39,11 @@ const VALIDATORS = {
 };
 
 /**
- * Property descriptors: [stateKey, expectedType, callbackName].
+ * Property descriptors: [stateKey, expectedType, callbackName, opts?].
  * Order matches the original sync order for deterministic changed[] output.
+ * Exported for introspection (diagnostics, documentation, tooling).
  */
-const SYNC_PROPS = [
+export const SYNC_PROPS = [
   ['clickThrough', 'boolean', 'onClickThrough'],
   ['alignment',    'string',  'onAlignment'],
   ['opacity',      'number',  'onOpacity'],
@@ -59,6 +60,12 @@ const SYNC_PROPS = [
   ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true, clearOnMissing: true }],
   ['lastResetAt',  'number',  'onLastResetAt'],
 ];
+
+/**
+ * Flat list of tracked property names (derived from SYNC_PROPS).
+ * Useful for documentation, tooling, and diagnostics without parsing the full descriptor tuples.
+ */
+export const SYNC_PROP_NAMES = Object.freeze(SYNC_PROPS.map(([key]) => key));
 
 /** Build a fresh cache object with all tracked keys set to null. */
 function emptyCache() {

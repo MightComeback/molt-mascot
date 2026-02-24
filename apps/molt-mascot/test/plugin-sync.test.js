@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { createPluginSync } from '../src/plugin-sync.js';
+import { createPluginSync, SYNC_PROPS, SYNC_PROP_NAMES } from '../src/plugin-sync.js';
 
 describe('createPluginSync', () => {
   it('fires callbacks on first sync with valid state', () => {
@@ -384,5 +384,51 @@ describe('createPluginSync', () => {
     sync.sync({ alignment: 'bottom-right' });
     const str = sync.toString();
     expect(str).not.toContain('tool=');
+  });
+});
+
+describe('SYNC_PROPS', () => {
+  it('is a non-empty array of descriptor tuples', () => {
+    expect(Array.isArray(SYNC_PROPS)).toBe(true);
+    expect(SYNC_PROPS.length).toBeGreaterThan(0);
+    for (const entry of SYNC_PROPS) {
+      expect(Array.isArray(entry)).toBe(true);
+      expect(entry.length).toBeGreaterThanOrEqual(3);
+      expect(typeof entry[0]).toBe('string'); // key
+      expect(typeof entry[1]).toBe('string'); // expectedType
+      expect(typeof entry[2]).toBe('string'); // callbackName
+    }
+  });
+
+  it('callback names follow onXxx convention', () => {
+    for (const [, , cbName] of SYNC_PROPS) {
+      expect(cbName).toMatch(/^on[A-Z]/);
+    }
+  });
+
+  it('expected types are valid JS typeof values', () => {
+    const validTypes = new Set(['string', 'number', 'boolean', 'object']);
+    for (const [, type] of SYNC_PROPS) {
+      expect(validTypes.has(type)).toBe(true);
+    }
+  });
+});
+
+describe('SYNC_PROP_NAMES', () => {
+  it('is a frozen array of strings matching SYNC_PROPS keys', () => {
+    expect(Object.isFrozen(SYNC_PROP_NAMES)).toBe(true);
+    expect(SYNC_PROP_NAMES.length).toBe(SYNC_PROPS.length);
+    for (let i = 0; i < SYNC_PROPS.length; i++) {
+      expect(SYNC_PROP_NAMES[i]).toBe(SYNC_PROPS[i][0]);
+    }
+  });
+
+  it('contains expected core properties', () => {
+    expect(SYNC_PROP_NAMES).toContain('clickThrough');
+    expect(SYNC_PROP_NAMES).toContain('alignment');
+    expect(SYNC_PROP_NAMES).toContain('opacity');
+    expect(SYNC_PROP_NAMES).toContain('size');
+    expect(SYNC_PROP_NAMES).toContain('currentTool');
+    expect(SYNC_PROP_NAMES).toContain('activeAgents');
   });
 });
