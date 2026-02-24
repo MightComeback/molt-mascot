@@ -561,7 +561,7 @@ describe('connection quality emoji in pill', () => {
       connectedSince: NOW - 120_000,
       latencyMs: null,
     });
-    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/);
+    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/u);
   });
 
   it('does not show quality emoji in non-idle modes', () => {
@@ -571,7 +571,7 @@ describe('connection quality emoji in pill', () => {
       latencyMs: 25,
     });
     // Quality emoji is only for idle/sleeping
-    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/);
+    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/u);
   });
 });
 
