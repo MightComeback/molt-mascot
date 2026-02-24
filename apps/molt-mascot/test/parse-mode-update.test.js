@@ -398,6 +398,22 @@ describe('parse-mode-update', () => {
       expect(formatModeUpdate(parsed)).not.toContain('healthy');
     });
 
+    it('includes toolCalls count when present', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', toolCalls: 42 });
+      expect(formatModeUpdate(parsed)).toContain('42calls');
+    });
+
+    it('includes toolCalls with toolErrors when both present', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', toolCalls: 100, toolErrors: 3 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('100calls/3err');
+    });
+
+    it('omits toolCalls when zero', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', toolCalls: 0 });
+      expect(formatModeUpdate(parsed)).not.toContain('calls');
+    });
+
     it('includes closeDetail when present', () => {
       const parsed = parseModeUpdate({ mode: 'disconnected', closeDetail: 'abnormal closure (1006)' });
       expect(formatModeUpdate(parsed)).toContain('close="abnormal closure (1006)"');
