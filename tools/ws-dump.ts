@@ -283,6 +283,7 @@ ws.addEventListener("message", (ev) => {
           toolErrors: state.toolErrors ?? 0,
           activeAgents: state.activeAgents ?? 0,
           activeTools: state.activeTools ?? 0,
+          ...(state.lastError ? { lastError: state.lastError.message } : {}),
           ...(reasons.length > 0 ? { reasons } : {}),
         };
         console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
