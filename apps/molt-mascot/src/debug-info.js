@@ -70,7 +70,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, memoryPressureEmoji } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, memoryPressureEmoji, formatMemorySummary } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -255,17 +255,9 @@ export function buildDebugInfo(params) {
     ? `, ${canvasWidth}×${canvasHeight}px`
     : '';
   lines.push(`Display scale: ${dpr}x (canvas scale: ${canvasScale}${canvasDims})`);
-  if (memory && typeof memory.usedJSHeapSize === 'number') {
-    const used = formatBytes(memory.usedJSHeapSize);
-    const total = formatBytes(memory.totalJSHeapSize);
-    const limit = formatBytes(memory.jsHeapSizeLimit);
-    const pressure = memoryPressure(memory);
-    const pressureSuffix = pressure && pressure.level !== 'low'
-      ? ` — ${memoryPressureEmoji(pressure.level)} ${pressure.usedPercent}% ${pressure.level}`
-      : pressure
-        ? ` — ${pressure.usedPercent}%`
-        : '';
-    lines.push(`Memory: ${used} used / ${total} total (limit ${limit})${pressureSuffix}`);
+  {
+    const memorySummary = formatMemorySummary(memory, memoryPressure(memory));
+    if (memorySummary) lines.push(`Memory: ${memorySummary}`);
   }
   if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
     lines.push(`Process RSS: ${formatBytes(processMemoryRssBytes)}`);

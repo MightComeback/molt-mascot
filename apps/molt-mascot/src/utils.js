@@ -665,6 +665,27 @@ export function memoryPressure(memory) {
   return { usedPercent, totalPercent, level };
 }
 
+/**
+ * Build a compact memory summary string from JS heap stats and optional pressure.
+ * Consolidates the inline formatting previously in debug-info.js so memory display
+ * is consistent and reusable across debug-info, tray tooltip, and context menu.
+ *
+ * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }|null} memory
+ * @param {{ level: string, usedPercent: number }|null} [pressure] - Output of memoryPressure()
+ * @returns {string|null} e.g. "12.5 MB used / 25.0 MB total (limit 50.0 MB) — 25%", or null if no data
+ */
+export function formatMemorySummary(memory, pressure) {
+  if (!memory || typeof memory.usedJSHeapSize !== 'number') return null;
+  const used = formatBytes(memory.usedJSHeapSize);
+  const total = formatBytes(memory.totalJSHeapSize);
+  const limit = formatBytes(memory.jsHeapSizeLimit);
+  if (!pressure) return `${used} used / ${total} total (limit ${limit})`;
+  const pressureSuffix = pressure.level !== 'low'
+    ? ` — ${memoryPressureEmoji(pressure.level)} ${pressure.usedPercent}% ${pressure.level}`
+    : ` — ${pressure.usedPercent}%`;
+  return `${used} used / ${total} total (limit ${limit})${pressureSuffix}`;
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';

@@ -37,6 +37,7 @@ import {
   isSleepingMode,
   memoryPressure,
   memoryPressureEmoji,
+  formatMemorySummary,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1849,5 +1850,38 @@ describe("memoryPressureEmoji", () => {
     expect(memoryPressureEmoji(null)).toBe("⚪");
     expect(memoryPressureEmoji(undefined)).toBe("⚪");
     expect(memoryPressureEmoji("unknown")).toBe("⚪");
+  });
+});
+
+describe("formatMemorySummary", () => {
+  it("returns null for null/missing memory", () => {
+    expect(formatMemorySummary(null)).toBeNull();
+    expect(formatMemorySummary(undefined)).toBeNull();
+    expect(formatMemorySummary({})).toBeNull();
+  });
+
+  it("formats memory without pressure", () => {
+    const mem = { usedJSHeapSize: 10 * 1024 * 1024, totalJSHeapSize: 20 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const result = formatMemorySummary(mem);
+    expect(result).toContain("10.0 MB used");
+    expect(result).toContain("20.0 MB total");
+    expect(result).toContain("limit 50.0 MB");
+    expect(result).not.toContain("—");
+  });
+
+  it("formats memory with low pressure (shows percentage only)", () => {
+    const mem = { usedJSHeapSize: 10 * 1024 * 1024, totalJSHeapSize: 20 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const pressure = { level: "low", usedPercent: 20 };
+    const result = formatMemorySummary(mem, pressure);
+    expect(result).toContain("— 20%");
+    expect(result).not.toContain("low");
+  });
+
+  it("formats memory with high pressure (shows emoji + level)", () => {
+    const mem = { usedJSHeapSize: 40 * 1024 * 1024, totalJSHeapSize: 45 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const pressure = { level: "high", usedPercent: 80 };
+    const result = formatMemorySummary(mem, pressure);
+    expect(result).toContain("🟠");
+    expect(result).toContain("80% high");
   });
 });
