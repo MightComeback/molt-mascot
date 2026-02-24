@@ -149,28 +149,51 @@ if (hasBoolFlag('--reset-prefs')) {
 // CLI flags: --list-prefs prints the saved preferences file and exits.
 // Useful for diagnosing why the mascot is positioned oddly or has unexpected settings.
 if (hasBoolFlag('--list-prefs')) {
+  const jsonMode = hasBoolFlag('--json');
   try {
     const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
     if (fs.existsSync(prefsPath)) {
       const data = fs.readFileSync(prefsPath, 'utf8');
-      process.stdout.write(`${prefsPath}\n${data}\n`);
-      // Validate and warn about invalid/unknown keys so users can diagnose
-      // hand-edited preferences that silently fail at runtime.
-      try {
-        const parsed = JSON.parse(data);
-        const { dropped } = validatePrefs(parsed);
-        if (dropped.length > 0) {
-          process.stdout.write('\nWarnings:\n');
-          for (const { key, reason } of dropped) {
-            process.stdout.write(`  ⚠ ${key}: ${reason}\n`);
-          }
+      if (jsonMode) {
+        // Machine-readable output: emit a JSON object with path, prefs, and warnings.
+        try {
+          const parsed = JSON.parse(data);
+          const { dropped } = validatePrefs(parsed);
+          const output = { path: prefsPath, prefs: parsed };
+          if (dropped.length > 0) output.warnings = dropped;
+          process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+        } catch {
+          // Malformed JSON — still emit what we can
+          process.stdout.write(JSON.stringify({ path: prefsPath, raw: data, error: 'invalid JSON' }, null, 2) + '\n');
         }
-      } catch {}
+      } else {
+        process.stdout.write(`${prefsPath}\n${data}\n`);
+        // Validate and warn about invalid/unknown keys so users can diagnose
+        // hand-edited preferences that silently fail at runtime.
+        try {
+          const parsed = JSON.parse(data);
+          const { dropped } = validatePrefs(parsed);
+          if (dropped.length > 0) {
+            process.stdout.write('\nWarnings:\n');
+            for (const { key, reason } of dropped) {
+              process.stdout.write(`  ⚠ ${key}: ${reason}\n`);
+            }
+          }
+        } catch {}
+      }
     } else {
-      process.stdout.write(`No preferences file found (${prefsPath})\n`);
+      if (jsonMode) {
+        process.stdout.write(JSON.stringify({ path: prefsPath, prefs: null }, null, 2) + '\n');
+      } else {
+        process.stdout.write(`No preferences file found (${prefsPath})\n`);
+      }
     }
   } catch (err) {
-    process.stderr.write(`Failed to read preferences: ${err.message}\n`);
+    if (jsonMode) {
+      process.stdout.write(JSON.stringify({ error: err.message }, null, 2) + '\n');
+    } else {
+      process.stderr.write(`Failed to read preferences: ${err.message}\n`);
+    }
   }
   process.exit(0);
 }
@@ -271,6 +294,7 @@ Options:
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
+  --list-prefs --json    Print saved preferences as JSON and exit
   --capture-dir <path>   Screenshot capture directory (dev/CI only)
   --status               Print resolved config summary and exit
   --status --json        Print resolved config as JSON and exit
