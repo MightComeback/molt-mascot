@@ -344,8 +344,8 @@ ws.addEventListener("message", (ev) => {
     // In --once mode, print the hello-ok payload so the user can inspect
     // gateway version, protocol, and capabilities before exiting.
     // In --state mode, skip it (the user wants plugin state, not the handshake).
-    if (isHelloOk && stateMode) {
-      // skip printing — user wants plugin state, not handshake
+    if (isHelloOk && (stateMode || healthMode || pingMode || resetMode)) {
+      // skip printing — user wants specific output, not the handshake frame
     } else {
       console.log(compact ? JSON.stringify(msg) : JSON.stringify(msg, null, 2));
     }
