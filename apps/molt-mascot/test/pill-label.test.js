@@ -406,6 +406,47 @@ describe('buildPillLabel', () => {
     const ghostIdx = result.label.indexOf('👻');
     expect(healthIdx).toBeLessThan(ghostIdx);
   });
+
+  // --- latencyTrend indicator ---
+
+  it('appends ↑ when latencyTrend is rising', () => {
+    const result = build({ mode: 'idle', latencyTrend: 'rising' });
+    expect(result.label).toContain('↑');
+  });
+
+  it('appends ↓ when latencyTrend is falling', () => {
+    const result = build({ mode: 'idle', latencyTrend: 'falling' });
+    expect(result.label).toContain('↓');
+  });
+
+  it('omits trend arrow when latencyTrend is stable', () => {
+    const result = build({ mode: 'idle', latencyTrend: 'stable' });
+    expect(result.label).not.toContain('↑');
+    expect(result.label).not.toContain('↓');
+  });
+
+  it('omits trend arrow when latencyTrend is null', () => {
+    const result = build({ mode: 'idle', latencyTrend: null });
+    expect(result.label).not.toContain('↑');
+    expect(result.label).not.toContain('↓');
+  });
+
+  it('omits trend arrow in disconnected mode', () => {
+    const result = build({ mode: 'disconnected', modeSince: NOW, latencyTrend: 'rising' });
+    expect(result.label).not.toContain('↑');
+  });
+
+  it('omits trend arrow in error mode', () => {
+    const result = build({ mode: 'error', modeSince: NOW, lastErrorMessage: 'fail', latencyTrend: 'rising' });
+    expect(result.label).not.toContain('↑');
+  });
+
+  it('shows trend arrow before ghost emoji', () => {
+    const result = build({ latencyTrend: 'rising', isClickThrough: true });
+    const arrowIdx = result.label.indexOf('↑');
+    const ghostIdx = result.label.indexOf('👻');
+    expect(arrowIdx).toBeLessThan(ghostIdx);
+  });
 });
 
 describe('ariaLabel', () => {

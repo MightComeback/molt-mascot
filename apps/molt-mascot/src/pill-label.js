@@ -46,6 +46,7 @@ export const PILL_MAX_TOOL_SHORT_LEN = 24;
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown in connecting/disconnected modes)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - Connection health (shown as prefix when degraded/unhealthy)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (>1 means reconnection)
+ * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction (shown as ↑/↓ when non-stable for proactive feedback)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -64,6 +65,7 @@ export function buildPillLabel(params) {
     reconnectAttempt = 0,
     healthStatus = null,
     sessionConnectCount = 0,
+    latencyTrend = null,
     now: nowOverride,
   } = params;
 
@@ -134,6 +136,12 @@ export function buildPillLabel(params) {
     label += ' 🔴';
   } else if (healthStatus === 'degraded' && mode !== 'error') {
     label += ' ⚠️';
+  }
+
+  // Append latency trend indicator when actively rising or falling.
+  // "stable" is omitted to avoid pill clutter; parity with tray tooltip and context-menu.
+  if (typeof latencyTrend === 'string' && latencyTrend !== 'stable' && mode !== 'disconnected' && mode !== 'error') {
+    label += latencyTrend === 'rising' ? ' ↑' : ' ↓';
   }
 
   if (isClickThrough) {

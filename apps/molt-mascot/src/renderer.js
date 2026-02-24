@@ -330,6 +330,7 @@ function syncPill() {
     isClickThrough,
     activeAgents: pluginActiveAgents,
     healthStatus: _healthStatus,
+    latencyTrend: _latencyTracker.trend(),
   });
 
   const { label, cssClass, effectiveMode, ariaLive } = pillResult;
