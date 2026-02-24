@@ -180,6 +180,7 @@ bun tools/ws-dump.ts [options]
 | `--state` | Print plugin state and exit |
 | `--watch` | Continuously poll plugin state; print only on change |
 | `--reset` | Reset plugin state and exit (clears error/tool/counters) |
+| `--health` | Quick health check: connect, probe plugin, print status and exit. Exit code: 0=healthy, 1=degraded/unhealthy, 2=connection failed |
 | `--ping` | Measure plugin state round-trip latency and exit |
 | `--ping-count=<n>` | Number of pings to send (default: 5) |
 | `--count=<n>` | Exit after N state changes (`--watch` mode) |
@@ -209,6 +210,9 @@ bun tools/ws-dump.ts --watch --count=3
 
 # Stream only agent events as compact JSON (for piping)
 bun tools/ws-dump.ts --filter=agent --compact
+
+# Quick health check (exit code 0=healthy, 1=degraded, 2=failed)
+bun tools/ws-dump.ts --health
 ```
 
 ## Screenshot Capture
