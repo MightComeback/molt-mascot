@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
 - `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check
 - `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
 - `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info

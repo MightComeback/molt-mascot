@@ -37,8 +37,8 @@ Options:
   --count=<n>             Exit after printing N state changes (--watch mode)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
-  --compact, --json       Single-line JSON output; in --watch mode, prints a
-                          human-readable summary line per state change instead
+  --compact, --json       Single-line JSON output; in --state and --watch modes,
+                          prints a human-readable summary line instead of JSON
   -q, --quiet             Suppress stderr diagnostics (for scripting)
   -V, --version           Show version and exit
   -h, --help              Show this help
@@ -561,7 +561,7 @@ ws.addEventListener("message", (ev) => {
           extras.healthStatus = computeHealthStatus({ isConnected: true, latencyMs: rtt });
         }
         const output = { ...msg.payload.state, ...extras };
-        console.log(compact ? JSON.stringify(output) : JSON.stringify(output, null, 2));
+        console.log(compact ? formatWatchSummary(output) : JSON.stringify(output, null, 2));
         try { ws.close(); } catch {}
         return;
       }
