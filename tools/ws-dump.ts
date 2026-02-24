@@ -334,6 +334,7 @@ ws.addEventListener("message", (ev) => {
           : null;
         const result = {
           status,
+          timestamp: new Date().toISOString(),
           latencyMs: rtt,
           mode: state.mode,
           plugin: true,
@@ -371,6 +372,7 @@ ws.addEventListener("message", (ev) => {
       const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
       const result = {
         status,
+        timestamp: new Date().toISOString(),
         latencyMs: rtt,
         plugin: false,
         ...(reasons.length > 0 ? { reasons } : {}),
