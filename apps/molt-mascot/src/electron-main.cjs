@@ -851,6 +851,7 @@ app.whenReady().then(async () => {
       pluginStartedAt: currentPluginStartedAt,
       lastResetAt: currentLastResetAt,
       healthStatus: currentHealthStatus,
+      connectionSuccessRate: currentConnectionSuccessRate,
       connectionUptimePct: _uptimePct,
       latencyTrend: currentLatencyTrend,
     }));
@@ -1068,6 +1069,7 @@ app.whenReady().then(async () => {
   let currentPluginStartedAt = null;
   let currentLastResetAt = null;
   let currentHealthStatus = null;
+  let currentConnectionSuccessRate = null;
   let currentLatencyTrend = null;
   ipcMain.on('molt-mascot:mode-update', (_event, raw) => {
     // Delegate all field validation/coercion to the extracted pure function.
@@ -1110,6 +1112,9 @@ app.whenReady().then(async () => {
 
     if (p.healthStatus !== null) currentHealthStatus = p.healthStatus;
     else if (raw && raw.healthStatus === null) currentHealthStatus = null;
+
+    if (p.connectionSuccessRate !== null) currentConnectionSuccessRate = p.connectionSuccessRate;
+    else if (raw && raw.connectionSuccessRate === null) currentConnectionSuccessRate = null;
 
     if (p.latencyTrend !== null) currentLatencyTrend = p.latencyTrend;
     else if (raw && raw.latencyTrend === null) currentLatencyTrend = null;

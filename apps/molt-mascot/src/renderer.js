@@ -422,6 +422,7 @@ function syncPill() {
       pluginStartedAt: pluginStartedAt || null,
       lastResetAt: pluginLastResetAt || null,
       healthStatus: _healthStatus,
+      connectionSuccessRate: computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount),
       latencyTrend: _latencyTracker.trend(),
     });
   }
