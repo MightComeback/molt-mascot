@@ -1,6 +1,6 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons } from "../apps/molt-mascot/src/utils.js";
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality } from "../apps/molt-mascot/src/utils.js";
 
 type GatewayCfg = {
   url: string;
@@ -94,6 +94,47 @@ const filters: string[] = argv
   .filter(Boolean);
 
 const compact = args.has("--compact");
+
+/**
+ * Format a plugin state object as a human-readable one-liner for --watch --compact.
+ * Example: "🤔 thinking · tool=web_search · 42ms 🟢 · 3 calls · ↑ 5m 12s"
+ */
+function formatWatchSummary(state: Record<string, any>): string {
+  const parts: string[] = [];
+  const mode = state.mode || "unknown";
+  const emoji = (MODE_EMOJI as Record<string, string>)[mode] || "";
+  parts.push(`${emoji} ${mode}`.trim());
+
+  if (mode === "tool" && state.currentTool) parts.push(`tool=${state.currentTool}`);
+  if (mode === "error" && state.lastError?.message) parts.push(state.lastError.message.slice(0, 40));
+
+  if (typeof state.latencyMs === "number" && state.latencyMs >= 0) {
+    const q = connectionQuality(state.latencyMs);
+    const qEmoji = q === "excellent" ? "🟢" : q === "good" ? "🟡" : q === "fair" ? "🟠" : q === "poor" ? "🔴" : "";
+    parts.push(`${formatLatency(state.latencyMs)} ${qEmoji}`.trim());
+  }
+
+  if (state.activeAgents > 0 || state.activeTools > 0) {
+    const segs: string[] = [];
+    if (state.activeAgents > 0) segs.push(`${state.activeAgents} agent${state.activeAgents > 1 ? "s" : ""}`);
+    if (state.activeTools > 0) segs.push(`${state.activeTools} tool${state.activeTools > 1 ? "s" : ""}`);
+    parts.push(segs.join(", "));
+  }
+
+  if (state.toolCalls > 0) {
+    let s = `${state.toolCalls} call${state.toolCalls > 1 ? "s" : ""}`;
+    if (state.toolErrors > 0) s += ` (${state.toolErrors} err)`;
+    parts.push(s);
+  }
+
+  if (state.startedAt > 0) {
+    const uptimeSec = Math.round((Date.now() - state.startedAt) / 1000);
+    if (uptimeSec > 0) parts.push(`↑ ${formatDuration(uptimeSec)}`);
+  }
+
+  return parts.join(" · ");
+}
+
 
 /** Log to stderr unless --quiet is active. */
 const info = (...a: unknown[]) => { if (!quiet) console.error(...a); };
@@ -394,7 +435,9 @@ ws.addEventListener("message", (ev) => {
           lastWatchJson = json;
           watchChangeCount++;
           const ts = new Date().toISOString().slice(11, 23);
-          const line = compact ? json : JSON.stringify(msg.payload.state, null, 2);
+          const line = compact
+            ? formatWatchSummary(msg.payload.state)
+            : JSON.stringify(msg.payload.state, null, 2);
           console.log(compact ? `[${ts}] ${line}` : `--- ${ts} ---\n${line}`);
           // Exit after N state changes if --count was specified
           if (watchMaxChanges > 0 && watchChangeCount >= watchMaxChanges) {
