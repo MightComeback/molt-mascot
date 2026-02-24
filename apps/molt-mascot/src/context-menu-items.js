@@ -7,7 +7,7 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity, formatBytes, isSleepingMode } from './utils.js';
+import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, healthStatusEmoji, formatActiveSummary, formatOpacity, formatBytes, isSleepingMode } from './utils.js';
 import { formatSizeWithDims } from './size-presets.cjs';
 
 /**
@@ -48,6 +48,7 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {boolean} [state.hasDragPosition] - Whether the mascot has been manually dragged (disables "Snap to Position" when false)
  * @param {number} [state.processUptimeS] - Process uptime in seconds (shown as compact uptime when >60s)
  * @param {number} [state.processMemoryRssBytes] - Process RSS in bytes (shown as compact memory usage for leak diagnostics)
+ * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [state.latencyStats] - Rolling latency statistics (used with latencyMs for connection quality emoji)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -79,6 +80,7 @@ export function buildContextMenuItems(state) {
     hasDragPosition = false,
     processUptimeS,
     processMemoryRssBytes,
+    latencyStats = null,
     now: nowOverride,
   } = state;
 
@@ -117,7 +119,12 @@ export function buildContextMenuItems(state) {
     statusParts.push(formatActiveSummary(pluginActiveAgents, pluginActiveTools));
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    let latencyPart = formatLatency(latencyMs);
+    // Append connection quality emoji (🟢🟡🟠🔴) for at-a-glance assessment,
+    // matching the tray tooltip and debug info behavior. Use median from rolling
+    // stats when available (more stable than instant latency); fall back to current sample.
+    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
+    const qualityEmoji = quality ? connectionQualityEmoji(quality) : '';
+    let latencyPart = qualityEmoji ? `${formatLatency(latencyMs)} ${qualityEmoji}` : formatLatency(latencyMs);
     // Append trend indicator when latency is actively rising or falling.
     // "stable" is omitted to avoid status line clutter; only actionable signals are shown.
     // Parity with pill-label and tray tooltip trend indicators.

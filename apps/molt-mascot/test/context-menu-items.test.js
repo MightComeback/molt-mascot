@@ -187,6 +187,26 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).toMatch(/42ms(?!\s*[↑↓])/);
   });
 
+  it('includes connection quality emoji when latencyStats provided', () => {
+    const stats = { min: 10, max: 30, avg: 20, median: 20, p95: 28, p99: 30, jitter: 5, samples: 10 };
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 20, latencyStats: stats });
+    // 20ms median → "excellent" → 🟢
+    expect(result.statusLine).toContain('🟢');
+  });
+
+  it('shows quality emoji without latencyStats (uses raw latencyMs)', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 20 });
+    // 20ms → "excellent" → 🟢
+    expect(result.statusLine).toContain('🟢');
+  });
+
+  it('shows orange quality emoji for fair latency', () => {
+    const stats = { min: 200, max: 400, avg: 300, median: 300, p95: 380, p99: 400, jitter: 50, samples: 10 };
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 300, latencyStats: stats });
+    // 300ms median → "fair" → 🟠
+    expect(result.statusLine).toContain('🟠');
+  });
+
   it('includes reconnect count in uptime when flappy', () => {
     const now = Date.now();
     const result = buildContextMenuItems({

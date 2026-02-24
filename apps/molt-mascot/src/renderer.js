@@ -1369,6 +1369,8 @@ function showContextMenu(e) {
     isMac,
     healthStatus: currentHealthStatus(),
     hasDragPosition,
+    latencyStats: getLatencyStats(),
+    latencyTrend: _latencyTracker.trend(),
   });
 
   // Map descriptor IDs to action callbacks
