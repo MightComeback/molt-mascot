@@ -787,6 +787,23 @@ describe("formatElapsed", () => {
   });
 });
 
+describe("totalFrames in debug info", () => {
+  it("shows total frame count when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, totalFrames: 500 });
+    expect(info).toContain("500 total");
+  });
+
+  it("uses compact notation for large frame counts", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, totalFrames: 15203 });
+    expect(info).toContain("15.2K total");
+  });
+
+  it("omits total frames when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66 });
+    expect(info).not.toContain("total");
+  });
+});
+
 describe("dragPosition", () => {
   it("shows drag position when provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: 123.4, y: 567.8 } });
