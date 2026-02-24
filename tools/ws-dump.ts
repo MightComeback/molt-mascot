@@ -124,6 +124,10 @@ function formatWatchSummary(state: Record<string, any>): string {
     parts.push(s);
   }
 
+  if (typeof state.agentSessions === "number" && state.agentSessions > 0) {
+    parts.push(`${state.agentSessions} session${state.agentSessions !== 1 ? "s" : ""}`);
+  }
+
   if (state.startedAt > 0) {
     const uptimeSec = Math.round((Date.now() - state.startedAt) / 1000);
     if (uptimeSec > 0) parts.push(`↑ ${formatDuration(uptimeSec)}`);
