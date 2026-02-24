@@ -37,7 +37,8 @@ Options:
   --count=<n>             Exit after printing N state changes (--watch mode)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
-  --compact               Print JSON on a single line instead of pretty-printed
+  --compact               Single-line JSON output; in --watch mode, prints a
+                          human-readable summary line per state change instead
   -q, --quiet             Suppress stderr diagnostics (for scripting)
   -V, --version           Show version and exit
   -h, --help              Show this help
