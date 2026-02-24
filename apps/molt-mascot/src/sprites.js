@@ -5,7 +5,11 @@
 // h highlight
 // w white (eyes)
 // b black (pupil)
-// s shadow
+// c claw accent (warm orange)
+// g green (tool overlay)
+// u blue (thinking/sleep overlay)
+// y yellow (error/connecting/disconnected overlay)
+// Y pale yellow (connected sparkle)
 
 export const palette = {
   '.': null,
