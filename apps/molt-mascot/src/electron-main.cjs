@@ -648,6 +648,17 @@ app.whenReady().then(async () => {
     });
   }
 
+  async function actionCopyStatus() {
+    const text = await withMainWin((w) =>
+      w.webContents.executeJavaScript('document.getElementById("pill")?.textContent || ""')
+    );
+    if (text) {
+      const { clipboard } = require('electron');
+      clipboard.writeText(text);
+      withMainWin((w) => w.webContents.send('molt-mascot:copied'));
+    }
+  }
+
   async function actionCopyDebugInfo() {
     const info = await withMainWin((w) =>
       w.webContents.executeJavaScript('window.__moltMascotBuildDebugInfo ? window.__moltMascotBuildDebugInfo() : "debug info unavailable"')
@@ -902,6 +913,11 @@ app.whenReady().then(async () => {
         click: actionResetState,
       },
       {
+        label: 'Copy Status',
+        accelerator: 'CommandOrControl+Shift+P',
+        click: actionCopyStatus,
+      },
+      {
         label: 'Copy Debug Info',
         accelerator: 'CommandOrControl+Shift+I',
         click: actionCopyDebugInfo,
@@ -938,6 +954,7 @@ app.whenReady().then(async () => {
       register('CommandOrControl+Shift+O', actionCycleOpacity);
       register('CommandOrControl+Shift+C', actionForceReconnect);
       register('CommandOrControl+Shift+D', actionToggleDevTools);
+      register('CommandOrControl+Shift+P', actionCopyStatus);
       register('CommandOrControl+Shift+I', actionCopyDebugInfo);
     } catch (err) {
       console.error('molt-mascot: failed to register shortcuts', err);
@@ -960,6 +977,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
+  ipcMain.on('molt-mascot:copy-status', actionCopyStatus);
   ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
   ipcMain.on('molt-mascot:reset-prefs', () => {
     const { dialog } = require('electron');

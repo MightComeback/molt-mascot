@@ -132,7 +132,7 @@ export function buildContextMenuItems(state) {
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S`, disabled: !hasDragPosition },
     { id: 'size', label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
     { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },
-    { id: 'copy-status', label: 'Copy Status' },
+    { id: 'copy-status', label: 'Copy Status', hint: `${modKey}${shiftKey}P` },
     { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
     ...(connectedSince ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),
     { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}${shiftKey}C` },
