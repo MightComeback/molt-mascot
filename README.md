@@ -99,6 +99,7 @@ bun run mascot
   - `MOLT_MASCOT_RECONNECT_MAX_MS` (default: 30000) — max reconnect delay (exponential backoff cap)
   - `MOLT_MASCOT_STALE_CONNECTION_MS` (default: 15000) — force reconnect if no WS message within this window
   - `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` (default: 5000) — how often to check for stale connections
+  - `MOLT_MASCOT_POLL_INTERVAL_MS` (default: 1000) — plugin state poll frequency (lower = more responsive, higher = less CPU)
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard
@@ -233,6 +234,7 @@ Supported keys:
 - `errorHoldMs` (number): error display duration (default 5000)
 - `opacity` (number): window opacity (0.0 - 1.0)
 - `padding` (number): screen edge padding
+- `size` (string): window size preset (`tiny`, `small`, `medium`, `large`, `xlarge`)
 
 (Loading plugins requires an OpenClaw config change + gateway restart; do it when you're awake.)
 

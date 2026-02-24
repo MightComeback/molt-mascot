@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info
 - `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
 
+### Fixed
+- README now documents `MOLT_MASCOT_POLL_INTERVAL_MS` env var in the connection tuning section
+- README now lists `size` as a supported plugin config key (was implemented but undocumented)
+
 ### Added
 - Configurable plugin state poll interval via `MOLT_MASCOT_POLL_INTERVAL_MS` env var (default: 1000ms) — tune polling frequency for low-power setups or high-refresh diagnostics
 - `ws-dump --health` output now includes an ISO-8601 `timestamp` field for log correlation and automated monitoring pipelines
