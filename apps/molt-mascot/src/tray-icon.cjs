@@ -172,6 +172,7 @@ function renderTraySprite(scale, opts) {
  * @param {number|null} [params.lastMessageAt] - Timestamp of the last WebSocket message received (helps spot stale connections at a glance)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency statistics (shown alongside current latency for connection quality insight)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
+ * @param {number} [params.agentSessions] - Cumulative count of agent sessions started since plugin start (shown when >0 for activity insight)
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100); when provided, used directly for health reason diagnostics instead of computing from sessionConnectCount/sessionAttemptCount
@@ -181,7 +182,7 @@ function renderTraySprite(scale, opts) {
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -242,6 +243,9 @@ function buildTrayTooltip(params) {
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
     parts.push(`🤖 ${formatActiveSummary(activeAgents, activeTools)}`);
+  }
+  if (typeof agentSessions === 'number' && agentSessions > 0) {
+    parts.push(`🧑‍💻 ${formatCount(agentSessions)} session${agentSessions !== 1 ? 's' : ''}`);
   }
   if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
     parts.push(`🔌 plugin up ${formatElapsed(pluginStartedAt, now)}`);

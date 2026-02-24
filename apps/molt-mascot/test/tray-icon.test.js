@@ -494,6 +494,22 @@ describe('tray-icon', () => {
       expect(buildTrayTooltip({ ...base })).not.toContain('agent');
     });
 
+    it('shows cumulative agent sessions when agentSessions > 0', () => {
+      const tip = buildTrayTooltip({ ...base, agentSessions: 5 });
+      expect(tip).toContain('🧑‍💻 5 sessions');
+    });
+
+    it('shows singular "session" when agentSessions is 1', () => {
+      const tip = buildTrayTooltip({ ...base, agentSessions: 1 });
+      expect(tip).toContain('🧑‍💻 1 session');
+      expect(tip).not.toContain('sessions');
+    });
+
+    it('omits agent sessions when agentSessions is 0 or not provided', () => {
+      expect(buildTrayTooltip({ ...base, agentSessions: 0 })).not.toContain('🧑‍💻');
+      expect(buildTrayTooltip({ ...base })).not.toContain('🧑‍💻');
+    });
+
     it('shows plugin uptime when pluginStartedAt is provided', () => {
       const now = 1700000000000;
       const tip = buildTrayTooltip({ ...base, pluginStartedAt: now - 3661000, now });
