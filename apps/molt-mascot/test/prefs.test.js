@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema } from "../src/prefs.cjs";
+import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -901,5 +901,35 @@ describe("formatPrefSchema", () => {
   it("has one line per key", () => {
     const lines = formatPrefSchema().split('\n');
     expect(lines.length).toBe(VALID_PREF_KEYS.length);
+  });
+});
+
+describe("exportPrefSchemaJSON", () => {
+  it("returns an object with all VALID_PREF_KEYS", () => {
+    const json = exportPrefSchemaJSON();
+    expect(Object.keys(json).sort()).toEqual([...VALID_PREF_KEYS].sort());
+  });
+
+  it("each entry has type and description strings", () => {
+    const json = exportPrefSchemaJSON();
+    for (const [key, entry] of Object.entries(json)) {
+      expect(typeof entry.type).toBe("string");
+      expect(typeof entry.description).toBe("string");
+    }
+  });
+
+  it("does not include validate functions (JSON-safe)", () => {
+    const json = exportPrefSchemaJSON();
+    const str = JSON.stringify(json);
+    expect(str).not.toContain("function");
+    // Roundtrip must be lossless
+    expect(JSON.parse(str)).toEqual(json);
+  });
+
+  it("types match PREF_SCHEMA", () => {
+    const json = exportPrefSchemaJSON();
+    for (const key of VALID_PREF_KEYS) {
+      expect(json[key].type).toBe(PREF_SCHEMA[key].type);
+    }
   });
 });

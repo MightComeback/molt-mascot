@@ -202,9 +202,13 @@ if (hasBoolFlag('--list-prefs')) {
 // Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
 // users can discover available keys without reading the source.
 if (hasBoolFlag('--help-prefs')) {
-  const { formatPrefSchema } = require('./prefs.cjs');
-  process.stdout.write('Available preference keys:\n');
-  process.stdout.write(formatPrefSchema() + '\n');
+  const { formatPrefSchema, exportPrefSchemaJSON } = require('./prefs.cjs');
+  if (hasBoolFlag('--json')) {
+    process.stdout.write(JSON.stringify(exportPrefSchemaJSON(), null, 2) + '\n');
+  } else {
+    process.stdout.write('Available preference keys:\n');
+    process.stdout.write(formatPrefSchema() + '\n');
+  }
   process.exit(0);
 }
 
@@ -306,6 +310,7 @@ Options:
   --list-prefs           Print saved preferences and exit
   --list-prefs --json    Print saved preferences as JSON and exit
   --help-prefs           Print available preference keys with types and descriptions
+  --help-prefs --json    Print preference schema as JSON (for tooling/autocomplete)
   --capture-dir <path>   Screenshot capture directory (dev/CI only)
   --status               Print resolved config summary and exit
   --status --json        Print resolved config as JSON and exit

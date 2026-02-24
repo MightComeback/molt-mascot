@@ -370,4 +370,20 @@ function formatPrefSchema() {
   return lines.join('\n');
 }
 
-module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema };
+/**
+ * Export PREF_SCHEMA as a JSON-serializable object (strips validate functions).
+ * Useful for `--help-prefs --json`, external tooling, autocomplete engines,
+ * and CI config validation.
+ *
+ * @returns {object} Map of key → { type, description }
+ */
+function exportPrefSchemaJSON() {
+  const result = {};
+  for (const key of VALID_PREF_KEYS) {
+    const entry = PREF_SCHEMA[key];
+    result[key] = { type: entry.type, description: entry.description || '' };
+  }
+  return result;
+}
+
+module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON };
