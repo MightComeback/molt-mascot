@@ -70,10 +70,25 @@ describe('buildPillLabel', () => {
     expect(result.label).not.toContain('↑');
   });
 
-  it('shows Connected ✓ for connected mode', () => {
+  it('shows Connected ✓ for first connection', () => {
     const result = build({ mode: 'connected' });
     expect(result.label).toBe('Connected ✓');
     expect(result.cssClass).toBe('pill--connected');
+  });
+
+  it('shows Connected ✓ when sessionConnectCount is 1 (first connect)', () => {
+    const result = build({ mode: 'connected', sessionConnectCount: 1 });
+    expect(result.label).toBe('Connected ✓');
+  });
+
+  it('shows Reconnected ✓ when sessionConnectCount > 1', () => {
+    const result = build({ mode: 'connected', sessionConnectCount: 2 });
+    expect(result.label).toBe('Reconnected ✓');
+  });
+
+  it('shows Reconnected ✓ for high reconnect counts', () => {
+    const result = build({ mode: 'connected', sessionConnectCount: 15 });
+    expect(result.label).toBe('Reconnected ✓');
   });
 
   it('shows connecting with duration after 2 seconds', () => {

@@ -45,6 +45,7 @@ export const PILL_MAX_TOOL_SHORT_LEN = 24;
  * @param {number} [params.activeTools] - Number of in-flight tool calls (shown when >1 in tool mode)
  * @param {number} [params.reconnectAttempt] - Current reconnect attempt number (shown in connecting/disconnected modes)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - Connection health (shown as prefix when degraded/unhealthy)
+ * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (>1 means reconnection)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -62,6 +63,7 @@ export function buildPillLabel(params) {
     activeTools = 0,
     reconnectAttempt = 0,
     healthStatus = null,
+    sessionConnectCount = 0,
     now: nowOverride,
   } = params;
 
@@ -72,7 +74,7 @@ export function buildPillLabel(params) {
   let label = capitalize(mode);
 
   if (mode === 'connected') {
-    label = 'Connected ✓';
+    label = sessionConnectCount > 1 ? 'Reconnected ✓' : 'Connected ✓';
   } else if (mode === 'idle' && !isSleeping && connectedSince) {
     const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
     if (uptimeSec >= 60) {
