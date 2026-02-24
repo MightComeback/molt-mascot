@@ -151,7 +151,13 @@ import { createPluginSync } from './plugin-sync.js';
 const _envReducedMotion = isTruthyEnv(window.moltMascot?.env?.reducedMotion);
 const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
 let reducedMotion = _envReducedMotion || (motionQuery?.matches ?? false);
-const _onMotionChange = (e) => { reducedMotion = _envReducedMotion || e.matches; };
+// Sync the CSS class so pill animations respect the app-level toggle,
+// not just the OS @media (prefers-reduced-motion) query.
+function _syncReducedMotionClass() {
+  document.documentElement.classList.toggle('reduce-motion', reducedMotion);
+}
+_syncReducedMotionClass();
+const _onMotionChange = (e) => { reducedMotion = _envReducedMotion || e.matches; _syncReducedMotionClass(); };
 motionQuery?.addEventListener?.('change', _onMotionChange);
 
 // Blink state (delegated to extracted module for testability)
@@ -1128,6 +1134,7 @@ if (window.moltMascot?.onHideText) {
 if (window.moltMascot?.onReducedMotion) {
   ipcUnsubs.push(window.moltMascot.onReducedMotion((enabled) => {
     reducedMotion = enabled || (motionQuery?.matches ?? false);
+    _syncReducedMotionClass();
   }));
 }
 
@@ -1402,7 +1409,7 @@ function showContextMenu(e) {
     snap: () => { if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition(); },
     size: () => { if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize(); },
     opacity: () => { if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity(); },
-    'reduced-motion': () => { if (window.moltMascot?.setReducedMotion) { reducedMotion = !reducedMotion; window.moltMascot.setReducedMotion(reducedMotion); showTransientFeedback(reducedMotion ? 'Motion reduced' : 'Motion enabled'); } },
+    'reduced-motion': () => { if (window.moltMascot?.setReducedMotion) { reducedMotion = !reducedMotion; _syncReducedMotionClass(); window.moltMascot.setReducedMotion(reducedMotion); showTransientFeedback(reducedMotion ? 'Motion reduced' : 'Motion enabled'); } },
     'copy-status': () => { const text = pill.textContent || ''; if (text) navigator.clipboard.writeText(text).then(() => showCopiedFeedback()).catch(() => {}); },
     'copy-debug': () => { if (window.moltMascot?.copyDebugInfo) { window.moltMascot.copyDebugInfo(); showCopiedFeedback(); } else { navigator.clipboard.writeText(buildDebugInfo()).then(() => showCopiedFeedback()).catch(() => {}); } },
     'copy-gateway-url': () => { const url = connectedUrl || loadCfg()?.url || ''; if (url) navigator.clipboard.writeText(url).then(() => showCopiedFeedback()).catch(() => {}); },

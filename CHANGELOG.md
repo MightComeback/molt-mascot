@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Pill CSS animations (pulse, sleep breathing, connected pop, error shake) now freeze when reduced motion is enabled via the app toggle (`Cmd/Ctrl+Shift+N`), not just the OS `prefers-reduced-motion` setting — also suppresses context menu appear animation
+
 ### Added
 - "Reduced Motion" toggle in context menu — accessibility setting no longer requires env var or manual preference editing
 - `Cmd/Ctrl+Shift+N` keyboard shortcut for toggling reduced motion (parity with ghost mode and hide text shortcuts)

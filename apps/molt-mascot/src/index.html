@@ -88,6 +88,15 @@
         #pill.pill--sleeping { animation: none; }
         #pill.pill--error { animation: none; }
       }
+      /* App-level reduced motion toggle (Cmd/Ctrl+Shift+N or preference).
+         Mirrors the @media rule above so pill animations are suppressed
+         when the user enables reduced motion via the app, not just the OS. */
+      html.reduce-motion #pill.pill--thinking { animation: none; }
+      html.reduce-motion #pill.pill--tool { animation: none; }
+      html.reduce-motion #pill.pill--connected { animation: none; }
+      html.reduce-motion #pill.pill--sleeping { animation: none; }
+      html.reduce-motion #pill.pill--error { animation: none; }
+      html.reduce-motion #molt-ctx { animation: none; }
       #setup {
         -webkit-app-region: no-drag;
         position: absolute;
