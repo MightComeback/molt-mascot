@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, VALID_HEALTH, VALID_LATENCY_TRENDS } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
@@ -121,6 +121,32 @@ describe('parse-mode-update', () => {
     });
   });
 
+  describe('validLatencyTrend', () => {
+    it('accepts known trend values', () => {
+      expect(validLatencyTrend('rising')).toBe('rising');
+      expect(validLatencyTrend('falling')).toBe('falling');
+      expect(validLatencyTrend('stable')).toBe('stable');
+    });
+
+    it('rejects unknown strings and non-strings', () => {
+      expect(validLatencyTrend('improving')).toBeNull();
+      expect(validLatencyTrend('')).toBeNull();
+      expect(validLatencyTrend(null)).toBeNull();
+      expect(validLatencyTrend(undefined)).toBeNull();
+      expect(validLatencyTrend(42)).toBeNull();
+      expect(validLatencyTrend(true)).toBeNull();
+    });
+  });
+
+  describe('VALID_LATENCY_TRENDS', () => {
+    it('contains expected trend values', () => {
+      expect(VALID_LATENCY_TRENDS.has('rising')).toBe(true);
+      expect(VALID_LATENCY_TRENDS.has('falling')).toBe(true);
+      expect(VALID_LATENCY_TRENDS.has('stable')).toBe(true);
+      expect(VALID_LATENCY_TRENDS.size).toBe(3);
+    });
+  });
+
   describe('parseModeUpdate', () => {
     it('parses a full valid payload', () => {
       const result = parseModeUpdate({
@@ -143,6 +169,7 @@ describe('parse-mode-update', () => {
         pluginStartedAt: 1700000000000,
         lastResetAt: 1700000050000,
         healthStatus: 'degraded',
+        latencyTrend: 'rising',
       });
 
       expect(result.mode).toBe('thinking');
@@ -164,6 +191,7 @@ describe('parse-mode-update', () => {
       expect(result.pluginStartedAt).toBe(1700000000000);
       expect(result.lastResetAt).toBe(1700000050000);
       expect(result.healthStatus).toBe('degraded');
+      expect(result.latencyTrend).toBe('rising');
     });
 
     it('returns all nulls for empty object', () => {
@@ -187,6 +215,15 @@ describe('parse-mode-update', () => {
       expect(result.pluginStartedAt).toBeNull();
       expect(result.lastResetAt).toBeNull();
       expect(result.healthStatus).toBeNull();
+      expect(result.latencyTrend).toBeNull();
+    });
+
+    it('parses latencyTrend values', () => {
+      expect(parseModeUpdate({ latencyTrend: 'rising' }).latencyTrend).toBe('rising');
+      expect(parseModeUpdate({ latencyTrend: 'falling' }).latencyTrend).toBe('falling');
+      expect(parseModeUpdate({ latencyTrend: 'stable' }).latencyTrend).toBe('stable');
+      expect(parseModeUpdate({ latencyTrend: 'unknown' }).latencyTrend).toBeNull();
+      expect(parseModeUpdate({ latencyTrend: 42 }).latencyTrend).toBeNull();
     });
 
     it('handles null/undefined input gracefully', () => {
@@ -369,6 +406,17 @@ describe('parse-mode-update', () => {
     it('includes plugin version', () => {
       const parsed = parseModeUpdate({ mode: 'idle', pluginVersion: '1.2.3' });
       expect(formatModeUpdate(parsed)).toContain('v1.2.3');
+    });
+
+    it('includes latencyTrend arrow when rising or falling', () => {
+      expect(formatModeUpdate(parseModeUpdate({ latencyTrend: 'rising' }))).toContain('↑');
+      expect(formatModeUpdate(parseModeUpdate({ latencyTrend: 'falling' }))).toContain('↓');
+    });
+
+    it('omits latencyTrend when stable', () => {
+      const str = formatModeUpdate(parseModeUpdate({ mode: 'idle', latencyTrend: 'stable' }));
+      expect(str).not.toContain('↑');
+      expect(str).not.toContain('↓');
     });
 
     it('formats a full update compactly', () => {

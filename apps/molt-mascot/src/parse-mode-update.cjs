@@ -32,6 +32,7 @@
  * @property {number|null} lastResetAt - Positive epoch ms, or null
  * @property {"healthy"|"degraded"|"unhealthy"|null} healthStatus - At-a-glance health assessment, or null
  * @property {number|null} connectionSuccessRate - Integer percentage (0-100), or null
+ * @property {"rising"|"falling"|"stable"|null} latencyTrend - Latency trend direction, or null
  */
 
 /**
@@ -79,6 +80,22 @@ const VALID_HEALTH = VALID_HEALTH_STATUSES;
 function validHealthStatus(v) {
   if (typeof v !== 'string') return null;
   return isValidHealth(v) ? v : null;
+}
+
+/**
+ * Valid latency trend values.
+ * @type {Set<string>}
+ */
+const VALID_LATENCY_TRENDS = new Set(['rising', 'falling', 'stable']);
+
+/**
+ * Validate a latency trend string.
+ * @param {*} v
+ * @returns {"rising"|"falling"|"stable"|null}
+ */
+function validLatencyTrend(v) {
+  if (typeof v !== 'string') return null;
+  return VALID_LATENCY_TRENDS.has(v) ? v : null;
 }
 
 /**
@@ -142,6 +159,7 @@ function parseModeUpdate(raw) {
       if (n === null) return null;
       return n <= 100 ? n : null;
     })(),
+    latencyTrend: validLatencyTrend(update.latencyTrend),
   };
 }
 
@@ -174,10 +192,13 @@ function formatModeUpdate(parsed) {
     const emoji = parsed.healthStatus === 'degraded' ? '⚠️' : '🔴';
     parts.push(`${emoji} ${parsed.healthStatus}`);
   }
+  if (parsed.latencyTrend && parsed.latencyTrend !== 'stable') {
+    parts.push(parsed.latencyTrend === 'rising' ? '↑' : '↓');
+  }
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
 
   if (parts.length === 0) return 'ModeUpdate<empty>';
   return `ModeUpdate<${parts.join(', ')}>`;
 }
 
-module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, VALID_HEALTH };
+module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, VALID_HEALTH, VALID_LATENCY_TRENDS };

@@ -426,6 +426,7 @@ function syncPill() {
       pluginStartedAt: pluginStartedAt || null,
       lastResetAt: pluginLastResetAt || null,
       healthStatus: _healthStatus,
+      latencyTrend: _latencyTracker.trend(),
     });
   }
 }

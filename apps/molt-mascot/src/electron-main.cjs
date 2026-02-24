@@ -832,6 +832,7 @@ app.whenReady().then(async () => {
       lastResetAt: currentLastResetAt,
       healthStatus: currentHealthStatus,
       connectionUptimePct: _uptimePct,
+      latencyTrend: currentLatencyTrend,
     }));
 
     const menu = Menu.buildFromTemplate([
@@ -1037,6 +1038,7 @@ app.whenReady().then(async () => {
   let currentPluginStartedAt = null;
   let currentLastResetAt = null;
   let currentHealthStatus = null;
+  let currentLatencyTrend = null;
   ipcMain.on('molt-mascot:mode-update', (_event, raw) => {
     // Delegate all field validation/coercion to the extracted pure function.
     // Previously this was ~70 lines of inline typeof checks; now parseModeUpdate
@@ -1078,6 +1080,9 @@ app.whenReady().then(async () => {
     if (p.healthStatus !== null) currentHealthStatus = p.healthStatus;
     else if (raw && raw.healthStatus === null) currentHealthStatus = null;
 
+    if (p.latencyTrend !== null) currentLatencyTrend = p.latencyTrend;
+    else if (raw && raw.latencyTrend === null) currentLatencyTrend = null;
+
     // Track active tool name for tray tooltip (e.g. "🔧 read" instead of "🔧 tool").
     const nextTool = p.tool;
     if (nextTool !== currentToolName) {
@@ -1104,6 +1109,7 @@ app.whenReady().then(async () => {
       } else if (p.mode === 'disconnected' || p.mode === 'connecting') {
         connectedSinceMs = null;
         currentLatencyMs = null;
+        currentLatencyTrend = null;
       }
       updateTrayIcon(p.mode);
       rebuildTrayMenu();
