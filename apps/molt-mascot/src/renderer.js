@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -172,15 +172,9 @@ function drawLobster(mode, t, idleDurationMs = 0) {
 }
 
 // --- State machine ---
-const Mode = Object.freeze({
-  idle: 'idle',
-  thinking: 'thinking',
-  tool: 'tool',
-  error: 'error',
-  connecting: 'connecting',
-  connected: 'connected',
-  disconnected: 'disconnected',
-});
+// Use the canonical MODE constants from mode-emoji.cjs (single source of truth).
+// Previously a duplicate Object.freeze() was defined here, risking drift.
+const Mode = MODE;
 
 let currentMode = Mode.idle;
 // Apply initial state now that Mode/currentMode exist
