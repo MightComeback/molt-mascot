@@ -335,10 +335,10 @@ ws.addEventListener("message", (ev) => {
       msg.id === stateReqId || msg.id === resetReqId
     );
     if (filters.length > 0 && !isOwnResponse) {
-      const candidates = [msg.type, msg.event, msg.payload?.phase].map((v) =>
+      const candidates = new Set([msg.type, msg.event, msg.payload?.phase].map((v) =>
         typeof v === "string" ? v.toLowerCase() : ""
-      );
-      if (!filters.some((f) => candidates.includes(f))) return;
+      ));
+      if (!filters.some((f) => candidates.has(f))) return;
     }
 
     // In --once mode, print the hello-ok payload so the user can inspect
