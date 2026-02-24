@@ -206,6 +206,8 @@ let watchChangeCount = 0;
 const watchMaxChanges = Number(getArg("--count") || 0); // 0 = unlimited
 let watchInterval: ReturnType<typeof setInterval> | null = null;
 const watchPollMs = Number(getArg("--poll-ms") ?? 1000);
+/** Track the last watch poll send time so we can measure round-trip latency. */
+let watchPollSentAt = 0;
 const pingCount = Math.max(1, Number(getArg("--ping-count") ?? 5));
 let pingsSent = 0;
 let pingResults: number[] = [];
@@ -258,6 +260,7 @@ ws.addEventListener("message", (ev) => {
       } else if (watchMode) {
         // Start polling plugin state; print only when it changes.
         stateReqId = nextId("s");
+        watchPollSentAt = performance.now();
         ws.send(JSON.stringify({
           type: "req", id: stateReqId,
           method: PLUGIN_STATE_METHODS[stateMethodIndex],
@@ -266,6 +269,7 @@ ws.addEventListener("message", (ev) => {
         watchInterval = setInterval(() => {
           if (ws.readyState !== WebSocket.OPEN) return;
           stateReqId = nextId("s");
+          watchPollSentAt = performance.now();
           ws.send(JSON.stringify({
             type: "req", id: stateReqId,
             method: PLUGIN_STATE_METHODS[stateMethodIndex],
@@ -435,8 +439,16 @@ ws.addEventListener("message", (ev) => {
           lastWatchJson = json;
           watchChangeCount++;
           const ts = new Date().toISOString().slice(11, 23);
+          // Measure round-trip latency of the poll and inject into state
+          // so the compact summary can show connection quality at a glance.
+          const rtt = watchPollSentAt > 0
+            ? Math.round((performance.now() - watchPollSentAt) * 100) / 100
+            : undefined;
+          const stateWithLatency = rtt !== undefined
+            ? { ...msg.payload.state, latencyMs: rtt }
+            : msg.payload.state;
           const line = compact
-            ? formatWatchSummary(msg.payload.state)
+            ? formatWatchSummary(stateWithLatency)
             : JSON.stringify(msg.payload.state, null, 2);
           console.log(compact ? `[${ts}] ${line}` : `--- ${ts} ---\n${line}`);
           // Exit after N state changes if --count was specified

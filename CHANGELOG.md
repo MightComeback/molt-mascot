@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
+- `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
 
 ### Added
 - Tray icon sprite capture in `--capture-dir` mode (generates `tray/tray-{mode}.png` for all modes + base sprite at 2× scale for docs/CI assets)
