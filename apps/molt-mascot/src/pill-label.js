@@ -86,10 +86,18 @@ export function buildPillLabel(params) {
         label += ` · ↑${formatDuration(uptimeSec)}`;
       }
     }
-  } else if (mode === 'connecting' && duration > 2) {
-    label = reconnectAttempt > 1
-      ? `Connecting… ${formatDuration(duration)} #${reconnectAttempt}`
-      : `Connecting… ${formatDuration(duration)}`;
+  } else if (mode === 'connecting') {
+    // Always show ellipsis for connecting mode (indicates ongoing activity).
+    // After 2s, append elapsed time so the user sees the connection isn't stuck.
+    if (duration > 2) {
+      label = reconnectAttempt > 1
+        ? `Connecting… ${formatDuration(duration)} #${reconnectAttempt}`
+        : `Connecting… ${formatDuration(duration)}`;
+    } else {
+      label = reconnectAttempt > 1
+        ? `Connecting… #${reconnectAttempt}`
+        : 'Connecting…';
+    }
   } else if (mode === 'disconnected') {
     const retrySuffix = reconnectAttempt > 0 ? ` #${reconnectAttempt}` : '';
     label = lastCloseDetail

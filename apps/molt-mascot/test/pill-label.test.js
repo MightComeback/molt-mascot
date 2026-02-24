@@ -85,12 +85,12 @@ describe('buildPillLabel', () => {
     expect(result.label).toContain('5s');
   });
 
-  it('shows plain Connecting for first 2 seconds', () => {
+  it('shows Connecting… (with ellipsis) for first 2 seconds', () => {
     const result = build({
       mode: 'connecting',
       modeSince: NOW - 1_000, // 1 second
     });
-    expect(result.label).toBe('Connecting');
+    expect(result.label).toBe('Connecting…');
   });
 
   it('shows disconnected with close detail when available', () => {
