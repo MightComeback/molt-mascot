@@ -144,6 +144,18 @@ bun run mascot
 | Right-click pill or lobster | Open context menu |
 | Drag window | Reposition (overrides alignment until Snap) |
 
+### Context menu extras
+
+Right-click opens a context menu with all keyboard shortcut actions plus these additional items:
+
+| Item | Description |
+|---|---|
+| Copy Gateway URL | Copy the current (or target) Gateway WebSocket URL to clipboard |
+| Change Gateway… | Enter a new Gateway URL without restarting the app |
+| Reset Preferences… | Clear all saved preferences and restart with defaults |
+| About Molt Mascot | Show the About panel (version, copyright, links) |
+| Open on GitHub… | Open the repository in your default browser |
+
 ### CLI flags
 
 ```
