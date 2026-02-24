@@ -157,11 +157,12 @@ Gateway configuration env vars support ordered fallback chains (first non-empty 
 
 1. **Sprite**: Add overlay frames to `sprites.js` → `overlay.<mode>`.
 2. **Drawing**: Add timing entry to `OVERLAY_TIMING` in `draw.js`.
-3. **Emoji**: Add entry to `MODE_EMOJI` in `mode-emoji.cjs`.
+3. **Emoji + descriptions**: Add entries to both `MODE_EMOJI` and `MODE_DESCRIPTIONS` in `mode-emoji.cjs`. The description is used for `aria-description` on the canvas and in pill-label's `ariaLabel`.
 4. **Tray**: Add status dot color to `STATUS_DOT_COLORS` in `tray-icon.cjs`.
-5. **Pill CSS**: Add `.pill--<mode>` class in `index.html` with appropriate color/animation.
-6. **Reduced motion**: Add `animation: none` override in the `@media (prefers-reduced-motion)` block.
-7. **Tests**: Sprite validation, draw tests, mode-emoji coverage, tray tooltip tests.
+5. **Pill**: Add label/class handling in `pill-label.js` and `.pill--<mode>` CSS class in `index.html` with appropriate color/animation.
+6. **Context menu**: Handle the new mode in the status line builder in `context-menu-items.js` if it needs special formatting (like tool showing the tool name).
+7. **Reduced motion**: Add `animation: none` override in the `@media (prefers-reduced-motion)` block.
+8. **Tests**: Sprite validation, draw tests, mode-emoji coverage, pill-label tests, tray tooltip tests.
 
 ## Testing
 
