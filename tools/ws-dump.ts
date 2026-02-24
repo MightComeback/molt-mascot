@@ -357,6 +357,9 @@ ws.addEventListener("message", (ev) => {
           ...(uptimeMs !== null ? { pluginUptimeMs: uptimeMs } : {}),
           toolCalls: state.toolCalls ?? 0,
           toolErrors: state.toolErrors ?? 0,
+          ...((state.toolCalls ?? 0) > 0 && (state.toolErrors ?? 0) > 0
+            ? { toolSuccessRate: successRate(state.toolCalls, state.toolErrors) }
+            : {}),
           agentSessions: state.agentSessions ?? 0,
           activeAgents: state.activeAgents ?? 0,
           activeTools: state.activeTools ?? 0,
