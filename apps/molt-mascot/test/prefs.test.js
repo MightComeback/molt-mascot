@@ -863,7 +863,7 @@ describe("VALID_PREF_KEYS", () => {
 
 describe("PREF_SCHEMA descriptions", () => {
   it("every schema entry has a non-empty description string", () => {
-    for (const [key, entry] of Object.entries(PREF_SCHEMA)) {
+    for (const [, entry] of Object.entries(PREF_SCHEMA)) {
       expect(typeof entry.description).toBe("string");
       expect(entry.description.length).toBeGreaterThan(0);
     }
