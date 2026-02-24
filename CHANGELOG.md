@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- "Reduced Motion" toggle in context menu — accessibility setting no longer requires env var or manual preference editing
+
 ### Changed
 - `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
 - `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check

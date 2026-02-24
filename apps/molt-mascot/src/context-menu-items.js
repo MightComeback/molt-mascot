@@ -51,6 +51,7 @@ import { formatAlignment } from './get-position.cjs';
  * @param {number} [state.processMemoryRssBytes] - Process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [state.latencyStats] - Rolling latency statistics (used with latencyMs for connection quality emoji)
  * @param {string} [state.pluginVersion] - Plugin version string (shown alongside app version for diagnostics parity with tray tooltip)
+ * @param {boolean} [state.reducedMotion] - Whether reduced-motion mode is active (accessibility toggle)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -164,6 +165,7 @@ export function buildContextMenuItems(state) {
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S`, disabled: !hasDragPosition },
     { id: 'size', label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
     { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },
+    { id: 'reduced-motion', label: 'Reduced Motion', checked: !!state.reducedMotion },
     { id: 'copy-status', label: 'Copy Status', hint: `${modKey}${shiftKey}P` },
     { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
     ...(connectedSince || state.targetUrl ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),

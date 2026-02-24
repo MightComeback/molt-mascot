@@ -434,4 +434,18 @@ describe('buildContextMenuItems', () => {
     const result = buildContextMenuItems(BASE_STATE);
     expect(result.statusLine).not.toContain('🧠');
   });
+
+  it('includes reduced-motion toggle item', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, reducedMotion: false });
+    const item = result.items.find(i => i.id === 'reduced-motion');
+    expect(item).toBeDefined();
+    expect(item.label).toBe('Reduced Motion');
+    expect(item.checked).toBe(false);
+  });
+
+  it('reduced-motion item reflects active state', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, reducedMotion: true });
+    const item = result.items.find(i => i.id === 'reduced-motion');
+    expect(item.checked).toBe(true);
+  });
 });
