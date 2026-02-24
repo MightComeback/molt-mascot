@@ -17,6 +17,7 @@ function onIpc(channel, callback) {
 contextBridge.exposeInMainWorld('moltMascot', {
   setClickThrough: send('molt-mascot:set-click-through'),
   setHideText: send('molt-mascot:set-hide-text'),
+  setReducedMotion: send('molt-mascot:set-reduced-motion'),
   setAlignment: send('molt-mascot:set-alignment'),
   setOpacity: send('molt-mascot:set-opacity'),
   setPadding: send('molt-mascot:set-padding'),
@@ -36,6 +37,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   updateMode: send('molt-mascot:mode-update'),
   onClickThrough: (cb) => onIpc('molt-mascot:click-through', cb),
   onHideText: (cb) => onIpc('molt-mascot:hide-text', cb),
+  onReducedMotion: (cb) => onIpc('molt-mascot:reduced-motion', cb),
   onReset: (cb) => onIpc('molt-mascot:reset', cb),
   onAlignment: (cb) => onIpc('molt-mascot:alignment', cb),
   onSize: (cb) => onIpc('molt-mascot:size', cb),

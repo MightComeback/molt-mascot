@@ -1125,6 +1125,12 @@ if (window.moltMascot?.onHideText) {
   }));
 }
 
+if (window.moltMascot?.onReducedMotion) {
+  ipcUnsubs.push(window.moltMascot.onReducedMotion((enabled) => {
+    reducedMotion = enabled || (motionQuery?.matches ?? false);
+  }));
+}
+
 if (window.moltMascot?.onAlignment) {
   ipcUnsubs.push(window.moltMascot.onAlignment((alignment) => {
     lastPluginAlignment = alignment;
@@ -1384,6 +1390,7 @@ function showContextMenu(e) {
     processUptimeS: window.moltMascot?.processUptimeS?.(),
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     targetUrl: connectedUrl || loadCfg()?.url || undefined,
+    reducedMotion,
   });
 
   // Map descriptor IDs to action callbacks
@@ -1395,6 +1402,7 @@ function showContextMenu(e) {
     snap: () => { if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition(); },
     size: () => { if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize(); },
     opacity: () => { if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity(); },
+    'reduced-motion': () => { if (window.moltMascot?.setReducedMotion) { reducedMotion = !reducedMotion; window.moltMascot.setReducedMotion(reducedMotion); showTransientFeedback(reducedMotion ? 'Motion reduced' : 'Motion enabled'); } },
     'copy-status': () => { const text = pill.textContent || ''; if (text) navigator.clipboard.writeText(text).then(() => showCopiedFeedback()).catch(() => {}); },
     'copy-debug': () => { if (window.moltMascot?.copyDebugInfo) { window.moltMascot.copyDebugInfo(); showCopiedFeedback(); } else { navigator.clipboard.writeText(buildDebugInfo()).then(() => showCopiedFeedback()).catch(() => {}); } },
     'copy-gateway-url': () => { const url = connectedUrl || loadCfg()?.url || ''; if (url) navigator.clipboard.writeText(url).then(() => showCopiedFeedback()).catch(() => {}); },

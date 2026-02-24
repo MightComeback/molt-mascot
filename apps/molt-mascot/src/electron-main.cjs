@@ -547,6 +547,11 @@ app.whenReady().then(async () => {
   const envHideText = process.env.MOLT_MASCOT_HIDETEXT ?? process.env.MOLT_MASCOT_HIDE_TEXT;
   let hideText = parseBooleanEnv(envHideText) ?? savedPrefs.hideText ?? false;
 
+  // Reduced motion: disable bobbing, blinking, and pill pulse animations.
+  // Env var overrides saved preference; OS media query is handled renderer-side.
+  const envReducedMotion = process.env.MOLT_MASCOT_REDUCED_MOTION;
+  let reducedMotionPref = parseBooleanEnv(envReducedMotion) ?? savedPrefs.reducedMotion ?? false;
+
   // Restore saved alignment if no env override
   if (!alignmentOverride && savedPrefs.alignment) {
     alignmentOverride = savedPrefs.alignment;
@@ -579,6 +584,15 @@ app.whenReady().then(async () => {
       : !hideText;
     withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
     savePrefs({ hideText });
+    rebuildTrayMenu();
+  }
+
+  function actionToggleReducedMotion(forceValue) {
+    reducedMotionPref = forceValue !== undefined
+      ? (parseBooleanEnv(forceValue) ?? !reducedMotionPref)
+      : !reducedMotionPref;
+    withMainWin((w) => w.webContents.send('molt-mascot:reduced-motion', reducedMotionPref));
+    savePrefs({ reducedMotion: reducedMotionPref });
     rebuildTrayMenu();
   }
 
@@ -696,6 +710,7 @@ app.whenReady().then(async () => {
       withMainWin((w) => {
         if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
         if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
+        if (reducedMotionPref) w.webContents.send('molt-mascot:reduced-motion', reducedMotionPref);
         // Send initial alignment so the renderer context menu reflects the saved
         // preference even when no plugin is connected to push it.
         if (alignmentOverride) w.webContents.send('molt-mascot:alignment', alignmentOverride);
@@ -888,6 +903,12 @@ app.whenReady().then(async () => {
         click: () => actionToggleHideText(),
       },
       {
+        label: 'Reduced Motion',
+        type: 'checkbox',
+        checked: reducedMotionPref,
+        click: () => actionToggleReducedMotion(),
+      },
+      {
         label: `Cycle Alignment (${(alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()})`,
         accelerator: 'CommandOrControl+Shift+A',
         click: actionCycleAlignment,
@@ -982,6 +1003,7 @@ app.whenReady().then(async () => {
   ipcMain.on('molt-mascot:cycle-size', actionCycleSize);
   ipcMain.on('molt-mascot:set-click-through', (_event, enabled) => actionToggleGhostMode(enabled));
   ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
+  ipcMain.on('molt-mascot:set-reduced-motion', (_event, enabled) => actionToggleReducedMotion(enabled));
   ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
   ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
   ipcMain.on('molt-mascot:copy-status', actionCopyStatus);
