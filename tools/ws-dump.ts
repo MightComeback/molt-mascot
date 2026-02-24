@@ -345,10 +345,12 @@ ws.addEventListener("message", (ev) => {
         const uptimeMs = typeof state.startedAt === 'number' && state.startedAt > 0
           ? Date.now() - state.startedAt
           : null;
+        const quality = connectionQuality(rtt);
         const result = {
           status,
           timestamp: new Date().toISOString(),
           latencyMs: rtt,
+          ...(quality ? { quality } : {}),
           mode: state.mode,
           plugin: true,
           version: state.version || null,
@@ -383,10 +385,12 @@ ws.addEventListener("message", (ev) => {
       const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
       const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
       const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
+      const quality = connectionQuality(rtt);
       const result = {
         status,
         timestamp: new Date().toISOString(),
         latencyMs: rtt,
+        ...(quality ? { quality } : {}),
         plugin: false,
         ...(reasons.length > 0 ? { reasons } : {}),
       };
@@ -591,5 +595,4 @@ function gracefulShutdown() {
   }
 }
 process.on("SIGINT", gracefulShutdown);
-process.on("SIGTERM", gracefulShutdown);
 process.on("SIGTERM", gracefulShutdown);
