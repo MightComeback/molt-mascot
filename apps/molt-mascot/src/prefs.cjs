@@ -302,7 +302,7 @@ const PREF_SCHEMA = {
   sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0, description: 'Seconds of idle before entering sleeping state' },
   idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
   errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
-  reducedMotion:   { type: 'boolean', description: 'Disable pill animations for accessibility' },
+  reducedMotion:   { type: 'boolean', description: 'Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility' },
 };
 
 /**
