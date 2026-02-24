@@ -434,6 +434,36 @@ describe("drawLobster", () => {
   });
 });
 
+  it("freezes overlay animation on frame 0 when reducedMotion is true", () => {
+    // With reducedMotion=false, different t values should produce different overlay frames
+    // (for modes with multi-frame overlays like 'thinking').
+    // With reducedMotion=true, the overlay should always show frame 0 regardless of t.
+    const thinkingTiming = OVERLAY_TIMING.thinking;
+    // Pick two t values that map to different frame indices when animated
+    const t0 = 0;
+    const t1 = thinkingTiming.frameDurationMs; // should be frame 1 when animated
+
+    // reducedMotion=true: both times should produce identical output
+    const ctx1 = mockCtx();
+    drawLobster(ctx1, {
+      mode: "thinking", t: t0, scale: 3, spriteSize: 32,
+      reducedMotion: true, blinking: false, canvas: { width: 96, height: 96 },
+    });
+    const ctx2 = mockCtx();
+    drawLobster(ctx2, {
+      mode: "thinking", t: t1, scale: 3, spriteSize: 32,
+      reducedMotion: true, blinking: false, canvas: { width: 96, height: 96 },
+    });
+    const fills1 = ctx1.calls.filter(c => c.fn === "fillRect");
+    const fills2 = ctx2.calls.filter(c => c.fn === "fillRect");
+    // Same frame 0 → identical fill calls
+    expect(fills1.length).toBe(fills2.length);
+    for (let i = 0; i < fills1.length; i++) {
+      expect(fills1[i].args).toEqual(fills2[i].args);
+      expect(fills1[i].fillStyle).toBe(fills2[i].fillStyle);
+    }
+  });
+
 describe("_spriteCache", () => {
   it("returns null in test environment (no OffscreenCanvas/DOM)", () => {
     _spriteCache.clear();

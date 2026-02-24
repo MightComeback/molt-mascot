@@ -403,7 +403,11 @@ export function drawLobster(ctx, params) {
   const timing = OVERLAY_TIMING[effectiveMode];
   if (timing) {
     const { sprites, frameDurationMs } = timing;
-    const frameIdx = frameDurationMs > 0 ? Math.floor(t / frameDurationMs) % sprites.length : 0;
+    // When reduced-motion is active, freeze overlays on the first frame
+    // to respect the user's accessibility preference (parity with idle bob suppression).
+    const frameIdx = (frameDurationMs > 0 && !reducedMotion)
+      ? Math.floor(t / frameDurationMs) % sprites.length
+      : 0;
     drawSprite(ctx, sprites[frameIdx], overlayOpts);
   }
 }
