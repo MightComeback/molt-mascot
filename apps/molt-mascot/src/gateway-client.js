@@ -644,6 +644,21 @@ export class GatewayClient {
   }
 
   /**
+   * All-time latency extremes that survive ring-buffer eviction.
+   * Returns { min, max } in ms (rounded), or null if no samples pushed.
+   * Useful for long-running sessions where the rolling window (60 samples)
+   * forgets early spikes/dips — these persist until reset().
+   *
+   * @returns {{ min: number, max: number } | null}
+   */
+  get allTimeLatency() {
+    const min = this._latencyTracker.allTimeMin();
+    const max = this._latencyTracker.allTimeMax();
+    if (min === null || max === null) return null;
+    return { min, max };
+  }
+
+  /**
    * Latency trend direction: "rising", "falling", or "stable".
    * Delegates to the latency tracker's half-window comparison algorithm.
    * Returns null if insufficient samples (< 4) for a meaningful comparison.
@@ -811,6 +826,7 @@ export class GatewayClient {
       pluginStateMethod: this.pluginStateMethod,
       latencyMs: this.latencyMs,
       latencyStats: this.latencyStats,
+      allTimeLatency: this.allTimeLatency,
       connectionQuality: this.connectionQuality,
       wsReadyState: this.wsReadyState,
       reconnectAttempt: this._reconnectAttempt,

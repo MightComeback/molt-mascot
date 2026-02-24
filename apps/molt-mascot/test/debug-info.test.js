@@ -859,3 +859,42 @@ describe("dragPosition", () => {
     expect(info).not.toContain("Sprite cache");
   });
 });
+
+describe("allTimeLatency in debug info", () => {
+  it("shows all-time extremes when they differ from rolling stats", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      latencyMs: 50,
+      latencyStats: { min: 40, max: 80, avg: 55, median: 50, p95: 75, p99: 80, jitter: 10, samples: 30 },
+      allTimeLatency: { min: 5, max: 200 },
+    });
+    expect(info).toContain("Latency all-time: min 5ms, max 200ms");
+  });
+
+  it("omits all-time line when identical to rolling stats", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      latencyMs: 50,
+      latencyStats: { min: 40, max: 80, avg: 55, median: 50, p95: 75, p99: 80, jitter: 10, samples: 30 },
+      allTimeLatency: { min: 40, max: 80 },
+    });
+    expect(info).not.toContain("Latency all-time");
+  });
+
+  it("shows all-time when no rolling stats available", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      latencyMs: 50,
+      allTimeLatency: { min: 12, max: 150 },
+    });
+    expect(info).toContain("Latency all-time: min 12ms, max 150ms");
+  });
+
+  it("omits all-time when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS });
+    expect(info).not.toContain("Latency all-time");
+  });
+});

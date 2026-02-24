@@ -1070,4 +1070,34 @@ describe('GatewayClient', () => {
       expect(['excellent', 'good', 'fair', 'poor']).toContain(status.connectionQuality);
     });
   });
+
+  describe('allTimeLatency', () => {
+    it('returns null when no samples have been pushed', () => {
+      expect(client.allTimeLatency).toBeNull();
+    });
+
+    it('returns min/max after latency samples are recorded', () => {
+      // Push samples through the internal tracker via the public latencyMs setter
+      client._latencyTracker.push(10);
+      client._latencyTracker.push(50);
+      client._latencyTracker.push(25);
+      const result = client.allTimeLatency;
+      expect(result).toEqual({ min: 10, max: 50 });
+    });
+
+    it('is included in getStatus()', () => {
+      client._latencyTracker.push(8);
+      client._latencyTracker.push(120);
+      const status = client.getStatus();
+      expect(status).toHaveProperty('allTimeLatency');
+      expect(status.allTimeLatency).toEqual({ min: 8, max: 120 });
+    });
+
+    it('resets to null after destroy', () => {
+      client._latencyTracker.push(30);
+      expect(client.allTimeLatency).not.toBeNull();
+      client.destroy();
+      expect(client.allTimeLatency).toBeNull();
+    });
+  });
 });

@@ -67,6 +67,7 @@
  * @param {{ x: number, y: number }|null} [params.dragPosition] - User-dragged window position (shown when the mascot was manually repositioned, helping diagnose "why is it here?")
  * @param {number|null} [params.processStartedAt] - Epoch ms when the Electron process started (shown alongside uptime for absolute reference)
  * @param {{ size: number, hitRate: number|null }} [params.spriteCache] - Sprite cache diagnostics (entries + hit rate)
+ * @param {{ min: number, max: number }|null} [params.allTimeLatency] - All-time latency extremes (survive ring-buffer eviction; shown when they differ from rolling stats)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -142,6 +143,7 @@ export function buildDebugInfo(params) {
     dragPosition,
     processStartedAt,
     spriteCache,
+    allTimeLatency,
     now: nowOverride,
   } = params;
 
@@ -222,6 +224,18 @@ export function buildDebugInfo(params) {
     const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
     const trendStr = typeof latencyTrend === 'string' && latencyTrend !== 'stable' ? `, ${latencyTrend}` : '';
     lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${p99Str}${jitterStr}${trendStr} (${latencyStats.samples} samples)`);
+  }
+  if (allTimeLatency && typeof allTimeLatency.min === 'number' && typeof allTimeLatency.max === 'number') {
+    // Show all-time extremes only when they differ from the rolling window —
+    // the rolling stats already show current min/max, so repeating identical
+    // values would be noise. All-time extremes matter for long sessions where
+    // early spikes have been evicted from the ring buffer.
+    const showAllTime = !latencyStats
+      || allTimeLatency.min < latencyStats.min
+      || allTimeLatency.max > latencyStats.max;
+    if (showAllTime) {
+      lines.push(`Latency all-time: min ${allTimeLatency.min}ms, max ${allTimeLatency.max}ms`);
+    }
   }
   if (pluginToolCalls > 0) {
     const rateSuffix = pluginToolErrors > 0
