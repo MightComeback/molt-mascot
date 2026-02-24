@@ -95,13 +95,30 @@ The system is designed so adding a new synced property is a one-liner in `SYNC_P
 ## Adding a New CLI Flag
 
 1. **Parse the flag** in `apps/molt-mascot/src/electron-main.cjs`:
-   - Use `parseCliArg('--flag-name')` for flags with values, or `process.argv.includes('--flag')` for booleans.
+   - Use `parseCliArg('--flag-name')` for flags with values, or `hasBoolFlag('--flag', argv)` for booleans.
+   - For numeric flags, use `parseNumericArg('--flag', defaultValue, { min, max, integer })` — validates and clamps in one call.
    - Validate the value and write to the corresponding `process.env.MOLT_MASCOT_*` var (so preload picks it up).
    - Emit a warning to stderr for invalid values so users know their input was ignored.
 2. **Add to `--help` output** in `electron-main.cjs` (both the Options and Environment Variables sections).
 3. **Expose via preload** if the renderer needs it: add to the `env` object in `preload.cjs`.
 4. **Document** in `README.md` (CLI flags table + env vars section).
 5. **Test**: add a test in `apps/molt-mascot/test/parse-cli-arg.test.js` if it uses `parseCliArg`.
+
+## Adding a New Numeric Env Var
+
+For numeric environment variables (timing, thresholds, dimensions), use `parseEnvNumber` from `env-keys.cjs` instead of manual `Number()` + validation:
+
+```js
+const { parseEnvNumber } = require('./env-keys.cjs');
+
+// Single key with default, min, and max constraints:
+const padding = parseEnvNumber(env, 'MOLT_MASCOT_PADDING', 24, { min: 0 });
+
+// Multiple fallback keys (first match wins):
+const minProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MIN_PROTOCOL', 'GATEWAY_MIN_PROTOCOL'], 2, { min: 1, integer: true });
+```
+
+This eliminates repeated `Number(env.X)` + `isFinite` + range-check boilerplate and keeps all numeric env var parsing consistent.
 
 ## Adding a New Mode
 
