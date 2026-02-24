@@ -1,6 +1,6 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality } from "../apps/molt-mascot/src/utils.js";
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary } from "../apps/molt-mascot/src/utils.js";
 
 type GatewayCfg = {
   url: string;
@@ -110,15 +110,11 @@ function formatWatchSummary(state: Record<string, any>): string {
 
   if (typeof state.latencyMs === "number" && state.latencyMs >= 0) {
     const q = connectionQuality(state.latencyMs);
-    const qEmoji = q === "excellent" ? "🟢" : q === "good" ? "🟡" : q === "fair" ? "🟠" : q === "poor" ? "🔴" : "";
-    parts.push(`${formatLatency(state.latencyMs)} ${qEmoji}`.trim());
+    parts.push(`${formatLatency(state.latencyMs)} ${connectionQualityEmoji(q)}`.trim());
   }
 
   if (state.activeAgents > 0 || state.activeTools > 0) {
-    const segs: string[] = [];
-    if (state.activeAgents > 0) segs.push(`${state.activeAgents} agent${state.activeAgents > 1 ? "s" : ""}`);
-    if (state.activeTools > 0) segs.push(`${state.activeTools} tool${state.activeTools > 1 ? "s" : ""}`);
-    parts.push(segs.join(", "));
+    parts.push(formatActiveSummary(state.activeAgents || 0, state.activeTools || 0));
   }
 
   if (state.toolCalls > 0) {
