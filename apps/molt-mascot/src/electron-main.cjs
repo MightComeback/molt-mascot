@@ -314,6 +314,7 @@ Keyboard shortcuts (while mascot is focused):
   ${mod}+Shift+N   Toggle reduced motion
   ${mod}+Shift+R   Reset state
   ${mod}+Shift+C   Force reconnect
+  ${mod}+Shift+P   Copy status text
   ${mod}+Shift+I   Copy debug info
   ${mod}+Shift+D   Toggle DevTools
   ${mod}+Shift+V   Toggle visibility
