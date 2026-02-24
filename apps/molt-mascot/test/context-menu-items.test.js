@@ -435,12 +435,19 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).not.toContain('🧠');
   });
 
-  it('includes reduced-motion toggle item', () => {
+  it('includes reduced-motion toggle item with shortcut hint', () => {
     const result = buildContextMenuItems({ ...BASE_STATE, reducedMotion: false });
     const item = result.items.find(i => i.id === 'reduced-motion');
     expect(item).toBeDefined();
     expect(item.label).toBe('Reduced Motion');
+    expect(item.hint).toBe('⌘⇧N');
     expect(item.checked).toBe(false);
+  });
+
+  it('reduced-motion hint uses Ctrl on non-Mac', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, isMac: false, reducedMotion: false });
+    const item = result.items.find(i => i.id === 'reduced-motion');
+    expect(item.hint).toBe('Ctrl+Shift+N');
   });
 
   it('reduced-motion item reflects active state', () => {
