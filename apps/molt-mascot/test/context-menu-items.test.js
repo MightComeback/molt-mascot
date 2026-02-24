@@ -317,6 +317,18 @@ describe('buildContextMenuItems', () => {
     expect(snap.hint).toBe('⌘⇧S');
   });
 
+  it('snap item is disabled when no drag position', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, hasDragPosition: false });
+    const snap = result.items.find((i) => i.id === 'snap');
+    expect(snap.disabled).toBe(true);
+  });
+
+  it('snap item is enabled when drag position exists', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, hasDragPosition: true });
+    const snap = result.items.find((i) => i.id === 'snap');
+    expect(snap.disabled).toBe(false);
+  });
+
   it('change-gateway item exists without a shortcut', () => {
     const result = buildContextMenuItems(BASE_STATE);
     const item = result.items.find((i) => i.id === 'change-gateway');

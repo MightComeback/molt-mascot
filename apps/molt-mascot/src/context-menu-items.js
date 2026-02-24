@@ -43,6 +43,7 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {string} [state.appVersion]
  * @param {boolean} [state.isMac]
  * @param {"healthy"|"degraded"|"unhealthy"|null} [state.healthStatus] - At-a-glance health assessment (shown as prefix when degraded/unhealthy)
+ * @param {boolean} [state.hasDragPosition] - Whether the mascot has been manually dragged (disables "Snap to Position" when false)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -69,6 +70,7 @@ export function buildContextMenuItems(state) {
     appVersion,
     isMac = false,
     healthStatus = null,
+    hasDragPosition = false,
     now: nowOverride,
   } = state;
 
@@ -122,7 +124,7 @@ export function buildContextMenuItems(state) {
     { id: 'hide-text', label: 'Hide Text', hint: `${modKey}${shiftKey}H`, checked: isTextHidden },
     { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
     { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
-    { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S` },
+    { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S`, disabled: !hasDragPosition },
     { id: 'size', label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
     { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },
     { id: 'copy-status', label: 'Copy Status' },
