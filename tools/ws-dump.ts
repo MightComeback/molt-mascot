@@ -129,10 +129,16 @@ function formatWatchSummary(state: Record<string, any>): string {
   }
 
   // Surface health status when degraded or unhealthy (matches pill-label and tray-tooltip behavior).
+  // Pass latencyStats when available so jitter-based degradation is detected.
   if (typeof state.latencyMs === "number") {
-    const health = computeHealthStatus({ isConnected: true, latencyMs: state.latencyMs });
-    if (health === "degraded") parts.push("⚠️ degraded");
-    else if (health === "unhealthy") parts.push("🔴 unhealthy");
+    const healthParams = { isConnected: true, latencyMs: state.latencyMs, latencyStats: state.latencyStats ?? undefined };
+    const health = computeHealthStatus(healthParams);
+    if (health === "degraded" || health === "unhealthy") {
+      const emoji = health === "unhealthy" ? "🔴" : "⚠️";
+      const reasons = computeHealthReasons(healthParams);
+      const detail = reasons.length > 0 ? ` (${reasons.join("; ")})` : "";
+      parts.push(`${emoji} ${health}${detail}`);
+    }
   }
 
   return parts.join(" · ");
