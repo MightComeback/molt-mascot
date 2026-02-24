@@ -49,6 +49,7 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {number} [state.processUptimeS] - Process uptime in seconds (shown as compact uptime when >60s)
  * @param {number} [state.processMemoryRssBytes] - Process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [state.latencyStats] - Rolling latency statistics (used with latencyMs for connection quality emoji)
+ * @param {string} [state.pluginVersion] - Plugin version string (shown alongside app version for diagnostics parity with tray tooltip)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -81,6 +82,7 @@ export function buildContextMenuItems(state) {
     processUptimeS,
     processMemoryRssBytes,
     latencyStats = null,
+    pluginVersion,
     now: nowOverride,
   } = state;
 
@@ -98,7 +100,10 @@ export function buildContextMenuItems(state) {
   if (currentMode === 'tool' && currentTool) modeLabel = `${MODE_EMOJI.tool} ${truncate(currentTool, 20)}`;
   if (currentMode === 'error' && lastErrorMessage) modeLabel = `${MODE_EMOJI.error} ${truncate(lastErrorMessage, 28)}`;
 
-  const statusParts = [appVersion ? `v${appVersion} · ${modeLabel}` : modeLabel];
+  const verLabel = appVersion
+    ? (pluginVersion ? `v${appVersion} (p${pluginVersion}) · ${modeLabel}` : `v${appVersion} · ${modeLabel}`)
+    : modeLabel;
+  const statusParts = [verLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
 
   if (connectedSince) {

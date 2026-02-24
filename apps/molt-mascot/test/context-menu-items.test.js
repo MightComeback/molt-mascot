@@ -45,6 +45,18 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).toContain('v2.3.4');
   });
 
+  it('shows plugin version alongside app version when provided', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, appVersion: '2.3.4', pluginVersion: '1.5.0' });
+    expect(result.statusLine).toContain('v2.3.4');
+    expect(result.statusLine).toContain('p1.5.0');
+  });
+
+  it('omits plugin version when not provided', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, appVersion: '2.3.4' });
+    expect(result.statusLine).toContain('v2.3.4');
+    expect(result.statusLine).not.toContain('(p');
+  });
+
   it('shows sleeping label when idle beyond threshold', () => {
     const now = Date.now();
     const result = buildContextMenuItems({
