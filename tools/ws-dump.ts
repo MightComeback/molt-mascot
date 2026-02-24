@@ -1,6 +1,6 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary, successRate } from "../apps/molt-mascot/src/utils.js";
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary, successRate, healthStatusEmoji } from "../apps/molt-mascot/src/utils.js";
 
 type GatewayCfg = {
   url: string;
@@ -148,10 +148,9 @@ function formatWatchSummary(state: Record<string, any>): string {
     const healthParams = { isConnected: true, latencyMs: state.latencyMs, latencyStats: state.latencyStats ?? undefined };
     const health = computeHealthStatus(healthParams);
     if (health === "degraded" || health === "unhealthy") {
-      const emoji = health === "unhealthy" ? "🔴" : "⚠️";
       const reasons = computeHealthReasons(healthParams);
       const detail = reasons.length > 0 ? ` (${reasons.join("; ")})` : "";
-      parts.push(`${emoji} ${health}${detail}`);
+      parts.push(`${healthStatusEmoji(health)} ${health}${detail}`);
     }
   }
 
