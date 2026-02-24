@@ -342,4 +342,20 @@ function formatProtocolRange(min, max) {
   return `v${min}–v${max}`;
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange };
+/**
+ * Compute a connection success rate as an integer percentage (0-100).
+ * Centralizes the repeated `Math.round((connects / attempts) * 100)` pattern
+ * used across tray-icon.cjs, renderer.js, and gateway-client.js.
+ *
+ * @param {number} connects - Number of successful connections
+ * @param {number} attempts - Total connection attempts
+ * @returns {number|null} Integer percentage (0-100), or null if no attempts
+ */
+function computeConnectionSuccessRate(connects, attempts) {
+  if (typeof attempts !== 'number' || !Number.isFinite(attempts) || attempts <= 0) return null;
+  if (typeof connects !== 'number' || !Number.isFinite(connects)) return null;
+  const clamped = Math.max(0, Math.min(connects, attempts));
+  return Math.round((clamped / attempts) * 100);
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate };

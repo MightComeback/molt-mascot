@@ -6,7 +6,7 @@
  */
 
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
-const { formatLatency, formatQualitySummary, formatHealthSummary, formatActiveSummary } = require('./format-latency.cjs');
+const { formatLatency, formatQualitySummary, formatHealthSummary, formatActiveSummary, computeConnectionSuccessRate } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
@@ -276,9 +276,7 @@ function buildTrayTooltip(params) {
     // from sessionConnectCount/sessionAttemptCount for back-compat.
     const resolvedSuccessRate = typeof connectionSuccessRate === 'number'
       ? connectionSuccessRate
-      : (typeof sessionConnectCount === 'number' && typeof sessionAttemptCount === 'number' && sessionAttemptCount > 0)
-        ? Math.round((sessionConnectCount / sessionAttemptCount) * 100)
-        : undefined;
+      : computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount) ?? undefined;
     const summary = formatHealthSummary(healthStatus, {
       isConnected: !!uptimeStr,
       isPollingPaused: false,

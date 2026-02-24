@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -609,5 +609,38 @@ describe('formatProtocolRange', () => {
   it('handles version 1', () => {
     expect(formatProtocolRange(1, 1)).toBe('v1');
     expect(formatProtocolRange(1, 3)).toBe('v1–v3');
+  });
+});
+
+describe('computeConnectionSuccessRate', () => {
+  it('computes correct percentage', () => {
+    expect(computeConnectionSuccessRate(5, 10)).toBe(50);
+    expect(computeConnectionSuccessRate(10, 10)).toBe(100);
+    expect(computeConnectionSuccessRate(1, 3)).toBe(33);
+  });
+
+  it('returns null for zero or negative attempts', () => {
+    expect(computeConnectionSuccessRate(0, 0)).toBeNull();
+    expect(computeConnectionSuccessRate(5, -1)).toBeNull();
+  });
+
+  it('returns null for non-numeric inputs', () => {
+    expect(computeConnectionSuccessRate(null, 10)).toBeNull();
+    expect(computeConnectionSuccessRate(5, null)).toBeNull();
+    expect(computeConnectionSuccessRate('5', '10')).toBeNull();
+  });
+
+  it('returns null for NaN and Infinity', () => {
+    expect(computeConnectionSuccessRate(NaN, 10)).toBeNull();
+    expect(computeConnectionSuccessRate(5, Infinity)).toBeNull();
+  });
+
+  it('clamps connects to [0, attempts]', () => {
+    expect(computeConnectionSuccessRate(-1, 10)).toBe(0);
+    expect(computeConnectionSuccessRate(15, 10)).toBe(100);
+  });
+
+  it('handles zero connects', () => {
+    expect(computeConnectionSuccessRate(0, 10)).toBe(0);
   });
 });

@@ -17,7 +17,7 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary, formatActiveSummary, formatProtocolRange } from './format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate as _computeConnectionSuccessRate } from './format-latency.cjs';
 export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth, formatActiveSummary, formatProtocolRange };
 
 /**
@@ -611,19 +611,13 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
 
 /**
  * Compute the connection success rate as an integer percentage (0-100).
- * Centralizes the repeated `sessionAttemptCount > 0 ? Math.round((connects / attempts) * 100) : null`
- * pattern used across renderer.js, tray-icon.cjs, and gateway-client.js.
+ * Delegates to the canonical implementation in format-latency.cjs (single source of truth).
  *
  * @param {number} connects - Number of successful connections
  * @param {number} attempts - Total connection attempts
  * @returns {number|null} Integer percentage (0-100), or null if no attempts
  */
-export function computeConnectionSuccessRate(connects, attempts) {
-  if (typeof attempts !== 'number' || !Number.isFinite(attempts) || attempts <= 0) return null;
-  if (typeof connects !== 'number' || !Number.isFinite(connects)) return null;
-  const clamped = Math.max(0, Math.min(connects, attempts));
-  return Math.round((clamped / attempts) * 100);
-}
+export const computeConnectionSuccessRate = _computeConnectionSuccessRate;
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
