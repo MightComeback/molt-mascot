@@ -496,6 +496,85 @@ describe('ariaLabel', () => {
   });
 });
 
+describe('connection quality emoji in pill', () => {
+  it('shows quality emoji in idle with uptime', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 10_000,
+      connectedSince: NOW - 120_000,
+      latencyMs: 25,
+    });
+    // 25ms = excellent = 🟢
+    expect(result.label).toContain('🟢');
+    expect(result.label).toContain('↑');
+  });
+
+  it('shows quality emoji in idle without uptime when short connection', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 10_000,
+      connectedSince: NOW - 30_000, // < 60s uptime
+      latencyMs: 25,
+    });
+    expect(result.label).toContain('🟢');
+    expect(result.label).toBe('Idle 🟢');
+  });
+
+  it('shows poor quality emoji for high latency', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 10_000,
+      connectedSince: NOW - 120_000,
+      latencyMs: 600,
+    });
+    expect(result.label).toContain('🔴');
+  });
+
+  it('uses median from latencyStats when available', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 10_000,
+      connectedSince: NOW - 120_000,
+      latencyMs: 600, // high instant
+      latencyStats: { median: 30, samples: 10 }, // low median
+    });
+    // Should use median (30ms = excellent = 🟢) not instant (600ms)
+    expect(result.label).toContain('🟢');
+  });
+
+  it('shows quality emoji in sleeping mode', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 200_000, // beyond sleep threshold
+      connectedSince: NOW - 200_000,
+      latencyMs: 150,
+    });
+    expect(result.label).toContain('Sleeping');
+    // 150ms = fair = 🟠
+    expect(result.label).toContain('🟠');
+  });
+
+  it('omits quality emoji when latencyMs is null', () => {
+    const result = build({
+      mode: 'idle',
+      modeSince: NOW - 10_000,
+      connectedSince: NOW - 120_000,
+      latencyMs: null,
+    });
+    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/);
+  });
+
+  it('does not show quality emoji in non-idle modes', () => {
+    const result = build({
+      mode: 'thinking',
+      modeSince: NOW - 5_000,
+      latencyMs: 25,
+    });
+    // Quality emoji is only for idle/sleeping
+    expect(result.label).not.toMatch(/[🟢🟡🟠🔴]/);
+  });
+});
+
 describe('pill label length constants', () => {
   it('exports expected default values', () => {
     expect(PILL_MAX_ERROR_LEN).toBe(48);

@@ -8,7 +8,7 @@
  * @module pill-label
  */
 
-import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS, isSleepingMode } from './utils.js';
+import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS, isSleepingMode, connectionQuality, connectionQualityEmoji, resolveQualitySource } from './utils.js';
 
 /**
  * Maximum pill label widths (in characters) per context.
@@ -47,6 +47,8 @@ export const PILL_MAX_TOOL_SHORT_LEN = 24;
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - Connection health (shown as prefix when degraded/unhealthy)
  * @param {number} [params.sessionConnectCount] - Total successful handshakes since app launch (>1 means reconnection)
  * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction (shown as ↑/↓ when non-stable for proactive feedback)
+ * @param {number|null} [params.latencyMs] - Most recent latency sample in ms (used for connection quality emoji in idle/sleeping states)
+ * @param {{ median?: number, samples?: number }|null} [params.latencyStats] - Rolling latency stats (median preferred for quality assessment when available)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now())
  * @returns {PillLabelResult}
  */
@@ -66,6 +68,8 @@ export function buildPillLabel(params) {
     healthStatus = null,
     sessionConnectCount = 0,
     latencyTrend = null,
+    latencyMs = null,
+    latencyStats = null,
     now: nowOverride,
   } = params;
 
@@ -75,19 +79,31 @@ export function buildPillLabel(params) {
 
   let label = capitalize(mode);
 
+  // Connection quality emoji for idle/sleeping states — gives at-a-glance
+  // latency feedback without hovering (parity with context menu and tray tooltip).
+  const qualityEmoji = (() => {
+    if (typeof latencyMs !== 'number' || latencyMs < 0) return '';
+    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
+    return quality ? ` ${connectionQualityEmoji(quality)}` : '';
+  })();
+
   if (mode === 'connected') {
     label = sessionConnectCount > 1 ? 'Reconnected ✓' : 'Connected ✓';
   } else if (mode === 'idle' && !isSleeping && connectedSince) {
     const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
     if (uptimeSec >= 60) {
-      label = `Idle · ↑${formatDuration(uptimeSec)}`;
+      label = `Idle · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
+    } else if (qualityEmoji) {
+      label = `Idle${qualityEmoji}`;
     }
   } else if (isSleeping) {
     label = `Sleeping ${formatDuration(duration)}`;
     if (connectedSince) {
       const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
       if (uptimeSec >= 60) {
-        label += ` · ↑${formatDuration(uptimeSec)}`;
+        label += ` · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
+      } else if (qualityEmoji) {
+        label += qualityEmoji;
       }
     }
   } else if (mode === 'connecting') {
