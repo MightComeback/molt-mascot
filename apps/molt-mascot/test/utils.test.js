@@ -575,6 +575,23 @@ describe("buildTooltip", () => {
     expect(tip2).not.toContain("reconnected");
   });
 
+  it("shows connectionUptimePct when below 100%", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: 85 });
+    expect(tip).toContain("85% connected");
+  });
+
+  it("omits connectionUptimePct when 100%", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: 100 });
+    expect(tip).not.toContain("% connected");
+  });
+
+  it("omits connectionUptimePct when null or not provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: null });
+    expect(tip).not.toContain("% connected");
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip2).not.toContain("% connected");
+  });
+
   it("includes lastCloseDetail when disconnected", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastCloseDetail: "code 1006" });
     expect(tip).toContain("last close: code 1006");

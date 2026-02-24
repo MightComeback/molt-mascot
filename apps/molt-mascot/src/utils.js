@@ -187,6 +187,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown as a prefix emoji when degraded/unhealthy)
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100), used for health reason diagnostics
  * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (shown as ↑/↓ arrow when non-stable for proactive diagnostics)
+ * @param {number|null} [params.connectionUptimePct] - Percentage of total lifetime spent connected (0-100); shown when <100% to surface flappy connections (parity with tray tooltip)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -224,6 +225,7 @@ export function buildTooltip(params) {
     healthStatus,
     connectionSuccessRate,
     latencyTrend,
+    connectionUptimePct,
     now: nowOverride,
   } = params;
 
@@ -296,6 +298,11 @@ export function buildTooltip(params) {
   }
   if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
     tip += ` · reconnected ${sessionConnectCount - 1}×`;
+  }
+  // Surface connection uptime percentage when below 100% to highlight flappy connections.
+  // Parity with tray tooltip's connectionUptimePct indicator.
+  if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
+    tip += ` · ${connectionUptimePct}% connected`;
   }
   // Show health status when degraded or unhealthy for at-a-glance diagnostics.
   // "healthy" is omitted to keep the tooltip clean when everything is fine.

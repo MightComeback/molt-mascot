@@ -1,4 +1,4 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
+import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, connectionUptimePercent, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
 import * as ctxMenu from './context-menu.js';
 import { buildContextMenuItems } from './context-menu-items.js';
 import { buildPillLabel } from './pill-label.js';
@@ -382,6 +382,13 @@ function syncPill() {
     targetUrl: !connectedSince ? (loadCfg()?.url || undefined) : undefined,
     lastResetAt: pluginLastResetAt,
     healthStatus: _healthStatus,
+    connectionUptimePct: connectionUptimePercent({
+      processUptimeS: window.moltMascot?.processUptimeS?.() ?? null,
+      firstConnectedAt,
+      connectedSince,
+      lastDisconnectedAt,
+      now: Date.now(),
+    }),
   });
   pill.title = tip;
   // Mirror tooltip on the canvas so hovering the lobster sprite also shows status
