@@ -5,6 +5,8 @@ import { buildPillLabel } from './pill-label.js';
 import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
 import { createFpsCounter } from './fps-counter.js';
 import { createLatencyTracker } from './latency-tracker.js';
+import { drawLobster as _drawLobster, createBlinkState, _spriteCache } from './draw.js';
+import { createPluginSync } from './plugin-sync.js';
 
 const pill = document.getElementById('pill');
 const setup = document.getElementById('setup');
@@ -141,9 +143,6 @@ function showSetup(prefill) {
     versionEl.textContent = `v${window.moltMascot.version}`;
   }
 }
-
-import { drawLobster as _drawLobster, createBlinkState, _spriteCache } from './draw.js';
-import { createPluginSync } from './plugin-sync.js';
 
 // Respect prefers-reduced-motion: disable bobbing, blinking, and pill pulse animation.
 // MOLT_MASCOT_REDUCED_MOTION env var overrides the system preference (useful for
