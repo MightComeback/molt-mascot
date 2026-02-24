@@ -34,6 +34,10 @@
     "lint": "oxlint .",
     "prepack": "node -e \"try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}\" && bun run build"
   },
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20.0.0"
+  },
   "keywords": [
     "clawdbot",
     "openclaw",

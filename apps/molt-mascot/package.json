@@ -66,6 +66,10 @@
       ]
     }
   },
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20.0.0"
+  },
   "keywords": [
     "electron",
     "mascot",
