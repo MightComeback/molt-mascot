@@ -300,6 +300,7 @@ const PREF_SCHEMA = {
   sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 },
   idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
   errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v) },
+  reducedMotion:   { type: 'boolean' },
 };
 
 /**

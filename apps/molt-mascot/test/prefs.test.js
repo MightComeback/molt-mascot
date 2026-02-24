@@ -505,6 +505,18 @@ describe("validatePrefs", () => {
     expect(d2.map((d) => d.key)).toContain("opacity");
   });
 
+  it("accepts reducedMotion boolean and rejects non-boolean", () => {
+    const { clean: good } = validatePrefs({ reducedMotion: true });
+    expect(good.reducedMotion).toBe(true);
+
+    const { clean: good2 } = validatePrefs({ reducedMotion: false });
+    expect(good2.reducedMotion).toBe(false);
+
+    const { clean: bad, dropped } = validatePrefs({ reducedMotion: "yes" });
+    expect(bad.reducedMotion).toBeUndefined();
+    expect(dropped.map((d) => d.key)).toContain("reducedMotion");
+  });
+
   it("does not mutate input", () => {
     const raw = { alignment: "center", bogus: 42 };
     const copy = { ...raw };

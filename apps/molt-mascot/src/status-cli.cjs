@@ -81,7 +81,7 @@ function resolveStatusConfig({
 
   const clickThrough = parseEnvBoolean(env, ['MOLT_MASCOT_CLICK_THROUGH', 'MOLT_MASCOT_CLICKTHROUGH'], prefs.clickThrough || false);
   const hideText = parseEnvBoolean(env, ['MOLT_MASCOT_HIDETEXT', 'MOLT_MASCOT_HIDE_TEXT'], prefs.hideText || false);
-  const reducedMotion = parseEnvBoolean(env, 'MOLT_MASCOT_REDUCED_MOTION', false);
+  const reducedMotion = parseEnvBoolean(env, 'MOLT_MASCOT_REDUCED_MOTION', prefs.reducedMotion || false);
   const startHidden = hasBoolFlag('--start-hidden', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_START_HIDDEN', false);
   const debug = hasBoolFlag('--debug', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_DEBUG', false);
   const disableGpu = hasBoolFlag('--disable-gpu', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_DISABLE_GPU', false);

@@ -251,6 +251,19 @@ describe('resolveStatusConfig', () => {
     expect(status.config.noShortcuts).toBe(true);
   });
 
+  it('reducedMotion falls back to prefs when env is not set', () => {
+    const status = resolveStatusConfig(makeParams({ prefs: { reducedMotion: true } }));
+    expect(status.config.reducedMotion).toBe(true);
+  });
+
+  it('reducedMotion env overrides prefs', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_REDUCED_MOTION: '0' },
+      prefs: { reducedMotion: true },
+    }));
+    expect(status.config.reducedMotion).toBe(false);
+  });
+
   it('envOverrides is empty when no env vars are set', () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.envOverrides).toEqual([]);
