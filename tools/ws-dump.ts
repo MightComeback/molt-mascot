@@ -132,6 +132,13 @@ function formatWatchSummary(state: Record<string, any>): string {
     if (uptimeSec > 0) parts.push(`↑ ${formatDuration(uptimeSec)}`);
   }
 
+  // Surface health status when degraded or unhealthy (matches pill-label and tray-tooltip behavior).
+  if (typeof state.latencyMs === "number") {
+    const health = computeHealthStatus({ isConnected: true, latencyMs: state.latencyMs });
+    if (health === "degraded") parts.push("⚠️ degraded");
+    else if (health === "unhealthy") parts.push("🔴 unhealthy");
+  }
+
   return parts.join(" · ");
 }
 
