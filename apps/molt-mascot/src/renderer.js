@@ -523,6 +523,7 @@ window.__moltMascotGetState = () => ({
   sessionAttemptCount,
   firstConnectedAt,
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
+  hasDragPosition,
   isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
   latencyMs,
   latencyStats: getLatencyStats(),
@@ -1130,6 +1131,13 @@ if (window.moltMascot?.onSize) {
   }));
 }
 
+let hasDragPosition = false;
+if (window.moltMascot?.onDragPosition) {
+  ipcUnsubs.push(window.moltMascot.onDragPosition((dragged) => {
+    hasDragPosition = Boolean(dragged);
+  }));
+}
+
 let currentOpacity = 1.0;
 if (window.moltMascot?.onOpacity) {
   ipcUnsubs.push(window.moltMascot.onOpacity((opacity) => {
@@ -1360,6 +1368,7 @@ function showContextMenu(e) {
     appVersion: window.moltMascot?.version,
     isMac,
     healthStatus: currentHealthStatus(),
+    hasDragPosition,
   });
 
   // Map descriptor IDs to action callbacks

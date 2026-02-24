@@ -603,6 +603,7 @@ app.whenReady().then(async () => {
 
   function actionSnapToPosition() {
     userDragged = false;
+    withMainWin((w) => w.webContents.send('molt-mascot:drag-position', false));
     savePrefs({ draggedPosition: null });
     repositionMainWindow({ force: true });
   }
@@ -670,6 +671,7 @@ app.whenReady().then(async () => {
     win.on('moved', () => {
       if (!repositioning) {
         userDragged = true;
+        win.webContents.send('molt-mascot:drag-position', true);
         // Persist dragged position so it survives app restarts.
         // Debounced via savePrefs() so rapid drag events don't hammer disk.
         const [px, py] = win.getPosition();
@@ -691,6 +693,9 @@ app.whenReady().then(async () => {
         // saved preference. Previously this was only sent outside wireMainWindow,
         // so macOS `activate` re-creation would miss it.
         if (sizeIndex !== 1) w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
+        // Send initial drag state so "Snap to Position" is correctly enabled/disabled
+        // in the renderer's custom context menu from the start.
+        if (userDragged) w.webContents.send('molt-mascot:drag-position', true);
         // Auto-open DevTools when --debug flag is passed (dev ergonomics).
         if (cliDebug) w.webContents.openDevTools({ mode: 'detach' });
       });

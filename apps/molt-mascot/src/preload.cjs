@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('moltMascot', {
   onOpacity: (cb) => onIpc('molt-mascot:opacity', cb),
   onForceReconnect: (cb) => onIpc('molt-mascot:force-reconnect', cb),
   onCopied: (cb) => onIpc('molt-mascot:copied', cb),
+  onDragPosition: (cb) => onIpc('molt-mascot:drag-position', cb),
   processUptimeS: () => process.uptime(),
   processMemoryRssBytes: () => (typeof process.memoryUsage.rss === 'function' ? process.memoryUsage.rss() : process.memoryUsage().rss),
   pid: process.pid,
