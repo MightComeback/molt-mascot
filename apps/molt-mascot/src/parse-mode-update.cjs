@@ -25,6 +25,7 @@
  * @property {string|null} targetUrl - Gateway URL string, or null
  * @property {number|null} activeAgents - Non-negative integer, or null
  * @property {number|null} activeTools - Non-negative integer, or null
+ * @property {number|null} agentSessions - Non-negative integer (cumulative agent session count), or null
  * @property {string|null} pluginVersion - Version string, or null
  * @property {number|null} lastMessageAt - Positive epoch ms, or null
  * @property {Object|null} latencyStats - Stats object with numeric samples, or null
@@ -146,6 +147,7 @@ function parseModeUpdate(raw) {
     targetUrl: nonEmptyStr(update.targetUrl),
     activeAgents: nonNegInt(update.activeAgents),
     activeTools: nonNegInt(update.activeTools),
+    agentSessions: nonNegInt(update.agentSessions),
     pluginVersion: nonEmptyStr(update.pluginVersion),
     lastMessageAt: posEpoch(update.lastMessageAt),
     latencyStats: (update.latencyStats && typeof update.latencyStats === 'object' && typeof update.latencyStats.samples === 'number')
@@ -184,6 +186,7 @@ function formatModeUpdate(parsed) {
   if (parsed.errorMessage) parts.push(`err="${parsed.errorMessage}"`);
   if (parsed.activeAgents !== null && parsed.activeAgents > 0) parts.push(`agents=${parsed.activeAgents}`);
   if (parsed.activeTools !== null && parsed.activeTools > 0) parts.push(`tools=${parsed.activeTools}`);
+  if (parsed.agentSessions !== null && parsed.agentSessions > 0) parts.push(`sessions=${parsed.agentSessions}`);
   if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0) parts.push(`retry #${parsed.reconnectAttempt}`);
   if (parsed.closeDetail) parts.push(`close="${parsed.closeDetail}"`);
   if (parsed.targetUrl) parts.push(`→ ${parsed.targetUrl}`);

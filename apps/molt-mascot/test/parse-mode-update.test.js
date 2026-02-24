@@ -163,6 +163,7 @@ describe('parse-mode-update', () => {
         targetUrl: 'ws://127.0.0.1:18789',
         activeAgents: 2,
         activeTools: 1,
+        agentSessions: 15,
         pluginVersion: '0.5.2',
         lastMessageAt: 1700000000000,
         latencyStats: { min: 30, max: 80, avg: 45, median: 38, samples: 10 },
@@ -185,6 +186,7 @@ describe('parse-mode-update', () => {
       expect(result.targetUrl).toBe('ws://127.0.0.1:18789');
       expect(result.activeAgents).toBe(2);
       expect(result.activeTools).toBe(1);
+      expect(result.agentSessions).toBe(15);
       expect(result.pluginVersion).toBe('0.5.2');
       expect(result.lastMessageAt).toBe(1700000000000);
       expect(result.latencyStats).toEqual({ min: 30, max: 80, avg: 45, median: 38, samples: 10 });
@@ -209,6 +211,7 @@ describe('parse-mode-update', () => {
       expect(result.targetUrl).toBeNull();
       expect(result.activeAgents).toBeNull();
       expect(result.activeTools).toBeNull();
+      expect(result.agentSessions).toBeNull();
       expect(result.pluginVersion).toBeNull();
       expect(result.lastMessageAt).toBeNull();
       expect(result.latencyStats).toBeNull();
@@ -307,6 +310,7 @@ describe('parse-mode-update', () => {
         reconnectAttempt: 0,
         activeAgents: 0,
         activeTools: 0,
+        agentSessions: 0,
       });
       expect(result.latencyMs).toBe(0);
       expect(result.toolCalls).toBe(0);
@@ -314,6 +318,7 @@ describe('parse-mode-update', () => {
       expect(result.reconnectAttempt).toBe(0);
       expect(result.activeAgents).toBe(0);
       expect(result.activeTools).toBe(0);
+      expect(result.agentSessions).toBe(0);
     });
   });
 
@@ -357,6 +362,16 @@ describe('parse-mode-update', () => {
       const str = formatModeUpdate(parsed);
       expect(str).not.toContain('agents=');
       expect(str).not.toContain('tools=');
+    });
+
+    it('includes agentSessions when non-zero', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', agentSessions: 15 });
+      expect(formatModeUpdate(parsed)).toContain('sessions=15');
+    });
+
+    it('omits agentSessions when zero', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', agentSessions: 0 });
+      expect(formatModeUpdate(parsed)).not.toContain('sessions=');
     });
 
     it('includes reconnect attempt when non-zero', () => {
