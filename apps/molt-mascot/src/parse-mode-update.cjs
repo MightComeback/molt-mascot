@@ -200,7 +200,19 @@ function formatModeUpdate(parsed) {
   const parts = [];
 
   if (parsed.mode) parts.push(parsed.mode);
-  if (parsed.latencyMs !== null) parts.push(`${Math.round(parsed.latencyMs)}ms`);
+  if (parsed.latencyMs !== null) {
+    let latencyPart = `${Math.round(parsed.latencyMs)}ms`;
+    // Append median and p95 from rolling stats when available for richer diagnostics.
+    // Single-sample latency can be noisy; median/p95 give a fuller picture at a glance.
+    if (parsed.latencyStats && typeof parsed.latencyStats.median === 'number') {
+      latencyPart += ` (med=${Math.round(parsed.latencyStats.median)}`;
+      if (typeof parsed.latencyStats.p95 === 'number') {
+        latencyPart += `, p95=${Math.round(parsed.latencyStats.p95)}`;
+      }
+      latencyPart += ')';
+    }
+    parts.push(latencyPart);
+  }
   if (parsed.tool) parts.push(`tool=${parsed.tool}`);
   if (parsed.errorMessage) parts.push(`err="${parsed.errorMessage}"`);
   if (parsed.activeAgents !== null && parsed.activeAgents > 0) parts.push(`agents=${parsed.activeAgents}`);

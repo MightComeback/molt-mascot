@@ -520,6 +520,37 @@ describe('parse-mode-update', () => {
       expect(formatModeUpdate(parsed)).not.toContain('↻');
     });
 
+    it('includes latencyStats median and p95 alongside latency', () => {
+      const parsed = parseModeUpdate({
+        mode: 'idle',
+        latency: 50,
+        latencyStats: { min: 10, max: 80, avg: 45, median: 42, p95: 78, samples: 30 },
+      });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('50ms');
+      expect(str).toContain('med=42');
+      expect(str).toContain('p95=78');
+    });
+
+    it('includes latencyStats median without p95 when p95 is absent', () => {
+      const parsed = parseModeUpdate({
+        mode: 'idle',
+        latency: 30,
+        latencyStats: { min: 10, max: 40, avg: 25, median: 28, samples: 5 },
+      });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('30ms');
+      expect(str).toContain('med=28');
+      expect(str).not.toContain('p95=');
+    });
+
+    it('omits latencyStats summary when latencyStats is null', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', latency: 20 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('20ms');
+      expect(str).not.toContain('med=');
+    });
+
     it('formats a full update compactly', () => {
       const parsed = parseModeUpdate({
         mode: 'tool',
