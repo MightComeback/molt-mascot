@@ -90,6 +90,7 @@ bun run mascot
 - **No tray**: `MOLT_MASCOT_NO_TRAY=1` — disable system tray icon entirely (useful on Linux DEs without tray support; equivalent to `--no-tray`)
 - **No shortcuts**: `MOLT_MASCOT_NO_SHORTCUTS=1` — disable global keyboard shortcuts (use tray/context menu instead; equivalent to `--no-shortcuts`)
 - **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings
+- **Capture dir**: `MOLT_MASCOT_CAPTURE_DIR=<path>` — screenshot capture directory; on launch, renders all mascot states + tray sprites to this folder and exits (useful for CI asset generation, equivalent to `--capture-dir`)
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
