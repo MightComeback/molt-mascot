@@ -28,7 +28,9 @@
     "test": "bun test packages/molt-mascot-plugin/test apps/molt-mascot/test",
     "typecheck": "bun run --cwd packages/molt-mascot-plugin typecheck",
     "lint": "oxlint .",
-    "format": "bun x biome check --apply ."
+    "format": "bun x biome check --apply .",
+    "format:check": "bun x biome check .",
+    "check": "bun run lint && bun run format:check && bun run typecheck && bun run test"
   },
   "repository": {
     "type": "git",

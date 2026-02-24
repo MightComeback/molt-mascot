@@ -264,6 +264,9 @@ bun run dev
 bun run lint
 bun run test
 
+# All CI checks at once (lint + format + typecheck + test)
+bun run check
+
 # Auto-format
 bun run format
 ```
