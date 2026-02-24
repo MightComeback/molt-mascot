@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment } = require("../src/get-position.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
@@ -327,5 +327,63 @@ describe("findAlignmentIndex", () => {
     expect(findAlignmentIndex(null)).toBe(-1);
     expect(findAlignmentIndex(undefined)).toBe(-1);
     expect(findAlignmentIndex(42)).toBe(-1);
+  });
+});
+
+describe("ALIGNMENT_ARROWS", () => {
+  it("has an arrow for every valid alignment", () => {
+    for (const a of VALID_ALIGNMENTS) {
+      expect(ALIGNMENT_ARROWS[a]).toBeDefined();
+      expect(typeof ALIGNMENT_ARROWS[a]).toBe("string");
+      expect(ALIGNMENT_ARROWS[a].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(ALIGNMENT_ARROWS)).toBe(true);
+  });
+});
+
+describe("alignmentArrow", () => {
+  it("returns correct arrows for each alignment", () => {
+    expect(alignmentArrow("top-left")).toBe("↖");
+    expect(alignmentArrow("top-center")).toBe("↑");
+    expect(alignmentArrow("top-right")).toBe("↗");
+    expect(alignmentArrow("center-left")).toBe("←");
+    expect(alignmentArrow("center")).toBe("·");
+    expect(alignmentArrow("center-right")).toBe("→");
+    expect(alignmentArrow("bottom-left")).toBe("↙");
+    expect(alignmentArrow("bottom-center")).toBe("↓");
+    expect(alignmentArrow("bottom-right")).toBe("↘");
+  });
+
+  it("is case-insensitive", () => {
+    expect(alignmentArrow("Bottom-Right")).toBe("↘");
+    expect(alignmentArrow("TOP-LEFT")).toBe("↖");
+  });
+
+  it("returns fallback for invalid input", () => {
+    expect(alignmentArrow("invalid")).toBe("·");
+    expect(alignmentArrow(null)).toBe("·");
+    expect(alignmentArrow(undefined)).toBe("·");
+    expect(alignmentArrow(42)).toBe("·");
+  });
+});
+
+describe("formatAlignment", () => {
+  it("formats alignment with arrow prefix", () => {
+    expect(formatAlignment("bottom-right")).toBe("↘ bottom-right");
+    expect(formatAlignment("top-left")).toBe("↖ top-left");
+    expect(formatAlignment("center")).toBe("· center");
+  });
+
+  it("normalizes case", () => {
+    expect(formatAlignment("Bottom-Right")).toBe("↘ bottom-right");
+  });
+
+  it("defaults to bottom-right for empty/null input", () => {
+    expect(formatAlignment("")).toBe("↘ bottom-right");
+    expect(formatAlignment(null)).toBe("↘ bottom-right");
+    expect(formatAlignment(undefined)).toBe("↘ bottom-right");
   });
 });

@@ -183,7 +183,7 @@ describe("buildDebugInfo", () => {
       isClickThrough: true,
       isTextHidden: true,
     });
-    expect(info).toContain("Alignment: top-left");
+    expect(info).toContain("Alignment: ↖ top-left");
     expect(info).toContain("Size: large, Opacity: 60%");
     expect(info).toContain("Ghost: true, Hide text: true");
   });
@@ -284,7 +284,7 @@ describe("buildDebugInfo", () => {
 
   it("defaults alignment to bottom-right when empty", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, alignmentLabel: "" });
-    expect(info).toContain("Alignment: bottom-right");
+    expect(info).toContain("Alignment: ↘ bottom-right");
   });
 
   it("shows process uptime when provided", () => {

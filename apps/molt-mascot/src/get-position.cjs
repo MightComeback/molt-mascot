@@ -147,4 +147,45 @@ function findAlignmentIndex(alignment) {
   return VALID_ALIGNMENTS.indexOf(normalized);
 }
 
-module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex };
+/**
+ * Directional arrow emoji for each alignment.
+ * Provides at-a-glance visual feedback in tray tooltip, context menu,
+ * and debug info without parsing the alignment string.
+ */
+const ALIGNMENT_ARROWS = Object.freeze({
+  'top-left':      '↖',
+  'top-center':    '↑',
+  'top-right':     '↗',
+  'center-left':   '←',
+  'center':        '·',
+  'center-right':  '→',
+  'bottom-left':   '↙',
+  'bottom-center': '↓',
+  'bottom-right':  '↘',
+});
+
+/**
+ * Get the directional arrow emoji for an alignment value.
+ * Returns '·' for unrecognized values.
+ *
+ * @param {string} alignment - Alignment label (case-insensitive)
+ * @returns {string} Arrow emoji
+ */
+function alignmentArrow(alignment) {
+  if (typeof alignment !== 'string') return '·';
+  return ALIGNMENT_ARROWS[alignment.trim().toLowerCase()] || '·';
+}
+
+/**
+ * Format an alignment label with its directional arrow for display.
+ * e.g. "bottom-right" → "↘ bottom-right"
+ *
+ * @param {string} alignment - Alignment label
+ * @returns {string} Formatted string with arrow prefix
+ */
+function formatAlignment(alignment) {
+  const label = (typeof alignment === 'string' && alignment.trim()) ? alignment.trim().toLowerCase() : 'bottom-right';
+  return `${alignmentArrow(label)} ${label}`;
+}
+
+module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment };

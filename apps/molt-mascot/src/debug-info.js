@@ -73,6 +73,7 @@
  */
 
 import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, formatMemorySummary } from './utils.js';
+import { formatAlignment } from './get-position.cjs';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -251,7 +252,7 @@ export function buildDebugInfo(params) {
   }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
-  lines.push(`Alignment: ${alignmentLabel || 'bottom-right'}`);
+  lines.push(`Alignment: ${formatAlignment(alignmentLabel)}`);
   if (dragPosition && typeof dragPosition.x === 'number' && typeof dragPosition.y === 'number') {
     lines.push(`Drag position: ${Math.round(dragPosition.x)}, ${Math.round(dragPosition.y)}`);
   }

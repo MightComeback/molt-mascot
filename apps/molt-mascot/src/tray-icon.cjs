@@ -8,6 +8,7 @@
 const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
 const { formatLatency, formatQualitySummary, formatHealthSummary, formatActiveSummary, computeConnectionSuccessRate } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
+const { formatAlignment } = require('./get-position.cjs');
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
@@ -197,7 +198,7 @@ function buildTrayTooltip(params) {
   }
   if (clickThrough) parts.push('👻 Ghost');
   if (hideText) parts.push('🙈 Text hidden');
-  parts.push(`📍 ${alignment || 'bottom-right'}`);
+  parts.push(`📍 ${formatAlignment(alignment)}`);
   parts.push(`📐 ${sizeLabel || 'medium'}`);
   if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);

@@ -9,6 +9,7 @@
 
 import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, healthStatusEmoji, formatActiveSummary, formatOpacity, formatBytes, isSleepingMode } from './utils.js';
 import { formatSizeWithDims } from './size-presets.cjs';
+import { formatAlignment } from './get-position.cjs';
 
 /**
  * @typedef {Object} MenuItemDescriptor
@@ -159,7 +160,7 @@ export function buildContextMenuItems(state) {
     { id: 'ghost', label: 'Ghost Mode', hint: `${modKey}${shiftKey}M`, checked: isClickThrough },
     { id: 'hide-text', label: 'Hide Text', hint: `${modKey}${shiftKey}H`, checked: isTextHidden },
     { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
-    { id: 'alignment', label: `Cycle Alignment (${alignment || 'bottom-right'})`, hint: `${modKey}${shiftKey}A` },
+    { id: 'alignment', label: `Cycle Alignment (${formatAlignment(alignment)})`, hint: `${modKey}${shiftKey}A` },
     { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S`, disabled: !hasDragPosition },
     { id: 'size', label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
     { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },

@@ -214,7 +214,7 @@ describe('tray-icon', () => {
     it('shows version and defaults for idle mode', () => {
       const tip = buildTrayTooltip(base);
       expect(tip).toContain('Molt Mascot v1.2.3');
-      expect(tip).toContain('📍 bottom-right');
+      expect(tip).toContain('📍 ↘ bottom-right');
       expect(tip).toContain('📐 medium');
       // Idle mode should not show mode emoji
       expect(tip).not.toContain('🧠');
@@ -260,7 +260,7 @@ describe('tray-icon', () => {
 
     it('reflects custom alignment and size', () => {
       const tip = buildTrayTooltip({ ...base, alignment: 'top-left', sizeLabel: 'large' });
-      expect(tip).toContain('📍 top-left');
+      expect(tip).toContain('📍 ↖ top-left');
       expect(tip).toContain('📐 large');
     });
 
