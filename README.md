@@ -240,14 +240,17 @@ Supported keys:
 
 ## Troubleshooting
 
+- **Start here:** run `molt-mascot --status` to see the resolved config (env vars + saved prefs + CLI overrides). This answers "what settings will the mascot actually use?" without launching the GUI. Use `--status --json` for machine-readable output.
 - If the mascot stays in **offline**/**disconnected**, confirm `GATEWAY_URL` points at your local Gateway (and that the Gateway is running).
   - Quick sanity check:
     ```bash
     GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
     ```
     You should see at least one frame after connect; if you see auth/protocol errors, fix URL/token or override protocol bounds (`--min-protocol` / `--max-protocol`).
-- If the mascot connects but never leaves **idle**, confirm you're on a recent OpenClaw build and that your Gateway is emitting agent/tool lifecycle events.
+  - Run `bun run ws:health` for a quick health check — exits 0 if healthy, 1 if degraded/unhealthy, 2 if connection failed.
+- If the mascot connects but never leaves **idle**, confirm you're on a recent OpenClaw build and that your Gateway is emitting agent/tool lifecycle events. Use `bun run ws:state` to check current plugin state, or `bun run ws:watch` to monitor state changes in real time.
 - If you enabled the plugin but `@molt/mascot-plugin.state` fails, verify the plugin id is consistent across `packages/molt-mascot-plugin/clawdbot.plugin.json` (`id`), the plugin entry in your OpenClaw config (`plugins.entries.<id>`), and the runtime export (derived from `package.json` `name`, i.e. `export const id = pkg.name`). (The plugin also supports method aliases like `molt-mascot.state` / `moltMascot.state` if you have older configs.)
+- **Latency issues:** run `bun run ws:ping` to measure round-trip latency to the gateway. High latency (>200ms) or jitter may indicate network issues or an overloaded gateway.
 
 ## Develop
 
