@@ -1801,6 +1801,7 @@ describe("memoryPressure", () => {
     expect(memoryPressure({ usedJSHeapSize: NaN, jsHeapSizeLimit: 1000 })).toBeNull();
     expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: 0 })).toBeNull();
     expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: -1 })).toBeNull();
+    expect(memoryPressure({ usedJSHeapSize: -50, jsHeapSizeLimit: 1000 })).toBeNull();
   });
 
   it("returns low for < 50% usage", () => {

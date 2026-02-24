@@ -648,6 +648,7 @@ export function memoryPressure(memory) {
   const { usedJSHeapSize, jsHeapSizeLimit } = memory;
   if (typeof usedJSHeapSize !== 'number' || typeof jsHeapSizeLimit !== 'number') return null;
   if (!Number.isFinite(usedJSHeapSize) || !Number.isFinite(jsHeapSizeLimit)) return null;
+  if (usedJSHeapSize < 0) return null;
   if (jsHeapSizeLimit <= 0) return null;
 
   const usedPercent = Math.round((usedJSHeapSize / jsHeapSizeLimit) * 100);
