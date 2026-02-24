@@ -198,6 +198,16 @@ if (hasBoolFlag('--list-prefs')) {
   process.exit(0);
 }
 
+// CLI flags: --help-prefs prints the preference key reference and exits.
+// Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
+// users can discover available keys without reading the source.
+if (hasBoolFlag('--help-prefs')) {
+  const { formatPrefSchema } = require('./prefs.cjs');
+  process.stdout.write('Available preference keys:\n');
+  process.stdout.write(formatPrefSchema() + '\n');
+  process.exit(0);
+}
+
 // CLI flags: --status prints a compact diagnostic summary showing the resolved
 // config (env vars + saved prefs + CLI overrides) and exits. Helps answer
 // "what settings will the mascot actually use?" without launching the GUI.
@@ -295,6 +305,7 @@ Options:
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
   --list-prefs --json    Print saved preferences as JSON and exit
+  --help-prefs           Print available preference keys with types and descriptions
   --capture-dir <path>   Screenshot capture directory (dev/CI only)
   --status               Print resolved config summary and exit
   --status --json        Print resolved config as JSON and exit
