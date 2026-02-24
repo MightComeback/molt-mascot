@@ -20,6 +20,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README now lists `size` as a supported plugin config key (was implemented but undocumented)
 
 ### Added
+- Directional arrow indicators in alignment display across tray tooltip, context menu, and debug info (e.g. "↘ bottom-right", "↖ top-left")
+- `allTimeMin` / `allTimeMax` on latency tracker — extremes that survive ring-buffer eviction for "best/worst ever" diagnostics
+- `allTimeLatency` getter on `GatewayClient` — surfaces all-time latency extremes in debug info (shown only when they differ from rolling stats)
+- `VALID_PREF_KEYS` frozen array exported from prefs module for tooling and introspection
+- `description` metadata on `PREF_SCHEMA` entries and `formatPrefSchema()` helper for human-readable preference documentation
+- Sprite cache diagnostics (entries + hit rate) in debug info
+- `SYNC_PROPS` and `SYNC_PROP_NAMES` exports on plugin-sync for introspection
+- `connectionUptimePct` in parse-mode-update IPC payload and pill tooltip (surfaces flappy connections)
+- Latency stats `median`/`p95` in parse-mode-update diagnostic one-liner
 - Configurable plugin state poll interval via `MOLT_MASCOT_POLL_INTERVAL_MS` env var (default: 1000ms) — tune polling frequency for low-power setups or high-refresh diagnostics
 - `ws-dump --health` output now includes an ISO-8601 `timestamp` field for log correlation and automated monitoring pipelines
 - Configurable connection timing via env vars: `MOLT_MASCOT_RECONNECT_BASE_MS`, `MOLT_MASCOT_RECONNECT_MAX_MS`, `MOLT_MASCOT_STALE_CONNECTION_MS`, `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` — tune reconnect backoff and stale connection detection for unreliable networks
