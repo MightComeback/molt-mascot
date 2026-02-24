@@ -87,6 +87,8 @@ bun run mascot
 - **Debug**: `MOLT_MASCOT_DEBUG=1` — opens DevTools on launch (equivalent to `--debug`)
 - **Disable GPU**: `MOLT_MASCOT_DISABLE_GPU=1` — disables hardware acceleration (useful on VMs, Wayland, remote desktops; equivalent to `--disable-gpu`)
 - **Start hidden**: `MOLT_MASCOT_START_HIDDEN=1` — launch hidden (tray-only); toggle visibility with **Cmd/Ctrl+Shift+V**
+- **No tray**: `MOLT_MASCOT_NO_TRAY=1` — disable system tray icon entirely (useful on Linux DEs without tray support; equivalent to `--no-tray`)
+- **No shortcuts**: `MOLT_MASCOT_NO_SHORTCUTS=1` — disable global keyboard shortcuts (use tray/context menu instead; equivalent to `--no-shortcuts`)
 - **Reduced motion**: `MOLT_MASCOT_REDUCED_MOTION=1` — force reduced motion (disables bobbing, blinking, pill pulse) without changing OS accessibility settings
 - **Timing knobs** (no plugin required):
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
