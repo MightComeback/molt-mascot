@@ -289,20 +289,20 @@ function createPrefsManager(filePath, opts = {}) {
  * Adding a new pref? Add an entry here and it's automatically validated.
  */
 const PREF_SCHEMA = {
-  alignment:    { type: 'string', validate: (v) => isValidAlignment(v), description: 'Window alignment position (e.g. bottom-right, top-left, center)' },
-  sizeIndex:    { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into SIZE_PRESETS (legacy; prefer "size")' },
-  size:         { type: 'string', validate: (v) => isValidSize(v), description: 'Window size preset label (tiny, small, medium, large, xlarge)' },
-  opacityIndex: { type: 'number', validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")' },
-  padding:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0, description: 'Edge padding in pixels when snapped to an alignment' },
-  opacity:      { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
-  clickThrough: { type: 'boolean', description: 'Ghost mode — clicks pass through the mascot window' },
-  hideText:     { type: 'boolean', description: 'Hide the HUD pill text overlay' },
-  gatewayUrl:   { type: 'string', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v), description: 'Gateway WebSocket URL (ws:// or wss://)' },
-  draggedPosition: { type: 'object', validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y), description: 'Last user-dragged window position {x, y}' },
-  sleepThresholdS: { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0, description: 'Seconds of idle before entering sleeping state' },
-  idleDelayMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
-  errorHoldMs:     { type: 'number', validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
-  reducedMotion:   { type: 'boolean', description: 'Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility' },
+  alignment:    { type: 'string', default: 'bottom-right', validate: (v) => isValidAlignment(v), description: 'Window alignment position (e.g. bottom-right, top-left, center)' },
+  sizeIndex:    { type: 'number', default: null, validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into SIZE_PRESETS (legacy; prefer "size")' },
+  size:         { type: 'string', default: 'medium', validate: (v) => isValidSize(v), description: 'Window size preset label (tiny, small, medium, large, xlarge)' },
+  opacityIndex: { type: 'number', default: null, validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")' },
+  padding:      { type: 'number', default: 24, validate: (v) => Number.isFinite(v) && v >= 0, description: 'Edge padding in pixels when snapped to an alignment' },
+  opacity:      { type: 'number', default: 1.0, validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
+  clickThrough: { type: 'boolean', default: false, description: 'Ghost mode — clicks pass through the mascot window' },
+  hideText:     { type: 'boolean', default: false, description: 'Hide the HUD pill text overlay' },
+  gatewayUrl:   { type: 'string', default: '', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v), description: 'Gateway WebSocket URL (ws:// or wss://)' },
+  draggedPosition: { type: 'object', default: null, validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y), description: 'Last user-dragged window position {x, y}' },
+  sleepThresholdS: { type: 'number', default: 120, validate: (v) => Number.isFinite(v) && v >= 0, description: 'Seconds of idle before entering sleeping state' },
+  idleDelayMs:     { type: 'number', default: 800, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
+  errorHoldMs:     { type: 'number', default: 5000, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
+  reducedMotion:   { type: 'boolean', default: false, description: 'Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility' },
 };
 
 /**
@@ -365,7 +365,10 @@ function formatPrefSchema() {
   for (const key of VALID_PREF_KEYS) {
     const entry = PREF_SCHEMA[key];
     const desc = entry.description || '(no description)';
-    lines.push(`  ${key} (${entry.type}) — ${desc}`);
+    const defaultStr = entry.default !== null && entry.default !== undefined
+      ? ` [default: ${JSON.stringify(entry.default)}]`
+      : '';
+    lines.push(`  ${key} (${entry.type}) — ${desc}${defaultStr}`);
   }
   return lines.join('\n');
 }
@@ -381,7 +384,7 @@ function exportPrefSchemaJSON() {
   const result = {};
   for (const key of VALID_PREF_KEYS) {
     const entry = PREF_SCHEMA[key];
-    result[key] = { type: entry.type, description: entry.description || '' };
+    result[key] = { type: entry.type, default: entry.default ?? null, description: entry.description || '' };
   }
   return result;
 }

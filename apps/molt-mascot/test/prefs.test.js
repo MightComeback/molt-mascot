@@ -902,6 +902,15 @@ describe("formatPrefSchema", () => {
     const lines = formatPrefSchema().split('\n');
     expect(lines.length).toBe(VALID_PREF_KEYS.length);
   });
+
+  it("includes default values for keys that have non-null defaults", () => {
+    const output = formatPrefSchema();
+    for (const [key, entry] of Object.entries(PREF_SCHEMA)) {
+      if (entry.default !== null && entry.default !== undefined) {
+        expect(output).toContain(`[default: ${JSON.stringify(entry.default)}]`);
+      }
+    }
+  });
 });
 
 describe("exportPrefSchemaJSON", () => {
@@ -930,6 +939,20 @@ describe("exportPrefSchemaJSON", () => {
     const json = exportPrefSchemaJSON();
     for (const key of VALID_PREF_KEYS) {
       expect(json[key].type).toBe(PREF_SCHEMA[key].type);
+    }
+  });
+
+  it("each entry includes a default field", () => {
+    const json = exportPrefSchemaJSON();
+    for (const [key, entry] of Object.entries(json)) {
+      expect(entry).toHaveProperty("default");
+    }
+  });
+
+  it("default values match PREF_SCHEMA", () => {
+    const json = exportPrefSchemaJSON();
+    for (const key of VALID_PREF_KEYS) {
+      expect(json[key].default).toEqual(PREF_SCHEMA[key].default ?? null);
     }
   });
 });
