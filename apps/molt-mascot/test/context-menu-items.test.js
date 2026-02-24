@@ -165,6 +165,28 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).toContain('42');
   });
 
+  it('appends rising trend arrow to latency', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 42, latencyTrend: 'rising' });
+    expect(result.statusLine).toContain('↑');
+  });
+
+  it('appends falling trend arrow to latency', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 42, latencyTrend: 'falling' });
+    expect(result.statusLine).toContain('↓');
+  });
+
+  it('omits trend arrow when stable', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 42, latencyTrend: 'stable' });
+    // The status line contains "↑ 1m" (uptime arrow), so check that the latency part doesn't have a trend arrow.
+    // Match "42ms" NOT followed by a trend arrow.
+    expect(result.statusLine).toMatch(/42ms(?!\s*[↑↓])/);
+  });
+
+  it('omits trend arrow when latencyTrend is null', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, latencyMs: 42, latencyTrend: null });
+    expect(result.statusLine).toMatch(/42ms(?!\s*[↑↓])/);
+  });
+
   it('includes reconnect count in uptime when flappy', () => {
     const now = Date.now();
     const result = buildContextMenuItems({

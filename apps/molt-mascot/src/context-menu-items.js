@@ -44,6 +44,7 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {boolean} [state.isMac]
  * @param {"healthy"|"degraded"|"unhealthy"|null} [state.healthStatus] - At-a-glance health assessment (shown as prefix when degraded/unhealthy)
  * @param {number|null} [state.connectionUptimePct] - Percentage of lifetime spent connected (0-100); shown when <100%
+ * @param {"rising"|"falling"|"stable"|null} [state.latencyTrend] - Latency trend direction (shown as ↑/↓ arrow when non-stable)
  * @param {boolean} [state.hasDragPosition] - Whether the mascot has been manually dragged (disables "Snap to Position" when false)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
@@ -72,6 +73,7 @@ export function buildContextMenuItems(state) {
     isMac = false,
     healthStatus = null,
     connectionUptimePct = null,
+    latencyTrend = null,
     hasDragPosition = false,
     now: nowOverride,
   } = state;
@@ -111,7 +113,14 @@ export function buildContextMenuItems(state) {
     statusParts.push(formatActiveSummary(pluginActiveAgents, pluginActiveTools));
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    statusParts.push(formatLatency(latencyMs));
+    let latencyPart = formatLatency(latencyMs);
+    // Append trend indicator when latency is actively rising or falling.
+    // "stable" is omitted to avoid status line clutter; only actionable signals are shown.
+    // Parity with pill-label and tray tooltip trend indicators.
+    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
+      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+    }
+    statusParts.push(latencyPart);
   }
   if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
     statusParts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
