@@ -331,6 +331,20 @@ describe('parse-mode-update', () => {
       expect(parseModeUpdate({ connectionSuccessRate: null }).connectionSuccessRate).toBeNull();
     });
 
+    it('parses connectionUptimePct as integer percentage 0-100', () => {
+      expect(parseModeUpdate({ connectionUptimePct: 85 }).connectionUptimePct).toBe(85);
+      expect(parseModeUpdate({ connectionUptimePct: 0 }).connectionUptimePct).toBe(0);
+      expect(parseModeUpdate({ connectionUptimePct: 100 }).connectionUptimePct).toBe(100);
+      // rejects out-of-range
+      expect(parseModeUpdate({ connectionUptimePct: 101 }).connectionUptimePct).toBeNull();
+      expect(parseModeUpdate({ connectionUptimePct: -1 }).connectionUptimePct).toBeNull();
+      // rejects non-integer
+      expect(parseModeUpdate({ connectionUptimePct: 85.5 }).connectionUptimePct).toBeNull();
+      // rejects non-number
+      expect(parseModeUpdate({ connectionUptimePct: '85' }).connectionUptimePct).toBeNull();
+      expect(parseModeUpdate({ connectionUptimePct: null }).connectionUptimePct).toBeNull();
+    });
+
     it('accepts zero for numeric fields where appropriate', () => {
       const result = parseModeUpdate({
         latency: 0,
@@ -461,6 +475,16 @@ describe('parse-mode-update', () => {
     it('omits connectionSuccessRate when 100', () => {
       const parsed = parseModeUpdate({ mode: 'idle', connectionSuccessRate: 100 });
       expect(formatModeUpdate(parsed)).not.toContain('% ok');
+    });
+
+    it('includes connectionUptimePct when below 100', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', connectionUptimePct: 72 });
+      expect(formatModeUpdate(parsed)).toContain('📶 72%');
+    });
+
+    it('omits connectionUptimePct when 100', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', connectionUptimePct: 100 });
+      expect(formatModeUpdate(parsed)).not.toContain('📶');
     });
 
     it('includes plugin version', () => {

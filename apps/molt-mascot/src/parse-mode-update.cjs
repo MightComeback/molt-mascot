@@ -34,6 +34,7 @@
  * @property {"healthy"|"degraded"|"unhealthy"|null} healthStatus - At-a-glance health assessment, or null
  * @property {number|null} connectionSuccessRate - Integer percentage (0-100), or null
  * @property {"rising"|"falling"|"stable"|null} latencyTrend - Latency trend direction, or null
+ * @property {number|null} connectionUptimePct - Integer percentage (0-100) of lifetime spent connected, or null
  */
 
 /**
@@ -175,6 +176,11 @@ function parseModeUpdate(raw) {
       return n <= 100 ? n : null;
     })(),
     latencyTrend: validLatencyTrend(update.latencyTrend),
+    connectionUptimePct: (() => {
+      const n = nonNegInt(update.connectionUptimePct);
+      if (n === null) return null;
+      return n <= 100 ? n : null;
+    })(),
   };
 }
 
@@ -220,6 +226,9 @@ function formatModeUpdate(parsed) {
   }
   if (parsed.latencyTrend && parsed.latencyTrend !== 'stable') {
     parts.push(parsed.latencyTrend === 'rising' ? '↑' : '↓');
+  }
+  if (parsed.connectionUptimePct !== null && parsed.connectionUptimePct < 100) {
+    parts.push(`📶 ${parsed.connectionUptimePct}%`);
   }
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
 
