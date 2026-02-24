@@ -835,6 +835,7 @@ app.whenReady().then(async () => {
       targetUrl: currentTargetUrl,
       activeAgents: currentActiveAgents,
       activeTools: currentActiveTools,
+      agentSessions: currentAgentSessions,
       pluginVersion: currentPluginVersion,
       lastMessageAt: currentLastMessageAt,
       latencyStats: currentLatencyStats,
@@ -1042,6 +1043,7 @@ app.whenReady().then(async () => {
   let currentTargetUrl = null;
   let currentActiveAgents = 0;
   let currentActiveTools = 0;
+  let currentAgentSessions = 0;
   let currentPluginVersion = null;
   let currentLastMessageAt = null;
   let currentLatencyStats = null;
@@ -1060,6 +1062,7 @@ app.whenReady().then(async () => {
     if (p.toolErrors !== null) currentToolErrors = p.toolErrors;
     if (p.activeAgents !== null) currentActiveAgents = p.activeAgents;
     if (p.activeTools !== null) currentActiveTools = p.activeTools;
+    if (p.agentSessions !== null) currentAgentSessions = p.agentSessions;
     if (p.pluginVersion !== null) currentPluginVersion = p.pluginVersion;
     // Latency: update when provided, clear when explicitly null in raw payload.
     if (p.latencyMs !== null) currentLatencyMs = p.latencyMs;

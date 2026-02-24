@@ -412,6 +412,7 @@ function syncPill() {
       targetUrl: connectedUrl || loadCfg()?.url || null,
       activeAgents: pluginActiveAgents || 0,
       activeTools: pluginActiveTools || 0,
+      agentSessions: pluginAgentSessions || 0,
       pluginVersion: pluginVersion || null,
       sessionConnectCount,
       sessionAttemptCount,
