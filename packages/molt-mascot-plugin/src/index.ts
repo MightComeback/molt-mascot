@@ -215,7 +215,9 @@ export function truncate(str: string, limit = 140): string {
  */
 export function formatCount(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "0";
-  if (n < 1000) return `${Math.round(n)}`;
+  // Round first, then check threshold to avoid "1000" when rounding pushes n past 999.
+  const rounded = Math.round(n);
+  if (rounded < 1000) return `${rounded}`;
   const units = ["K", "M", "B", "T"];
   let value = n;
   for (const unit of units) {

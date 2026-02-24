@@ -105,6 +105,9 @@ describe("utils", () => {
     expect(formatCount(Infinity)).toBe("0");
     // Fractional rounds to integer below 1000
     expect(formatCount(99.7)).toBe("100");
+    // Edge: rounding pushes past 999 → should show 1.0K, not "1000"
+    expect(formatCount(999.5)).toBe("1.0K");
+    expect(formatCount(999.6)).toBe("1.0K");
   });
 
   it("successRate", () => {
