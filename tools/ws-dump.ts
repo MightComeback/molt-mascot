@@ -106,6 +106,12 @@ function formatWatchSummary(state: Record<string, any>): string {
   const emoji = (MODE_EMOJI as Record<string, string>)[mode] || "";
   parts.push(`${emoji} ${mode}`.trim());
 
+  // Show how long the mascot has been in the current mode (useful for spotting stuck states).
+  if (typeof state.since === "number" && state.since > 0) {
+    const modeSec = Math.round((Date.now() - state.since) / 1000);
+    if (modeSec > 0) parts.push(formatDuration(modeSec));
+  }
+
   if (mode === "tool" && state.currentTool) parts.push(`tool=${state.currentTool}`);
   if (mode === "error" && state.lastError?.message) parts.push(state.lastError.message.slice(0, 40));
 
@@ -582,4 +588,5 @@ function gracefulShutdown() {
   }
 }
 process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
 process.on("SIGTERM", gracefulShutdown);
