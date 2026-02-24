@@ -101,7 +101,11 @@ bun run mascot
   - `MOLT_MASCOT_STALE_CONNECTION_MS` (default: 15000) — force reconnect if no WS message within this window
   - `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` (default: 5000) — how often to check for stale connections
   - `MOLT_MASCOT_POLL_INTERVAL_MS` (default: 1000) — plugin state poll frequency (lower = more responsive, higher = less CPU)
-- **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
+- **Protocol version** (advanced):
+  - `MOLT_MASCOT_MIN_PROTOCOL` (default: 2) — minimum Gateway protocol version to negotiate
+  - `MOLT_MASCOT_MAX_PROTOCOL` (default: 3) — maximum Gateway protocol version to negotiate
+  - Also accepted: `GATEWAY_MIN_PROTOCOL` / `GATEWAY_MAX_PROTOCOL`
+- **Env seeding** (no UI typing): `MOLT_MASCOT_GATEWAY_URL` / `MOLT_MASCOT_GATEWAY_TOKEN` (highest priority), `GATEWAY_URL` / `GATEWAY_TOKEN`, `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN` (legacy `CLAWDBOT_*` also accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard
 - **Middle-click pill**: Toggles hide-text mode (pixel-only)
