@@ -113,6 +113,8 @@ The mascot registers global shortcuts when active:
 | ⌘/Ctrl + ⇧ + S | **Snap to position** (reset manual drag, reposition to alignment corner) |
 | ⌘/Ctrl + ⇧ + Z | **Cycle size** (tiny 120×100 → small 160×140 → medium 240×200 → large 360×300 → xlarge 480×400) |
 | ⌘/Ctrl + ⇧ + O | **Cycle opacity** (100% → 80% → 60% → 40% → 20%) |
+| ⌘/Ctrl + ⇧ + N | Toggle **reduced motion** (disable bob, blink, and pulse animations) |
+| ⌘/Ctrl + ⇧ + P | **Copy status** line to clipboard |
 | ⌘/Ctrl + ⇧ + R | Force **reset** mascot state (if stuck in error/tool) |
 | ⌘/Ctrl + ⇧ + C | Force **reconnect** to the Gateway (bypass backoff) |
 | ⌘/Ctrl + ⇧ + I | **Copy debug info** to clipboard (diagnostics snapshot) |
