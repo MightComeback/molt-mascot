@@ -93,8 +93,8 @@ function parseEnvNumber(env, keys, fallback, opts) {
  * Eliminates the repeated `isTruthyEnv(env.X || env.Y) || prefs.z || false`
  * pattern used ~6 times in status-cli.cjs and electron-main.cjs.
  *
- * Truthy: "true", "1", "yes", "on" (case-insensitive)
- * Falsy:  "false", "0", "no", "off" (case-insensitive)
+ * Truthy: "true", "t", "1", "yes", "y", "on" (case-insensitive)
+ * Falsy:  "false", "f", "0", "no", "n", "off" (case-insensitive)
  * Absent/empty/unrecognized: returns fallback
  *
  * @param {object} env - Environment object (e.g. process.env)
@@ -107,8 +107,8 @@ function parseEnvBoolean(env, keys, fallback) {
   const raw = resolveEnv(keyList, env, '');
   if (raw === '') return fallback;
   const lower = raw.trim().toLowerCase();
-  if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') return true;
-  if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return false;
+  if (lower === 'true' || lower === '1' || lower === 't' || lower === 'yes' || lower === 'y' || lower === 'on') return true;
+  if (lower === 'false' || lower === '0' || lower === 'f' || lower === 'no' || lower === 'n' || lower === 'off') return false;
   return fallback;
 }
 

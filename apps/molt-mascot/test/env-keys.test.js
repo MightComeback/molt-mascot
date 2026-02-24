@@ -144,13 +144,13 @@ describe('parseEnvNumber', () => {
 
 describe('parseEnvBoolean', () => {
   it('returns true for truthy values', () => {
-    for (const v of ['true', 'TRUE', 'True', '1', 'yes', 'YES', 'on', 'ON']) {
+    for (const v of ['true', 'TRUE', 'True', 't', 'T', '1', 'yes', 'YES', 'y', 'Y', 'on', 'ON']) {
       expect(parseEnvBoolean({ FOO: v }, 'FOO', false)).toBe(true);
     }
   });
 
   it('returns false for falsy values', () => {
-    for (const v of ['false', 'FALSE', 'False', '0', 'no', 'NO', 'off', 'OFF']) {
+    for (const v of ['false', 'FALSE', 'False', 'f', 'F', '0', 'no', 'NO', 'n', 'N', 'off', 'OFF']) {
       expect(parseEnvBoolean({ FOO: v }, 'FOO', true)).toBe(false);
     }
   });
