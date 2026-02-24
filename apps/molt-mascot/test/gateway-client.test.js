@@ -1024,4 +1024,50 @@ describe('GatewayClient', () => {
       expect(countdownCalls.length).toBeGreaterThan(0);
     });
   });
+
+  describe('connectionQuality getter', () => {
+    it('returns null when no latency data is available', () => {
+      expect(client.connectionQuality).toBeNull();
+    });
+
+    it('returns a quality label when latency is available', () => {
+      client.latencyMs = 20;
+      const quality = client.connectionQuality;
+      expect(['excellent', 'good', 'fair', 'poor']).toContain(quality);
+    });
+
+    it('returns "excellent" for very low latency', () => {
+      client.latencyMs = 5;
+      expect(client.connectionQuality).toBe('excellent');
+    });
+
+    it('returns "poor" for very high latency', () => {
+      client.latencyMs = 1000;
+      expect(client.connectionQuality).toBe('poor');
+    });
+  });
+
+  describe('qualitySummary getter', () => {
+    it('returns null when no latency data is available', () => {
+      expect(client.qualitySummary).toBeNull();
+    });
+
+    it('returns an object with text, quality, and emoji when latency is available', () => {
+      client.latencyMs = 30;
+      const summary = client.qualitySummary;
+      expect(summary).not.toBeNull();
+      expect(typeof summary.text).toBe('string');
+      expect(typeof summary.quality).toBe('string');
+      expect(typeof summary.emoji).toBe('string');
+    });
+  });
+
+  describe('getStatus() includes connectionQuality', () => {
+    it('includes connectionQuality in status object', () => {
+      client.latencyMs = 25;
+      const status = client.getStatus();
+      expect(status).toHaveProperty('connectionQuality');
+      expect(['excellent', 'good', 'fair', 'poor']).toContain(status.connectionQuality);
+    });
+  });
 });

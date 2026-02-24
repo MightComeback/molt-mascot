@@ -6,7 +6,7 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, computeHealthStatus, computeHealthReasons, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
+import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, computeHealthStatus, computeHealthReasons, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
 import { createLatencyTracker } from './latency-tracker.js';
 
 // Re-export so existing consumers of gateway-client.js don't break.
@@ -660,6 +660,36 @@ export class GatewayClient {
   }
 
   /**
+   * Connection quality label based on latency: "excellent", "good", "fair", or "poor".
+   * Uses the median from rolling stats when available (more stable than instant latency),
+   * falling back to the current sample. Returns null if no latency data is available.
+   *
+   * Useful for consumers that need a categorical quality assessment without computing
+   * it themselves from raw latency values (e.g. tray icon color, notification decisions).
+   *
+   * @returns {"excellent"|"good"|"fair"|"poor"|null}
+   */
+  get connectionQuality() {
+    if (this.latencyMs === null) return null;
+    const source = resolveQualitySource(this.latencyMs, this.latencyStats);
+    return connectionQuality(source ?? this.latencyMs);
+  }
+
+  /**
+   * Compact quality summary string with emoji for at-a-glance display.
+   * Delegates to formatQualitySummary with the current latency and rolling stats.
+   * Returns null if no latency data is available.
+   *
+   * Example: "42ms 🟢 excellent" or "280ms 🔴 poor"
+   *
+   * @returns {{ text: string, quality: string, emoji: string }|null}
+   */
+  get qualitySummary() {
+    if (this.latencyMs === null) return null;
+    return formatQualitySummary(this.latencyMs, this.latencyStats);
+  }
+
+  /**
    * Connection success rate as an integer percentage (0-100), or null if no attempts.
    * Computed from sessionConnectCount / sessionAttemptCount.
    * Useful for diagnosing flaky connections at a glance (e.g. "50% → half your connects fail").
@@ -781,6 +811,7 @@ export class GatewayClient {
       pluginStateMethod: this.pluginStateMethod,
       latencyMs: this.latencyMs,
       latencyStats: this.latencyStats,
+      connectionQuality: this.connectionQuality,
       wsReadyState: this.wsReadyState,
       reconnectAttempt: this._reconnectAttempt,
       sessionConnectCount: this.sessionConnectCount,
