@@ -76,5 +76,6 @@ contextBridge.exposeInMainWorld('moltMascot', {
     reconnectMaxMs: process.env.MOLT_MASCOT_RECONNECT_MAX_MS || '',
     staleConnectionMs: process.env.MOLT_MASCOT_STALE_CONNECTION_MS || '',
     staleCheckIntervalMs: process.env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS || '',
+    pollIntervalMs: process.env.MOLT_MASCOT_POLL_INTERVAL_MS || '',
   },
 });

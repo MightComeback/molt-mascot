@@ -45,6 +45,7 @@ describe('resolveStatusConfig', () => {
     expect(status.timing.reconnectMaxMs).toBe(30000);
     expect(status.timing.staleConnectionMs).toBe(15000);
     expect(status.timing.staleCheckIntervalMs).toBe(5000);
+    expect(status.timing.pollIntervalMs).toBe(1000);
     expect(status.config.gatewayUrl).toBeNull();
     expect(status.config.gatewayToken).toBe(false);
     expect(status.preferences).toBeNull();
@@ -71,6 +72,7 @@ describe('resolveStatusConfig', () => {
         MOLT_MASCOT_RECONNECT_MAX_MS: '10000',
         MOLT_MASCOT_STALE_CONNECTION_MS: '8000',
         MOLT_MASCOT_STALE_CHECK_INTERVAL_MS: '2000',
+        MOLT_MASCOT_POLL_INTERVAL_MS: '500',
       },
     }));
     expect(status.config.alignment).toBe('top-left');
@@ -89,6 +91,7 @@ describe('resolveStatusConfig', () => {
     expect(status.timing.reconnectMaxMs).toBe(10000);
     expect(status.timing.staleConnectionMs).toBe(8000);
     expect(status.timing.staleCheckIntervalMs).toBe(2000);
+    expect(status.timing.pollIntervalMs).toBe(500);
     expect(status.config.minProtocol).toBe(1);
     expect(status.config.maxProtocol).toBe(5);
   });

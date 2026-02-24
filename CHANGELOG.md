@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
 
 ### Added
+- Configurable plugin state poll interval via `MOLT_MASCOT_POLL_INTERVAL_MS` env var (default: 1000ms) — tune polling frequency for low-power setups or high-refresh diagnostics
 - `ws-dump --health` output now includes an ISO-8601 `timestamp` field for log correlation and automated monitoring pipelines
 - Configurable connection timing via env vars: `MOLT_MASCOT_RECONNECT_BASE_MS`, `MOLT_MASCOT_RECONNECT_MAX_MS`, `MOLT_MASCOT_STALE_CONNECTION_MS`, `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` — tune reconnect backoff and stale connection detection for unreliable networks
 - Tray icon sprite capture in `--capture-dir` mode (generates `tray/tray-{mode}.png` for all modes + base sprite at 2× scale for docs/CI assets)

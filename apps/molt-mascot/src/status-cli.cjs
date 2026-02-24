@@ -98,6 +98,7 @@ function resolveStatusConfig({
   const reconnectMaxMs = parseEnvNumber(env, 'MOLT_MASCOT_RECONNECT_MAX_MS', 30000, { min: 0 });
   const staleConnectionMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CONNECTION_MS', 15000, { min: 0 });
   const staleCheckIntervalMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 5000, { min: 0 });
+  const pollIntervalMs = parseEnvNumber(env, 'MOLT_MASCOT_POLL_INTERVAL_MS', 1000, { min: 100 });
 
   const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
   const resolvedWidth = parseEnvNumber(env, 'MOLT_MASCOT_WIDTH', resolvedSizePreset.width, { min: 1 });
@@ -141,6 +142,7 @@ function resolveStatusConfig({
     ['MOLT_MASCOT_RECONNECT_MAX_MS',      'reconnectMax'],
     ['MOLT_MASCOT_STALE_CONNECTION_MS',    'staleConnection'],
     ['MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 'staleCheckInterval'],
+    ['MOLT_MASCOT_POLL_INTERVAL_MS',       'pollInterval'],
   ];
   const envOverrides = ENV_OVERRIDES_MAP
     .filter(([key]) => env[key] !== undefined && env[key] !== '')
@@ -180,6 +182,7 @@ function resolveStatusConfig({
       reconnectMaxMs,
       staleConnectionMs,
       staleCheckIntervalMs,
+      pollIntervalMs,
     },
     preferences: prefsPath ? prefs : null,
     preferencesFile: prefsPath,
@@ -233,6 +236,7 @@ function formatStatusText(status) {
     `  Reconnect max:        ${t.reconnectMaxMs}ms`,
     `  Stale connection:     ${t.staleConnectionMs}ms`,
     `  Stale check interval: ${t.staleCheckIntervalMs}ms`,
+    `  Poll interval:        ${t.pollIntervalMs}ms`,
     '',
     `Preferences file: ${status.preferencesFile || '(none)'}`,
   ];

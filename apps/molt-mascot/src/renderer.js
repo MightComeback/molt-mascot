@@ -567,6 +567,7 @@ const RECONNECT_MAX_MS = coerceDelayMs(window.moltMascot?.env?.reconnectMaxMs, 3
 // at least one message per second on a healthy connection, so 15s is generous.
 const STALE_CONNECTION_MS = coerceDelayMs(window.moltMascot?.env?.staleConnectionMs, 15000);
 const STALE_CHECK_INTERVAL_MS = coerceDelayMs(window.moltMascot?.env?.staleCheckIntervalMs, 5000);
+const POLL_INTERVAL_MS = coerceDelayMs(window.moltMascot?.env?.pollIntervalMs, 1000);
 let lastMessageAt = 0;
 let staleCheckTimer = null;
 
@@ -682,7 +683,7 @@ function startPluginPoller() {
     // triggers an immediate refresh so the UI catches up instantly.
     if (document.hidden) return;
     sendPluginStateReq('p');
-  }, 1000);
+  }, POLL_INTERVAL_MS);
 }
 
 function nextId(prefix) {

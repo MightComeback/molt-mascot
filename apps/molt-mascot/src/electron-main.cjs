@@ -292,6 +292,7 @@ Environment variables:
   MOLT_MASCOT_RECONNECT_MAX_MS      Max reconnect delay in ms (default: 30000)
   MOLT_MASCOT_STALE_CONNECTION_MS    Stale connection timeout in ms (default: 15000)
   MOLT_MASCOT_STALE_CHECK_INTERVAL_MS  Stale check interval in ms (default: 5000)
+  MOLT_MASCOT_POLL_INTERVAL_MS    Plugin state poll interval in ms (default: 1000)
   MOLT_MASCOT_SLEEP_THRESHOLD_S  Idle seconds before sleep overlay (default: 120)
   MOLT_MASCOT_MIN_PROTOCOL    Minimum Gateway protocol version (default: 2)
   MOLT_MASCOT_MAX_PROTOCOL    Maximum Gateway protocol version (default: 3)
