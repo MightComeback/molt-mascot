@@ -299,8 +299,13 @@ ws.addEventListener("message", (ev) => {
       }
     }
 
-    // Apply filter: match against msg.type, msg.event, or msg.payload?.phase
-    if (filters.length > 0) {
+    // Apply filter: match against msg.type, msg.event, or msg.payload?.phase.
+    // Bypass the filter for responses to our own requests (state/reset/ping/health/watch)
+    // so mode-specific handlers below still see their replies when --filter is active.
+    const isOwnResponse = msg.type === "res" && (
+      msg.id === stateReqId || msg.id === resetReqId
+    );
+    if (filters.length > 0 && !isOwnResponse) {
       const candidates = [msg.type, msg.event, msg.payload?.phase].map((v) =>
         typeof v === "string" ? v.toLowerCase() : ""
       );
