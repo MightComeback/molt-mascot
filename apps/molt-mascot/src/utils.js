@@ -178,6 +178,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number|null} [params.latencyMs] - Most recent plugin state poll round-trip time in ms
  * @param {number} [params.activeAgents] - Number of currently active agent sessions (from plugin state)
  * @param {number} [params.activeTools] - Number of currently in-flight tool calls (from plugin state)
+ * @param {number} [params.agentSessions] - Cumulative count of agent sessions started since plugin start (shown when >0 for activity insight)
  * @param {string} [params.targetUrl] - Gateway URL being connected/reconnected to (shown when disconnected to help diagnose endpoint issues)
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, jitter?: number, samples: number }|null} [params.latencyStats] - Rolling latency stats (median used for connection quality label when available)
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
@@ -215,6 +216,7 @@ export function buildTooltip(params) {
     latencyStats,
     activeAgents = 0,
     activeTools = 0,
+    agentSessions,
     targetUrl,
     lastResetAt,
     isPollingPaused = false,
@@ -260,6 +262,9 @@ export function buildTooltip(params) {
   }
   if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
     tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
+  }
+  if (typeof agentSessions === 'number' && agentSessions > 0) {
+    tip += ` · ${formatCount(agentSessions)} session${agentSessions !== 1 ? 's' : ''}`;
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
     let latencyPart = formatQualitySummary(latencyMs, latencyStats, { emoji: false }).text;

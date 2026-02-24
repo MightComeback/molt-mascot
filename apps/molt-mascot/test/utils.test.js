@@ -696,6 +696,27 @@ describe("buildTooltip", () => {
     expect(tip).not.toMatch(/\d+ agents?/);
   });
 
+  it("shows agentSessions count when > 0", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 15 });
+    expect(tip).toContain("15 sessions");
+  });
+
+  it("shows singular session label when agentSessions is 1", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 1 });
+    expect(tip).toContain("1 session");
+    expect(tip).not.toContain("1 sessions");
+  });
+
+  it("omits agentSessions when zero", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 0 });
+    expect(tip).not.toMatch(/\d+ sessions?/);
+  });
+
+  it("omits agentSessions when not provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
+    expect(tip).not.toMatch(/\d+ sessions?/);
+  });
+
   it("shows targetUrl when disconnected", () => {
     const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, targetUrl: "ws://127.0.0.1:18789" });
     expect(tip).toContain("→ ws://127.0.0.1:18789");
