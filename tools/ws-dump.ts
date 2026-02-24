@@ -1,6 +1,6 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary } from "../apps/molt-mascot/src/utils.js";
+import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary, successRate } from "../apps/molt-mascot/src/utils.js";
 
 type GatewayCfg = {
   url: string;
@@ -126,7 +126,10 @@ function formatWatchSummary(state: Record<string, any>): string {
 
   if (state.toolCalls > 0) {
     let s = `${state.toolCalls} call${state.toolCalls > 1 ? "s" : ""}`;
-    if (state.toolErrors > 0) s += ` (${state.toolErrors} err)`;
+    if (state.toolErrors > 0) {
+      const rate = successRate(state.toolCalls, state.toolErrors);
+      s += rate !== null ? ` (${state.toolErrors} err, ${rate}% ok)` : ` (${state.toolErrors} err)`;
+    }
     parts.push(s);
   }
 
