@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager, validatePrefs, PREF_SCHEMA } from "../src/prefs.cjs";
+import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -831,5 +831,32 @@ describe("validatePrefs timing prefs", () => {
     const { clean, dropped } = validatePrefs({ errorHoldMs: -1 });
     expect(clean.errorHoldMs).toBeUndefined();
     expect(dropped.some(d => d.key === "errorHoldMs")).toBe(true);
+  });
+});
+
+describe("VALID_PREF_KEYS", () => {
+  it("is a frozen array", () => {
+    expect(Array.isArray(VALID_PREF_KEYS)).toBe(true);
+    expect(Object.isFrozen(VALID_PREF_KEYS)).toBe(true);
+  });
+
+  it("matches PREF_SCHEMA keys exactly", () => {
+    expect([...VALID_PREF_KEYS].sort()).toEqual(Object.keys(PREF_SCHEMA).sort());
+  });
+
+  it("contains all expected preference keys", () => {
+    const expected = [
+      "alignment", "sizeIndex", "size", "opacityIndex", "padding",
+      "opacity", "clickThrough", "hideText", "gatewayUrl",
+      "draggedPosition", "sleepThresholdS", "idleDelayMs", "errorHoldMs",
+      "reducedMotion",
+    ];
+    for (const key of expected) {
+      expect(VALID_PREF_KEYS).toContain(key);
+    }
+  });
+
+  it("has no duplicates", () => {
+    expect(new Set(VALID_PREF_KEYS).size).toBe(VALID_PREF_KEYS.length);
   });
 });

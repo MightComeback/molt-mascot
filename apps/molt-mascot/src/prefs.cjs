@@ -344,4 +344,13 @@ function validatePrefs(raw) {
   return { clean, dropped };
 }
 
-module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA };
+/**
+ * Canonical list of valid preference key names, derived from PREF_SCHEMA.
+ * Useful for external tooling (tab-completion, docs generation, CLI --help),
+ * diagnostics, and fuzzy-match validation without inspecting the schema object.
+ *
+ * Mirrors VALID_ALIGNMENTS, VALID_SIZES, VALID_HEALTH_STATUSES pattern.
+ */
+const VALID_PREF_KEYS = Object.freeze(Object.keys(PREF_SCHEMA));
+
+module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS };
