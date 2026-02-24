@@ -27,6 +27,11 @@ describe('tray-icon', () => {
       const hasColor = TRAY_SPRITE.some(row => [...row].some(ch => ch !== '.'));
       expect(hasColor).toBe(true);
     });
+
+    it('includes claw accent color for visual fidelity with main sprite', () => {
+      const hasClaw = TRAY_SPRITE.some(row => row.includes('c'));
+      expect(hasClaw).toBe(true);
+    });
   });
 
   describe('TRAY_COLORS', () => {
