@@ -340,9 +340,11 @@ ws.addEventListener("message", (ev) => {
           ...(uptimeMs !== null ? { pluginUptimeMs: uptimeMs } : {}),
           toolCalls: state.toolCalls ?? 0,
           toolErrors: state.toolErrors ?? 0,
+          agentSessions: state.agentSessions ?? 0,
           activeAgents: state.activeAgents ?? 0,
           activeTools: state.activeTools ?? 0,
           ...(state.lastError ? { lastError: state.lastError.message } : {}),
+          ...(typeof state.lastResetAt === 'number' && state.lastResetAt > 0 ? { lastResetAt: state.lastResetAt } : {}),
           ...(reasons.length > 0 ? { reasons } : {}),
         };
         console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
