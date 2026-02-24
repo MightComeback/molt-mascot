@@ -43,6 +43,7 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {string} [state.appVersion]
  * @param {boolean} [state.isMac]
  * @param {"healthy"|"degraded"|"unhealthy"|null} [state.healthStatus] - At-a-glance health assessment (shown as prefix when degraded/unhealthy)
+ * @param {number|null} [state.connectionUptimePct] - Percentage of lifetime spent connected (0-100); shown when <100%
  * @param {boolean} [state.hasDragPosition] - Whether the mascot has been manually dragged (disables "Snap to Position" when false)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
@@ -70,6 +71,7 @@ export function buildContextMenuItems(state) {
     appVersion,
     isMac = false,
     healthStatus = null,
+    connectionUptimePct = null,
     hasDragPosition = false,
     now: nowOverride,
   } = state;
@@ -113,6 +115,9 @@ export function buildContextMenuItems(state) {
   }
   if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
     statusParts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
+  }
+  if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
+    statusParts.push(`📶 ${connectionUptimePct}%`);
   }
 
   const statusLine = statusParts.join(' · ');

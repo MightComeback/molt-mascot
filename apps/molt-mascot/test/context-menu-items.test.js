@@ -199,6 +199,21 @@ describe('buildContextMenuItems', () => {
     expect(result.statusLine).not.toContain('unhealthy');
   });
 
+  it('shows connection uptime percentage when below 100%', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, connectionUptimePct: 73 });
+    expect(result.statusLine).toContain('📶 73%');
+  });
+
+  it('omits connection uptime percentage at 100%', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, connectionUptimePct: 100 });
+    expect(result.statusLine).not.toContain('📶');
+  });
+
+  it('omits connection uptime percentage when null', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, connectionUptimePct: null });
+    expect(result.statusLine).not.toContain('📶');
+  });
+
   it('every non-separator item has an id', () => {
     const result = buildContextMenuItems(BASE_STATE);
     for (const item of result.items) {
