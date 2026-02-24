@@ -612,6 +612,40 @@ export const connectionUptimePercent = _connectionUptimePercent;
  */
 export const computeConnectionSuccessRate = _computeConnectionSuccessRate;
 
+/**
+ * Compute memory pressure from JS heap stats.
+ * Returns usage percentage and a pressure level for at-a-glance diagnostics.
+ *
+ * Levels:
+ * - "low"      (< 50% of limit)
+ * - "moderate"  (50-75%)
+ * - "high"     (75-90%)
+ * - "critical" (> 90%)
+ *
+ * @param {{ usedJSHeapSize?: number, totalJSHeapSize?: number, jsHeapSizeLimit?: number }} memory
+ * @returns {{ usedPercent: number, totalPercent: number, level: "low"|"moderate"|"high"|"critical" }|null}
+ */
+export function memoryPressure(memory) {
+  if (!memory || typeof memory !== 'object') return null;
+  const { usedJSHeapSize, jsHeapSizeLimit } = memory;
+  if (typeof usedJSHeapSize !== 'number' || typeof jsHeapSizeLimit !== 'number') return null;
+  if (!Number.isFinite(usedJSHeapSize) || !Number.isFinite(jsHeapSizeLimit)) return null;
+  if (jsHeapSizeLimit <= 0) return null;
+
+  const usedPercent = Math.round((usedJSHeapSize / jsHeapSizeLimit) * 100);
+  const totalPercent = typeof memory.totalJSHeapSize === 'number' && Number.isFinite(memory.totalJSHeapSize)
+    ? Math.round((memory.totalJSHeapSize / jsHeapSizeLimit) * 100)
+    : usedPercent;
+
+  let level;
+  if (usedPercent >= 90) level = 'critical';
+  else if (usedPercent >= 75) level = 'high';
+  else if (usedPercent >= 50) level = 'moderate';
+  else level = 'low';
+
+  return { usedPercent, totalPercent, level };
+}
+
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
 export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';

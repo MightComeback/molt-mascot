@@ -236,12 +236,23 @@ describe("buildDebugInfo", () => {
     expect(info).toContain("Display scale: 2x (canvas scale: 3)");
   });
 
-  it("shows memory usage when available", () => {
+  it("shows memory usage with pressure percentage when available", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
       memory: { usedJSHeapSize: 10485760, totalJSHeapSize: 20971520, jsHeapSizeLimit: 2147483648 },
     });
     expect(info).toContain("Memory: 10.0 MB used / 20.0 MB total (limit 2.0 GB)");
+    // Low pressure: shows percentage only
+    expect(info).toMatch(/limit 2\.0 GB\) — \d+%$/m);
+  });
+
+  it("shows memory pressure level when high", () => {
+    // 1.8 GB used of 2 GB limit = 90% → critical
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      memory: { usedJSHeapSize: 1932735283, totalJSHeapSize: 1932735283, jsHeapSizeLimit: 2147483648 },
+    });
+    expect(info).toContain("critical");
   });
 
   it("omits memory when unavailable", () => {

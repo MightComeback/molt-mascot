@@ -35,6 +35,7 @@ import {
   isValidMode,
   computeConnectionSuccessRate,
   isSleepingMode,
+  memoryPressure,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1787,5 +1788,49 @@ describe("MODE_DESCRIPTIONS (re-exported from mode-emoji.cjs)", () => {
 
   it("is frozen", () => {
     expect(Object.isFrozen(MODE_DESCRIPTIONS)).toBe(true);
+  });
+});
+
+describe("memoryPressure", () => {
+  it("returns null for missing/invalid input", () => {
+    expect(memoryPressure(null)).toBeNull();
+    expect(memoryPressure(undefined)).toBeNull();
+    expect(memoryPressure({})).toBeNull();
+    expect(memoryPressure({ usedJSHeapSize: 100 })).toBeNull();
+    expect(memoryPressure({ usedJSHeapSize: NaN, jsHeapSizeLimit: 1000 })).toBeNull();
+    expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: 0 })).toBeNull();
+    expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: -1 })).toBeNull();
+  });
+
+  it("returns low for < 50% usage", () => {
+    const result = memoryPressure({ usedJSHeapSize: 40, totalJSHeapSize: 60, jsHeapSizeLimit: 100 });
+    expect(result.level).toBe("low");
+    expect(result.usedPercent).toBe(40);
+    expect(result.totalPercent).toBe(60);
+  });
+
+  it("returns moderate for 50-75% usage", () => {
+    const result = memoryPressure({ usedJSHeapSize: 60, totalJSHeapSize: 70, jsHeapSizeLimit: 100 });
+    expect(result.level).toBe("moderate");
+    expect(result.usedPercent).toBe(60);
+  });
+
+  it("returns high for 75-90% usage", () => {
+    const result = memoryPressure({ usedJSHeapSize: 80, totalJSHeapSize: 90, jsHeapSizeLimit: 100 });
+    expect(result.level).toBe("high");
+    expect(result.usedPercent).toBe(80);
+  });
+
+  it("returns critical for > 90% usage", () => {
+    const result = memoryPressure({ usedJSHeapSize: 95, totalJSHeapSize: 98, jsHeapSizeLimit: 100 });
+    expect(result.level).toBe("critical");
+    expect(result.usedPercent).toBe(95);
+  });
+
+  it("uses usedPercent as totalPercent when totalJSHeapSize is missing", () => {
+    const result = memoryPressure({ usedJSHeapSize: 30, jsHeapSizeLimit: 100 });
+    expect(result.level).toBe("low");
+    expect(result.usedPercent).toBe(30);
+    expect(result.totalPercent).toBe(30);
   });
 });

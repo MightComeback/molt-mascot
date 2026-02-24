@@ -70,7 +70,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -259,7 +259,13 @@ export function buildDebugInfo(params) {
     const used = formatBytes(memory.usedJSHeapSize);
     const total = formatBytes(memory.totalJSHeapSize);
     const limit = formatBytes(memory.jsHeapSizeLimit);
-    lines.push(`Memory: ${used} used / ${total} total (limit ${limit})`);
+    const pressure = memoryPressure(memory);
+    const pressureSuffix = pressure && pressure.level !== 'low'
+      ? ` — ${pressure.usedPercent}% ${pressure.level}`
+      : pressure
+        ? ` — ${pressure.usedPercent}%`
+        : '';
+    lines.push(`Memory: ${used} used / ${total} total (limit ${limit})${pressureSuffix}`);
   }
   if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
     lines.push(`Process RSS: ${formatBytes(processMemoryRssBytes)}`);
