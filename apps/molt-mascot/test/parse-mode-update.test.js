@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, validateLatencyStats, VALID_HEALTH, VALID_LATENCY_TRENDS } from '../src/parse-mode-update.cjs';
+import { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, VALID_HEALTH, VALID_LATENCY_TRENDS } from '../src/parse-mode-update.cjs';
 
 describe('parse-mode-update', () => {
   describe('nonNegNum', () => {
