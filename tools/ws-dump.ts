@@ -37,7 +37,7 @@ Options:
   --count=<n>             Exit after printing N state changes (--watch mode)
   --filter=<type>         Only print events matching this type/event name
                           (e.g. --filter=agent, --filter=tool). Repeatable.
-  --compact               Single-line JSON output; in --watch mode, prints a
+  --compact, --json       Single-line JSON output; in --watch mode, prints a
                           human-readable summary line per state change instead
   -q, --quiet             Suppress stderr diagnostics (for scripting)
   -V, --version           Show version and exit
@@ -94,7 +94,7 @@ const filters: string[] = argv
   .map((a) => a.split("=").slice(1).join("=").toLowerCase())
   .filter(Boolean);
 
-const compact = args.has("--compact");
+const compact = args.has("--compact") || args.has("--json");
 
 /**
  * Format a plugin state object as a human-readable one-liner for --watch --compact.
@@ -149,6 +149,12 @@ function formatWatchSummary(state: Record<string, any>): string {
   if (state.startedAt > 0) {
     const uptimeSec = Math.round((Date.now() - state.startedAt) / 1000);
     if (uptimeSec > 0) parts.push(`↑ ${formatDuration(uptimeSec)}`);
+  }
+
+  // Show time since last manual reset (parity with tray tooltip and debug info).
+  if (typeof state.lastResetAt === "number" && state.lastResetAt > 0) {
+    const resetAgoSec = Math.round((Date.now() - state.lastResetAt) / 1000);
+    if (resetAgoSec >= 0) parts.push(`reset ${formatDuration(resetAgoSec)} ago`);
   }
 
   // Surface health status when degraded or unhealthy (matches pill-label and tray-tooltip behavior).
