@@ -1495,9 +1495,9 @@ describe("utils", () => {
     const midnight = new Date(2026, 1, 23, 0, 0, 0).getTime();
     expect(formatTimestampLocal(midnight, now)).toBe("00:00:00");
 
-    // Different month
+    // Different year — includes the year for clarity
     const dec = new Date(2025, 11, 31, 23, 59, 0).getTime();
-    expect(formatTimestampLocal(dec, now)).toBe("Dec 31, 23:59");
+    expect(formatTimestampLocal(dec, now)).toBe("Dec 31 2025, 23:59");
   });
 
   it("formatTimestampWithAge", () => {

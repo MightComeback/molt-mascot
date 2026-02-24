@@ -352,6 +352,12 @@ export function formatTimestampLocal(ts: number, now?: number): string {
   const day = date.getDate();
   const h = String(date.getHours()).padStart(2, '0');
   const m = String(date.getMinutes()).padStart(2, '0');
+
+  // Include the year when the timestamp is from a different year than the reference,
+  // so "Dec 31, 23:59" becomes "Dec 31 2025, 23:59" — avoids ambiguity in long uptimes.
+  if (date.getFullYear() !== ref.getFullYear()) {
+    return `${mon} ${day} ${date.getFullYear()}, ${h}:${m}`;
+  }
   return `${mon} ${day}, ${h}:${m}`;
 }
 
