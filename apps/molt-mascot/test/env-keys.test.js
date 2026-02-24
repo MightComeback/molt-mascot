@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, REPO_URL } from '../src/env-keys.cjs';
+import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, REPO_URL } from '../src/env-keys.cjs';
 
 describe('env-keys constants', () => {
   it('GATEWAY_URL_KEYS is a frozen array with expected first entry', () => {
@@ -89,6 +89,56 @@ describe('resolveEnvWithSource', () => {
     };
     const result = resolveEnvWithSource(GATEWAY_URL_KEYS, env);
     expect(result).toEqual({ key: 'MOLT_MASCOT_GATEWAY_URL', value: 'ws://custom:1234' });
+  });
+});
+
+describe('parseEnvNumber', () => {
+  it('returns parsed number from env', () => {
+    expect(parseEnvNumber({ FOO: '42' }, 'FOO', 0)).toBe(42);
+  });
+
+  it('returns fallback when key is absent', () => {
+    expect(parseEnvNumber({}, 'FOO', 99)).toBe(99);
+  });
+
+  it('returns fallback for empty string', () => {
+    expect(parseEnvNumber({ FOO: '' }, 'FOO', 99)).toBe(99);
+  });
+
+  it('returns fallback for non-numeric value', () => {
+    expect(parseEnvNumber({ FOO: 'abc' }, 'FOO', 99)).toBe(99);
+  });
+
+  it('returns fallback for Infinity', () => {
+    expect(parseEnvNumber({ FOO: 'Infinity' }, 'FOO', 99)).toBe(99);
+  });
+
+  it('returns fallback for NaN', () => {
+    expect(parseEnvNumber({ FOO: 'NaN' }, 'FOO', 99)).toBe(99);
+  });
+
+  it('respects min constraint', () => {
+    expect(parseEnvNumber({ FOO: '-1' }, 'FOO', 99, { min: 0 })).toBe(99);
+    expect(parseEnvNumber({ FOO: '0' }, 'FOO', 99, { min: 0 })).toBe(0);
+  });
+
+  it('respects max constraint', () => {
+    expect(parseEnvNumber({ FOO: '200' }, 'FOO', 99, { max: 100 })).toBe(99);
+    expect(parseEnvNumber({ FOO: '100' }, 'FOO', 99, { max: 100 })).toBe(100);
+  });
+
+  it('respects integer constraint', () => {
+    expect(parseEnvNumber({ FOO: '3.5' }, 'FOO', 99, { integer: true })).toBe(99);
+    expect(parseEnvNumber({ FOO: '3' }, 'FOO', 99, { integer: true })).toBe(3);
+  });
+
+  it('accepts array of keys (first non-empty wins)', () => {
+    expect(parseEnvNumber({ B: '10' }, ['A', 'B'], 99)).toBe(10);
+    expect(parseEnvNumber({ A: '5', B: '10' }, ['A', 'B'], 99)).toBe(5);
+  });
+
+  it('parses float values', () => {
+    expect(parseEnvNumber({ FOO: '0.5' }, 'FOO', 1)).toBe(0.5);
   });
 });
 

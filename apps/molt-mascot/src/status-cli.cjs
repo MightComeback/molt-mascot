@@ -1,4 +1,4 @@
-const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource } = require('./env-keys.cjs');
+const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource, parseEnvNumber } = require('./env-keys.cjs');
 const { formatDuration, formatTimestampLocal } = require('@molt/mascot-plugin');
 const { formatOpacity } = require('./opacity-presets.cjs');
 const { formatProtocolRange } = require('./format-latency.cjs');
@@ -75,8 +75,8 @@ function resolveStatusConfig({
   const hasToken = !!gatewayTokenSource;
 
   const resolvedPaddingNum = (() => {
-    const envVal = Number(env.MOLT_MASCOT_PADDING);
-    if (Number.isFinite(envVal) && envVal >= 0) return envVal;
+    const envVal = parseEnvNumber(env, 'MOLT_MASCOT_PADDING', -1, { min: 0 });
+    if (envVal >= 0) return envVal;
     if (typeof prefs.padding === 'number' && prefs.padding >= 0) return prefs.padding;
     return 24;
   })();
@@ -91,19 +91,19 @@ function resolveStatusConfig({
   const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || isTruthyEnv(env.MOLT_MASCOT_NO_SHORTCUTS);
   const captureDir = env.MOLT_MASCOT_CAPTURE_DIR || null;
 
-  const sleepThresholdS = (() => { const v = Number(env.MOLT_MASCOT_SLEEP_THRESHOLD_S); return Number.isFinite(v) && v >= 0 ? v : 120; })();
-  const idleDelayMs = (() => { const v = Number(env.MOLT_MASCOT_IDLE_DELAY_MS); return Number.isFinite(v) && v >= 0 ? v : 800; })();
-  const errorHoldMs = (() => { const v = Number(env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
-  const minProtocol = (() => { const v = Number(env.MOLT_MASCOT_MIN_PROTOCOL || env.GATEWAY_MIN_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 2; })();
-  const maxProtocol = (() => { const v = Number(env.MOLT_MASCOT_MAX_PROTOCOL || env.GATEWAY_MAX_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 3; })();
-  const reconnectBaseMs = (() => { const v = Number(env.MOLT_MASCOT_RECONNECT_BASE_MS); return Number.isFinite(v) && v >= 0 ? v : 1500; })();
-  const reconnectMaxMs = (() => { const v = Number(env.MOLT_MASCOT_RECONNECT_MAX_MS); return Number.isFinite(v) && v >= 0 ? v : 30000; })();
-  const staleConnectionMs = (() => { const v = Number(env.MOLT_MASCOT_STALE_CONNECTION_MS); return Number.isFinite(v) && v >= 0 ? v : 15000; })();
-  const staleCheckIntervalMs = (() => { const v = Number(env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
+  const sleepThresholdS = parseEnvNumber(env, 'MOLT_MASCOT_SLEEP_THRESHOLD_S', 120, { min: 0 });
+  const idleDelayMs = parseEnvNumber(env, 'MOLT_MASCOT_IDLE_DELAY_MS', 800, { min: 0 });
+  const errorHoldMs = parseEnvNumber(env, 'MOLT_MASCOT_ERROR_HOLD_MS', 5000, { min: 0 });
+  const minProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MIN_PROTOCOL', 'GATEWAY_MIN_PROTOCOL'], 2, { min: 1, integer: true });
+  const maxProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MAX_PROTOCOL', 'GATEWAY_MAX_PROTOCOL'], 3, { min: 1, integer: true });
+  const reconnectBaseMs = parseEnvNumber(env, 'MOLT_MASCOT_RECONNECT_BASE_MS', 1500, { min: 0 });
+  const reconnectMaxMs = parseEnvNumber(env, 'MOLT_MASCOT_RECONNECT_MAX_MS', 30000, { min: 0 });
+  const staleConnectionMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CONNECTION_MS', 15000, { min: 0 });
+  const staleCheckIntervalMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 5000, { min: 0 });
 
   const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
-  const resolvedWidth = (() => { const v = Number(env.MOLT_MASCOT_WIDTH); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.width; })();
-  const resolvedHeight = (() => { const v = Number(env.MOLT_MASCOT_HEIGHT); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.height; })();
+  const resolvedWidth = parseEnvNumber(env, 'MOLT_MASCOT_WIDTH', resolvedSizePreset.width, { min: 1 });
+  const resolvedHeight = parseEnvNumber(env, 'MOLT_MASCOT_HEIGHT', resolvedSizePreset.height, { min: 1 });
 
   // Detect which env vars are actively influencing config (helps debug "why is my config wrong?")
   const ENV_OVERRIDES_MAP = [

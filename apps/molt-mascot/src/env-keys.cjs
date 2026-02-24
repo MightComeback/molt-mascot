@@ -62,4 +62,27 @@ function resolveEnvWithSource(keys, env) {
   return null;
 }
 
-module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, REPO_URL };
+/**
+ * Parse a numeric value from an environment variable with validation and fallback.
+ * Eliminates the repeated `const v = Number(env.X); Number.isFinite(v) && v >= 0 ? v : default`
+ * pattern used ~11 times in status-cli.cjs and electron-main.cjs.
+ *
+ * @param {object} env - Environment object (e.g. process.env)
+ * @param {string|string[]} keys - Env var name(s) to check (first non-empty wins when array)
+ * @param {number} fallback - Value to return if key is absent or invalid
+ * @param {{ min?: number, max?: number, integer?: boolean }} [opts]
+ * @returns {number} Parsed value, or fallback if absent/invalid/out-of-range
+ */
+function parseEnvNumber(env, keys, fallback, opts) {
+  const keyList = Array.isArray(keys) ? keys : [keys];
+  const raw = resolveEnv(keyList, env, '');
+  if (raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  if (opts?.integer && !Number.isInteger(n)) return fallback;
+  if (typeof opts?.min === 'number' && n < opts.min) return fallback;
+  if (typeof opts?.max === 'number' && n > opts.max) return fallback;
+  return n;
+}
+
+module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, REPO_URL };
