@@ -7,7 +7,7 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity, isSleepingMode } from './utils.js';
+import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, healthStatusEmoji, formatActiveSummary, formatOpacity, formatBytes, isSleepingMode } from './utils.js';
 import { formatSizeWithDims } from './size-presets.cjs';
 
 /**
@@ -46,6 +46,8 @@ import { formatSizeWithDims } from './size-presets.cjs';
  * @param {number|null} [state.connectionUptimePct] - Percentage of lifetime spent connected (0-100); shown when <100%
  * @param {"rising"|"falling"|"stable"|null} [state.latencyTrend] - Latency trend direction (shown as ↑/↓ arrow when non-stable)
  * @param {boolean} [state.hasDragPosition] - Whether the mascot has been manually dragged (disables "Snap to Position" when false)
+ * @param {number} [state.processUptimeS] - Process uptime in seconds (shown as compact uptime when >60s)
+ * @param {number} [state.processMemoryRssBytes] - Process RSS in bytes (shown as compact memory usage for leak diagnostics)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -75,6 +77,8 @@ export function buildContextMenuItems(state) {
     connectionUptimePct = null,
     latencyTrend = null,
     hasDragPosition = false,
+    processUptimeS,
+    processMemoryRssBytes,
     now: nowOverride,
   } = state;
 
@@ -127,6 +131,12 @@ export function buildContextMenuItems(state) {
   }
   if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
     statusParts.push(`📶 ${connectionUptimePct}%`);
+  }
+  if (typeof processUptimeS === 'number' && processUptimeS >= 60) {
+    statusParts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
+  }
+  if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
+    statusParts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
   }
 
   const statusLine = statusParts.join(' · ');

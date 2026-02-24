@@ -373,4 +373,26 @@ describe('buildContextMenuItems', () => {
     expect(item.label).toBe('Change Gateway…');
     expect(item.hint).toBeUndefined();
   });
+
+  it('shows process uptime in status line when >= 60s', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, processUptimeS: 3661 });
+    expect(result.statusLine).toContain('🕐');
+    expect(result.statusLine).toContain('1h');
+  });
+
+  it('omits process uptime when < 60s', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, processUptimeS: 30 });
+    expect(result.statusLine).not.toContain('🕐');
+  });
+
+  it('shows process memory RSS in status line', () => {
+    const result = buildContextMenuItems({ ...BASE_STATE, processMemoryRssBytes: 52_428_800 });
+    expect(result.statusLine).toContain('🧠');
+    expect(result.statusLine).toContain('50');
+  });
+
+  it('omits process memory when not provided', () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    expect(result.statusLine).not.toContain('🧠');
+  });
 });
