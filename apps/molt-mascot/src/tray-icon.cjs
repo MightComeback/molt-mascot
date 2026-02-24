@@ -175,11 +175,12 @@ function renderTraySprite(scale, opts) {
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100); when provided, used directly for health reason diagnostics instead of computing from sessionConnectCount/sessionAttemptCount
  * @param {number|null} [params.connectionUptimePct] - Percentage of total lifetime spent connected (0-100); shown when <100% to surface flappy connections
+ * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (shown when non-stable to surface proactive diagnostics)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -212,6 +213,11 @@ function buildTrayTooltip(params) {
       const showP99 = typeof latencyStats.p99 === 'number' && latencyStats.median > 0 && latencyStats.p99 > latencyStats.median * 3;
       const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : '';
       latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str})`;
+    }
+    // Append trend indicator when latency is actively rising or falling.
+    // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
+    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
+      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
     }
     parts.push(latencyPart);
   }

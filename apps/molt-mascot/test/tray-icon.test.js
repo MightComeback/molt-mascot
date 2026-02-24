@@ -613,6 +613,33 @@ describe('tray-icon', () => {
       expect(tip).toContain('low success rate: 50%');
     });
 
+    it('shows rising trend arrow on latency when latencyTrend is rising', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyTrend: 'rising' });
+      expect(tip).toContain('↑');
+    });
+
+    it('shows falling trend arrow on latency when latencyTrend is falling', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyTrend: 'falling' });
+      expect(tip).toContain('↓');
+    });
+
+    it('omits trend arrow when latencyTrend is stable', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyTrend: 'stable' });
+      expect(tip).not.toContain('↑');
+      expect(tip).not.toContain('↓');
+    });
+
+    it('omits trend arrow when latencyTrend is null', () => {
+      const tip = buildTrayTooltip({ ...base, latencyMs: 42, latencyTrend: null });
+      expect(tip).not.toContain('↑');
+      expect(tip).not.toContain('↓');
+    });
+
+    it('omits trend arrow when latencyMs is not provided', () => {
+      const tip = buildTrayTooltip({ ...base, latencyTrend: 'rising' });
+      expect(tip).not.toContain('↑');
+    });
+
     it('falls back to computing success rate from counts when connectionSuccessRate is not provided', () => {
       const tip = buildTrayTooltip({
         ...base,
