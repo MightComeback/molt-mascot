@@ -96,6 +96,10 @@ function resolveStatusConfig({
   const errorHoldMs = (() => { const v = Number(env.MOLT_MASCOT_ERROR_HOLD_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
   const minProtocol = (() => { const v = Number(env.MOLT_MASCOT_MIN_PROTOCOL || env.GATEWAY_MIN_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 2; })();
   const maxProtocol = (() => { const v = Number(env.MOLT_MASCOT_MAX_PROTOCOL || env.GATEWAY_MAX_PROTOCOL); return Number.isInteger(v) && v > 0 ? v : 3; })();
+  const reconnectBaseMs = (() => { const v = Number(env.MOLT_MASCOT_RECONNECT_BASE_MS); return Number.isFinite(v) && v >= 0 ? v : 1500; })();
+  const reconnectMaxMs = (() => { const v = Number(env.MOLT_MASCOT_RECONNECT_MAX_MS); return Number.isFinite(v) && v >= 0 ? v : 30000; })();
+  const staleConnectionMs = (() => { const v = Number(env.MOLT_MASCOT_STALE_CONNECTION_MS); return Number.isFinite(v) && v >= 0 ? v : 15000; })();
+  const staleCheckIntervalMs = (() => { const v = Number(env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS); return Number.isFinite(v) && v >= 0 ? v : 5000; })();
 
   const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
   const resolvedWidth = (() => { const v = Number(env.MOLT_MASCOT_WIDTH); return Number.isFinite(v) && v > 0 ? v : resolvedSizePreset.width; })();
@@ -135,6 +139,10 @@ function resolveStatusConfig({
     ['MOLT_MASCOT_MAX_PROTOCOL',   'maxProtocol'],
     ['GATEWAY_MAX_PROTOCOL',       'maxProtocol'],
     ['MOLT_MASCOT_CAPTURE_DIR',    'captureDir'],
+    ['MOLT_MASCOT_RECONNECT_BASE_MS',     'reconnectBase'],
+    ['MOLT_MASCOT_RECONNECT_MAX_MS',      'reconnectMax'],
+    ['MOLT_MASCOT_STALE_CONNECTION_MS',    'staleConnection'],
+    ['MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 'staleCheckInterval'],
   ];
   const envOverrides = ENV_OVERRIDES_MAP
     .filter(([key]) => env[key] !== undefined && env[key] !== '')
@@ -170,6 +178,10 @@ function resolveStatusConfig({
       sleepThresholdS,
       idleDelayMs,
       errorHoldMs,
+      reconnectBaseMs,
+      reconnectMaxMs,
+      staleConnectionMs,
+      staleCheckIntervalMs,
     },
     preferences: prefsPath ? prefs : null,
     preferencesFile: prefsPath,
@@ -216,9 +228,13 @@ function formatStatusText(status) {
     ...(c.captureDir ? [`  Capture dir:    ${c.captureDir}`] : []),
     '',
     'Timing:',
-    `  Sleep threshold: ${t.sleepThresholdS}s`,
-    `  Idle delay:      ${t.idleDelayMs}ms`,
-    `  Error hold:      ${t.errorHoldMs}ms`,
+    `  Sleep threshold:      ${t.sleepThresholdS}s`,
+    `  Idle delay:           ${t.idleDelayMs}ms`,
+    `  Error hold:           ${t.errorHoldMs}ms`,
+    `  Reconnect base:       ${t.reconnectBaseMs}ms`,
+    `  Reconnect max:        ${t.reconnectMaxMs}ms`,
+    `  Stale connection:     ${t.staleConnectionMs}ms`,
+    `  Stale check interval: ${t.staleCheckIntervalMs}ms`,
     '',
     `Preferences file: ${status.preferencesFile || '(none)'}`,
   ];

@@ -70,5 +70,9 @@ contextBridge.exposeInMainWorld('moltMascot', {
     // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
     clickThrough: process.env.MOLT_MASCOT_CLICKTHROUGH || process.env.MOLT_MASCOT_CLICK_THROUGH || '',
     reducedMotion: process.env.MOLT_MASCOT_REDUCED_MOTION || '',
+    reconnectBaseMs: process.env.MOLT_MASCOT_RECONNECT_BASE_MS || '',
+    reconnectMaxMs: process.env.MOLT_MASCOT_RECONNECT_MAX_MS || '',
+    staleConnectionMs: process.env.MOLT_MASCOT_STALE_CONNECTION_MS || '',
+    staleCheckIntervalMs: process.env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS || '',
   },
 });

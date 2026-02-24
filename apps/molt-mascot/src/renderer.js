@@ -558,15 +558,15 @@ let lastCloseDetail = '';      // Close reason/code from the last WebSocket disc
 let sessionConnectCount = 0;   // Total successful handshakes since app launch (diagnoses flappy connections)
 let firstConnectedAt = null;   // Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
 let sessionAttemptCount = 0;   // Total connection attempts since app launch (including failures)
-const RECONNECT_BASE_MS = 1500;
-const RECONNECT_MAX_MS = 30000;
+const RECONNECT_BASE_MS = coerceDelayMs(window.moltMascot?.env?.reconnectBaseMs, 1500);
+const RECONNECT_MAX_MS = coerceDelayMs(window.moltMascot?.env?.reconnectMaxMs, 30000);
 
 // Application-level connection health check.
 // If no WS message is received within this window, assume the connection is
 // stale (zombie TCP) and force a reconnect. The 1s plugin poller ensures
 // at least one message per second on a healthy connection, so 15s is generous.
-const STALE_CONNECTION_MS = 15000;
-const STALE_CHECK_INTERVAL_MS = 5000;
+const STALE_CONNECTION_MS = coerceDelayMs(window.moltMascot?.env?.staleConnectionMs, 15000);
+const STALE_CHECK_INTERVAL_MS = coerceDelayMs(window.moltMascot?.env?.staleCheckIntervalMs, 5000);
 let lastMessageAt = 0;
 let staleCheckTimer = null;
 

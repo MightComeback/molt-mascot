@@ -92,6 +92,11 @@ bun run mascot
   - `MOLT_MASCOT_IDLE_DELAY_MS` (default: 800)
   - `MOLT_MASCOT_ERROR_HOLD_MS` (default: 5000)
   - `MOLT_MASCOT_SLEEP_THRESHOLD_S` (default: 120) — seconds idle before showing ZZZ sleep overlay
+- **Connection tuning** (no plugin required):
+  - `MOLT_MASCOT_RECONNECT_BASE_MS` (default: 1500) — initial reconnect delay
+  - `MOLT_MASCOT_RECONNECT_MAX_MS` (default: 30000) — max reconnect delay (exponential backoff cap)
+  - `MOLT_MASCOT_STALE_CONNECTION_MS` (default: 15000) — force reconnect if no WS message within this window
+  - `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` (default: 5000) — how often to check for stale connections
 - **Env seeding** (no UI typing): `GATEWAY_URL` / `GATEWAY_TOKEN` (also `OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN`; legacy `CLAWDBOT_*` still accepted)
 - **System tray**: Right-click the red tray icon for a menu with all toggles (macOS dock icon is hidden)
 - **Double-click pill**: Copies the current status text to clipboard

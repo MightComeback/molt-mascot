@@ -43,6 +43,10 @@ describe('resolveStatusConfig', () => {
     expect(status.timing.sleepThresholdS).toBe(120);
     expect(status.timing.idleDelayMs).toBe(800);
     expect(status.timing.errorHoldMs).toBe(5000);
+    expect(status.timing.reconnectBaseMs).toBe(1500);
+    expect(status.timing.reconnectMaxMs).toBe(30000);
+    expect(status.timing.staleConnectionMs).toBe(15000);
+    expect(status.timing.staleCheckIntervalMs).toBe(5000);
     expect(status.config.gatewayUrl).toBeNull();
     expect(status.config.gatewayToken).toBe(false);
     expect(status.preferences).toBeNull();
@@ -65,6 +69,10 @@ describe('resolveStatusConfig', () => {
         MOLT_MASCOT_ERROR_HOLD_MS: '3000',
         MOLT_MASCOT_MIN_PROTOCOL: '1',
         MOLT_MASCOT_MAX_PROTOCOL: '5',
+        MOLT_MASCOT_RECONNECT_BASE_MS: '500',
+        MOLT_MASCOT_RECONNECT_MAX_MS: '10000',
+        MOLT_MASCOT_STALE_CONNECTION_MS: '8000',
+        MOLT_MASCOT_STALE_CHECK_INTERVAL_MS: '2000',
       },
     }));
     expect(status.config.alignment).toBe('top-left');
@@ -79,6 +87,10 @@ describe('resolveStatusConfig', () => {
     expect(status.timing.sleepThresholdS).toBe(60);
     expect(status.timing.idleDelayMs).toBe(500);
     expect(status.timing.errorHoldMs).toBe(3000);
+    expect(status.timing.reconnectBaseMs).toBe(500);
+    expect(status.timing.reconnectMaxMs).toBe(10000);
+    expect(status.timing.staleConnectionMs).toBe(8000);
+    expect(status.timing.staleCheckIntervalMs).toBe(2000);
     expect(status.config.minProtocol).toBe(1);
     expect(status.config.maxProtocol).toBe(5);
   });
@@ -293,6 +305,10 @@ describe('formatStatusText', () => {
     expect(text).toContain('Start hidden:   false');
     expect(text).toContain('Debug:          false');
     expect(text).toContain('Disable GPU:    false');
+    expect(text).toContain('Reconnect base:       1500ms');
+    expect(text).toContain('Reconnect max:        30000ms');
+    expect(text).toContain('Stale connection:     15000ms');
+    expect(text).toContain('Stale check interval: 5000ms');
     expect(text).toContain('Runtime:');
     expect(text).toContain('PID:       12345');
     expect(text).toContain('Platform:  darwin arm64');
