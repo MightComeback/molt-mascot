@@ -103,12 +103,21 @@ const compact = args.has("--compact");
 function formatWatchSummary(state: Record<string, any>): string {
   const parts: string[] = [];
   const mode = state.mode || "unknown";
-  const emoji = (MODE_EMOJI as Record<string, string>)[mode] || "";
-  parts.push(`${emoji} ${mode}`.trim());
+
+  // Detect sleeping state: idle beyond the sleep threshold (default 120s),
+  // matching the desktop app's pill-label, context-menu, and tray tooltip behavior.
+  const modeDurationMs = typeof state.since === "number" && state.since > 0
+    ? Math.max(0, Date.now() - state.since)
+    : 0;
+  const DEFAULT_SLEEP_THRESHOLD_MS = 120_000;
+  const isSleeping = mode === "idle" && modeDurationMs > DEFAULT_SLEEP_THRESHOLD_MS;
+  const displayMode = isSleeping ? "sleeping" : mode;
+  const emoji = (MODE_EMOJI as Record<string, string>)[displayMode] || (MODE_EMOJI as Record<string, string>)[mode] || "";
+  parts.push(`${emoji} ${displayMode}`.trim());
 
   // Show how long the mascot has been in the current mode (useful for spotting stuck states).
-  if (typeof state.since === "number" && state.since > 0) {
-    const modeSec = Math.round((Date.now() - state.since) / 1000);
+  if (modeDurationMs > 0) {
+    const modeSec = Math.round(modeDurationMs / 1000);
     if (modeSec > 0) parts.push(formatDuration(modeSec));
   }
 
