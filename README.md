@@ -184,6 +184,16 @@ GATEWAY_URL=ws://127.0.0.1:18789 GATEWAY_TOKEN=... bun run ws:dump --once
 # (or env: GATEWAY_ONCE_TIMEOUT_MS)
 ```
 
+Quick diagnostics (all accept `GATEWAY_URL` / `GATEWAY_TOKEN` env vars):
+
+```bash
+bun run ws:health   # Health check (exit 0=healthy, 1=degraded/unhealthy, 2=failed)
+bun run ws:ping     # Measure plugin state round-trip latency (5 pings)
+bun run ws:state    # Print current plugin state and exit
+bun run ws:reset    # Reset plugin state (clear error/counters) and exit
+bun run ws:watch    # Continuously poll plugin state; print only on change
+```
+
 Regenerate screenshots:
 
 ```bash
