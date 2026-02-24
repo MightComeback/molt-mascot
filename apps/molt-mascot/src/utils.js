@@ -270,6 +270,16 @@ export function buildTooltip(params) {
     }
     tip += ` · ${latencyPart}`;
   }
+  // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections
+  // before the stale-check timer (15s) triggers a reconnect. Below 5s the latency
+  // line already conveys liveness, so we avoid tooltip clutter.
+  // Parity with tray tooltip's lastMessageAt indicator.
+  if (typeof lastMessageAt === 'number' && lastMessageAt > 0 && isConnected) {
+    const gapMs = now - lastMessageAt;
+    if (gapMs >= 5000) {
+      tip += ` · last msg ${formatElapsed(lastMessageAt, now)} ago`;
+    }
+  }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
   if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
   if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;

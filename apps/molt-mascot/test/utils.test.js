@@ -799,6 +799,41 @@ describe("buildTooltip", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyTrend: "rising" });
     expect(tip).not.toContain("↑");
   });
+
+  it("shows last msg indicator when gap exceeds 5s while connected", () => {
+    const now = 1700000010000;
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 60,
+      connectedSince: now - 60000,
+      lastMessageAt: now - 8000,
+      now,
+    });
+    expect(tip).toContain("last msg");
+  });
+
+  it("omits last msg indicator when gap is under 5s", () => {
+    const now = 1700000010000;
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 60,
+      connectedSince: now - 60000,
+      lastMessageAt: now - 3000,
+      now,
+    });
+    expect(tip).not.toContain("last msg");
+  });
+
+  it("omits last msg indicator when not connected", () => {
+    const now = 1700000010000;
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 10,
+      lastMessageAt: now - 8000,
+      now,
+    });
+    expect(tip).not.toContain("last msg");
+  });
 });
 
 describe("normalizeWsUrl", () => {
