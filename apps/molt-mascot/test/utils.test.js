@@ -769,6 +769,36 @@ describe("buildTooltip", () => {
     expect(tip2).not.toContain("degraded");
     expect(tip2).not.toContain("unhealthy");
   });
+
+  it("shows rising latency trend arrow", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "rising" });
+    expect(tip).toContain("↑");
+  });
+
+  it("shows falling latency trend arrow", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "falling" });
+    expect(tip).toContain("↓");
+  });
+
+  it("omits trend arrow when stable", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "stable" });
+    expect(tip).not.toContain("↑");
+    expect(tip).not.toContain("↓");
+  });
+
+  it("omits trend arrow when latencyTrend is null or not provided", () => {
+    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: null });
+    expect(tip1).not.toContain("↑");
+    expect(tip1).not.toContain("↓");
+    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50 });
+    expect(tip2).not.toContain("↑");
+    expect(tip2).not.toContain("↓");
+  });
+
+  it("omits trend arrow when latencyMs is not provided", () => {
+    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyTrend: "rising" });
+    expect(tip).not.toContain("↑");
+  });
 });
 
 describe("normalizeWsUrl", () => {

@@ -185,6 +185,7 @@ export function getReconnectDelayMs(attempt, opts = {}) {
  * @param {number|null} [params.lastMessageAt] - Epoch ms of last WS message received (used for stale-connection health reason diagnostics)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown as a prefix emoji when degraded/unhealthy)
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100), used for health reason diagnostics
+ * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (shown as ↑/↓ arrow when non-stable for proactive diagnostics)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for testability)
  * @returns {string}
  */
@@ -220,6 +221,7 @@ export function buildTooltip(params) {
     lastMessageAt,
     healthStatus,
     connectionSuccessRate,
+    latencyTrend,
     now: nowOverride,
   } = params;
 
@@ -260,7 +262,12 @@ export function buildTooltip(params) {
     tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
   }
   if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    const { text: latencyPart } = formatQualitySummary(latencyMs, latencyStats, { emoji: false });
+    let latencyPart = formatQualitySummary(latencyMs, latencyStats, { emoji: false }).text;
+    // Append trend indicator when latency is actively rising or falling.
+    // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
+    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
+      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+    }
     tip += ` · ${latencyPart}`;
   }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
