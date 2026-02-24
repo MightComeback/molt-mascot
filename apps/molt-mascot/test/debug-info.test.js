@@ -842,4 +842,20 @@ describe("dragPosition", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: "bad", y: 10 } });
     expect(info).not.toContain("Drag position");
   });
+
+  it("shows sprite cache diagnostics when provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, spriteCache: { size: 14, hitRate: 97 } });
+    expect(info).toContain("Sprite cache: 14 entries, 97% hit");
+  });
+
+  it("shows sprite cache without hit rate when null", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, spriteCache: { size: 0, hitRate: null } });
+    expect(info).toContain("Sprite cache: 0 entries");
+    expect(info).not.toContain("% hit");
+  });
+
+  it("omits sprite cache when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS });
+    expect(info).not.toContain("Sprite cache");
+  });
 });

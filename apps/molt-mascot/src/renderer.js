@@ -1339,6 +1339,7 @@ function buildDebugInfo() {
     lastResetAt: pluginLastResetAt,
     pid: window.moltMascot?.pid,
     healthStatus: currentHealthStatus(),
+    spriteCache: _spriteCache.getSnapshot(),
   });
 }
 

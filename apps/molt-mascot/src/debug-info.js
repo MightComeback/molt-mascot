@@ -66,6 +66,7 @@
  * @param {number} [params.maxProtocol] - Maximum supported gateway protocol version
  * @param {{ x: number, y: number }|null} [params.dragPosition] - User-dragged window position (shown when the mascot was manually repositioned, helping diagnose "why is it here?")
  * @param {number|null} [params.processStartedAt] - Epoch ms when the Electron process started (shown alongside uptime for absolute reference)
+ * @param {{ size: number, hitRate: number|null }} [params.spriteCache] - Sprite cache diagnostics (entries + hit rate)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Multi-line debug info
  */
@@ -140,6 +141,7 @@ export function buildDebugInfo(params) {
     maxProtocol,
     dragPosition,
     processStartedAt,
+    spriteCache,
     now: nowOverride,
   } = params;
 
@@ -248,6 +250,10 @@ export function buildDebugInfo(params) {
   const totalFramesLabel = typeof totalFrames === 'number' ? `, ${formatCount(totalFrames)} total` : '';
   const worstDeltaLabel = typeof worstFrameDeltaMs === 'number' && worstFrameDeltaMs > 0 ? `, worst ${Math.round(worstFrameDeltaMs)}ms` : '';
   lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${reducedMotion ? ' (reduced)' : ''}`);
+  if (spriteCache && typeof spriteCache.size === 'number') {
+    const hitRateStr = typeof spriteCache.hitRate === 'number' ? `, ${spriteCache.hitRate}% hit` : '';
+    lines.push(`Sprite cache: ${spriteCache.size} entries${hitRateStr}`);
+  }
   const platformStr = [platform || 'unknown', arch].filter(Boolean).join(' ');
   lines.push(`Platform: ${platformStr}`);
   const dpr = devicePixelRatio ?? 1;
