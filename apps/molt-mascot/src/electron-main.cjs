@@ -1020,7 +1020,7 @@ app.whenReady().then(async () => {
       cancelId: 1,
       title: 'Reset Preferences',
       message: 'Reset all preferences to defaults?',
-      detail: 'This clears saved alignment, size, opacity, ghost mode, and gateway URL. The app will restart.',
+      detail: 'This clears all saved preferences (alignment, size, opacity, padding, ghost mode, hide text, reduced motion, gateway URL, and window position). The app will restart.',
     }).then(({ response }) => {
       if (response === 0) {
         _prefs.clear();
