@@ -1578,6 +1578,10 @@ describe("connectionUptimePercent", () => {
     expect(result).toBe(80);
   });
 
+  it("returns null when firstConnectedAt is in the future (clock skew)", () => {
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: 200000, now: 101000 })).toBeNull();
+  });
+
   it("caps at 100% even if firstConnectedAt is before process start", () => {
     const result = connectionUptimePercent({
       processUptimeS: 10,

@@ -604,6 +604,8 @@ export function connectionUptimePercent({ processUptimeS, firstConnectedAt, conn
   if (typeof now !== 'number' || !Number.isFinite(now)) return null;
 
   const timeSinceFirstConnect = now - firstConnectedAt;
+  // Clock skew guard: if firstConnectedAt is in the future, we can't compute a meaningful percentage.
+  if (timeSinceFirstConnect < 0) return null;
   const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
   const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
   return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
