@@ -70,7 +70,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, memoryPressureEmoji, formatMemorySummary } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, formatMemorySummary } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
