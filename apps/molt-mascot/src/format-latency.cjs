@@ -358,4 +358,33 @@ function computeConnectionSuccessRate(connects, attempts) {
   return Math.round((clamped / attempts) * 100);
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate };
+/**
+ * Approximate connection uptime as a percentage of total process lifetime.
+ * Single source of truth — previously duplicated in utils.js (ESM) and
+ * inline in electron-main.cjs. Now both import from here.
+ *
+ * Returns null when insufficient data is available (no first connection,
+ * or process uptime is zero/negative).
+ *
+ * @param {object} params
+ * @param {number} params.processUptimeS - Process uptime in seconds
+ * @param {number|null} params.firstConnectedAt - Epoch ms of first successful handshake
+ * @param {number|null} params.connectedSince - Epoch ms of current connection (null if disconnected)
+ * @param {number|null} params.lastDisconnectedAt - Epoch ms of last disconnect
+ * @param {number} params.now - Current timestamp in epoch ms
+ * @returns {number|null} Integer percentage (0-100), or null if not computable
+ */
+function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now }) {
+  if (typeof processUptimeS !== 'number' || processUptimeS <= 0) return null;
+  if (typeof firstConnectedAt !== 'number' || firstConnectedAt <= 0) return null;
+  if (typeof now !== 'number' || !Number.isFinite(now)) return null;
+
+  const timeSinceFirstConnect = now - firstConnectedAt;
+  // Clock skew guard: if firstConnectedAt is in the future, we can't compute a meaningful percentage.
+  if (timeSinceFirstConnect < 0) return null;
+  const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
+  const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
+  return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
+}
+
+module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent };

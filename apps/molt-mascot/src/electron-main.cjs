@@ -6,6 +6,7 @@ const { isTruthyEnv, parseBooleanEnv } = require('./is-truthy-env.cjs');
 const { REPO_URL } = require('./env-keys.cjs');
 const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
 const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
+const { connectionUptimePercent: _connectionUptimePercent } = require('./format-latency.cjs');
 const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, VALID_SIZES } = require('./size-presets.cjs');
 const { formatDuration } = require('@molt/mascot-plugin');
 
@@ -801,16 +802,14 @@ app.whenReady().then(async () => {
       uptimeStr = formatDuration(Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000)));
     }
     // Compute connection uptime percentage from process lifetime.
-    const _uptimePct = (() => {
-      if (firstConnectedMs === null) return null;
-      const now = Date.now();
-      const totalMs = process.uptime() * 1000;
-      if (totalMs <= 0) return null;
-      const currentGap = connectedSinceMs ? 0 : (now - (firstConnectedMs || now));
-      const sinceFc = now - firstConnectedMs;
-      const approx = Math.max(0, sinceFc - currentGap);
-      return Math.min(100, Math.round((approx / totalMs) * 100));
-    })();
+    // Delegates to the canonical implementation in format-latency.cjs (single source of truth).
+    const _uptimePct = _connectionUptimePercent({
+      processUptimeS: process.uptime(),
+      firstConnectedAt: firstConnectedMs,
+      connectedSince: connectedSinceMs,
+      lastDisconnectedAt: lastDisconnectedMs,
+      now: Date.now(),
+    });
     tray.setToolTip(buildTrayTooltip({
       appVersion: APP_VERSION,
       mode: trayShowsSleeping ? 'sleeping' : (currentRendererMode || 'idle'),
@@ -1029,6 +1028,8 @@ app.whenReady().then(async () => {
   let connectedSinceMs = null;
   // Timestamp of the very first successful handshake (for connection uptime % calculation).
   let firstConnectedMs = null;
+  // Timestamp of the most recent disconnect (for connection uptime % calculation).
+  let lastDisconnectedMs = null;
 
   // Track latest plugin state poll latency and active tool for tray tooltip.
   let currentLatencyMs = null;
@@ -1120,6 +1121,7 @@ app.whenReady().then(async () => {
         currentCloseDetail = null;
         currentReconnectAttempt = 0;
       } else if (p.mode === 'disconnected' || p.mode === 'connecting') {
+        if (connectedSinceMs !== null) lastDisconnectedMs = Date.now();
         connectedSinceMs = null;
         currentLatencyMs = null;
         currentLatencyTrend = null;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate } from '../src/format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, VALID_HEALTH_STATUSES, isValidHealth, healthStatusEmoji, computeHealthReasons, computeHealthStatus, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent } from '../src/format-latency.cjs';
 
 describe('formatLatency (canonical source)', () => {
   it('sub-millisecond returns "< 1ms"', () => {
@@ -642,5 +642,61 @@ describe('computeConnectionSuccessRate', () => {
 
   it('handles zero connects', () => {
     expect(computeConnectionSuccessRate(0, 10)).toBe(0);
+  });
+});
+
+describe('connectionUptimePercent', () => {
+  const base = {
+    processUptimeS: 100,
+    firstConnectedAt: 1000,
+    connectedSince: 1000,
+    lastDisconnectedAt: null,
+    now: 101000, // 100s after start
+  };
+
+  it('returns ~100% when connected the whole time', () => {
+    expect(connectionUptimePercent(base)).toBe(100);
+  });
+
+  it('returns null when processUptimeS is 0 or negative', () => {
+    expect(connectionUptimePercent({ ...base, processUptimeS: 0 })).toBeNull();
+    expect(connectionUptimePercent({ ...base, processUptimeS: -1 })).toBeNull();
+  });
+
+  it('returns null when firstConnectedAt is missing', () => {
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: null })).toBeNull();
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: 0 })).toBeNull();
+  });
+
+  it('returns null when now is not finite', () => {
+    expect(connectionUptimePercent({ ...base, now: NaN })).toBeNull();
+    expect(connectionUptimePercent({ ...base, now: Infinity })).toBeNull();
+  });
+
+  it('returns null when firstConnectedAt is in the future (clock skew)', () => {
+    expect(connectionUptimePercent({ ...base, firstConnectedAt: 200000, now: 101000 })).toBeNull();
+  });
+
+  it('accounts for disconnect gap when currently disconnected', () => {
+    const pct = connectionUptimePercent({
+      processUptimeS: 100,
+      firstConnectedAt: 1000,
+      connectedSince: null, // disconnected
+      lastDisconnectedAt: 51000, // disconnected 50s ago
+      now: 101000,
+    });
+    // Connected from 1000→51000 (50s), disconnected 50s. ~50% of 100s uptime.
+    expect(pct).toBe(50);
+  });
+
+  it('caps at 100%', () => {
+    // firstConnectedAt far before processUptimeS would suggest
+    expect(connectionUptimePercent({
+      processUptimeS: 10,
+      firstConnectedAt: 1000,
+      connectedSince: 1000,
+      lastDisconnectedAt: null,
+      now: 101000,
+    })).toBe(100);
   });
 });

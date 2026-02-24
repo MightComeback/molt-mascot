@@ -17,7 +17,7 @@ export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, s
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate as _computeConnectionSuccessRate } from './format-latency.cjs';
+import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, formatHealthSummary as _formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate as _computeConnectionSuccessRate, connectionUptimePercent as _connectionUptimePercent } from './format-latency.cjs';
 export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth, formatActiveSummary, formatProtocolRange };
 
 /**
@@ -589,11 +589,8 @@ export const formatHealthSummary = _formatHealthSummary;
 
 /**
  * Approximate connection uptime as a percentage of total process lifetime.
- * Extracts the inline computation from buildDebugInfo into a reusable,
- * testable utility for use across debug info, tray tooltip, and diagnostics.
- *
- * Returns null when insufficient data is available (no first connection,
- * or process uptime is zero/negative).
+ * Delegates to the canonical implementation in format-latency.cjs (single source of truth).
+ * Re-exported here for ESM consumers (renderer, debug-info, pill tooltip).
  *
  * @param {object} params
  * @param {number} params.processUptimeS - Process uptime in seconds
@@ -603,18 +600,7 @@ export const formatHealthSummary = _formatHealthSummary;
  * @param {number} params.now - Current timestamp in epoch ms
  * @returns {number|null} Integer percentage (0-100), or null if not computable
  */
-export function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now }) {
-  if (typeof processUptimeS !== 'number' || processUptimeS <= 0) return null;
-  if (typeof firstConnectedAt !== 'number' || firstConnectedAt <= 0) return null;
-  if (typeof now !== 'number' || !Number.isFinite(now)) return null;
-
-  const timeSinceFirstConnect = now - firstConnectedAt;
-  // Clock skew guard: if firstConnectedAt is in the future, we can't compute a meaningful percentage.
-  if (timeSinceFirstConnect < 0) return null;
-  const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
-  const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
-  return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
-}
+export const connectionUptimePercent = _connectionUptimePercent;
 
 /**
  * Compute the connection success rate as an integer percentage (0-100).
