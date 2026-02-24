@@ -197,6 +197,7 @@ if (hasBoolFlag('--status')) {
     isTruthyEnv,
     hasBoolFlag,
     uptimeSeconds: Math.round(process.uptime()),
+    startedAt: Date.now() - Math.round(process.uptime()) * 1000,
   });
 
   if (hasBoolFlag('--json')) {
