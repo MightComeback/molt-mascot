@@ -160,6 +160,7 @@ Options:
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
   --no-shortcuts         Disable global keyboard shortcuts (use tray/context menu instead)
   --status --json        Print resolved config as JSON (for scripting/CI)
+  --capture-dir <path>   Screenshot capture directory (dev/CI asset generation)
 ```
 
 ## Project Structure

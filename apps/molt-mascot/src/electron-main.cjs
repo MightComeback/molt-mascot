@@ -270,6 +270,7 @@ Options:
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
   --list-prefs           Print saved preferences and exit
+  --capture-dir <path>   Screenshot capture directory (dev/CI only)
   --status               Print resolved config summary and exit
   --status --json        Print resolved config as JSON and exit
 
