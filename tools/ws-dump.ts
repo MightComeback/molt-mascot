@@ -350,10 +350,20 @@ ws.addEventListener("message", (ev) => {
         }));
         return;
       }
-      // No plugin — still report health based on connection alone
-      const result = { status: "healthy" as const, latencyMs: null, plugin: false };
+      // No plugin — still report health based on connection alone.
+      // Use the probe RTT so high-latency connections still surface as degraded.
+      const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
+      const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
+      const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
+      const result = {
+        status,
+        latencyMs: rtt,
+        plugin: false,
+        ...(reasons.length > 0 ? { reasons } : {}),
+      };
       console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
       try { ws.close(); } catch {}
+      process.exitCode = status === "healthy" ? 0 : 1;
       return;
     }
 
