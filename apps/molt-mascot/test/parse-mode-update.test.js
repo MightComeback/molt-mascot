@@ -479,6 +479,23 @@ describe('parse-mode-update', () => {
       expect(str).not.toContain('↓');
     });
 
+    it('includes reconnect count when sessionConnectCount > 1', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', sessionConnectCount: 4 });
+      expect(formatModeUpdate(parsed)).toContain('↻3');
+    });
+
+    it('includes failed attempts alongside reconnect count', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', sessionConnectCount: 3, sessionAttemptCount: 7 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain('↻2');
+      expect(str).toContain('4 failed');
+    });
+
+    it('omits reconnect count when sessionConnectCount is 1', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', sessionConnectCount: 1 });
+      expect(formatModeUpdate(parsed)).not.toContain('↻');
+    });
+
     it('formats a full update compactly', () => {
       const parsed = parseModeUpdate({
         mode: 'tool',

@@ -205,6 +205,12 @@ function formatModeUpdate(parsed) {
     parts.push(`${parsed.toolCalls}calls${errStr}`);
   }
   if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0) parts.push(`retry #${parsed.reconnectAttempt}`);
+  if (parsed.sessionConnectCount !== null && parsed.sessionConnectCount > 1) {
+    const failedStr = (parsed.sessionAttemptCount !== null && parsed.sessionAttemptCount > parsed.sessionConnectCount)
+      ? `, ${parsed.sessionAttemptCount - parsed.sessionConnectCount} failed`
+      : '';
+    parts.push(`↻${parsed.sessionConnectCount - 1}${failedStr}`);
+  }
   if (parsed.closeDetail) parts.push(`close="${parsed.closeDetail}"`);
   if (parsed.targetUrl) parts.push(`→ ${parsed.targetUrl}`);
   if (parsed.connectionSuccessRate !== null && parsed.connectionSuccessRate < 100) parts.push(`${parsed.connectionSuccessRate}% ok`);
