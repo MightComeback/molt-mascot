@@ -23,7 +23,7 @@ Connect to an OpenClaw Gateway WebSocket and print all frames as JSON.
 
 Options:
   --once, --exit          Exit after receiving hello-ok
-  --state                 Print plugin state and exit (shortcut for quick checks)
+  --state                 Print plugin state and exit (includes round-trip latency)
   --watch                 Continuously poll plugin state; print only on change
   --reset                 Reset plugin state and exit (clears error/tool/counters)
   --timeout-ms=<ms>       Timeout for --once/--state/--reset mode (default: 5000)
@@ -315,6 +315,7 @@ ws.addEventListener("message", (ev) => {
         }, watchPollMs);
       } else if (stateMode) {
         stateReqId = nextId("s");
+        pingSentAt = performance.now();
         ws.send(JSON.stringify({
           type: "req", id: stateReqId,
           method: PLUGIN_STATE_METHODS[stateMethodIndex],
@@ -547,13 +548,22 @@ ws.addEventListener("message", (ev) => {
     // --state mode: handle plugin state response
     if (stateMode && msg.type === "res" && msg.id === stateReqId) {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
-        console.log(compact ? JSON.stringify(msg.payload.state) : JSON.stringify(msg.payload.state, null, 2));
+        // Include round-trip latency in the output for quick diagnostics
+        // (parity with --health and --watch modes which already report RTT).
+        const rtt = pingSentAt > 0
+          ? Math.round((performance.now() - pingSentAt) * 100) / 100
+          : undefined;
+        const output = rtt !== undefined
+          ? { ...msg.payload.state, latencyMs: rtt }
+          : msg.payload.state;
+        console.log(compact ? JSON.stringify(output) : JSON.stringify(output, null, 2));
         try { ws.close(); } catch {}
         return;
       }
       if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
         stateMethodIndex++;
         stateReqId = nextId("s");
+        pingSentAt = performance.now();
         ws.send(JSON.stringify({
           type: "req", id: stateReqId,
           method: PLUGIN_STATE_METHODS[stateMethodIndex],
