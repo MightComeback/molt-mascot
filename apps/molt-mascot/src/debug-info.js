@@ -70,7 +70,7 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure } from './utils.js';
+import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, memoryPressureEmoji } from './utils.js';
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -261,7 +261,7 @@ export function buildDebugInfo(params) {
     const limit = formatBytes(memory.jsHeapSizeLimit);
     const pressure = memoryPressure(memory);
     const pressureSuffix = pressure && pressure.level !== 'low'
-      ? ` — ${pressure.usedPercent}% ${pressure.level}`
+      ? ` — ${memoryPressureEmoji(pressure.level)} ${pressure.usedPercent}% ${pressure.level}`
       : pressure
         ? ` — ${pressure.usedPercent}%`
         : '';

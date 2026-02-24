@@ -613,6 +613,24 @@ export const connectionUptimePercent = _connectionUptimePercent;
 export const computeConnectionSuccessRate = _computeConnectionSuccessRate;
 
 /**
+ * Map a memory pressure level to a colored emoji for at-a-glance visual feedback.
+ * Complements healthStatusEmoji and connectionQualityEmoji with a parallel
+ * function for memory pressure diagnostics.
+ *
+ * @param {"low"|"moderate"|"high"|"critical"|string|null} level
+ * @returns {string} Emoji (🟢/🟡/🟠/🔴/⚪)
+ */
+export function memoryPressureEmoji(level) {
+  switch (level) {
+    case 'low':      return '🟢';
+    case 'moderate': return '🟡';
+    case 'high':     return '🟠';
+    case 'critical': return '🔴';
+    default:         return '⚪';
+  }
+}
+
+/**
  * Compute memory pressure from JS heap stats.
  * Returns usage percentage and a pressure level for at-a-glance diagnostics.
  *

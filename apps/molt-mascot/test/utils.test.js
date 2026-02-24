@@ -36,6 +36,7 @@ import {
   computeConnectionSuccessRate,
   isSleepingMode,
   memoryPressure,
+  memoryPressureEmoji,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1832,5 +1833,20 @@ describe("memoryPressure", () => {
     expect(result.level).toBe("low");
     expect(result.usedPercent).toBe(30);
     expect(result.totalPercent).toBe(30);
+  });
+});
+
+describe("memoryPressureEmoji", () => {
+  it("maps pressure levels to colored emojis", () => {
+    expect(memoryPressureEmoji("low")).toBe("🟢");
+    expect(memoryPressureEmoji("moderate")).toBe("🟡");
+    expect(memoryPressureEmoji("high")).toBe("🟠");
+    expect(memoryPressureEmoji("critical")).toBe("🔴");
+  });
+
+  it("returns ⚪ for null/undefined/unknown", () => {
+    expect(memoryPressureEmoji(null)).toBe("⚪");
+    expect(memoryPressureEmoji(undefined)).toBe("⚪");
+    expect(memoryPressureEmoji("unknown")).toBe("⚪");
   });
 });

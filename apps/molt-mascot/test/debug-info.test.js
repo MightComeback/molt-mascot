@@ -246,12 +246,13 @@ describe("buildDebugInfo", () => {
     expect(info).toMatch(/limit 2\.0 GB\) — \d+%$/m);
   });
 
-  it("shows memory pressure level when high", () => {
-    // 1.8 GB used of 2 GB limit = 90% → critical
+  it("shows memory pressure level with emoji when high", () => {
+    // 1.8 GB used of 2 GB limit = 90% → critical 🔴
     const info = buildDebugInfo({
       ...BASE_PARAMS,
       memory: { usedJSHeapSize: 1932735283, totalJSHeapSize: 1932735283, jsHeapSizeLimit: 2147483648 },
     });
+    expect(info).toContain("🔴");
     expect(info).toContain("critical");
   });
 
