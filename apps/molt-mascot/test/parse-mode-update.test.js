@@ -346,6 +346,26 @@ describe('parse-mode-update', () => {
       expect(formatModeUpdate(parsed)).not.toContain('healthy');
     });
 
+    it('includes closeDetail when present', () => {
+      const parsed = parseModeUpdate({ mode: 'disconnected', closeDetail: 'abnormal closure (1006)' });
+      expect(formatModeUpdate(parsed)).toContain('close="abnormal closure (1006)"');
+    });
+
+    it('includes targetUrl when present', () => {
+      const parsed = parseModeUpdate({ mode: 'connecting', targetUrl: 'ws://localhost:18789' });
+      expect(formatModeUpdate(parsed)).toContain('→ ws://localhost:18789');
+    });
+
+    it('includes connectionSuccessRate when below 100', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', connectionSuccessRate: 75 });
+      expect(formatModeUpdate(parsed)).toContain('75% ok');
+    });
+
+    it('omits connectionSuccessRate when 100', () => {
+      const parsed = parseModeUpdate({ mode: 'idle', connectionSuccessRate: 100 });
+      expect(formatModeUpdate(parsed)).not.toContain('% ok');
+    });
+
     it('includes plugin version', () => {
       const parsed = parseModeUpdate({ mode: 'idle', pluginVersion: '1.2.3' });
       expect(formatModeUpdate(parsed)).toContain('v1.2.3');

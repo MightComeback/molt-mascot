@@ -167,6 +167,9 @@ function formatModeUpdate(parsed) {
   if (parsed.activeAgents !== null && parsed.activeAgents > 0) parts.push(`agents=${parsed.activeAgents}`);
   if (parsed.activeTools !== null && parsed.activeTools > 0) parts.push(`tools=${parsed.activeTools}`);
   if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0) parts.push(`retry #${parsed.reconnectAttempt}`);
+  if (parsed.closeDetail) parts.push(`close="${parsed.closeDetail}"`);
+  if (parsed.targetUrl) parts.push(`→ ${parsed.targetUrl}`);
+  if (parsed.connectionSuccessRate !== null && parsed.connectionSuccessRate < 100) parts.push(`${parsed.connectionSuccessRate}% ok`);
   if (parsed.healthStatus && parsed.healthStatus !== 'healthy') {
     const emoji = parsed.healthStatus === 'degraded' ? '⚠️' : '🔴';
     parts.push(`${emoji} ${parsed.healthStatus}`);
