@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - "Reduced Motion" toggle in context menu — accessibility setting no longer requires env var or manual preference editing
+- `Cmd/Ctrl+Shift+N` keyboard shortcut for toggling reduced motion (parity with ghost mode and hide text shortcuts)
 
 ### Changed
 - `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks

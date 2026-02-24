@@ -311,6 +311,7 @@ Keyboard shortcuts (while mascot is focused):
   ${mod}+Shift+S   Snap to position
   ${mod}+Shift+Z   Cycle size preset
   ${mod}+Shift+O   Cycle opacity
+  ${mod}+Shift+N   Toggle reduced motion
   ${mod}+Shift+R   Reset state
   ${mod}+Shift+C   Force reconnect
   ${mod}+Shift+I   Copy debug info
@@ -906,6 +907,7 @@ app.whenReady().then(async () => {
         label: 'Reduced Motion',
         type: 'checkbox',
         checked: reducedMotionPref,
+        accelerator: 'CommandOrControl+Shift+N',
         click: () => actionToggleReducedMotion(),
       },
       {
@@ -981,6 +983,7 @@ app.whenReady().then(async () => {
       register('CommandOrControl+Shift+Z', actionCycleSize);
       register('CommandOrControl+Shift+O', actionCycleOpacity);
       register('CommandOrControl+Shift+C', actionForceReconnect);
+      register('CommandOrControl+Shift+N', () => actionToggleReducedMotion());
       register('CommandOrControl+Shift+D', actionToggleDevTools);
       register('CommandOrControl+Shift+P', actionCopyStatus);
       register('CommandOrControl+Shift+I', actionCopyDebugInfo);
