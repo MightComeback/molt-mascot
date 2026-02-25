@@ -24,7 +24,7 @@ import {
 } from "./utils.js";
 import * as ctxMenu from "./context-menu.js";
 import { buildContextMenuItems } from "./context-menu-items.js";
-import { buildPillLabel } from "./pill-label.js";
+import { buildPillLabel, PILL_MAX_ERROR_LEN } from "./pill-label.js";
 import { buildDebugInfo as _buildDebugInfo } from "./debug-info.js";
 import { createFpsCounter } from "./fps-counter.js";
 import { createLatencyTracker } from "./latency-tracker.js";
@@ -542,7 +542,10 @@ function setMode(mode) {
  * WebSocket errors, and global uncaught error handlers.
  */
 function showError(rawMessage, fallback = "error") {
-  const newMessage = truncate(cleanErrorString(rawMessage || fallback), 48);
+  const newMessage = truncate(
+    cleanErrorString(rawMessage || fallback),
+    PILL_MAX_ERROR_LEN,
+  );
   if (currentMode === Mode.error) {
     // Already in error mode — setMode would early-return, so manually update
     // the pill text and re-trigger the shake animation for the new error.
@@ -954,7 +957,10 @@ function connect(cfg) {
         typeof err === "string"
           ? err
           : err?.message || err?.code || "connection rejected";
-      lastErrorMessage = truncate(cleanErrorString(String(detail)), 48);
+      lastErrorMessage = truncate(
+        cleanErrorString(String(detail)),
+        PILL_MAX_ERROR_LEN,
+      );
       setMode(Mode.error);
       pill.textContent = lastErrorMessage;
       // Detach onclose before closing so the reconnect-on-close handler doesn't
