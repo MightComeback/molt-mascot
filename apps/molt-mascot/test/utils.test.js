@@ -45,7 +45,32 @@ import {
   isValidWsReadyState,
   isValidCloseCode,
   CLOSE_REASON_MAX_LEN,
+  formatPercent,
 } from "../src/utils.js";
+
+describe("formatPercent (re-exported from plugin)", () => {
+  it("formats integer percentages", () => {
+    expect(formatPercent(95)).toBe("95%");
+    expect(formatPercent(0)).toBe("0%");
+    expect(formatPercent(100)).toBe("100%");
+  });
+
+  it("rounds fractional values", () => {
+    expect(formatPercent(66.7)).toBe("67%");
+  });
+
+  it("returns dash for null/undefined/non-finite", () => {
+    expect(formatPercent(null)).toBe("–");
+    expect(formatPercent(undefined)).toBe("–");
+    expect(formatPercent(NaN)).toBe("–");
+    expect(formatPercent(Infinity)).toBe("–");
+  });
+
+  it("composes with successRate", () => {
+    expect(formatPercent(successRate(10, 2))).toBe("80%");
+    expect(formatPercent(successRate(0, 0))).toBe("–");
+  });
+});
 
 describe("capitalize", () => {
   it("capitalizes the first character", () => {
