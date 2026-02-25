@@ -43,7 +43,8 @@ if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
 // CLI flags for appearance customization (override env vars).
 // Uses parseStringArg with allowed-values validation for --align and --size,
 // consolidating the manual parseCliArg + isValid pattern into a single call.
-const { VALID_ALIGNMENTS, isValidOpacity, isValidPadding } = require('./get-position.cjs');
+const { VALID_ALIGNMENTS, isValidPadding } = require('./get-position.cjs');
+const { isValidOpacity } = require('./opacity-presets.cjs');
 {
   const raw = parseCliArg('--align');
   const cliAlign = parseStringArg('--align', null, { allowed: VALID_ALIGNMENTS });

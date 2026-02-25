@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidOpacity, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment } = require("../src/get-position.cjs");
+const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment } = require("../src/get-position.cjs");
+const { isValidOpacity } = require("../src/opacity-presets.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
 const W = 240;
