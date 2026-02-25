@@ -5,6 +5,8 @@ import {
   TRAY_SPRITE,
   TRAY_COLORS,
   STATUS_DOT_COLORS,
+  VALID_STATUS_DOT_MODES,
+  isValidStatusDotMode,
 } from "../src/tray-icon.cjs";
 import { formatLatency } from "../src/format-latency.cjs";
 
@@ -1099,6 +1101,53 @@ describe("tray-icon", () => {
       expect(formatLatency(null)).toBe("–");
       expect(formatLatency(undefined)).toBe("–");
       expect(formatLatency("42")).toBe("–");
+    });
+  });
+
+  describe("VALID_STATUS_DOT_MODES", () => {
+    it("matches STATUS_DOT_COLORS keys", () => {
+      expect(VALID_STATUS_DOT_MODES).toEqual(Object.keys(STATUS_DOT_COLORS));
+    });
+
+    it("is frozen", () => {
+      expect(Object.isFrozen(VALID_STATUS_DOT_MODES)).toBe(true);
+    });
+
+    it("includes all expected modes", () => {
+      for (const mode of [
+        "idle",
+        "thinking",
+        "tool",
+        "error",
+        "connecting",
+        "connected",
+        "disconnected",
+        "sleeping",
+      ]) {
+        expect(VALID_STATUS_DOT_MODES).toContain(mode);
+      }
+    });
+  });
+
+  describe("isValidStatusDotMode", () => {
+    it("returns true for all valid status dot modes", () => {
+      for (const mode of VALID_STATUS_DOT_MODES) {
+        expect(isValidStatusDotMode(mode)).toBe(true);
+      }
+    });
+
+    it("returns false for unknown strings", () => {
+      expect(isValidStatusDotMode("unknown")).toBe(false);
+      expect(isValidStatusDotMode("IDLE")).toBe(false);
+      expect(isValidStatusDotMode("")).toBe(false);
+    });
+
+    it("returns false for non-string values", () => {
+      expect(isValidStatusDotMode(null)).toBe(false);
+      expect(isValidStatusDotMode(undefined)).toBe(false);
+      expect(isValidStatusDotMode(42)).toBe(false);
+      expect(isValidStatusDotMode(true)).toBe(false);
+      expect(isValidStatusDotMode({})).toBe(false);
     });
   });
 });

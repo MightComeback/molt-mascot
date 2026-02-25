@@ -71,6 +71,28 @@ const STATUS_DOT_COLORS = Object.freeze({
 });
 
 /**
+ * Canonical list of valid status dot mode strings.
+ * Derived from STATUS_DOT_COLORS keys — single source of truth for runtime validation.
+ * Mirrors VALID_MODES, VALID_OVERLAY_MODES, VALID_HEALTH_STATUSES, etc.
+ */
+const VALID_STATUS_DOT_MODES = Object.freeze(Object.keys(STATUS_DOT_COLORS));
+
+/** @internal O(1) lookup set for isValidStatusDotMode(). */
+const _validStatusDotModesSet = new Set(VALID_STATUS_DOT_MODES);
+
+/**
+ * Check whether a string is a recognized status dot mode (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidHealth,
+ * isValidOverlayMode, isValidWsReadyState, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidStatusDotMode(value) {
+  return typeof value === "string" && _validStatusDotModesSet.has(value);
+}
+
+/**
  * Render the tray sprite at the given integer scale.
  * @param {number} scale - Integer multiplier (1 = 16px, 2 = 32px, etc.)
  * @param {{ mode?: string }} [opts] - Optional mode for status dot overlay
@@ -427,4 +449,6 @@ module.exports = {
   TRAY_SPRITE,
   TRAY_COLORS,
   STATUS_DOT_COLORS,
+  VALID_STATUS_DOT_MODES,
+  isValidStatusDotMode,
 };
