@@ -70,6 +70,9 @@ bun run --cwd apps/molt-mascot capture
 # Run all CI checks (lint + format + typecheck + test)
 bun run check
 
+# Install git pre-push hook (runs `bun run check` before each push)
+bun run setup:hooks
+
 # Verify formatting without modifying files
 bun run format:check
 ```

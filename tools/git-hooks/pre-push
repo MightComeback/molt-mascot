@@ -1,0 +1,9 @@
+#!/bin/sh
+# Pre-push hook: runs lint + format check + typecheck + tests before pushing.
+# Install with: bun run setup:hooks
+
+set -e
+
+echo "🦞 Pre-push check: lint + format + typecheck + test..."
+bun run check
+echo "✅ All checks passed."
