@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `--set-pref key=value` CLI flag — set individual preferences from the command line with schema validation (e.g. `molt-mascot --set-pref alignment=top-left`)
+- `--unset-pref key` CLI flag — remove a single preference to revert it to the default (e.g. `molt-mascot --unset-pref opacity`)
+
 ### Fixed
 - Pill CSS animations (pulse, sleep breathing, connected pop, error shake) now freeze when reduced motion is enabled via the app toggle (`Cmd/Ctrl+Shift+N`), not just the OS `prefers-reduced-motion` setting — also suppresses context menu appear animation
 

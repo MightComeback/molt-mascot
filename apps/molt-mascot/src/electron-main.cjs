@@ -198,6 +198,83 @@ if (hasBoolFlag('--list-prefs')) {
   process.exit(0);
 }
 
+// CLI flags: --set-pref key=value sets a single preference and exits.
+// Validates through PREF_SCHEMA so invalid keys/values are rejected.
+// Useful for scripting: `molt-mascot --set-pref alignment=top-left`
+{
+  const setPrefRaw = parseCliArg('--set-pref');
+  if (setPrefRaw !== null) {
+    const eqIdx = setPrefRaw.indexOf('=');
+    if (eqIdx < 1) {
+      process.stderr.write(`molt-mascot: --set-pref requires key=value format (got "${setPrefRaw}")\n`);
+      process.exit(1);
+    }
+    const key = setPrefRaw.slice(0, eqIdx).trim();
+    const rawVal = setPrefRaw.slice(eqIdx + 1);
+    const { PREF_SCHEMA } = require('./prefs.cjs');
+    const schema = PREF_SCHEMA[key];
+    if (!schema) {
+      const { VALID_PREF_KEYS } = require('./prefs.cjs');
+      process.stderr.write(`molt-mascot: unknown preference "${key}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      process.exit(1);
+    }
+    // Coerce the string value to the expected type
+    let value;
+    if (schema.type === 'boolean') {
+      const lower = rawVal.trim().toLowerCase();
+      if (['true', '1', 'yes', 'on'].includes(lower)) value = true;
+      else if (['false', '0', 'no', 'off'].includes(lower)) value = false;
+      else {
+        process.stderr.write(`molt-mascot: "${key}" expects boolean (true/false), got "${rawVal}"\n`);
+        process.exit(1);
+      }
+    } else if (schema.type === 'number') {
+      value = Number(rawVal);
+      if (!Number.isFinite(value)) {
+        process.stderr.write(`molt-mascot: "${key}" expects a number, got "${rawVal}"\n`);
+        process.exit(1);
+      }
+    } else if (schema.type === 'string') {
+      value = rawVal;
+    } else if (schema.type === 'object') {
+      try { value = JSON.parse(rawVal); } catch {
+        process.stderr.write(`molt-mascot: "${key}" expects JSON object, got "${rawVal}"\n`);
+        process.exit(1);
+      }
+    } else {
+      value = rawVal;
+    }
+    // Validate through schema
+    const { clean, dropped } = validatePrefs({ [key]: value });
+    if (dropped.length > 0) {
+      process.stderr.write(`molt-mascot: invalid value for "${key}": ${dropped[0].reason}\n`);
+      process.exit(1);
+    }
+    _prefs.save(clean);
+    _prefs.flush();
+    process.stdout.write(`molt-mascot: ${key} = ${JSON.stringify(clean[key])}\n`);
+    process.exit(0);
+  }
+}
+
+// CLI flags: --unset-pref key removes a single preference (reverts to default).
+{
+  const unsetKey = parseCliArg('--unset-pref');
+  if (unsetKey !== null) {
+    const trimmed = unsetKey.trim();
+    const { PREF_SCHEMA } = require('./prefs.cjs');
+    if (!PREF_SCHEMA[trimmed]) {
+      const { VALID_PREF_KEYS } = require('./prefs.cjs');
+      process.stderr.write(`molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      process.exit(1);
+    }
+    _prefs.remove(trimmed);
+    _prefs.flush();
+    process.stdout.write(`molt-mascot: unset "${trimmed}" (reverted to default)\n`);
+    process.exit(0);
+  }
+}
+
 // CLI flags: --help-prefs prints the preference key reference and exits.
 // Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
 // users can discover available keys without reading the source.
@@ -307,6 +384,8 @@ Options:
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
+  --set-pref key=value   Set a single preference (validated) and exit
+  --unset-pref key       Remove a preference (revert to default) and exit
   --list-prefs           Print saved preferences and exit
   --list-prefs --json    Print saved preferences as JSON and exit
   --help-prefs           Print available preference keys with types and descriptions
