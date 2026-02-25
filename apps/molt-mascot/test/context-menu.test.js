@@ -617,8 +617,10 @@ describe("context-menu", () => {
     dispatch("b");
     expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
 
-    // Wait for type-ahead timeout to reset (500ms + buffer)
-    await new Promise((r) => setTimeout(r, 600));
+    // Wait for type-ahead timeout to reset (TYPE_AHEAD_TIMEOUT_MS + buffer)
+    await new Promise((r) =>
+      setTimeout(r, ctxMenu.TYPE_AHEAD_TIMEOUT_MS + 100),
+    );
 
     // Type "g" to jump to Gamma (new search, not "bg")
     dispatch("g");
@@ -902,6 +904,11 @@ describe("context-menu", () => {
     // JSON.stringify should produce the same output
     expect(JSON.stringify(ctxMenu)).toBe(JSON.stringify({ visible: true }));
     ctxMenu.dismiss();
+  });
+
+  it("TYPE_AHEAD_TIMEOUT_MS is exported and matches expected value", () => {
+    expect(ctxMenu.TYPE_AHEAD_TIMEOUT_MS).toBe(500);
+    expect(typeof ctxMenu.TYPE_AHEAD_TIMEOUT_MS).toBe("number");
   });
 
   it("toString returns human-readable summary for diagnostic logging", () => {

@@ -13,6 +13,14 @@
  * @property {boolean} [checked] - Toggle state (renders as menuitemcheckbox with aria-checked)
  */
 
+/**
+ * Multi-character type-ahead reset timeout (ms).
+ * After this duration of keyboard inactivity, the accumulated type-ahead
+ * buffer is cleared so the next keystroke starts a fresh match.
+ * 500ms matches native macOS/Windows menu type-ahead behavior.
+ */
+export const TYPE_AHEAD_TIMEOUT_MS = 500;
+
 let activeCleanup = null;
 
 /**
@@ -123,7 +131,6 @@ export function show(items, { x, y }) {
   // Resets after 500ms of inactivity (matches native macOS/Windows menu behavior).
   let typeAheadBuffer = "";
   let typeAheadTimer = null;
-  const TYPE_AHEAD_TIMEOUT_MS = 500;
 
   const interactiveIndices = menuItems
     .map((el, i) => ({ el, i }))
