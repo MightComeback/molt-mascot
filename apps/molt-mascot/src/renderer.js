@@ -100,6 +100,8 @@ const DEFAULT_ERROR_HOLD_MS = 5000;
 const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 // Duration for transient pill feedback (e.g. "Copied ✓", "Opacity 80%").
 const TRANSIENT_FEEDBACK_MS = 700;
+// How long the "Connected ✓" celebration shows before transitioning to idle mode.
+const CONNECTED_IDLE_DELAY_MS = 2000;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
 // 120s avoids false "sleeping" during normal usage pauses between queries.
 // Configurable via MOLT_MASCOT_SLEEP_THRESHOLD_S env var.
@@ -936,7 +938,7 @@ function connect(cfg) {
       modeSince = Date.now();
       // Transition to idle after the celebration
       if (idleTimer) clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => setMode(Mode.idle), 2000);
+      idleTimer = setTimeout(() => setMode(Mode.idle), CONNECTED_IDLE_DELAY_MS);
       // Optional: fetch plugin simplified state once.
       // Prefer the canonical pluginId.action name (plugin id: "@molt/mascot-plugin").
       // If missing, we'll fall back through back-compat aliases.
