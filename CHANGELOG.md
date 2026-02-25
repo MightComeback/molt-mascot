@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Exposed `copyStatus` IPC bridge in preload — `molt-mascot:copy-status` was handled in electron-main (global shortcut ⌘⇧P, tray menu) but unreachable from renderer context menu; now uses main-process clipboard API (parity with `copyDebugInfo`)
+
 ### Security
 - Added explicit `img-src 'self'` CSP directive — previously fell back to `default-src 'self'` implicitly; now explicit for auditability (parity with `font-src`, `media-src`, `worker-src` directives)
 

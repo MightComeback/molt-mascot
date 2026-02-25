@@ -1641,12 +1641,17 @@ function showContextMenu(e) {
       }
     },
     "copy-status": () => {
-      const text = pill.textContent || "";
-      if (text)
-        navigator.clipboard
-          .writeText(text)
-          .then(() => showCopiedFeedback())
-          .catch(() => {});
+      if (window.moltMascot?.copyStatus) {
+        window.moltMascot.copyStatus();
+        showCopiedFeedback();
+      } else {
+        const text = pill.textContent || "";
+        if (text)
+          navigator.clipboard
+            .writeText(text)
+            .then(() => showCopiedFeedback())
+            .catch(() => {});
+      }
     },
     "copy-debug": () => {
       if (window.moltMascot?.copyDebugInfo) {

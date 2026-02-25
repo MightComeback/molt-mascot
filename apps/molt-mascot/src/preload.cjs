@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld("moltMascot", {
   forceReconnect: send("molt-mascot:force-reconnect"),
   cycleOpacity: send("molt-mascot:cycle-opacity"),
   copyDebugInfo: send("molt-mascot:copy-debug-info"),
+  copyStatus: send("molt-mascot:copy-status"),
   resetPrefs: send("molt-mascot:reset-prefs"),
   openExternal: send("molt-mascot:open-external"),
   updateMode: send("molt-mascot:mode-update"),
