@@ -530,6 +530,61 @@ export function capitalize(str: string): string {
 }
 
 /**
+ * Sensitive query parameter names whose values should be redacted in URLs.
+ * Case-insensitive matching is applied during maskSensitiveUrl().
+ * Covers common auth patterns: gateway tokens, API keys, bearer tokens, etc.
+ */
+const SENSITIVE_PARAMS: ReadonlySet<string> = new Set([
+  "token",
+  "key",
+  "apikey",
+  "api_key",
+  "secret",
+  "password",
+  "passwd",
+  "auth",
+  "authorization",
+  "access_token",
+  "bearer",
+  "credential",
+  "credentials",
+]);
+
+/**
+ * Mask sensitive query parameters in a URL string for safe display.
+ * Replaces values of known sensitive params (token, key, secret, etc.)
+ * with "***" while preserving the URL structure for debugging.
+ *
+ * Non-URL strings and URLs without query parameters are returned as-is.
+ * Malformed URLs are returned unchanged (best-effort, no throws).
+ *
+ * @example
+ * maskSensitiveUrl("ws://host?token=abc123&mode=v2")
+ * // → "ws://host?token=***&mode=v2"
+ *
+ * @param url - The URL string to mask
+ * @returns URL with sensitive parameter values replaced by "***"
+ */
+export function maskSensitiveUrl(url: string): string {
+  if (!url || !url.includes("?")) return url;
+  try {
+    // Use regex-based approach to avoid URL constructor issues with ws:// schemes
+    // and to preserve the original URL format exactly (no re-encoding).
+    return url.replace(
+      /([?&])([^=&]+)=([^&]*)/g,
+      (_match, prefix: string, name: string, _value: string) => {
+        if (SENSITIVE_PARAMS.has(name.toLowerCase())) {
+          return `${prefix}${name}=***`;
+        }
+        return _match;
+      },
+    );
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).

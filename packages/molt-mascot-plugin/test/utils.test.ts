@@ -2201,6 +2201,60 @@ describe("utils", () => {
   });
 });
 
+describe("maskSensitiveUrl", () => {
+  const { maskSensitiveUrl } = require("../src/index");
+
+  it("masks token query parameter", () => {
+    expect(maskSensitiveUrl("ws://host?token=abc123")).toBe(
+      "ws://host?token=***",
+    );
+  });
+
+  it("masks multiple sensitive params while preserving safe ones", () => {
+    expect(maskSensitiveUrl("ws://host?token=abc&mode=v2&key=secret")).toBe(
+      "ws://host?token=***&mode=v2&key=***",
+    );
+  });
+
+  it("is case-insensitive for param names", () => {
+    expect(maskSensitiveUrl("ws://host?TOKEN=abc")).toBe("ws://host?TOKEN=***");
+    expect(maskSensitiveUrl("ws://host?Api_Key=x")).toBe(
+      "ws://host?Api_Key=***",
+    );
+  });
+
+  it("returns empty/falsy strings as-is", () => {
+    expect(maskSensitiveUrl("")).toBe("");
+    expect(maskSensitiveUrl(null as any)).toBe(null);
+    expect(maskSensitiveUrl(undefined as any)).toBe(undefined);
+  });
+
+  it("returns URLs without query params unchanged", () => {
+    expect(maskSensitiveUrl("ws://host/path")).toBe("ws://host/path");
+  });
+
+  it("preserves non-sensitive query params", () => {
+    expect(maskSensitiveUrl("ws://host?mode=v2&debug=true")).toBe(
+      "ws://host?mode=v2&debug=true",
+    );
+  });
+
+  it("masks access_token and authorization", () => {
+    expect(maskSensitiveUrl("https://api.example.com?access_token=xyz")).toBe(
+      "https://api.example.com?access_token=***",
+    );
+    expect(
+      maskSensitiveUrl("https://api.example.com?authorization=Bearer+abc"),
+    ).toBe("https://api.example.com?authorization=***");
+  });
+
+  it("handles empty param values", () => {
+    expect(maskSensitiveUrl("ws://host?token=&mode=v2")).toBe(
+      "ws://host?token=***&mode=v2",
+    );
+  });
+});
+
 describe("isContentTool", () => {
   const { isContentTool, CONTENT_TOOLS } = require("../src/index");
 
