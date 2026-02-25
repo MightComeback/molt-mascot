@@ -304,6 +304,9 @@ const PREF_SCHEMA = {
   idleDelayMs:     { type: 'number', default: 800, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
   errorHoldMs:     { type: 'number', default: 5000, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
   reducedMotion:   { type: 'boolean', default: false, description: 'Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility' },
+  pollIntervalMs:  { type: 'number', default: 1000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 100, description: 'Plugin state poll interval in ms (min 100)' },
+  reconnectBaseMs: { type: 'number', default: 1500, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Base delay in ms before reconnecting after disconnect' },
+  reconnectMaxMs:  { type: 'number', default: 30000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Maximum reconnect delay in ms (exponential backoff cap)' },
 };
 
 /**

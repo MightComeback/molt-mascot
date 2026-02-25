@@ -517,6 +517,44 @@ describe("validatePrefs", () => {
     expect(dropped.map((d) => d.key)).toContain("reducedMotion");
   });
 
+  it("accepts valid network timing prefs and rejects invalid values", () => {
+    // pollIntervalMs: valid
+    const { clean: p1 } = validatePrefs({ pollIntervalMs: 500 });
+    expect(p1.pollIntervalMs).toBe(500);
+
+    // pollIntervalMs: below minimum (100)
+    const { clean: p2, dropped: d2 } = validatePrefs({ pollIntervalMs: 50 });
+    expect(p2.pollIntervalMs).toBeUndefined();
+    expect(d2.map((d) => d.key)).toContain("pollIntervalMs");
+
+    // pollIntervalMs: non-integer
+    const { clean: p3, dropped: d3 } = validatePrefs({ pollIntervalMs: 500.5 });
+    expect(p3.pollIntervalMs).toBeUndefined();
+    expect(d3.map((d) => d.key)).toContain("pollIntervalMs");
+
+    // reconnectBaseMs: valid
+    const { clean: r1 } = validatePrefs({ reconnectBaseMs: 2000 });
+    expect(r1.reconnectBaseMs).toBe(2000);
+
+    // reconnectBaseMs: zero is valid (no delay)
+    const { clean: r2 } = validatePrefs({ reconnectBaseMs: 0 });
+    expect(r2.reconnectBaseMs).toBe(0);
+
+    // reconnectBaseMs: negative rejected
+    const { clean: r3, dropped: d4 } = validatePrefs({ reconnectBaseMs: -1 });
+    expect(r3.reconnectBaseMs).toBeUndefined();
+    expect(d4.map((d) => d.key)).toContain("reconnectBaseMs");
+
+    // reconnectMaxMs: valid
+    const { clean: m1 } = validatePrefs({ reconnectMaxMs: 60000 });
+    expect(m1.reconnectMaxMs).toBe(60000);
+
+    // reconnectMaxMs: non-integer rejected
+    const { clean: m2, dropped: d5 } = validatePrefs({ reconnectMaxMs: 1000.5 });
+    expect(m2.reconnectMaxMs).toBeUndefined();
+    expect(d5.map((d) => d.key)).toContain("reconnectMaxMs");
+  });
+
   it("accepts valid size labels and rejects invalid ones", () => {
     const { clean: good } = validatePrefs({ size: "small" });
     expect(good.size).toBe("small");
