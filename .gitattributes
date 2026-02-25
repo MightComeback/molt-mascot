@@ -31,5 +31,8 @@ bun.lockb binary
 # bun.lock is the text-based JSONC lockfile (Bun v1.2+); keep it as text with LF.
 bun.lock  text eol=lf -diff linguist-generated
 
-# Shell scripts must stay LF (POSIX)
-*.sh text eol=lf
+# Shell scripts and completions must stay LF (POSIX)
+*.sh   text eol=lf
+*.bash text eol=lf
+*.zsh  text eol=lf
+*.fish text eol=lf
