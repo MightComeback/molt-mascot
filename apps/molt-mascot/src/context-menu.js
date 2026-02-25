@@ -107,6 +107,13 @@ export function show(items, { x, y }) {
   menu.style.left = `${clampedX}px`;
   menu.style.top = `${clampedY}px`;
 
+  // Set transform-origin based on which edges the menu was clamped to,
+  // so the appear animation scales from the correct corner (e.g. bottom-right
+  // when the menu opens near the bottom-right edge of the window).
+  const originX = clampedX < x ? "right" : "left";
+  const originY = clampedY < y ? "bottom" : "top";
+  menu.style.transformOrigin = `${originY} ${originX}`;
+
   // Keyboard navigation
   const menuItems = Array.from(menu.children);
   let focusIdx = -1;

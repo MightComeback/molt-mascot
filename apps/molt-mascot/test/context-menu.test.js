@@ -405,6 +405,56 @@ describe("context-menu", () => {
     expect(top).toBeGreaterThanOrEqual(0);
   });
 
+  it("sets transform-origin to top-left when menu is not clamped", () => {
+    globalThis.innerWidth = 800;
+    globalThis.innerHeight = 600;
+    const menu = ctxMenu.show([{ label: "A", action: () => {} }], {
+      x: 50,
+      y: 50,
+    });
+    // Menu fits without clamping: origin should be top left
+    expect(menu.style.transformOrigin).toBe("top left");
+  });
+
+  it("sets transform-origin to bottom-right when menu is clamped to bottom-right", () => {
+    globalThis.innerWidth = 160;
+    globalThis.innerHeight = 100;
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 500, y: 500 },
+    );
+    // Clamped on both axes: origin should flip to bottom right
+    expect(menu.style.transformOrigin).toBe("bottom right");
+  });
+
+  it("sets transform-origin to top-right when only X is clamped", () => {
+    globalThis.innerWidth = 160;
+    globalThis.innerHeight = 600;
+    const menu = ctxMenu.show([{ label: "A", action: () => {} }], {
+      x: 500,
+      y: 50,
+    });
+    expect(menu.style.transformOrigin).toBe("top right");
+  });
+
+  it("sets transform-origin to bottom-left when only Y is clamped", () => {
+    globalThis.innerWidth = 800;
+    globalThis.innerHeight = 100;
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 50, y: 500 },
+    );
+    expect(menu.style.transformOrigin).toBe("bottom left");
+  });
+
   it("Tab key dismisses the menu", async () => {
     ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
     await new Promise((r) => setTimeout(r, 5));
