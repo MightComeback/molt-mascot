@@ -95,6 +95,7 @@ import {
   memoryPressure,
   formatMemorySummary,
 } from "./utils.js";
+import { maskSensitiveUrl } from "@molt/mascot-plugin";
 import { formatAlignment } from "./get-position.cjs";
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
@@ -203,7 +204,7 @@ export function buildDebugInfo(params) {
         `First connected: ${formatTimestampWithAge(firstConnectedAt, now)}`,
       );
     }
-    lines.push(`Gateway: ${connectedUrl}`);
+    lines.push(`Gateway: ${maskSensitiveUrl(connectedUrl)}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     // Show time since last WS message — helps diagnose stale connections before they trip the timeout.
     if (typeof lastMessageAt === "number" && lastMessageAt > 0) {
@@ -236,9 +237,9 @@ export function buildDebugInfo(params) {
     if (reconnectAttempt > 0)
       lines.push(`Reconnect attempt: ${reconnectAttempt}`);
     if (lastCloseDetail) lines.push(`Close reason: ${lastCloseDetail}`);
-    if (savedUrl) lines.push(`Saved URL: ${savedUrl}`);
+    if (savedUrl) lines.push(`Saved URL: ${maskSensitiveUrl(savedUrl)}`);
     if (typeof targetUrl === "string" && targetUrl)
-      lines.push(`Target URL: ${targetUrl}`);
+      lines.push(`Target URL: ${maskSensitiveUrl(targetUrl)}`);
   }
   if (typeof minProtocol === "number" && typeof maxProtocol === "number") {
     lines.push(`Protocol: ${formatProtocolRange(minProtocol, maxProtocol)}`);

@@ -921,6 +921,15 @@ describe("tray-icon", () => {
       expect(buildTrayTooltip({ ...base })).not.toContain("→");
     });
 
+    it("masks sensitive query parameters in target URL", () => {
+      const tip = buildTrayTooltip({
+        ...base,
+        targetUrl: "ws://host?token=secret123",
+      });
+      expect(tip).toContain("ws://host?token=***");
+      expect(tip).not.toContain("secret123");
+    });
+
     it("shows degraded health status", () => {
       const tip = buildTrayTooltip({ ...base, healthStatus: "degraded" });
       expect(tip).toContain("⚠️ degraded");

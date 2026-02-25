@@ -13,6 +13,7 @@ const {
   successRate,
   formatTimestampLocal,
   pluralize,
+  maskSensitiveUrl,
 } = require("@molt/mascot-plugin");
 const {
   formatLatency,
@@ -302,7 +303,7 @@ function buildTrayTooltip(params) {
   )
     parts.push(`retry #${reconnectAttempt}`);
   if (typeof targetUrl === "string" && targetUrl && !uptimeStr)
-    parts.push(`→ ${targetUrl}`);
+    parts.push(`→ ${maskSensitiveUrl(targetUrl)}`);
   if (typeof lastCloseDetail === "string" && lastCloseDetail)
     parts.push(`⚡ ${lastCloseDetail}`);
   if (

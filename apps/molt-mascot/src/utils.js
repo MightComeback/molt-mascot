@@ -27,6 +27,7 @@ import {
   formatTimestampWithAge,
   capitalize,
   pluralize,
+  maskSensitiveUrl,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -43,6 +44,7 @@ export {
   formatTimestampWithAge,
   capitalize,
   pluralize,
+  maskSensitiveUrl,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
@@ -340,7 +342,7 @@ export function buildTooltip(params) {
   if (isConnected) {
     tip += ` · connected ${formatElapsed(connectedSince, now)}`;
   }
-  if (connectedUrl) tip += ` · ${connectedUrl}`;
+  if (connectedUrl) tip += ` · ${maskSensitiveUrl(connectedUrl)}`;
   if (
     !isConnected &&
     typeof lastDisconnectedAt === "number" &&
@@ -352,7 +354,7 @@ export function buildTooltip(params) {
     tip += ` · retry #${reconnectAttempt}`;
   // Show target URL when disconnected to help diagnose which endpoint is failing.
   if (typeof targetUrl === "string" && targetUrl && !isConnected)
-    tip += ` · → ${targetUrl}`;
+    tip += ` · → ${maskSensitiveUrl(targetUrl)}`;
   // Show close reason when disconnected, or when connected but the connection has flapped
   // (helps diagnose why the last disconnect happened without opening debug info).
   if (

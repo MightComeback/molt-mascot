@@ -1368,6 +1368,26 @@ describe("buildTooltip", () => {
     });
     expect(tip).not.toContain("last msg");
   });
+
+  it("masks sensitive query parameters in connectedUrl", () => {
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 30,
+      connectedUrl: "ws://localhost:18789?token=secret123&mode=v2",
+    });
+    expect(tip).toContain("ws://localhost:18789?token=***&mode=v2");
+    expect(tip).not.toContain("secret123");
+  });
+
+  it("masks sensitive query parameters in targetUrl when disconnected", () => {
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 10,
+      targetUrl: "ws://host?key=mysecret",
+    });
+    expect(tip).toContain("ws://host?key=***");
+    expect(tip).not.toContain("mysecret");
+  });
 });
 
 describe("normalizeWsUrl", () => {

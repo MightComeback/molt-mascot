@@ -1171,4 +1171,27 @@ describe("allTimeLatency in debug info", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS });
     expect(info).not.toContain("Latency all-time");
   });
+
+  it("masks sensitive query parameters in gateway URLs", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: NOW - 60000,
+      connectedUrl: "ws://localhost:18789?token=secret123&mode=v2",
+      wsReadyState: 1,
+    });
+    expect(info).toContain("Gateway: ws://localhost:18789?token=***&mode=v2");
+    expect(info).not.toContain("secret123");
+  });
+
+  it("masks sensitive query parameters in saved and target URLs when disconnected", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      savedUrl: "ws://host?token=abc",
+      targetUrl: "ws://host?key=xyz",
+    });
+    expect(info).toContain("Saved URL: ws://host?token=***");
+    expect(info).toContain("Target URL: ws://host?key=***");
+    expect(info).not.toContain("abc");
+    expect(info).not.toContain("xyz");
+  });
 });
