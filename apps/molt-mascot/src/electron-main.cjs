@@ -320,6 +320,26 @@ if (hasBoolFlag('--list-prefs')) {
   }
 }
 
+// CLI flags: --completions <shell> prints the shell completion script and exits.
+// Saves users from hunting for the tools/ directory path — they can pipe directly:
+//   molt-mascot --completions bash >> ~/.bashrc
+//   molt-mascot --completions zsh >> ~/.zshrc
+//   molt-mascot --completions fish > ~/.config/fish/completions/molt-mascot.fish
+const cliCompletionsShell = parseStringArg('--completions', {
+  fallback: null,
+  allowed: ['bash', 'zsh', 'fish'],
+});
+if (cliCompletionsShell) {
+  const completionsPath = path.resolve(__dirname, '..', '..', 'tools', `completions.${cliCompletionsShell}`);
+  try {
+    process.stdout.write(fs.readFileSync(completionsPath, 'utf8'));
+  } catch (err) {
+    process.stderr.write(`molt-mascot: completions not found for ${cliCompletionsShell} (expected ${completionsPath})\n`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 // CLI flags: --help-prefs prints the preference key reference and exits.
 // Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
 // users can discover available keys without reading the source.
@@ -440,6 +460,7 @@ Options:
   --get-pref key --json  Print preference value as JSON (for scripting)
   --list-prefs           Print saved preferences and exit
   --list-prefs --json    Print saved preferences as JSON and exit
+  --completions <shell>  Print shell completions (bash, zsh, fish) to stdout
   --help-prefs           Print available preference keys with types and descriptions
   --help-prefs --json    Print preference schema as JSON (for tooling/autocomplete)
   --capture-dir <path>   Screenshot capture directory (dev/CI only)
