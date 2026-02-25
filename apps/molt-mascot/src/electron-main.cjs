@@ -275,6 +275,41 @@ if (hasBoolFlag('--list-prefs')) {
   }
 }
 
+// CLI flags: --get-pref key prints a single preference value and exits.
+// Complements --set-pref and --unset-pref for scriptable preference queries.
+// Outputs the saved value if set, or the schema default otherwise.
+{
+  const getKey = parseCliArg('--get-pref');
+  if (getKey !== null) {
+    const trimmed = getKey.trim();
+    const { PREF_SCHEMA, VALID_PREF_KEYS } = require('./prefs.cjs');
+    const schema = PREF_SCHEMA[trimmed];
+    if (!schema) {
+      process.stderr.write(`molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      process.exit(1);
+    }
+    const saved = _prefs.get(trimmed);
+    const jsonMode = hasBoolFlag('--json');
+    if (jsonMode) {
+      const output = {
+        key: trimmed,
+        value: saved !== undefined ? saved : (schema.default !== undefined ? schema.default : null),
+        source: saved !== undefined ? 'saved' : 'default',
+      };
+      if (schema.description) output.description = schema.description;
+      process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+    } else {
+      if (saved !== undefined) {
+        process.stdout.write(`${trimmed} = ${JSON.stringify(saved)} (saved)\n`);
+      } else {
+        const def = schema.default !== undefined ? schema.default : null;
+        process.stdout.write(`${trimmed} = ${JSON.stringify(def)} (default)\n`);
+      }
+    }
+    process.exit(0);
+  }
+}
+
 // CLI flags: --help-prefs prints the preference key reference and exits.
 // Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
 // users can discover available keys without reading the source.
@@ -386,6 +421,8 @@ Options:
   --reset-prefs          Clear saved preferences and start fresh
   --set-pref key=value   Set a single preference (validated) and exit
   --unset-pref key       Remove a preference (revert to default) and exit
+  --get-pref key         Print a single preference value and exit
+  --get-pref key --json  Print preference value as JSON (for scripting)
   --list-prefs           Print saved preferences and exit
   --list-prefs --json    Print saved preferences as JSON and exit
   --help-prefs           Print available preference keys with types and descriptions

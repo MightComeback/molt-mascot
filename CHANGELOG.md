@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `--get-pref key` CLI flag — query a single preference value with source indicator (saved vs default); supports `--json` for scripting
 - `--set-pref key=value` CLI flag — set individual preferences from the command line with schema validation (e.g. `molt-mascot --set-pref alignment=top-left`)
 - `--unset-pref key` CLI flag — remove a single preference to revert it to the default (e.g. `molt-mascot --unset-pref opacity`)
 
