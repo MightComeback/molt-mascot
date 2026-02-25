@@ -64,6 +64,7 @@ if (process.argv.includes("--version") || process.argv.includes("-v")) {
           bun: process.versions.bun || null,
           platform: process.platform,
           arch: process.arch,
+          pid: process.pid,
         },
         null,
         2,
