@@ -608,6 +608,24 @@ export function formatCloseDetail(code, reason) {
 }
 
 /**
+ * Check whether a numeric value is a valid WebSocket close code per RFC 6455.
+ * Valid ranges: 1000–1015 (standard), 3000–3999 (library/framework), 4000–4999 (application).
+ * Codes 0–999 are reserved and unused; 1004 and 1016–2999 are reserved/unassigned.
+ *
+ * Mirrors isValidMode, isValidHealth, isValidWsReadyState, isValidMemoryPressureLevel
+ * for API consistency across validation functions.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidCloseCode(value) {
+  if (typeof value !== "number" || !Number.isInteger(value)) return false;
+  if (value >= 1000 && value <= 1015) return true;
+  if (value >= 3000 && value <= 4999) return true;
+  return false;
+}
+
+/**
  * Set of WebSocket close codes that indicate recoverable (transient) disconnections
  * worth auto-reconnecting. Exported so consumers (tests, reconnect policies, monitoring)
  * can inspect or extend the recoverable set without duplicating the list.

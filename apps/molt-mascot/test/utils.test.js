@@ -43,6 +43,7 @@ import {
   isValidMemoryPressureLevel,
   VALID_WS_READY_STATES,
   isValidWsReadyState,
+  isValidCloseCode,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -391,6 +392,59 @@ describe("isValidWsReadyState", () => {
     expect(isValidWsReadyState(NaN)).toBe(false);
     expect(isValidWsReadyState(Infinity)).toBe(false);
     expect(isValidWsReadyState(-Infinity)).toBe(false);
+  });
+});
+
+describe("isValidCloseCode", () => {
+  it("accepts standard close codes (1000-1015)", () => {
+    expect(isValidCloseCode(1000)).toBe(true);
+    expect(isValidCloseCode(1001)).toBe(true);
+    expect(isValidCloseCode(1006)).toBe(true);
+    expect(isValidCloseCode(1011)).toBe(true);
+    expect(isValidCloseCode(1015)).toBe(true);
+  });
+
+  it("accepts library/framework codes (3000-3999)", () => {
+    expect(isValidCloseCode(3000)).toBe(true);
+    expect(isValidCloseCode(3500)).toBe(true);
+    expect(isValidCloseCode(3999)).toBe(true);
+  });
+
+  it("accepts application codes (4000-4999)", () => {
+    expect(isValidCloseCode(4000)).toBe(true);
+    expect(isValidCloseCode(4001)).toBe(true);
+    expect(isValidCloseCode(4999)).toBe(true);
+  });
+
+  it("rejects reserved/unused ranges", () => {
+    expect(isValidCloseCode(0)).toBe(false);
+    expect(isValidCloseCode(999)).toBe(false);
+    expect(isValidCloseCode(1016)).toBe(false);
+    expect(isValidCloseCode(2999)).toBe(false);
+    expect(isValidCloseCode(5000)).toBe(false);
+  });
+
+  it("rejects non-integer values", () => {
+    expect(isValidCloseCode(1000.5)).toBe(false);
+    expect(isValidCloseCode(4000.1)).toBe(false);
+  });
+
+  it("rejects non-number types", () => {
+    expect(isValidCloseCode("1000")).toBe(false);
+    expect(isValidCloseCode(null)).toBe(false);
+    expect(isValidCloseCode(undefined)).toBe(false);
+    expect(isValidCloseCode(true)).toBe(false);
+  });
+
+  it("rejects NaN and Infinity", () => {
+    expect(isValidCloseCode(NaN)).toBe(false);
+    expect(isValidCloseCode(Infinity)).toBe(false);
+    expect(isValidCloseCode(-Infinity)).toBe(false);
+  });
+
+  it("rejects negative codes", () => {
+    expect(isValidCloseCode(-1)).toBe(false);
+    expect(isValidCloseCode(-1000)).toBe(false);
   });
 });
 
