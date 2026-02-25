@@ -133,6 +133,50 @@ describe('resolveStatusConfig', () => {
     expect(status.config.size).toBe(sizePresets.SIZE_PRESETS[0].label);
   });
 
+  it('saved timing prefs override defaults when env is not set', () => {
+    const status = resolveStatusConfig(makeParams({
+      prefs: {
+        sleepThresholdS: 60,
+        idleDelayMs: 400,
+        errorHoldMs: 2000,
+        pollIntervalMs: 2000,
+        reconnectBaseMs: 500,
+        reconnectMaxMs: 10000,
+        staleConnectionMs: 8000,
+        staleCheckIntervalMs: 3000,
+      },
+    }));
+    expect(status.timing.sleepThresholdS).toBe(60);
+    expect(status.timing.idleDelayMs).toBe(400);
+    expect(status.timing.errorHoldMs).toBe(2000);
+    expect(status.timing.pollIntervalMs).toBe(2000);
+    expect(status.timing.reconnectBaseMs).toBe(500);
+    expect(status.timing.reconnectMaxMs).toBe(10000);
+    expect(status.timing.staleConnectionMs).toBe(8000);
+    expect(status.timing.staleCheckIntervalMs).toBe(3000);
+  });
+
+  it('env timing values take priority over saved timing prefs', () => {
+    const status = resolveStatusConfig(makeParams({
+      env: { MOLT_MASCOT_POLL_INTERVAL_MS: '3000' },
+      prefs: { pollIntervalMs: 500 },
+    }));
+    expect(status.timing.pollIntervalMs).toBe(3000);
+  });
+
+  it('invalid saved timing prefs fall back to defaults', () => {
+    const status = resolveStatusConfig(makeParams({
+      prefs: {
+        pollIntervalMs: 50,        // below min of 100
+        reconnectBaseMs: -1,       // below min of 0 ... wait, -1 < 0
+        staleConnectionMs: 'fast', // wrong type
+      },
+    }));
+    expect(status.timing.pollIntervalMs).toBe(1000);  // default
+    expect(status.timing.reconnectBaseMs).toBe(1500);  // default
+    expect(status.timing.staleConnectionMs).toBe(15000); // default (wrong type ignored)
+  });
+
   it('env beats prefs for alignment', () => {
     const status = resolveStatusConfig(makeParams({
       env: { MOLT_MASCOT_ALIGN: 'top-right' },

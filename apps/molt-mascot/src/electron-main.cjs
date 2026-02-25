@@ -696,6 +696,25 @@ app.whenReady().then(async () => {
   // Env vars take precedence over saved prefs; saved prefs take precedence over defaults.
   const savedPrefs = loadPrefs();
 
+  // Inject saved timing preferences into process.env so the preload script
+  // picks them up via process.env.MOLT_MASCOT_*. Env vars and CLI flags
+  // (already set above) take precedence; saved prefs fill in the gaps.
+  const TIMING_PREF_ENV_MAP = [
+    ['sleepThresholdS',      'MOLT_MASCOT_SLEEP_THRESHOLD_S'],
+    ['idleDelayMs',          'MOLT_MASCOT_IDLE_DELAY_MS'],
+    ['errorHoldMs',          'MOLT_MASCOT_ERROR_HOLD_MS'],
+    ['pollIntervalMs',       'MOLT_MASCOT_POLL_INTERVAL_MS'],
+    ['reconnectBaseMs',      'MOLT_MASCOT_RECONNECT_BASE_MS'],
+    ['reconnectMaxMs',       'MOLT_MASCOT_RECONNECT_MAX_MS'],
+    ['staleConnectionMs',    'MOLT_MASCOT_STALE_CONNECTION_MS'],
+    ['staleCheckIntervalMs', 'MOLT_MASCOT_STALE_CHECK_INTERVAL_MS'],
+  ];
+  for (const [prefKey, envKey] of TIMING_PREF_ENV_MAP) {
+    if (!process.env[envKey] && typeof savedPrefs[prefKey] === 'number' && Number.isFinite(savedPrefs[prefKey])) {
+      process.env[envKey] = String(savedPrefs[prefKey]);
+    }
+  }
+
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH

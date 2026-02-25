@@ -92,16 +92,29 @@ function resolveStatusConfig({
   const noShortcuts = hasBoolFlag('--no-shortcuts', argv) || parseEnvBoolean(env, 'MOLT_MASCOT_NO_SHORTCUTS', false);
   const captureDir = env.MOLT_MASCOT_CAPTURE_DIR || null;
 
-  const sleepThresholdS = parseEnvNumber(env, 'MOLT_MASCOT_SLEEP_THRESHOLD_S', 120, { min: 0 });
-  const idleDelayMs = parseEnvNumber(env, 'MOLT_MASCOT_IDLE_DELAY_MS', 800, { min: 0 });
-  const errorHoldMs = parseEnvNumber(env, 'MOLT_MASCOT_ERROR_HOLD_MS', 5000, { min: 0 });
+  // Timing: env vars take precedence, then saved prefs, then defaults.
+  // Helper to resolve: env → saved pref → default.
+  const timingPref = (envKey, prefKey, fallback, opts) => {
+    const fromEnv = parseEnvNumber(env, envKey, NaN, opts);
+    if (Number.isFinite(fromEnv)) return fromEnv;
+    if (typeof prefs[prefKey] === 'number' && Number.isFinite(prefs[prefKey])) {
+      const v = prefs[prefKey];
+      if (opts?.min !== undefined && v < opts.min) return fallback;
+      if (opts?.integer && !Number.isInteger(v)) return fallback;
+      return v;
+    }
+    return fallback;
+  };
+  const sleepThresholdS = timingPref('MOLT_MASCOT_SLEEP_THRESHOLD_S', 'sleepThresholdS', 120, { min: 0 });
+  const idleDelayMs = timingPref('MOLT_MASCOT_IDLE_DELAY_MS', 'idleDelayMs', 800, { min: 0 });
+  const errorHoldMs = timingPref('MOLT_MASCOT_ERROR_HOLD_MS', 'errorHoldMs', 5000, { min: 0 });
   const minProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MIN_PROTOCOL', 'GATEWAY_MIN_PROTOCOL'], 2, { min: 1, integer: true });
   const maxProtocol = parseEnvNumber(env, ['MOLT_MASCOT_MAX_PROTOCOL', 'GATEWAY_MAX_PROTOCOL'], 3, { min: 1, integer: true });
-  const reconnectBaseMs = parseEnvNumber(env, 'MOLT_MASCOT_RECONNECT_BASE_MS', 1500, { min: 0 });
-  const reconnectMaxMs = parseEnvNumber(env, 'MOLT_MASCOT_RECONNECT_MAX_MS', 30000, { min: 0 });
-  const staleConnectionMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CONNECTION_MS', 15000, { min: 0 });
-  const staleCheckIntervalMs = parseEnvNumber(env, 'MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 5000, { min: 0 });
-  const pollIntervalMs = parseEnvNumber(env, 'MOLT_MASCOT_POLL_INTERVAL_MS', 1000, { min: 100 });
+  const reconnectBaseMs = timingPref('MOLT_MASCOT_RECONNECT_BASE_MS', 'reconnectBaseMs', 1500, { min: 0 });
+  const reconnectMaxMs = timingPref('MOLT_MASCOT_RECONNECT_MAX_MS', 'reconnectMaxMs', 30000, { min: 0 });
+  const staleConnectionMs = timingPref('MOLT_MASCOT_STALE_CONNECTION_MS', 'staleConnectionMs', 15000, { min: 0 });
+  const staleCheckIntervalMs = timingPref('MOLT_MASCOT_STALE_CHECK_INTERVAL_MS', 'staleCheckIntervalMs', 5000, { min: 0 });
+  const pollIntervalMs = timingPref('MOLT_MASCOT_POLL_INTERVAL_MS', 'pollIntervalMs', 1000, { min: 100 });
 
   const resolvedSizePreset = findSizePreset(resolvedSize) || SIZE_PRESETS[DEFAULT_SIZE_INDEX];
   const resolvedWidth = parseEnvNumber(env, 'MOLT_MASCOT_WIDTH', resolvedSizePreset.width, { min: 1 });
