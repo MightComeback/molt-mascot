@@ -37,6 +37,12 @@ _arguments -s -S \
   '--sleep-threshold[Idle seconds before sleep overlay]:seconds:' \
   '--idle-delay[Delay before returning to idle]:ms:' \
   '--error-hold[How long to show error state]:ms:' \
+  '--poll-interval[Plugin state poll interval (min 100ms)]:ms:' \
+  '--reconnect-base[Initial reconnect delay]:ms:' \
+  '--reconnect-max[Max reconnect delay / backoff cap]:ms:' \
+  '--stale-connection[Stale connection timeout]:ms:' \
+  '--stale-check-interval[Stale check interval]:ms:' \
+  '--completions[Print shell completions]:shell:(bash zsh fish)' \
   '--reduced-motion[Disable animations]' \
   '--status[Print resolved config and exit]' \
   '--start-hidden[Launch hidden (tray-only)]' \

@@ -16,11 +16,14 @@ _molt_mascot() {
     --capture-dir)
       COMPREPLY=( $(compgen -d -- "$cur") )
       return ;;
-    --gateway|--token|--opacity|--padding|--min-protocol|--max-protocol|--sleep-threshold|--idle-delay|--error-hold|--set-pref|--unset-pref|--get-pref)
+    --completions)
+      COMPREPLY=( $(compgen -W "bash zsh fish" -- "$cur") )
+      return ;;
+    --gateway|--token|--opacity|--padding|--min-protocol|--max-protocol|--sleep-threshold|--idle-delay|--error-hold|--poll-interval|--reconnect-base|--reconnect-max|--stale-connection|--stale-check-interval|--set-pref|--unset-pref|--get-pref)
       return ;;
   esac
 
-  COMPREPLY=( $(compgen -W "-v --version -h --help --gateway --token --align --size --opacity --padding --click-through --hide-text --debug --disable-gpu --min-protocol --max-protocol --list-prefs --reset-prefs --set-pref --unset-pref --get-pref --help-prefs --sleep-threshold --idle-delay --error-hold --reduced-motion --status --start-hidden --no-tray --no-shortcuts --capture-dir --json" -- "$cur") )
+  COMPREPLY=( $(compgen -W "-v --version -h --help --gateway --token --align --size --opacity --padding --click-through --hide-text --debug --disable-gpu --min-protocol --max-protocol --list-prefs --reset-prefs --set-pref --unset-pref --get-pref --help-prefs --sleep-threshold --idle-delay --error-hold --poll-interval --reconnect-base --reconnect-max --stale-connection --stale-check-interval --reduced-motion --status --start-hidden --no-tray --no-shortcuts --capture-dir --completions --json" -- "$cur") )
 }
 
 complete -F _molt_mascot molt-mascot
