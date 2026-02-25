@@ -361,6 +361,34 @@ describe("buildPillLabel", () => {
     expect(result.label).toContain("abnormal closure");
   });
 
+  it("shows reconnect attempt in connecting mode within first 2s", () => {
+    const result = build({
+      mode: "connecting",
+      modeSince: NOW - 1_000,
+      reconnectAttempt: 3,
+    });
+    expect(result.label).toBe("Connecting… #3");
+  });
+
+  it("omits reconnect attempt #1 in connecting mode within first 2s", () => {
+    const result = build({
+      mode: "connecting",
+      modeSince: NOW - 1_000,
+      reconnectAttempt: 1,
+    });
+    expect(result.label).toBe("Connecting…");
+  });
+
+  it("shows tool count with tool name in early tool mode (≤2s)", () => {
+    const result = build({
+      mode: "tool",
+      modeSince: NOW - 1_000,
+      currentTool: "exec",
+      activeTools: 4,
+    });
+    expect(result.label).toBe("exec · 4");
+  });
+
   it("defaults now to Date.now() when not provided", () => {
     const result = buildPillLabel({
       mode: "idle",
