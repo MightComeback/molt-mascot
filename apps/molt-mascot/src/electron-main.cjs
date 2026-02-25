@@ -122,6 +122,35 @@ if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
   else if (parseCliArg('--error-hold') !== null) process.stderr.write(`molt-mascot: invalid --error-hold "${parseCliArg('--error-hold')}" (must be >= 0 ms)\n`);
 }
 
+// CLI flags for network timing customization (override env vars).
+// These mirror the PREF_SCHEMA timing keys and map to the same env vars
+// that GatewayClient and the renderer already read at startup.
+{
+  const v = parseNumericArg('--poll-interval', -1, { min: 100, integer: true });
+  if (v >= 100) process.env.MOLT_MASCOT_POLL_INTERVAL_MS = String(v);
+  else if (parseCliArg('--poll-interval') !== null) process.stderr.write(`molt-mascot: invalid --poll-interval "${parseCliArg('--poll-interval')}" (must be >= 100 ms)\n`);
+}
+{
+  const v = parseNumericArg('--reconnect-base', -1, { min: 0, integer: true });
+  if (v >= 0) process.env.MOLT_MASCOT_RECONNECT_BASE_MS = String(v);
+  else if (parseCliArg('--reconnect-base') !== null) process.stderr.write(`molt-mascot: invalid --reconnect-base "${parseCliArg('--reconnect-base')}" (must be >= 0 ms)\n`);
+}
+{
+  const v = parseNumericArg('--reconnect-max', -1, { min: 0, integer: true });
+  if (v >= 0) process.env.MOLT_MASCOT_RECONNECT_MAX_MS = String(v);
+  else if (parseCliArg('--reconnect-max') !== null) process.stderr.write(`molt-mascot: invalid --reconnect-max "${parseCliArg('--reconnect-max')}" (must be >= 0 ms)\n`);
+}
+{
+  const v = parseNumericArg('--stale-connection', -1, { min: 0, integer: true });
+  if (v >= 0) process.env.MOLT_MASCOT_STALE_CONNECTION_MS = String(v);
+  else if (parseCliArg('--stale-connection') !== null) process.stderr.write(`molt-mascot: invalid --stale-connection "${parseCliArg('--stale-connection')}" (must be >= 0 ms)\n`);
+}
+{
+  const v = parseNumericArg('--stale-check-interval', -1, { min: 0, integer: true });
+  if (v >= 0) process.env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS = String(v);
+  else if (parseCliArg('--stale-check-interval') !== null) process.stderr.write(`molt-mascot: invalid --stale-check-interval "${parseCliArg('--stale-check-interval')}" (must be >= 0 ms)\n`);
+}
+
 // CLI flag: --capture-dir <path> overrides MOLT_MASCOT_CAPTURE_DIR env var.
 // Useful for CI/dev screenshot pipelines without setting env vars.
 {
@@ -397,6 +426,11 @@ Options:
   --sleep-threshold <s>  Idle seconds before sleep overlay (default: 120)
   --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
   --error-hold <ms>      How long to show error state before reverting (default: 5000)
+  --poll-interval <ms>   Plugin state poll interval (default: 1000, min: 100)
+  --reconnect-base <ms>  Initial reconnect delay (default: 1500)
+  --reconnect-max <ms>   Max reconnect delay / backoff cap (default: 30000)
+  --stale-connection <ms>  Stale connection timeout (default: 15000)
+  --stale-check-interval <ms>  Stale check interval (default: 5000)
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --reset-prefs          Clear saved preferences and start fresh
