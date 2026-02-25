@@ -28,6 +28,7 @@ import { buildPillLabel, PILL_MAX_ERROR_LEN } from "./pill-label.js";
 import { buildDebugInfo as _buildDebugInfo } from "./debug-info.js";
 import { createFpsCounter } from "./fps-counter.js";
 import { createLatencyTracker } from "./latency-tracker.js";
+import { isActivateKey, isContextMenuKey } from "./keyboard-utils.js";
 import { PLUGIN_STATE_THROTTLE_MS } from "./gateway-client.js";
 import {
   drawLobster as _drawLobster,
@@ -1473,14 +1474,6 @@ canvas.addEventListener("mousedown", (e) => {
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
 // all open the context menu. Combined into a single listener to avoid duplicate
 // event subscriptions on the same element.
-// Keyboard key classification helpers shared by pill and canvas keydown handlers.
-function isActivateKey(key) {
-  return key === "Enter" || key === " ";
-}
-function isContextMenuKey(key, shiftKey) {
-  return (key === "F10" && shiftKey) || key === "ContextMenu";
-}
-
 pill.addEventListener("keydown", (e) => {
   const activate = isActivateKey(e.key);
   const ctxKey = isContextMenuKey(e.key, e.shiftKey);
