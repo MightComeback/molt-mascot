@@ -5,6 +5,7 @@ import {
   connectionQualityEmoji,
   resolveQualitySource,
   formatQualitySummary,
+  formatLatencyWithQuality,
   QUALITY_THRESHOLDS,
   HEALTH_THRESHOLDS,
   VALID_HEALTH_STATUSES,
@@ -854,5 +855,47 @@ describe("formatLatencyTrendArrow", () => {
     expect(formatLatencyTrendArrow("unknown")).toBe("");
     expect(formatLatencyTrendArrow("")).toBe("");
     expect(formatLatencyTrendArrow(42)).toBe("");
+  });
+});
+
+describe("formatLatencyWithQuality", () => {
+  it("includes quality emoji for excellent latency", () => {
+    expect(formatLatencyWithQuality(10)).toBe("10ms 🟢");
+  });
+
+  it("includes quality emoji for good latency", () => {
+    expect(formatLatencyWithQuality(100)).toBe("100ms 🟡");
+  });
+
+  it("includes quality emoji for fair latency", () => {
+    expect(formatLatencyWithQuality(300)).toBe("300ms 🟠");
+  });
+
+  it("includes quality emoji for poor latency", () => {
+    expect(formatLatencyWithQuality(600)).toBe("600ms 🔴");
+  });
+
+  it("prefers median from stats when available", () => {
+    // instant=300 (fair), but median=40 (excellent) — should show excellent emoji
+    expect(formatLatencyWithQuality(300, { median: 40, samples: 10 })).toBe(
+      "300ms 🟢",
+    );
+  });
+
+  it("falls back to instant when stats have only 1 sample", () => {
+    expect(formatLatencyWithQuality(300, { median: 40, samples: 1 })).toBe(
+      "300ms 🟠",
+    );
+  });
+
+  it("returns just latency for invalid input", () => {
+    expect(formatLatencyWithQuality(-1)).toBe("–");
+    expect(formatLatencyWithQuality(NaN)).toBe("–");
+  });
+
+  it("works without stats parameter", () => {
+    expect(formatLatencyWithQuality(42)).toBe("42ms 🟢");
+    expect(formatLatencyWithQuality(42, null)).toBe("42ms 🟢");
+    expect(formatLatencyWithQuality(42, undefined)).toBe("42ms 🟢");
   });
 });

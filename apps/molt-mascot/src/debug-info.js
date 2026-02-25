@@ -83,6 +83,7 @@ import {
   formatCount,
   successRate,
   formatLatency,
+  formatLatencyWithQuality,
   connectionQuality,
   connectionQualityEmoji,
   resolveQualitySource,
@@ -261,16 +262,9 @@ export function buildDebugInfo(params) {
   if (isPollingPaused) lines.push("Polling: paused");
   else if (hasPlugin) lines.push("Polling: active");
   if (typeof latencyMs === "number" && latencyMs >= 0) {
-    // Append connection quality label (excellent/good/fair/poor) for at-a-glance assessment,
-    // matching the tray tooltip behavior. Use median from rolling stats when available (more
-    // stable than instant latency); fall back to the current sample.
-    const quality = connectionQuality(
-      resolveQualitySource(latencyMs, latencyStats),
-    );
-    const qualitySuffix = quality
-      ? ` ${connectionQualityEmoji(quality) || `[${quality}]`}`
-      : "";
-    lines.push(`Latency: ${formatLatency(latencyMs)}${qualitySuffix}`);
+    // Append connection quality emoji (🟢🟡🟠🔴) for at-a-glance assessment.
+    // Uses median from rolling stats when available (more stable than instant latency).
+    lines.push(`Latency: ${formatLatencyWithQuality(latencyMs, latencyStats)}`);
   }
   if (
     latencyStats &&

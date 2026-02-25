@@ -531,12 +531,33 @@ function formatLatencyTrendArrow(trend) {
   return "";
 }
 
+/**
+ * Format a latency value with an inline connection quality emoji.
+ * Combines formatLatency + resolveQualitySource + connectionQuality + connectionQualityEmoji
+ * into a single call — DRYs up the 4-step pattern repeated in pill-label.js,
+ * context-menu-items.js, debug-info.js, and tray-icon.cjs.
+ *
+ * Returns just the formatted latency when quality cannot be determined.
+ *
+ * @param {number} ms - Instant latency in milliseconds
+ * @param {{ median?: number, samples?: number }|null|undefined} [stats] - Rolling latency stats (median preferred when available)
+ * @returns {string} e.g. "42ms 🟢" or "1.2s 🔴" or "– ⚪"
+ */
+function formatLatencyWithQuality(ms, stats) {
+  const latencyStr = formatLatency(ms);
+  const source = resolveQualitySource(ms, stats);
+  const quality = connectionQuality(source);
+  if (!quality) return latencyStr;
+  return `${latencyStr} ${connectionQualityEmoji(quality)}`;
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
   connectionQualityEmoji,
   resolveQualitySource,
   formatQualitySummary,
+  formatLatencyWithQuality,
   QUALITY_THRESHOLDS,
   HEALTH_THRESHOLDS,
   healthStatusEmoji,
