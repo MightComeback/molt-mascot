@@ -28,6 +28,14 @@ import { createLatencyTracker } from "./latency-tracker.js";
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
 
+/**
+ * Minimum interval (ms) between plugin state requests.
+ * Prevents flooding the gateway when multiple triggers (poll timer, stale check,
+ * manual refresh) fire in quick succession. 150ms is well below human-perceptible
+ * latency while avoiding redundant round-trips.
+ */
+export const PLUGIN_STATE_THROTTLE_MS = 150;
+
 /** @typedef {'idle'|'thinking'|'tool'|'error'|'connecting'|'connected'|'disconnected'} Mode */
 
 /**
@@ -193,7 +201,7 @@ export class GatewayClient {
     if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
     const now = Date.now();
     if (this._pluginStatePending) return;
-    if (now - this._pluginStateLastSentAt < 150) return;
+    if (now - this._pluginStateLastSentAt < PLUGIN_STATE_THROTTLE_MS) return;
 
     const id = this._nextId(prefix);
     this._pluginStateReqId = id;

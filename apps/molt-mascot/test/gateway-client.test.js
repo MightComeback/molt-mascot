@@ -1,5 +1,8 @@
 import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
-import { GatewayClient } from "../src/gateway-client.js";
+import {
+  GatewayClient,
+  PLUGIN_STATE_THROTTLE_MS,
+} from "../src/gateway-client.js";
 import { createLatencyTracker } from "../src/latency-tracker.js";
 
 // GatewayClient requires WebSocket in the global scope; provide a controllable stub
@@ -1275,6 +1278,14 @@ describe("GatewayClient", () => {
       expect(client.allTimeLatency).not.toBeNull();
       client.destroy();
       expect(client.allTimeLatency).toBeNull();
+    });
+  });
+
+  describe("PLUGIN_STATE_THROTTLE_MS", () => {
+    it("is a positive finite number", () => {
+      expect(typeof PLUGIN_STATE_THROTTLE_MS).toBe("number");
+      expect(Number.isFinite(PLUGIN_STATE_THROTTLE_MS)).toBe(true);
+      expect(PLUGIN_STATE_THROTTLE_MS).toBeGreaterThan(0);
     });
   });
 });
