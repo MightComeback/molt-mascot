@@ -2253,6 +2253,29 @@ describe("maskSensitiveUrl", () => {
       "ws://host?token=***&mode=v2",
     );
   });
+
+  it("masks userinfo credentials (user:pass@host)", () => {
+    expect(maskSensitiveUrl("ws://admin:s3cret@host/path")).toBe(
+      "ws://***:***@host/path",
+    );
+  });
+
+  it("masks userinfo without password (user@host)", () => {
+    expect(maskSensitiveUrl("https://user@host/path")).toBe(
+      "https://***@host/path",
+    );
+  });
+
+  it("masks both userinfo and query params", () => {
+    expect(maskSensitiveUrl("ws://user:pass@host/path?token=abc&mode=v2")).toBe(
+      "ws://***:***@host/path?token=***&mode=v2",
+    );
+  });
+
+  it("does not mask @ signs that are not userinfo", () => {
+    // No scheme:// prefix — should not be treated as userinfo
+    expect(maskSensitiveUrl("host@domain")).toBe("host@domain");
+  });
 });
 
 describe("isContentTool", () => {

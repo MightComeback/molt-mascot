@@ -551,34 +551,58 @@ const SENSITIVE_PARAMS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Mask sensitive query parameters in a URL string for safe display.
+ * Mask sensitive query parameters and userinfo credentials in a URL string for safe display.
  * Replaces values of known sensitive params (token, key, secret, etc.)
  * with "***" while preserving the URL structure for debugging.
+ * Also masks userinfo credentials (e.g. `ws://user:pass@host` → `ws://***:***@host`).
  *
- * Non-URL strings and URLs without query parameters are returned as-is.
+ * Non-URL strings and URLs without sensitive parts are returned as-is.
  * Malformed URLs are returned unchanged (best-effort, no throws).
  *
  * @example
  * maskSensitiveUrl("ws://host?token=abc123&mode=v2")
  * // → "ws://host?token=***&mode=v2"
  *
+ * maskSensitiveUrl("ws://admin:s3cret@host/path")
+ * // → "ws://***:***@host/path"
+ *
  * @param url - The URL string to mask
- * @returns URL with sensitive parameter values replaced by "***"
+ * @returns URL with sensitive parameter values and userinfo replaced by "***"
  */
 export function maskSensitiveUrl(url: string): string {
-  if (!url || !url.includes("?")) return url;
+  if (!url) return url;
   try {
-    // Use regex-based approach to avoid URL constructor issues with ws:// schemes
-    // and to preserve the original URL format exactly (no re-encoding).
-    return url.replace(
-      /([?&])([^=&]+)=([^&]*)/g,
-      (_match, prefix: string, name: string, _value: string) => {
-        if (SENSITIVE_PARAMS.has(name.toLowerCase())) {
-          return `${prefix}${name}=***`;
+    let result = url;
+
+    // Mask userinfo credentials in the authority portion of the URL.
+    // Matches scheme://user:pass@ or scheme://user@ patterns.
+    // The regex is careful to only match after a scheme (://) to avoid
+    // false positives on other colon-containing strings.
+    result = result.replace(
+      /^(\w+:\/\/)([^@/?#]+)@/,
+      (_match, scheme: string, _userinfo: string) => {
+        // Preserve structure: if there's a colon, mask both user and password
+        if (_userinfo.includes(":")) {
+          return `${scheme}***:***@`;
         }
-        return _match;
+        return `${scheme}***@`;
       },
     );
+
+    // Mask sensitive query parameters (only if URL has a query string).
+    if (result.includes("?")) {
+      result = result.replace(
+        /([?&])([^=&]+)=([^&]*)/g,
+        (_match, prefix: string, name: string, _value: string) => {
+          if (SENSITIVE_PARAMS.has(name.toLowerCase())) {
+            return `${prefix}${name}=***`;
+          }
+          return _match;
+        },
+      );
+    }
+
+    return result;
   } catch {
     return url;
   }
