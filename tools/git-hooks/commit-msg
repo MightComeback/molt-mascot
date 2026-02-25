@@ -1,0 +1,27 @@
+#!/bin/sh
+# Commit-msg hook: validates conventional commit format.
+# Accepts: type(scope): message  or  type: message
+# Install with: bun run setup:hooks
+
+MSG_FILE="$1"
+MSG=$(head -1 "$MSG_FILE")
+
+# Allow merge commits and revert commits
+case "$MSG" in
+  Merge*|Revert*) exit 0 ;;
+esac
+
+# Conventional commit pattern: type(optional-scope): description
+# Types aligned with project conventions observed in git log.
+PATTERN='^(feat|fix|refactor|test|docs|dx|perf|ci|build|chore|style|harden)(\([a-z0-9._-]+\))?!?: .{1,}'
+
+if ! echo "$MSG" | grep -qE "$PATTERN"; then
+  echo "🦞 Bad commit message format."
+  echo ""
+  echo "  Expected: type(scope): description"
+  echo "  Types:    feat fix refactor test docs dx perf ci build chore style harden"
+  echo "  Example:  feat(tray): add battery indicator"
+  echo ""
+  echo "  Got: $MSG"
+  exit 1
+fi

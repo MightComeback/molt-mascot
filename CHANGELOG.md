@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Biome formatter now excludes `dist/` directories — prevents formatting build artifacts and fixes utils formatting inconsistencies
 
 ### Added
+- `commit-msg` git hook — validates conventional commit format (`type(scope): message`) before allowing commits; accepts merge/revert commits; auto-installed via `bun run setup:hooks`
 - `--version --json` CLI flag combination — outputs structured version info (app, plugin, Electron, Chrome, Node, platform, arch) as JSON for scripting and CI pipelines
 - Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - Shell completions for Bash and Zsh (`tools/completions.bash`, `tools/completions.zsh`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
