@@ -103,6 +103,28 @@ export function coerceBoolean(v: unknown, fallback: boolean): boolean {
   return fallback;
 }
 
+/**
+ * Canonical list of valid plugin modes.
+ * Frozen array derived from the Mode type — single source of truth for runtime validation.
+ * Parity with allowedAlignments, allowedSizes, etc.
+ */
+export const allowedModes: Mode[] = ["idle", "thinking", "tool", "error"];
+
+/**
+ * Check whether a value is a recognized plugin mode (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidWsReadyState, isValidCloseCode (app),
+ * and coerceSize, coerceAlignment (plugin).
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid Mode string
+ */
+export function isValidMode(value: unknown): value is Mode {
+  return typeof value === "string" && _validModesSet.has(value as Mode);
+}
+
+/** @internal O(1) lookup set for isValidMode(). */
+const _validModesSet: ReadonlySet<Mode> = new Set(allowedModes);
+
 export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "top-left",
   "top-right",

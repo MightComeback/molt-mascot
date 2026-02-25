@@ -19,6 +19,8 @@ import register, {
   clamp,
   allowedAlignments,
   allowedSizes,
+  allowedModes,
+  isValidMode,
   successRate,
   sanitizeToolName,
   CONTENT_TOOLS,
@@ -1893,6 +1895,35 @@ describe("utils", () => {
       "large",
       "xlarge",
     ]);
+  });
+
+  it("allowedModes contains all plugin modes", () => {
+    expect(allowedModes).toEqual(["idle", "thinking", "tool", "error"]);
+    expect(allowedModes).toHaveLength(4);
+  });
+
+  it("isValidMode accepts valid modes and rejects invalid values", () => {
+    // Valid modes
+    expect(isValidMode("idle")).toBe(true);
+    expect(isValidMode("thinking")).toBe(true);
+    expect(isValidMode("tool")).toBe(true);
+    expect(isValidMode("error")).toBe(true);
+
+    // App-level modes (not plugin modes)
+    expect(isValidMode("connecting")).toBe(false);
+    expect(isValidMode("connected")).toBe(false);
+    expect(isValidMode("disconnected")).toBe(false);
+    expect(isValidMode("sleeping")).toBe(false);
+
+    // Invalid types
+    expect(isValidMode("")).toBe(false);
+    expect(isValidMode("IDLE")).toBe(false);
+    expect(isValidMode("Idle")).toBe(false);
+    expect(isValidMode(null)).toBe(false);
+    expect(isValidMode(undefined)).toBe(false);
+    expect(isValidMode(0)).toBe(false);
+    expect(isValidMode(true)).toBe(false);
+    expect(isValidMode({})).toBe(false);
   });
 
   it("success: false on tool result triggers error mode", async () => {
