@@ -9,7 +9,8 @@ molt-mascot/
 │   │   ├── electron-main.cjs  # Main process: window, tray, shortcuts, prefs
 │   │   ├── preload.cjs        # Context bridge (IPC ↔ renderer)
 │   │   ├── renderer.js        # UI: canvas animation, gateway WS, state machine
-│   │   ├── index.html         # Single-page shell with CSS
+│   │   ├── index.html         # Single-page shell (strict CSP, no inline styles)
+│   │   ├── renderer.css       # All renderer styles (pill variants, context menu, setup form, a11y)
 │   │   ├── draw.js            # Sprite drawing + cache + blink state
 │   │   ├── sprites.js         # Pixel art data (32×32 grids)
 │   │   ├── context-menu.js    # Right-click menu (a11y, keyboard nav)
