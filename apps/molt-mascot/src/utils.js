@@ -67,6 +67,7 @@ import {
   formatProtocolRange,
   computeConnectionSuccessRate as _computeConnectionSuccessRate,
   connectionUptimePercent as _connectionUptimePercent,
+  formatLatencyTrendArrow,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -84,6 +85,7 @@ export {
   isValidLatencyTrend,
   formatActiveSummary,
   formatProtocolRange,
+  formatLatencyTrendArrow,
 };
 export { formatAlignment };
 
@@ -382,9 +384,7 @@ export function buildTooltip(params) {
     }).text;
     // Append trend indicator when latency is actively rising or falling.
     // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
-    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
-      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
-    }
+    latencyPart += formatLatencyTrendArrow(latencyTrend);
     tip += ` · ${latencyPart}`;
   }
   // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections

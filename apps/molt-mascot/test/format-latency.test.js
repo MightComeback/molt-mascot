@@ -19,6 +19,7 @@ import {
   formatProtocolRange,
   computeConnectionSuccessRate,
   connectionUptimePercent,
+  formatLatencyTrendArrow,
 } from "../src/format-latency.cjs";
 
 describe("formatLatency (canonical source)", () => {
@@ -831,5 +832,27 @@ describe("isValidLatencyTrend", () => {
     expect(isValidLatencyTrend(undefined)).toBe(false);
     expect(isValidLatencyTrend(42)).toBe(false);
     expect(isValidLatencyTrend(true)).toBe(false);
+  });
+});
+
+describe("formatLatencyTrendArrow", () => {
+  it('returns " ↑" for rising', () => {
+    expect(formatLatencyTrendArrow("rising")).toBe(" ↑");
+  });
+
+  it('returns " ↓" for falling', () => {
+    expect(formatLatencyTrendArrow("falling")).toBe(" ↓");
+  });
+
+  it('returns "" for stable', () => {
+    expect(formatLatencyTrendArrow("stable")).toBe("");
+  });
+
+  it('returns "" for null/undefined/invalid', () => {
+    expect(formatLatencyTrendArrow(null)).toBe("");
+    expect(formatLatencyTrendArrow(undefined)).toBe("");
+    expect(formatLatencyTrendArrow("unknown")).toBe("");
+    expect(formatLatencyTrendArrow("")).toBe("");
+    expect(formatLatencyTrendArrow(42)).toBe("");
   });
 });

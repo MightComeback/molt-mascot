@@ -24,6 +24,7 @@ import {
   formatOpacity,
   formatBytes,
   isSleepingMode,
+  formatLatencyTrendArrow,
 } from "./utils.js";
 import { formatSizeWithDims } from "./size-presets.cjs";
 import { formatAlignment } from "./get-position.cjs";
@@ -169,12 +170,7 @@ export function buildContextMenuItems(state) {
     let latencyPart = qualityEmoji
       ? `${formatLatency(latencyMs)} ${qualityEmoji}`
       : formatLatency(latencyMs);
-    // Append trend indicator when latency is actively rising or falling.
-    // "stable" is omitted to avoid status line clutter; only actionable signals are shown.
-    // Parity with pill-label and tray tooltip trend indicators.
-    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
-      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
-    }
+    latencyPart += formatLatencyTrendArrow(latencyTrend);
     statusParts.push(latencyPart);
   }
   if (healthStatus === "degraded" || healthStatus === "unhealthy") {

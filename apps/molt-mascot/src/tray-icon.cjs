@@ -20,6 +20,7 @@ const {
   formatHealthSummary,
   formatActiveSummary,
   computeConnectionSuccessRate,
+  formatLatencyTrendArrow,
 } = require("./format-latency.cjs");
 const { MODE_EMOJI } = require("./mode-emoji.cjs");
 const { formatAlignment } = require("./get-position.cjs");
@@ -330,11 +331,7 @@ function buildTrayTooltip(params) {
       const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : "";
       latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str})`;
     }
-    // Append trend indicator when latency is actively rising or falling.
-    // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
-    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
-      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
-    }
+    latencyPart += formatLatencyTrendArrow(latencyTrend);
     parts.push(latencyPart);
   }
   // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections

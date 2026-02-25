@@ -17,6 +17,7 @@ import {
   connectionQuality,
   connectionQualityEmoji,
   resolveQualitySource,
+  formatLatencyTrendArrow,
 } from "./utils.js";
 
 /**
@@ -187,13 +188,11 @@ export function buildPillLabel(params) {
 
   // Append latency trend indicator when actively rising or falling.
   // "stable" is omitted to avoid pill clutter; parity with tray tooltip and context-menu.
-  if (
-    typeof latencyTrend === "string" &&
-    latencyTrend !== "stable" &&
-    mode !== "disconnected" &&
-    mode !== "error"
-  ) {
-    label += latencyTrend === "rising" ? " ↑" : " ↓";
+  {
+    const trendArrow = formatLatencyTrendArrow(latencyTrend);
+    if (trendArrow && mode !== "disconnected" && mode !== "error") {
+      label += trendArrow;
+    }
   }
 
   if (isClickThrough) {

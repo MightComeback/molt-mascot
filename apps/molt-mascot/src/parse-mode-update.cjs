@@ -79,6 +79,7 @@ const {
   isValidHealth,
   VALID_LATENCY_TRENDS,
   isValidLatencyTrend,
+  formatLatencyTrendArrow,
 } = require("./format-latency.cjs");
 
 // Re-export for back-compat (consumers may import VALID_HEALTH from here).
@@ -265,8 +266,9 @@ function formatModeUpdate(parsed) {
     const emoji = parsed.healthStatus === "degraded" ? "⚠️" : "🔴";
     parts.push(`${emoji} ${parsed.healthStatus}`);
   }
-  if (parsed.latencyTrend && parsed.latencyTrend !== "stable") {
-    parts.push(parsed.latencyTrend === "rising" ? "↑" : "↓");
+  {
+    const trendArrow = formatLatencyTrendArrow(parsed.latencyTrend);
+    if (trendArrow) parts.push(trendArrow.trim());
   }
   if (parsed.connectionUptimePct !== null && parsed.connectionUptimePct < 100) {
     parts.push(`📶 ${parsed.connectionUptimePct}%`);

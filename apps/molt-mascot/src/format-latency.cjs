@@ -517,6 +517,20 @@ function isValidLatencyTrend(value) {
   return _VALID_TREND_SET.has(value);
 }
 
+/**
+ * Convert a latency trend direction to a compact arrow string for display.
+ * Returns "" for "stable" or invalid values (callers typically skip display
+ * when stable, so this centralizes the repeated ternary pattern).
+ *
+ * @param {"rising"|"falling"|"stable"|string|null|undefined} trend
+ * @returns {string} " ↑", " ↓", or ""
+ */
+function formatLatencyTrendArrow(trend) {
+  if (trend === "rising") return " ↑";
+  if (trend === "falling") return " ↓";
+  return "";
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -537,4 +551,5 @@ module.exports = {
   formatProtocolRange,
   computeConnectionSuccessRate,
   connectionUptimePercent,
+  formatLatencyTrendArrow,
 };
