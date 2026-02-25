@@ -9,6 +9,7 @@ import {
   coerceFromString,
   diffPrefs,
   formatPrefsDiff,
+  isValidPrefKey,
 } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
@@ -1068,6 +1069,28 @@ describe("VALID_PREF_KEYS", () => {
 
   it("has no duplicates", () => {
     expect(new Set(VALID_PREF_KEYS).size).toBe(VALID_PREF_KEYS.length);
+  });
+});
+
+describe("isValidPrefKey", () => {
+  it("returns true for all VALID_PREF_KEYS", () => {
+    for (const key of VALID_PREF_KEYS) {
+      expect(isValidPrefKey(key)).toBe(true);
+    }
+  });
+
+  it("returns false for unknown strings", () => {
+    expect(isValidPrefKey("nonexistent")).toBe(false);
+    expect(isValidPrefKey("ALIGNMENT")).toBe(false);
+    expect(isValidPrefKey("")).toBe(false);
+  });
+
+  it("returns false for non-string values", () => {
+    expect(isValidPrefKey(null)).toBe(false);
+    expect(isValidPrefKey(undefined)).toBe(false);
+    expect(isValidPrefKey(42)).toBe(false);
+    expect(isValidPrefKey(true)).toBe(false);
+    expect(isValidPrefKey({})).toBe(false);
   });
 });
 

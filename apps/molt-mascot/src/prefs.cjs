@@ -499,6 +499,22 @@ function validatePrefs(raw) {
  */
 const VALID_PREF_KEYS = Object.freeze(Object.keys(PREF_SCHEMA));
 
+/** @private O(1) lookup set for isValidPrefKey(). */
+const _validPrefKeysSet = new Set(VALID_PREF_KEYS);
+
+/**
+ * Check whether a string is a recognized preference key (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidHealth,
+ * isValidAlignment, isValidSize, isValidOverlay, isValidWsReadyState,
+ * isValidMemoryPressureLevel, isValidStatusDotMode, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidPrefKey(value) {
+  return typeof value === "string" && _validPrefKeysSet.has(value);
+}
+
 /**
  * Format all known preference keys with their types and descriptions.
  * Useful for CLI --help-prefs output, auto-generated documentation,
@@ -642,6 +658,7 @@ module.exports = {
   validatePrefs,
   PREF_SCHEMA,
   VALID_PREF_KEYS,
+  isValidPrefKey,
   formatPrefSchema,
   exportPrefSchemaJSON,
   coerceFromString,
