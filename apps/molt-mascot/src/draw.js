@@ -362,6 +362,31 @@ export const OVERLAY_TIMING = {
 };
 
 /**
+ * Compute shadow ellipse parameters from sprite geometry and current bob offset.
+ * Pure function — no canvas/DOM access, fully testable.
+ *
+ * The shadow reacts to bob: when the lobster bobs up the shadow shrinks
+ * (farther from ground), when it bobs down the shadow grows. This gives
+ * a subtle depth/grounding effect.
+ *
+ * @param {number} spriteSize - Sprite grid size (typically 32)
+ * @param {number} scale - Pixel scale factor
+ * @param {number} bob - Current bob offset in canvas pixels (from sinusoidal animation)
+ * @returns {{ cx: number, cy: number, rx: number, ry: number, alpha: number }}
+ */
+export function computeShadowParams(spriteSize, scale, bob) {
+  const cx = (spriteSize * scale) / 2;
+  const cy = spriteSize * scale * SHADOW_CENTER_Y_RATIO;
+  const rx = SHADOW_RX_FACTOR * scale - bob * SHADOW_BOB_RX_FACTOR;
+  const ry = SHADOW_RY_FACTOR * scale - bob * SHADOW_BOB_RY_FACTOR;
+  const alpha = Math.max(
+    SHADOW_MIN_ALPHA,
+    SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
+  );
+  return { cx, cy, rx, ry, alpha };
+}
+
+/**
  * Draw the full lobster scene: shadow, sprite, blink, and mode overlay.
  *
  * @param {CanvasRenderingContext2D} ctx
@@ -396,28 +421,11 @@ export function drawLobster(ctx, params) {
     ? 0
     : Math.sin(t / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX;
 
-  // Subtle shadow (keeps it readable on transparent backgrounds)
-  // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
-  // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
-  const shadowCenterX = (spriteSize * s) / 2;
-  const shadowCenterY = spriteSize * s * SHADOW_CENTER_Y_RATIO;
-  const shadowScaleX = SHADOW_RX_FACTOR * s - bob * SHADOW_BOB_RX_FACTOR;
-  const shadowScaleY = SHADOW_RY_FACTOR * s - bob * SHADOW_BOB_RY_FACTOR;
-  const shadowAlpha = Math.max(
-    SHADOW_MIN_ALPHA,
-    SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
-  );
-  ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
+  // Shadow ellipse (keeps sprite readable on transparent backgrounds).
+  const shadow = computeShadowParams(spriteSize, s, bob);
+  ctx.fillStyle = `rgba(0,0,0,${shadow.alpha.toFixed(2)})`;
   ctx.beginPath();
-  ctx.ellipse(
-    shadowCenterX,
-    shadowCenterY,
-    shadowScaleX,
-    shadowScaleY,
-    0,
-    0,
-    Math.PI * 2,
-  );
+  ctx.ellipse(shadow.cx, shadow.cy, shadow.rx, shadow.ry, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // Main sprite

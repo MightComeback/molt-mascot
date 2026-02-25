@@ -3,6 +3,7 @@ import {
   drawSprite,
   drawLobster,
   createBlinkState,
+  computeShadowParams,
   _spriteCache,
   OVERLAY_TIMING,
   EYE_LEFT_COL,
@@ -771,6 +772,68 @@ describe("shadow constants", () => {
     expect(cy).toBe(32 * 3 * SHADOW_CENTER_Y_RATIO); // centerY
     expect(rx).toBeCloseTo(SHADOW_RX_FACTOR * 3, 5); // no bob displacement
     expect(ry).toBeCloseTo(SHADOW_RY_FACTOR * 3, 5);
+  });
+});
+
+describe("computeShadowParams", () => {
+  it("returns correct geometry at zero bob", () => {
+    const p = computeShadowParams(32, 3, 0);
+    expect(p.cx).toBe((32 * 3) / 2);
+    expect(p.cy).toBe(32 * 3 * SHADOW_CENTER_Y_RATIO);
+    expect(p.rx).toBeCloseTo(SHADOW_RX_FACTOR * 3, 5);
+    expect(p.ry).toBeCloseTo(SHADOW_RY_FACTOR * 3, 5);
+    expect(p.alpha).toBeCloseTo(SHADOW_BASE_ALPHA, 5);
+  });
+
+  it("positive bob shrinks shadow and reduces alpha", () => {
+    const rest = computeShadowParams(32, 3, 0);
+    const up = computeShadowParams(32, 3, 2); // lobster bobs up
+    expect(up.rx).toBeLessThan(rest.rx);
+    expect(up.ry).toBeLessThan(rest.ry);
+    expect(up.alpha).toBeLessThan(rest.alpha);
+  });
+
+  it("negative bob grows shadow and increases alpha", () => {
+    const rest = computeShadowParams(32, 3, 0);
+    const down = computeShadowParams(32, 3, -2); // lobster bobs down
+    expect(down.rx).toBeGreaterThan(rest.rx);
+    expect(down.ry).toBeGreaterThan(rest.ry);
+    expect(down.alpha).toBeGreaterThan(rest.alpha);
+  });
+
+  it("alpha never drops below SHADOW_MIN_ALPHA", () => {
+    // Extreme positive bob
+    const p = computeShadowParams(32, 3, 1000);
+    expect(p.alpha).toBeGreaterThanOrEqual(SHADOW_MIN_ALPHA);
+  });
+
+  it("scales linearly with scale factor", () => {
+    const s2 = computeShadowParams(32, 2, 0);
+    const s4 = computeShadowParams(32, 4, 0);
+    expect(s4.cx).toBe(s2.cx * 2);
+    expect(s4.cy).toBe(s2.cy * 2);
+    expect(s4.rx).toBeCloseTo(s2.rx * 2, 5);
+    expect(s4.ry).toBeCloseTo(s2.ry * 2, 5);
+  });
+
+  it("agrees with drawLobster shadow ellipse args", () => {
+    // Verify computeShadowParams produces the same values drawLobster passes to ctx.ellipse
+    const ctx = mockCtx();
+    drawLobster(ctx, {
+      mode: "idle",
+      t: 0,
+      scale: 3,
+      spriteSize: 32,
+      reducedMotion: true,
+      blinking: false,
+      canvas: { width: 96, height: 96 },
+    });
+    const ellipse = ctx.calls.find((c) => c.fn === "ellipse");
+    const p = computeShadowParams(32, 3, 0);
+    expect(ellipse.args[0]).toBe(p.cx);
+    expect(ellipse.args[1]).toBe(p.cy);
+    expect(ellipse.args[2]).toBeCloseTo(p.rx, 5);
+    expect(ellipse.args[3]).toBeCloseTo(p.ry, 5);
   });
 });
 
