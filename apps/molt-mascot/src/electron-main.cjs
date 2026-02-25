@@ -333,7 +333,7 @@ if (cliCompletionsShell) {
   const completionsPath = path.resolve(__dirname, '..', '..', 'tools', `completions.${cliCompletionsShell}`);
   try {
     process.stdout.write(fs.readFileSync(completionsPath, 'utf8'));
-  } catch (err) {
+  } catch {
     process.stderr.write(`molt-mascot: completions not found for ${cliCompletionsShell} (expected ${completionsPath})\n`);
     process.exit(1);
   }
