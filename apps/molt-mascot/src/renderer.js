@@ -94,6 +94,8 @@ const INSTANCE_ID = `moltMascot-${Math.random().toString(16).slice(2)}`;
 
 const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
+// Duration for transient pill feedback (e.g. "Copied ✓", "Opacity 80%").
+const TRANSIENT_FEEDBACK_MS = 700;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
 // 120s avoids false "sleeping" during normal usage pauses between queries.
 // Configurable via MOLT_MASCOT_SLEEP_THRESHOLD_S env var.
@@ -366,7 +368,7 @@ let copiedUntil = 0;
  * This prevents the 1-second pill refresh from immediately overwriting the feedback.
  */
 function showCopiedFeedback() {
-  showTransientFeedback("Copied ✓", 700);
+  showTransientFeedback("Copied ✓", TRANSIENT_FEEDBACK_MS);
 }
 
 /**
@@ -375,10 +377,14 @@ function showCopiedFeedback() {
  * Used for clipboard confirmation, opacity scroll feedback, etc.
  *
  * @param {string} text - Text to display in the pill
- * @param {number} [durationMs=700] - How long to show the feedback
+ * @param {number} [durationMs=TRANSIENT_FEEDBACK_MS] - How long to show the feedback
  * @param {string} [pillClass='pill--idle'] - CSS class for the pill during feedback
  */
-function showTransientFeedback(text, durationMs = 700, pillClass) {
+function showTransientFeedback(
+  text,
+  durationMs = TRANSIENT_FEEDBACK_MS,
+  pillClass,
+) {
   pill.textContent = text;
   // Preserve the current pill color when no explicit class is given,
   // so feedback like "Opacity 80%" doesn't flash to idle-green while
@@ -1237,7 +1243,7 @@ const ipcUnsubs = [];
  */
 function resetState() {
   setMode(Mode.idle);
-  showTransientFeedback("Reset ✓", 700);
+  showTransientFeedback("Reset ✓", TRANSIENT_FEEDBACK_MS);
   if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
     pluginResetMethodIndex = 0;
     pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
@@ -1445,7 +1451,11 @@ canvas.addEventListener("mousedown", (e) => {
   if (e.button !== 1) return; // 1 = middle button
   e.preventDefault();
   forceReconnectNow();
-  showTransientFeedback("Reconnecting…", 700, "pill--connecting");
+  showTransientFeedback(
+    "Reconnecting…",
+    TRANSIENT_FEEDBACK_MS,
+    "pill--connecting",
+  );
 });
 
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
