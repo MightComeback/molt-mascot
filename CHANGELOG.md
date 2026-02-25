@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- Added explicit `img-src 'self'` CSP directive — previously fell back to `default-src 'self'` implicitly; now explicit for auditability (parity with `font-src`, `media-src`, `worker-src` directives)
+
 ### Changed
 - Explicitly set `nodeIntegration: false` in BrowserWindow webPreferences for defense-in-depth (was already the Electron default, now explicit for auditability)
 - Hoisted `capitalize` utility to shared `@molt/mascot-plugin` package (single source of truth; previously duplicated in renderer utils)
