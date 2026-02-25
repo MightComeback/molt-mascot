@@ -26,6 +26,7 @@ import register, {
   isValidOpacity,
   isValidPadding,
   successRate,
+  formatPercent,
   sanitizeToolName,
   CONTENT_TOOLS,
   type PluginApi,
@@ -162,6 +163,20 @@ describe("utils", () => {
     expect(successRate(-1, 0)).toBeNull();
     // Edge: undefined/NaN errorCount treated as 0
     expect(successRate(10, NaN)).toBe(100);
+  });
+
+  it("formatPercent", () => {
+    expect(formatPercent(95)).toBe("95%");
+    expect(formatPercent(0)).toBe("0%");
+    expect(formatPercent(100)).toBe("100%");
+    expect(formatPercent(66.7)).toBe("67%");
+    expect(formatPercent(null)).toBe("–");
+    expect(formatPercent(undefined)).toBe("–");
+    expect(formatPercent(NaN)).toBe("–");
+    expect(formatPercent(Infinity)).toBe("–");
+    // Composable with successRate
+    expect(formatPercent(successRate(10, 2))).toBe("80%");
+    expect(formatPercent(successRate(0, 0))).toBe("–");
   });
 
   it("coerceBoolean", () => {

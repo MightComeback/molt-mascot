@@ -279,6 +279,20 @@ export function successRate(
   return Math.round(((totalCalls - errors) / totalCalls) * 100);
 }
 
+/**
+ * Format a percentage value as a compact string with a "%" suffix.
+ * Accepts the output of `successRate()` (which may be null for no-data).
+ * Returns "–" for null/undefined/non-finite inputs.
+ *
+ * @param value - Percentage (0-100), or null
+ * @returns Formatted string, e.g. "95%", "0%", or "–"
+ */
+export function formatPercent(value: number | null | undefined): string {
+  if (value == null || typeof value !== "number" || !Number.isFinite(value))
+    return "–";
+  return `${Math.round(value)}%`;
+}
+
 export function truncate(str: string, limit = 140): string {
   if (limit <= 0) return "";
   // Collapse whitespace/newlines to single spaces for cleaner display
