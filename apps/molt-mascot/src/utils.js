@@ -139,6 +139,30 @@ export function wsReadyStateLabel(readyState) {
 }
 
 /**
+ * Canonical list of valid WebSocket readyState values (0–3).
+ * Mirrors VALID_MODES, VALID_HEALTH_STATUSES, VALID_LATENCY_TRENDS, etc.
+ * for consistent validation patterns across the codebase.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
+ */
+export const VALID_WS_READY_STATES = Object.freeze([0, 1, 2, 3]);
+
+/** @private O(1) lookup set for isValidWsReadyState(). */
+const _VALID_WS_STATES_SET = new Set(VALID_WS_READY_STATES);
+
+/**
+ * Check whether a value is a valid WebSocket readyState (0–3).
+ * Mirrors isValidMode, isValidHealth, isValidLatencyTrend, isValidMemoryPressureLevel
+ * for API consistency across validation functions.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidWsReadyState(value) {
+  return typeof value === "number" && _VALID_WS_STATES_SET.has(value);
+}
+
+/**
  * Frame interval lookup tables for each mode.
  * Stored as frozen objects for O(1) lookup instead of if-chains.
  *

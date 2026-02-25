@@ -41,6 +41,8 @@ import {
   MEMORY_PRESSURE_THRESHOLDS,
   VALID_MEMORY_PRESSURE_LEVELS,
   isValidMemoryPressureLevel,
+  VALID_WS_READY_STATES,
+  isValidWsReadyState,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -346,6 +348,49 @@ describe("wsReadyStateLabel", () => {
 
   it("returns stringified value for unknown states", () => {
     expect(wsReadyStateLabel(99)).toBe("99");
+  });
+});
+
+describe("VALID_WS_READY_STATES", () => {
+  it("contains exactly the four WebSocket readyState values", () => {
+    expect(VALID_WS_READY_STATES).toEqual([0, 1, 2, 3]);
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(VALID_WS_READY_STATES)).toBe(true);
+  });
+});
+
+describe("isValidWsReadyState", () => {
+  it("accepts valid readyState values (0-3)", () => {
+    expect(isValidWsReadyState(0)).toBe(true);
+    expect(isValidWsReadyState(1)).toBe(true);
+    expect(isValidWsReadyState(2)).toBe(true);
+    expect(isValidWsReadyState(3)).toBe(true);
+  });
+
+  it("rejects out-of-range numbers", () => {
+    expect(isValidWsReadyState(-1)).toBe(false);
+    expect(isValidWsReadyState(4)).toBe(false);
+    expect(isValidWsReadyState(99)).toBe(false);
+  });
+
+  it("rejects non-integer values", () => {
+    expect(isValidWsReadyState(1.5)).toBe(false);
+    expect(isValidWsReadyState(0.1)).toBe(false);
+  });
+
+  it("rejects non-number types", () => {
+    expect(isValidWsReadyState("1")).toBe(false);
+    expect(isValidWsReadyState(null)).toBe(false);
+    expect(isValidWsReadyState(undefined)).toBe(false);
+    expect(isValidWsReadyState(true)).toBe(false);
+  });
+
+  it("rejects NaN and Infinity", () => {
+    expect(isValidWsReadyState(NaN)).toBe(false);
+    expect(isValidWsReadyState(Infinity)).toBe(false);
+    expect(isValidWsReadyState(-Infinity)).toBe(false);
   });
 });
 
