@@ -384,6 +384,15 @@ export function buildTooltip(params) {
   if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
     tip += ` · reconnected ${sessionConnectCount - 1}×`;
   }
+  // Surface connection success rate when below 100% — indicates failed connection
+  // attempts (parity with context menu and tray tooltip reliability diagnostics).
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate >= 0 &&
+    connectionSuccessRate < 100
+  ) {
+    tip += ` · ${connectionSuccessRate}% ok`;
+  }
   // Surface connection uptime percentage when below 100% to highlight flappy connections.
   // Parity with tray tooltip's connectionUptimePct indicator.
   if (

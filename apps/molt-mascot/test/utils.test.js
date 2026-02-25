@@ -759,6 +759,33 @@ describe("buildTooltip", () => {
     expect(tip2).not.toContain("reconnected");
   });
 
+  it("shows connectionSuccessRate when below 100%", () => {
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionSuccessRate: 75,
+    });
+    expect(tip).toContain("75% ok");
+  });
+
+  it("omits connectionSuccessRate when 100%", () => {
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionSuccessRate: 100,
+    });
+    expect(tip).not.toContain("% ok");
+  });
+
+  it("omits connectionSuccessRate when null or not provided", () => {
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionSuccessRate: null,
+    });
+    expect(tip).not.toContain("% ok");
+  });
+
   it("shows connectionUptimePct when below 100%", () => {
     const tip = buildTooltip({
       displayMode: "idle",
