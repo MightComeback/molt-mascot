@@ -137,6 +137,22 @@ export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center",
 ];
 
+/** @internal O(1) lookup set for isValidAlignment(). */
+const _validAlignmentsSet: ReadonlySet<string> = new Set(allowedAlignments);
+
+/**
+ * Check whether a value is a recognized alignment string (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidSize, etc.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid alignment string
+ */
+export function isValidAlignment(
+  value: unknown,
+): value is NonNullable<PluginConfig["alignment"]> {
+  return typeof value === "string" && _validAlignmentsSet.has(value);
+}
+
 export const allowedSizes: Size[] = [
   "tiny",
   "small",
@@ -144,6 +160,20 @@ export const allowedSizes: Size[] = [
   "large",
   "xlarge",
 ];
+
+/** @internal O(1) lookup set for isValidSize(). */
+const _validSizesSet: ReadonlySet<string> = new Set(allowedSizes);
+
+/**
+ * Check whether a value is a recognized size string (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidAlignment, etc.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid Size string
+ */
+export function isValidSize(value: unknown): value is Size {
+  return typeof value === "string" && _validSizesSet.has(value);
+}
 
 export function coerceSize(v: unknown, fallback: Size): Size {
   if (typeof v === "string") {

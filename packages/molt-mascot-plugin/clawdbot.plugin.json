@@ -1,7 +1,7 @@
 {
   "id": "@molt/mascot-plugin",
   "name": "Molt Mascot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OpenClaw plugin for Molt Mascot (pixel mascot)",
   "main": "dist/index.js",
   "configSchema": {
@@ -68,7 +68,13 @@
         "type": "string",
         "default": "medium",
         "description": "Mascot window size preset",
-        "enum": ["tiny", "small", "medium", "large", "xlarge"]
+        "enum": [
+          "tiny",
+          "small",
+          "medium",
+          "large",
+          "xlarge"
+        ]
       }
     }
   }

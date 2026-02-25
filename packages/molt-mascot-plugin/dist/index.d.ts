@@ -70,8 +70,39 @@ interface PluginApi {
 }
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
+/**
+ * Canonical list of valid plugin modes.
+ * Frozen array derived from the Mode type — single source of truth for runtime validation.
+ * Parity with allowedAlignments, allowedSizes, etc.
+ */
+declare const allowedModes: Mode[];
+/**
+ * Check whether a value is a recognized plugin mode (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidWsReadyState, isValidCloseCode (app),
+ * and coerceSize, coerceAlignment (plugin).
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid Mode string
+ */
+declare function isValidMode(value: unknown): value is Mode;
 declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
+/**
+ * Check whether a value is a recognized alignment string (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidSize, etc.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid alignment string
+ */
+declare function isValidAlignment(value: unknown): value is NonNullable<PluginConfig["alignment"]>;
 declare const allowedSizes: Size[];
+/**
+ * Check whether a value is a recognized size string (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidAlignment, etc.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a valid Size string
+ */
+declare function isValidSize(value: unknown): value is Size;
 declare function coerceSize(v: unknown, fallback: Size): Size;
 declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
 /**
@@ -231,10 +262,23 @@ declare function sanitizeToolName(raw: string): string;
  */
 declare const CONTENT_TOOLS: ReadonlySet<string>;
 /**
+ * Check whether a tool name is a recognized content tool (raw-output tools
+ * where text-sniffing for errors should be suppressed).
+ * O(1) via Set lookup. Parity with isValidMode, isValidHealth,
+ * isValidWsReadyState, isValidMemoryPressureLevel, etc.
+ *
+ * Also accepts sanitized names (after prefix stripping) since the register()
+ * function calls sanitizeToolName() before checking membership.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a recognized content tool name
+ */
+declare function isContentTool(value: unknown): value is string;
+/**
  * Initialize the molt-mascot plugin.
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidSize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };

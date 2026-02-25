@@ -21,6 +21,8 @@ import register, {
   allowedSizes,
   allowedModes,
   isValidMode,
+  isValidAlignment,
+  isValidSize,
   successRate,
   sanitizeToolName,
   CONTENT_TOOLS,
@@ -2199,5 +2201,47 @@ describe("isContentTool", () => {
     expect(isContentTool(true)).toBe(false);
     expect(isContentTool({})).toBe(false);
     expect(isContentTool([])).toBe(false);
+  });
+});
+
+describe("isValidAlignment", () => {
+  it("returns true for all allowed alignments", () => {
+    for (const a of allowedAlignments) {
+      expect(isValidAlignment(a)).toBe(true);
+    }
+  });
+
+  it("returns false for unknown strings", () => {
+    expect(isValidAlignment("left")).toBe(false);
+    expect(isValidAlignment("")).toBe(false);
+    expect(isValidAlignment("TOP-LEFT")).toBe(false);
+  });
+
+  it("returns false for non-string values", () => {
+    expect(isValidAlignment(null)).toBe(false);
+    expect(isValidAlignment(undefined)).toBe(false);
+    expect(isValidAlignment(42)).toBe(false);
+    expect(isValidAlignment(true)).toBe(false);
+  });
+});
+
+describe("isValidSize", () => {
+  it("returns true for all allowed sizes", () => {
+    for (const s of allowedSizes) {
+      expect(isValidSize(s)).toBe(true);
+    }
+  });
+
+  it("returns false for unknown strings", () => {
+    expect(isValidSize("huge")).toBe(false);
+    expect(isValidSize("")).toBe(false);
+    expect(isValidSize("MEDIUM")).toBe(false);
+  });
+
+  it("returns false for non-string values", () => {
+    expect(isValidSize(null)).toBe(false);
+    expect(isValidSize(undefined)).toBe(false);
+    expect(isValidSize(42)).toBe(false);
+    expect(isValidSize(true)).toBe(false);
   });
 });

@@ -24,6 +24,7 @@ __export(index_exports, {
   ERROR_PREFIXES: () => ERROR_PREFIXES,
   ERROR_PREFIX_REGEX: () => ERROR_PREFIX_REGEX,
   allowedAlignments: () => allowedAlignments,
+  allowedModes: () => allowedModes,
   allowedSizes: () => allowedSizes,
   capitalize: () => capitalize,
   clamp: () => clamp,
@@ -44,6 +45,10 @@ __export(index_exports, {
   formatTimestampLocal: () => formatTimestampLocal,
   formatTimestampWithAge: () => formatTimestampWithAge,
   id: () => id,
+  isContentTool: () => isContentTool,
+  isValidAlignment: () => isValidAlignment,
+  isValidMode: () => isValidMode,
+  isValidSize: () => isValidSize,
   sanitizeToolName: () => sanitizeToolName,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -55,7 +60,7 @@ module.exports = __toCommonJS(index_exports);
 // package.json
 var package_default = {
   name: "@molt/mascot-plugin",
-  version: "0.2.0",
+  version: "0.2.1",
   description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
     access: "public"
@@ -135,6 +140,11 @@ function coerceBoolean(v, fallback) {
   }
   return fallback;
 }
+var allowedModes = ["idle", "thinking", "tool", "error"];
+function isValidMode(value) {
+  return typeof value === "string" && _validModesSet.has(value);
+}
+var _validModesSet = new Set(allowedModes);
 var allowedAlignments = [
   "top-left",
   "top-right",
@@ -146,6 +156,10 @@ var allowedAlignments = [
   "center-right",
   "center"
 ];
+var _validAlignmentsSet = new Set(allowedAlignments);
+function isValidAlignment(value) {
+  return typeof value === "string" && _validAlignmentsSet.has(value);
+}
 var allowedSizes = [
   "tiny",
   "small",
@@ -153,6 +167,10 @@ var allowedSizes = [
   "large",
   "xlarge"
 ];
+var _validSizesSet = new Set(allowedSizes);
+function isValidSize(value) {
+  return typeof value === "string" && _validSizesSet.has(value);
+}
 function coerceSize(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
@@ -661,6 +679,9 @@ var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   // Linear integration via hakky-tools
   "hakky-tools"
 ]);
+function isContentTool(value) {
+  return typeof value === "string" && CONTENT_TOOLS.has(value);
+}
 function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
   let cfg = api?.pluginConfig;
@@ -715,7 +736,6 @@ function register(api) {
   const activeAgents = /* @__PURE__ */ new Set();
   const agentToolStacks = /* @__PURE__ */ new Map();
   const agentLastToolTs = /* @__PURE__ */ new Map();
-  const contentTools = CONTENT_TOOLS;
   const getToolDepth = () => {
     let inputs = 0;
     for (const stack of agentToolStacks.values()) inputs += stack.length;
@@ -898,8 +918,8 @@ function register(api) {
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
-      const isContentTool = contentTools.has(rawToolName);
-      const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
+      const isContent = isContentTool(rawToolName);
+      const textSniffing = !isContent && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
       const isExplicitError = msg?.isError === true || msg?.success === false || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
@@ -1015,6 +1035,7 @@ function register(api) {
   ERROR_PREFIXES,
   ERROR_PREFIX_REGEX,
   allowedAlignments,
+  allowedModes,
   allowedSizes,
   capitalize,
   clamp,
@@ -1034,6 +1055,10 @@ function register(api) {
   formatTimestampLocal,
   formatTimestampWithAge,
   id,
+  isContentTool,
+  isValidAlignment,
+  isValidMode,
+  isValidSize,
   sanitizeToolName,
   successRate,
   summarizeToolResultMessage,
