@@ -46,6 +46,8 @@ import {
   isValidCloseCode,
   CLOSE_REASON_MAX_LEN,
   formatPercent,
+  SLEEP_INTERVAL,
+  SLEEP_INTERVAL_REDUCED,
 } from "../src/utils.js";
 
 describe("formatPercent (re-exported from plugin)", () => {
@@ -495,8 +497,10 @@ describe("getFrameIntervalMs", () => {
     expect(getFrameIntervalMs("idle", 5000, SLEEP_MS, false)).toBe(66);
   });
 
-  it("returns ~4fps (250ms) for idle above sleep threshold", () => {
-    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, false)).toBe(250);
+  it("returns ~4fps (SLEEP_INTERVAL) for idle above sleep threshold", () => {
+    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, false)).toBe(
+      SLEEP_INTERVAL,
+    );
   });
 
   it("returns 100ms (~10fps) for disconnected and error modes", () => {
@@ -509,8 +513,10 @@ describe("getFrameIntervalMs", () => {
     expect(getFrameIntervalMs("thinking", 0, SLEEP_MS, true)).toBe(500);
     // Idle: 1000ms (~1fps)
     expect(getFrameIntervalMs("idle", 5000, SLEEP_MS, true)).toBe(1000);
-    // Sleeping: 2000ms (~0.5fps)
-    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, true)).toBe(2000);
+    // Sleeping: SLEEP_INTERVAL_REDUCED (~0.5fps)
+    expect(getFrameIntervalMs("idle", SLEEP_MS + 1, SLEEP_MS, true)).toBe(
+      SLEEP_INTERVAL_REDUCED,
+    );
   });
 
   it("treats exact sleep threshold as not sleeping", () => {

@@ -206,6 +206,11 @@ const FRAME_INTERVALS_REDUCED = Object.freeze({
   error: 500,
 });
 
+/** Frame interval for sleeping idle (~4fps, minimal animation, low CPU). */
+export const SLEEP_INTERVAL = 250;
+/** Frame interval for sleeping idle with reduced motion (~0.5fps). */
+export const SLEEP_INTERVAL_REDUCED = 2000;
+
 /** Default interval for unknown/future modes (~15fps, safe CPU budget). */
 const DEFAULT_INTERVAL = 66;
 const DEFAULT_INTERVAL_REDUCED = 500;
@@ -227,12 +232,12 @@ export function getFrameIntervalMs(
   reducedMotion,
 ) {
   if (reducedMotion) {
-    // Sleeping idle gets an even slower rate (2s between frames).
-    if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs)) return 2000;
+    if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs))
+      return SLEEP_INTERVAL_REDUCED;
     return FRAME_INTERVALS_REDUCED[mode] ?? DEFAULT_INTERVAL_REDUCED;
   }
-  // Sleeping idle drops to ~4fps (250ms) — minimal animation, low CPU.
-  if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs)) return 250;
+  if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs))
+    return SLEEP_INTERVAL;
   return FRAME_INTERVALS[mode] ?? DEFAULT_INTERVAL;
 }
 
