@@ -177,7 +177,14 @@ Options:
   --min-protocol <n>     Minimum Gateway protocol version (default: 2)
   --max-protocol <n>     Maximum Gateway protocol version (default: 3)
   --list-prefs           Print saved preferences and exit
+  --list-prefs --json    Print saved preferences as JSON (for scripting)
   --reset-prefs          Clear saved preferences and start fresh
+  --set-pref key=value   Set a single preference (validated) and exit
+  --unset-pref key       Remove a preference (revert to default) and exit
+  --get-pref key         Print a single preference value and exit
+  --get-pref key --json  Print preference value as JSON (for scripting)
+  --help-prefs           Print available preference keys with types and descriptions
+  --help-prefs --json    Print preference schema as JSON (for tooling/autocomplete)
   --sleep-threshold <s>  Idle seconds before sleep overlay (default: 120)
   --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
   --error-hold <ms>      How long to show error state before reverting (default: 5000)
