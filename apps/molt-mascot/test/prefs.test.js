@@ -905,7 +905,7 @@ describe("formatPrefSchema", () => {
 
   it("includes default values for keys that have non-null defaults", () => {
     const output = formatPrefSchema();
-    for (const [key, entry] of Object.entries(PREF_SCHEMA)) {
+    for (const [_key, entry] of Object.entries(PREF_SCHEMA)) {
       if (entry.default !== null && entry.default !== undefined) {
         expect(output).toContain(`[default: ${JSON.stringify(entry.default)}]`);
       }
@@ -921,7 +921,7 @@ describe("exportPrefSchemaJSON", () => {
 
   it("each entry has type and description strings", () => {
     const json = exportPrefSchemaJSON();
-    for (const [key, entry] of Object.entries(json)) {
+    for (const [_key, entry] of Object.entries(json)) {
       expect(typeof entry.type).toBe("string");
       expect(typeof entry.description).toBe("string");
     }
@@ -944,7 +944,7 @@ describe("exportPrefSchemaJSON", () => {
 
   it("each entry includes a default field", () => {
     const json = exportPrefSchemaJSON();
-    for (const [key, entry] of Object.entries(json)) {
+    for (const [_key, entry] of Object.entries(json)) {
       expect(entry).toHaveProperty("default");
     }
   });
