@@ -1473,14 +1473,21 @@ canvas.addEventListener("mousedown", (e) => {
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
 // all open the context menu. Combined into a single listener to avoid duplicate
 // event subscriptions on the same element.
+// Keyboard key classification helpers shared by pill and canvas keydown handlers.
+function isActivateKey(key) {
+  return key === "Enter" || key === " ";
+}
+function isContextMenuKey(key, shiftKey) {
+  return (key === "F10" && shiftKey) || key === "ContextMenu";
+}
+
 pill.addEventListener("keydown", (e) => {
-  const isActivate = e.key === "Enter" || e.key === " ";
-  const isContextKey =
-    (e.key === "F10" && e.shiftKey) || e.key === "ContextMenu";
-  if (!isActivate && !isContextKey) return;
+  const activate = isActivateKey(e.key);
+  const ctxKey = isContextMenuKey(e.key, e.shiftKey);
+  if (!activate && !ctxKey) return;
   e.preventDefault();
   const rect = pill.getBoundingClientRect();
-  if (isActivate) {
+  if (activate) {
     pill.dispatchEvent(
       new MouseEvent("contextmenu", {
         bubbles: true,
@@ -1749,10 +1756,7 @@ canvas.addEventListener("contextmenu", showContextMenu);
 // matching the double-click → ghost toggle is too destructive for accidental
 // key presses, so we open the context menu instead (consistent with pill behavior).
 canvas.addEventListener("keydown", (e) => {
-  const isActivate = e.key === "Enter" || e.key === " ";
-  const isContextKey =
-    (e.key === "F10" && e.shiftKey) || e.key === "ContextMenu";
-  if (!isActivate && !isContextKey) return;
+  if (!isActivateKey(e.key) && !isContextMenuKey(e.key, e.shiftKey)) return;
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
   showContextMenu({
