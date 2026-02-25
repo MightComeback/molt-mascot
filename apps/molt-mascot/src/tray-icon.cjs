@@ -382,6 +382,15 @@ function buildTrayTooltip(params) {
   ) {
     parts.push(`📶 ${connectionUptimePct}% connected`);
   }
+  // Surface connection success rate when below 100% — indicates failed connection
+  // attempts (parity with context menu and debug info reliability diagnostics).
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate >= 0 &&
+    connectionSuccessRate < 100
+  ) {
+    parts.push(`🎯 ${connectionSuccessRate}% ok`);
+  }
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
   // with diagnostic reasons so users can see *why* without opening debug info.
   // "healthy" is omitted to keep it clean.

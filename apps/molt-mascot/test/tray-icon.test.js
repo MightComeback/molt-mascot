@@ -940,6 +940,27 @@ describe("tray-icon", () => {
       expect(buildTrayTooltip({ ...base })).not.toContain("unhealthy");
     });
 
+    it("shows standalone success rate line when connectionSuccessRate < 100", () => {
+      const tip = buildTrayTooltip({
+        ...base,
+        connectionSuccessRate: 75,
+      });
+      expect(tip).toContain("🎯 75% ok");
+    });
+
+    it("omits standalone success rate line when connectionSuccessRate is 100", () => {
+      const tip = buildTrayTooltip({
+        ...base,
+        connectionSuccessRate: 100,
+      });
+      expect(tip).not.toContain("🎯");
+    });
+
+    it("omits standalone success rate line when connectionSuccessRate is null", () => {
+      const tip = buildTrayTooltip({ ...base });
+      expect(tip).not.toContain("🎯");
+    });
+
     it("uses connectionSuccessRate param directly for health reasons when provided", () => {
       const tip = buildTrayTooltip({
         ...base,
