@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON } from "../src/prefs.cjs";
+import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON, coerceFromString } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -1024,5 +1024,60 @@ describe("exportPrefSchemaJSON", () => {
     for (const key of VALID_PREF_KEYS) {
       expect(json[key].default).toEqual(PREF_SCHEMA[key].default ?? null);
     }
+  });
+});
+
+describe("coerceFromString", () => {
+  it("coerces boolean truthy values", () => {
+    for (const v of ["true", "1", "yes", "on", "TRUE", "Yes", "ON"]) {
+      expect(coerceFromString(v, { type: "boolean" })).toEqual({ value: true });
+    }
+  });
+
+  it("coerces boolean falsy values", () => {
+    for (const v of ["false", "0", "no", "off", "FALSE", "No", "OFF"]) {
+      expect(coerceFromString(v, { type: "boolean" })).toEqual({ value: false });
+    }
+  });
+
+  it("returns error for invalid boolean", () => {
+    const result = coerceFromString("maybe", { type: "boolean" });
+    expect(result).toHaveProperty("error");
+    expect(result.error).toContain("boolean");
+  });
+
+  it("coerces valid numbers", () => {
+    expect(coerceFromString("0.5", { type: "number" })).toEqual({ value: 0.5 });
+    expect(coerceFromString("42", { type: "number" })).toEqual({ value: 42 });
+    expect(coerceFromString("0", { type: "number" })).toEqual({ value: 0 });
+    expect(coerceFromString("-1", { type: "number" })).toEqual({ value: -1 });
+  });
+
+  it("returns error for non-finite numbers", () => {
+    expect(coerceFromString("abc", { type: "number" })).toHaveProperty("error");
+    expect(coerceFromString("NaN", { type: "number" })).toHaveProperty("error");
+    expect(coerceFromString("Infinity", { type: "number" })).toHaveProperty("error");
+  });
+
+  it("passes strings through unchanged", () => {
+    expect(coerceFromString("bottom-right", { type: "string" })).toEqual({ value: "bottom-right" });
+    expect(coerceFromString("", { type: "string" })).toEqual({ value: "" });
+  });
+
+  it("coerces valid JSON for object type", () => {
+    expect(coerceFromString('{"x":1,"y":2}', { type: "object" })).toEqual({ value: { x: 1, y: 2 } });
+  });
+
+  it("returns error for invalid JSON object", () => {
+    expect(coerceFromString("not-json", { type: "object" })).toHaveProperty("error");
+  });
+
+  it("returns error for invalid schema", () => {
+    expect(coerceFromString("foo", null)).toEqual({ error: "invalid schema entry" });
+    expect(coerceFromString("foo", {})).toEqual({ error: "invalid schema entry" });
+  });
+
+  it("passes through unknown types as string", () => {
+    expect(coerceFromString("bar", { type: "bigint" })).toEqual({ value: "bar" });
   });
 });

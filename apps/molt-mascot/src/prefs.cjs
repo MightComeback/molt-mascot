@@ -395,4 +395,44 @@ function exportPrefSchemaJSON() {
   return result;
 }
 
-module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON };
+/**
+ * Coerce a raw string value to the type expected by a PREF_SCHEMA entry.
+ * Designed for CLI `--set-pref key=value` and similar string-input contexts
+ * where values arrive as strings but the schema expects boolean/number/object.
+ *
+ * Returns `{ value }` on success, or `{ error: string }` on failure.
+ *
+ * @param {string} rawVal - The raw string value from the CLI or user input
+ * @param {{ type: string }} schema - The PREF_SCHEMA entry for the target key
+ * @returns {{ value: * } | { error: string }}
+ */
+function coerceFromString(rawVal, schema) {
+  if (!schema || typeof schema.type !== 'string') {
+    return { error: 'invalid schema entry' };
+  }
+  if (schema.type === 'boolean') {
+    const lower = rawVal.trim().toLowerCase();
+    if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') return { value: true };
+    if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return { value: false };
+    return { error: `expects boolean (true/false), got "${rawVal}"` };
+  }
+  if (schema.type === 'number') {
+    const n = Number(rawVal);
+    if (!Number.isFinite(n)) return { error: `expects a number, got "${rawVal}"` };
+    return { value: n };
+  }
+  if (schema.type === 'string') {
+    return { value: rawVal };
+  }
+  if (schema.type === 'object') {
+    try {
+      return { value: JSON.parse(rawVal) };
+    } catch {
+      return { error: `expects JSON object, got "${rawVal}"` };
+    }
+  }
+  // Unknown type — pass through as string
+  return { value: rawVal };
+}
+
+module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON, coerceFromString };

@@ -212,39 +212,19 @@ if (hasBoolFlag('--list-prefs')) {
     }
     const key = setPrefRaw.slice(0, eqIdx).trim();
     const rawVal = setPrefRaw.slice(eqIdx + 1);
-    const { PREF_SCHEMA } = require('./prefs.cjs');
+    const { PREF_SCHEMA, VALID_PREF_KEYS, coerceFromString } = require('./prefs.cjs');
     const schema = PREF_SCHEMA[key];
     if (!schema) {
-      const { VALID_PREF_KEYS } = require('./prefs.cjs');
       process.stderr.write(`molt-mascot: unknown preference "${key}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
       process.exit(1);
     }
     // Coerce the string value to the expected type
-    let value;
-    if (schema.type === 'boolean') {
-      const lower = rawVal.trim().toLowerCase();
-      if (['true', '1', 'yes', 'on'].includes(lower)) value = true;
-      else if (['false', '0', 'no', 'off'].includes(lower)) value = false;
-      else {
-        process.stderr.write(`molt-mascot: "${key}" expects boolean (true/false), got "${rawVal}"\n`);
-        process.exit(1);
-      }
-    } else if (schema.type === 'number') {
-      value = Number(rawVal);
-      if (!Number.isFinite(value)) {
-        process.stderr.write(`molt-mascot: "${key}" expects a number, got "${rawVal}"\n`);
-        process.exit(1);
-      }
-    } else if (schema.type === 'string') {
-      value = rawVal;
-    } else if (schema.type === 'object') {
-      try { value = JSON.parse(rawVal); } catch {
-        process.stderr.write(`molt-mascot: "${key}" expects JSON object, got "${rawVal}"\n`);
-        process.exit(1);
-      }
-    } else {
-      value = rawVal;
+    const coerced = coerceFromString(rawVal, schema);
+    if ('error' in coerced) {
+      process.stderr.write(`molt-mascot: "${key}" ${coerced.error}\n`);
+      process.exit(1);
     }
+    const value = coerced.value;
     // Validate through schema
     const { clean, dropped } = validatePrefs({ [key]: value });
     if (dropped.length > 0) {
