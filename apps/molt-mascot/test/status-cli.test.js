@@ -109,6 +109,30 @@ describe('resolveStatusConfig', () => {
     expect(status.preferences).toEqual({ alignment: 'center', sizeIndex: 3, opacityIndex: 2, padding: 50, clickThrough: true });
   });
 
+  it('prefs.size string label overrides sizeIndex', () => {
+    const status = resolveStatusConfig(makeParams({
+      prefs: { size: 'tiny', sizeIndex: 3 },
+      prefsPath: '/tmp/p.json',
+    }));
+    expect(status.config.size).toBe('tiny');
+  });
+
+  it('prefs.size is preferred over sizeIndex (matching electron-main resolution)', () => {
+    const status = resolveStatusConfig(makeParams({
+      prefs: { size: 'xlarge' },
+      prefsPath: '/tmp/p.json',
+    }));
+    expect(status.config.size).toBe('xlarge');
+  });
+
+  it('invalid prefs.size falls back to sizeIndex', () => {
+    const status = resolveStatusConfig(makeParams({
+      prefs: { size: 'bogus', sizeIndex: 0 },
+      prefsPath: '/tmp/p.json',
+    }));
+    expect(status.config.size).toBe(sizePresets.SIZE_PRESETS[0].label);
+  });
+
   it('env beats prefs for alignment', () => {
     const status = resolveStatusConfig(makeParams({
       env: { MOLT_MASCOT_ALIGN: 'top-right' },

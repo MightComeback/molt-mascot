@@ -47,6 +47,9 @@ function resolveStatusConfig({
   const resolvedSize = (() => {
     const label = (env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
     if (label && isValidSize(label)) return label;
+    // Prefer saved size label (robust across preset reorder) over numeric index.
+    // Mirrors the resolution order in electron-main.cjs app-ready handler.
+    if (typeof prefs.size === 'string' && prefs.size && isValidSize(prefs.size)) return prefs.size.toLowerCase();
     if (typeof prefs.sizeIndex === 'number' && prefs.sizeIndex >= 0 && prefs.sizeIndex < SIZE_PRESETS.length) {
       return SIZE_PRESETS[prefs.sizeIndex].label;
     }
