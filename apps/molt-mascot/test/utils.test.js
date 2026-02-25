@@ -44,6 +44,7 @@ import {
   VALID_WS_READY_STATES,
   isValidWsReadyState,
   isValidCloseCode,
+  CLOSE_REASON_MAX_LEN,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -1529,14 +1530,33 @@ describe("formatCloseDetail", () => {
     expect(formatCloseDetail(undefined, undefined)).toBe("");
   });
 
-  it("truncates long reason strings to keep tooltips readable", () => {
+  it("CLOSE_REASON_MAX_LEN is a positive integer", () => {
+    expect(typeof CLOSE_REASON_MAX_LEN).toBe("number");
+    expect(CLOSE_REASON_MAX_LEN).toBeGreaterThan(0);
+    expect(Number.isInteger(CLOSE_REASON_MAX_LEN)).toBe(true);
+  });
+
+  it("truncates long reason strings to CLOSE_REASON_MAX_LEN", () => {
     const longReason = "a".repeat(120);
     const result = formatCloseDetail(1006, longReason);
-    // Reason is truncated to ~80 chars, then " (1006)" is appended
+    // Reason is truncated to CLOSE_REASON_MAX_LEN chars, then " (1006)" is appended
     expect(result).toContain("…");
     expect(result).toEndWith(" (1006)");
-    // Truncated reason (≤80) + " (1006)" (7) = ≤87
-    expect(result.length).toBeLessThanOrEqual(87);
+    // Truncated reason (≤CLOSE_REASON_MAX_LEN) + " (1006)" (7) = max total
+    expect(result.length).toBeLessThanOrEqual(CLOSE_REASON_MAX_LEN + 7);
+  });
+
+  it("reason at exactly CLOSE_REASON_MAX_LEN is not truncated", () => {
+    const exactReason = "x".repeat(CLOSE_REASON_MAX_LEN);
+    const result = formatCloseDetail(1006, exactReason);
+    expect(result).not.toContain("…");
+    expect(result).toBe(`${exactReason} (1006)`);
+  });
+
+  it("reason at CLOSE_REASON_MAX_LEN + 1 is truncated", () => {
+    const overReason = "y".repeat(CLOSE_REASON_MAX_LEN + 1);
+    const result = formatCloseDetail(1006, overReason);
+    expect(result).toContain("…");
   });
 
   it("preserves short reason strings with code appended", () => {

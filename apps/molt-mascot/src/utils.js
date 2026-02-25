@@ -571,6 +571,14 @@ export const WS_CLOSE_CODE_LABELS = {
 };
 
 /**
+ * Maximum character length for close reason strings in formatCloseDetail().
+ * WS spec allows up to 123 bytes for close reasons; 80 chars keeps tooltips
+ * and debug info readable. Exported for testability and parity with
+ * PILL_MAX_ERROR_LEN, PILL_MAX_DISCONNECT_LEN, etc.
+ */
+export const CLOSE_REASON_MAX_LEN = 80;
+
+/**
  * Format a WebSocket close code + reason into a compact human-readable string.
  *
  * @param {number|null|undefined} code - WebSocket close code
@@ -578,9 +586,7 @@ export const WS_CLOSE_CODE_LABELS = {
  * @returns {string} Formatted detail (e.g. "abnormal closure", "1008: policy violation", "going away")
  */
 export function formatCloseDetail(code, reason) {
-  // Truncate long close reasons (WS spec allows up to 123 bytes) to keep
-  // tooltips and debug info readable. 80 chars is plenty for diagnostics.
-  const MAX_REASON_LEN = 80;
+  const MAX_REASON_LEN = CLOSE_REASON_MAX_LEN;
   // Collapse whitespace/newlines to single spaces — some servers send multi-line
   // close reasons that would break single-line tooltip/debug display.
   const rawReason = (reason || "").trim().replace(/\s+/g, " ");
