@@ -2167,3 +2167,37 @@ describe("utils", () => {
     expect(capitalize(undefined as any)).toBe(undefined);
   });
 });
+
+describe("isContentTool", () => {
+  const { isContentTool, CONTENT_TOOLS } = require("../src/index");
+
+  it("returns true for all members of CONTENT_TOOLS", () => {
+    for (const tool of CONTENT_TOOLS) {
+      expect(isContentTool(tool)).toBe(true);
+    }
+  });
+
+  it("returns true for known content tools", () => {
+    expect(isContentTool("read")).toBe(true);
+    expect(isContentTool("exec")).toBe(true);
+    expect(isContentTool("web_fetch")).toBe(true);
+    expect(isContentTool("browser")).toBe(true);
+    expect(isContentTool("parallel")).toBe(true);
+    expect(isContentTool("hakky-tools")).toBe(true);
+  });
+
+  it("returns false for unknown tool names", () => {
+    expect(isContentTool("unknown_tool")).toBe(false);
+    expect(isContentTool("")).toBe(false);
+    expect(isContentTool("READ")).toBe(false); // case-sensitive
+  });
+
+  it("returns false for non-string values", () => {
+    expect(isContentTool(null)).toBe(false);
+    expect(isContentTool(undefined)).toBe(false);
+    expect(isContentTool(42)).toBe(false);
+    expect(isContentTool(true)).toBe(false);
+    expect(isContentTool({})).toBe(false);
+    expect(isContentTool([])).toBe(false);
+  });
+});

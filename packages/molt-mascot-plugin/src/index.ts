@@ -979,6 +979,22 @@ export const CONTENT_TOOLS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Check whether a tool name is a recognized content tool (raw-output tools
+ * where text-sniffing for errors should be suppressed).
+ * O(1) via Set lookup. Parity with isValidMode, isValidHealth,
+ * isValidWsReadyState, isValidMemoryPressureLevel, etc.
+ *
+ * Also accepts sanitized names (after prefix stripping) since the register()
+ * function calls sanitizeToolName() before checking membership.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a recognized content tool name
+ */
+export function isContentTool(value: unknown): value is string {
+  return typeof value === "string" && CONTENT_TOOLS.has(value);
+}
+
+/**
  * Initialize the molt-mascot plugin.
  * Sets up the state machine, event listeners for tool/agent lifecycle,
  * and exposes the .state and .reset methods to the Gateway.
@@ -1059,7 +1075,7 @@ export default function register(api: PluginApi) {
   // Track recency so we can show the most recently-active tool when multiple sessions are running tools.
   const agentLastToolTs = new Map<string, number>();
 
-  const contentTools = CONTENT_TOOLS;
+  // Use the exported isContentTool() for O(1) membership checks.
 
   const getToolDepth = () => {
     let inputs = 0;
@@ -1352,10 +1368,10 @@ export default function register(api: PluginApi) {
       // Tools that return raw content (like 'read') can contain "error:" in the text
       // without actually failing. For these, we disable text-sniffing for errors
       // unless an explicit error field is present.
-      const isContentTool = contentTools.has(rawToolName);
+      const isContent = isContentTool(rawToolName);
 
       const textSniffing =
-        !isContentTool &&
+        !isContent &&
         ((typeof msg === "string" && /^\s*error:/i.test(msg)) ||
           (typeof msg === "string" &&
             /Command exited with code [1-9]\d*/.test(msg)));
