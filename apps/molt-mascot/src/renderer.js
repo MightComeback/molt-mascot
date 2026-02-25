@@ -28,7 +28,11 @@ import { buildPillLabel, PILL_MAX_ERROR_LEN } from "./pill-label.js";
 import { buildDebugInfo as _buildDebugInfo } from "./debug-info.js";
 import { createFpsCounter } from "./fps-counter.js";
 import { createLatencyTracker } from "./latency-tracker.js";
-import { isActivateKey, isContextMenuKey } from "./keyboard-utils.js";
+import {
+  isActivateKey,
+  isContextMenuKey,
+  isEscapeKey,
+} from "./keyboard-utils.js";
 import { PLUGIN_STATE_THROTTLE_MS } from "./gateway-client.js";
 import {
   drawLobster as _drawLobster,
@@ -1207,7 +1211,7 @@ function dismissSetup() {
 
 // ESC dismisses the setup form if we have a saved config (reconnect with existing creds)
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !setup.hidden) dismissSetup();
+  if (isEscapeKey(e.key) && !setup.hidden) dismissSetup();
 });
 
 // Cancel button dismisses the setup form (visible alternative to ESC)

@@ -3,6 +3,8 @@
  * Extracted from renderer.js for maintainability and testability.
  */
 
+import { isEscapeKey } from "./keyboard-utils.js";
+
 /**
  * @typedef {Object} MenuItem
  * @property {string} [label]
@@ -178,7 +180,7 @@ export function show(items, { x, y }) {
   };
 
   const onKey = (ev) => {
-    if (ev.key === "Escape") {
+    if (isEscapeKey(ev.key)) {
       cleanup();
       return;
     }

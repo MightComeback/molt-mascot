@@ -1,5 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { isActivateKey, isContextMenuKey } from "../src/keyboard-utils.js";
+import {
+  isActivateKey,
+  isContextMenuKey,
+  isEscapeKey,
+} from "../src/keyboard-utils.js";
 
 describe("isActivateKey", () => {
   it("returns true for Enter", () => {
@@ -41,5 +45,23 @@ describe("isContextMenuKey", () => {
     expect(isContextMenuKey("Enter", false)).toBe(false);
     expect(isContextMenuKey("Escape", true)).toBe(false);
     expect(isContextMenuKey(" ", true)).toBe(false);
+  });
+});
+
+describe("isEscapeKey", () => {
+  it("returns true for Escape", () => {
+    expect(isEscapeKey("Escape")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isEscapeKey("Enter")).toBe(false);
+    expect(isEscapeKey(" ")).toBe(false);
+    expect(isEscapeKey("Tab")).toBe(false);
+    expect(isEscapeKey("Esc")).toBe(false);
+    expect(isEscapeKey("F10")).toBe(false);
+  });
+
+  it("returns false for empty string", () => {
+    expect(isEscapeKey("")).toBe(false);
   });
 });

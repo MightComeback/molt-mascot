@@ -31,3 +31,15 @@ export function isActivateKey(key) {
 export function isContextMenuKey(key, shiftKey) {
   return (key === "F10" && shiftKey) || key === "ContextMenu";
 }
+
+/**
+ * Whether a key event represents a dismiss/cancel action (Escape key).
+ * Used by the context menu and setup form to close on keyboard input,
+ * matching native OS behavior for dismissing dialogs and menus.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isEscapeKey(key) {
+  return key === "Escape";
+}
