@@ -662,13 +662,13 @@ describe("buildTooltip", () => {
     expect(tip).not.toContain("%");
   });
 
-  it("includes alignment when non-default", () => {
+  it("includes alignment with directional arrow when non-default", () => {
     const tip = buildTooltip({
       displayMode: "idle",
       durationSec: 0,
       alignment: "top-left",
     });
-    expect(tip).toContain("top-left");
+    expect(tip).toContain("↖ top-left");
   });
 
   it("omits alignment when bottom-right (default)", () => {
