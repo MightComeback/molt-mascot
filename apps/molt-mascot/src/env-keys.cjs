@@ -43,6 +43,18 @@ function resolveEnv(keys, env, fallback) {
   return fallback;
 }
 
+/** Env vars checked (in order) for the minimum gateway protocol version. */
+const GATEWAY_MIN_PROTOCOL_KEYS = Object.freeze([
+  "MOLT_MASCOT_MIN_PROTOCOL",
+  "GATEWAY_MIN_PROTOCOL",
+]);
+
+/** Env vars checked (in order) for the maximum gateway protocol version. */
+const GATEWAY_MAX_PROTOCOL_KEYS = Object.freeze([
+  "MOLT_MASCOT_MAX_PROTOCOL",
+  "GATEWAY_MAX_PROTOCOL",
+]);
+
 /** Canonical GitHub repository URL (single source of truth for about panel, tray menu, context menu). */
 const REPO_URL = "https://github.com/MightComeback/molt-mascot";
 
@@ -131,6 +143,8 @@ function parseEnvBoolean(env, keys, fallback) {
 module.exports = {
   GATEWAY_URL_KEYS,
   GATEWAY_TOKEN_KEYS,
+  GATEWAY_MIN_PROTOCOL_KEYS,
+  GATEWAY_MAX_PROTOCOL_KEYS,
   resolveEnv,
   resolveEnvWithSource,
   parseEnvNumber,

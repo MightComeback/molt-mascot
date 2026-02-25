@@ -2,6 +2,8 @@ import { describe, it, expect } from "bun:test";
 import {
   GATEWAY_URL_KEYS,
   GATEWAY_TOKEN_KEYS,
+  GATEWAY_MIN_PROTOCOL_KEYS,
+  GATEWAY_MAX_PROTOCOL_KEYS,
   resolveEnv,
   resolveEnvWithSource,
   parseEnvNumber,
@@ -20,6 +22,26 @@ describe("env-keys constants", () => {
     expect(Object.isFrozen(GATEWAY_TOKEN_KEYS)).toBe(true);
     expect(GATEWAY_TOKEN_KEYS[0]).toBe("MOLT_MASCOT_GATEWAY_TOKEN");
     expect(GATEWAY_TOKEN_KEYS.length).toBe(5);
+  });
+
+  it("GATEWAY_MIN_PROTOCOL_KEYS is a frozen array with expected entries", () => {
+    expect(Object.isFrozen(GATEWAY_MIN_PROTOCOL_KEYS)).toBe(true);
+    expect(GATEWAY_MIN_PROTOCOL_KEYS[0]).toBe("MOLT_MASCOT_MIN_PROTOCOL");
+    expect(GATEWAY_MIN_PROTOCOL_KEYS.length).toBe(2);
+  });
+
+  it("GATEWAY_MAX_PROTOCOL_KEYS is a frozen array with expected entries", () => {
+    expect(Object.isFrozen(GATEWAY_MAX_PROTOCOL_KEYS)).toBe(true);
+    expect(GATEWAY_MAX_PROTOCOL_KEYS[0]).toBe("MOLT_MASCOT_MAX_PROTOCOL");
+    expect(GATEWAY_MAX_PROTOCOL_KEYS.length).toBe(2);
+  });
+
+  it("min and max protocol key lists have parallel structure", () => {
+    for (let i = 0; i < GATEWAY_MIN_PROTOCOL_KEYS.length; i++) {
+      const minKey = GATEWAY_MIN_PROTOCOL_KEYS[i].replace("MIN_", "");
+      const maxKey = GATEWAY_MAX_PROTOCOL_KEYS[i].replace("MAX_", "");
+      expect(minKey).toBe(maxKey);
+    }
   });
 
   it("URL and token key lists have parallel structure", () => {

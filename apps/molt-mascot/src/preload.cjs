@@ -3,6 +3,8 @@ const pkg = require("../package.json");
 const {
   GATEWAY_URL_KEYS,
   GATEWAY_TOKEN_KEYS,
+  GATEWAY_MIN_PROTOCOL_KEYS,
+  GATEWAY_MAX_PROTOCOL_KEYS,
   resolveEnv,
 } = require("./env-keys.cjs");
 
@@ -73,14 +75,8 @@ contextBridge.exposeInMainWorld("moltMascot", {
     gatewayToken: resolveEnv(GATEWAY_TOKEN_KEYS, process.env),
     // Allow protocol negotiation for older/newer Gateways.
     // Prefer the same env vars as tools/ws-dump for consistency.
-    minProtocol:
-      process.env.MOLT_MASCOT_MIN_PROTOCOL ||
-      process.env.GATEWAY_MIN_PROTOCOL ||
-      "",
-    maxProtocol:
-      process.env.MOLT_MASCOT_MAX_PROTOCOL ||
-      process.env.GATEWAY_MAX_PROTOCOL ||
-      "",
+    minProtocol: resolveEnv(GATEWAY_MIN_PROTOCOL_KEYS, process.env),
+    maxProtocol: resolveEnv(GATEWAY_MAX_PROTOCOL_KEYS, process.env),
     sleepThresholdS: process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S || "",
     captureDir: process.env.MOLT_MASCOT_CAPTURE_DIR || "",
     idleDelayMs: process.env.MOLT_MASCOT_IDLE_DELAY_MS || "",
