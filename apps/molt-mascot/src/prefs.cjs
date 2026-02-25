@@ -307,6 +307,8 @@ const PREF_SCHEMA = {
   pollIntervalMs:  { type: 'number', default: 1000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 100, description: 'Plugin state poll interval in ms (min 100)' },
   reconnectBaseMs: { type: 'number', default: 1500, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Base delay in ms before reconnecting after disconnect' },
   reconnectMaxMs:  { type: 'number', default: 30000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Maximum reconnect delay in ms (exponential backoff cap)' },
+  staleConnectionMs:    { type: 'number', default: 15000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Time in ms before a silent WebSocket is considered stale and recycled' },
+  staleCheckIntervalMs: { type: 'number', default: 5000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Interval in ms between stale-connection health checks' },
 };
 
 /**

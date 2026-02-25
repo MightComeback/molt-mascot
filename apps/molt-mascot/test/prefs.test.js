@@ -553,6 +553,38 @@ describe("validatePrefs", () => {
     const { clean: m2, dropped: d5 } = validatePrefs({ reconnectMaxMs: 1000.5 });
     expect(m2.reconnectMaxMs).toBeUndefined();
     expect(d5.map((d) => d.key)).toContain("reconnectMaxMs");
+
+    // staleConnectionMs: valid
+    const { clean: s1 } = validatePrefs({ staleConnectionMs: 20000 });
+    expect(s1.staleConnectionMs).toBe(20000);
+
+    // staleConnectionMs: zero is valid
+    const { clean: s2 } = validatePrefs({ staleConnectionMs: 0 });
+    expect(s2.staleConnectionMs).toBe(0);
+
+    // staleConnectionMs: non-integer rejected
+    const { clean: s3, dropped: d6 } = validatePrefs({ staleConnectionMs: 500.5 });
+    expect(s3.staleConnectionMs).toBeUndefined();
+    expect(d6.map((d) => d.key)).toContain("staleConnectionMs");
+
+    // staleConnectionMs: negative rejected
+    const { clean: s4, dropped: d7 } = validatePrefs({ staleConnectionMs: -1 });
+    expect(s4.staleConnectionMs).toBeUndefined();
+    expect(d7.map((d) => d.key)).toContain("staleConnectionMs");
+
+    // staleCheckIntervalMs: valid
+    const { clean: c1 } = validatePrefs({ staleCheckIntervalMs: 10000 });
+    expect(c1.staleCheckIntervalMs).toBe(10000);
+
+    // staleCheckIntervalMs: non-integer rejected
+    const { clean: c2, dropped: d8 } = validatePrefs({ staleCheckIntervalMs: 2000.7 });
+    expect(c2.staleCheckIntervalMs).toBeUndefined();
+    expect(d8.map((d) => d.key)).toContain("staleCheckIntervalMs");
+
+    // staleCheckIntervalMs: negative rejected
+    const { clean: c3, dropped: d9 } = validatePrefs({ staleCheckIntervalMs: -100 });
+    expect(c3.staleCheckIntervalMs).toBeUndefined();
+    expect(d9.map((d) => d.key)).toContain("staleCheckIntervalMs");
   });
 
   it("accepts valid size labels and rejects invalid ones", () => {
