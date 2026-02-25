@@ -144,7 +144,12 @@ export function coerceBoolean(v: unknown, fallback: boolean): boolean {
  * Frozen array derived from the Mode type — single source of truth for runtime validation.
  * Parity with allowedAlignments, allowedSizes, etc.
  */
-export const allowedModes: Mode[] = ["idle", "thinking", "tool", "error"];
+export const allowedModes: readonly Mode[] = Object.freeze([
+  "idle",
+  "thinking",
+  "tool",
+  "error",
+] as const);
 
 /**
  * Check whether a value is a recognized plugin mode (case-sensitive).
@@ -179,7 +184,9 @@ export function coerceMode(v: unknown, fallback: Mode): Mode {
   return fallback;
 }
 
-export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
+export const allowedAlignments: readonly NonNullable<
+  PluginConfig["alignment"]
+>[] = Object.freeze([
   "top-left",
   "top-right",
   "bottom-left",
@@ -189,7 +196,7 @@ export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center-left",
   "center-right",
   "center",
-];
+] as const);
 
 /** @internal O(1) lookup set for isValidAlignment(). */
 const _validAlignmentsSet: ReadonlySet<string> = new Set(allowedAlignments);
@@ -207,13 +214,13 @@ export function isValidAlignment(
   return typeof value === "string" && _validAlignmentsSet.has(value);
 }
 
-export const allowedSizes: Size[] = [
+export const allowedSizes: readonly Size[] = Object.freeze([
   "tiny",
   "small",
   "medium",
   "large",
   "xlarge",
-];
+] as const);
 
 /** @internal O(1) lookup set for isValidSize(). */
 const _validSizesSet: ReadonlySet<string> = new Set(allowedSizes);
