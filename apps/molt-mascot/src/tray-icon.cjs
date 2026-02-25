@@ -26,7 +26,7 @@ const { formatAlignment } = require("./get-position.cjs");
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
 //         h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
-const TRAY_SPRITE = [
+const TRAY_SPRITE = Object.freeze([
   "......kkkk......",
   ".....krrrrk.....",
   "....krhhhhrkk...",
@@ -43,9 +43,9 @@ const TRAY_SPRITE = [
   "....kkrrkrrkk...",
   "......krrrkk....",
   ".......kkk......",
-];
+]);
 
-const TRAY_COLORS = {
+const TRAY_COLORS = Object.freeze({
   ".": [0, 0, 0, 0],
   k: [0x4a, 0x0f, 0x14, 0xff],
   r: [0xe0, 0x43, 0x3a, 0xff],
@@ -53,12 +53,12 @@ const TRAY_COLORS = {
   w: [0xf8, 0xf7, 0xff, 0xff],
   b: [0x10, 0x10, 0x14, 0xff],
   c: [0xff, 0x6b, 0x35, 0xff],
-};
+});
 
 // Status dot colors for each mascot mode.
 // The dot is a 3×3 pixel indicator in the bottom-right corner of the tray icon,
 // giving at-a-glance status feedback (common macOS menu bar pattern).
-const STATUS_DOT_COLORS = {
+const STATUS_DOT_COLORS = Object.freeze({
   idle: [0x8e, 0x8e, 0x93, 0xff], // gray
   thinking: [0x0a, 0x84, 0xff, 0xff], // blue
   tool: [0x34, 0xc7, 0x59, 0xff], // green
@@ -67,7 +67,7 @@ const STATUS_DOT_COLORS = {
   connected: [0x34, 0xc7, 0x59, 0xff], // green
   disconnected: [0xff, 0x3b, 0x30, 0xff], // red
   sleeping: [0x58, 0x56, 0xd6, 0xff], // indigo
-};
+});
 
 /**
  * Render the tray sprite at the given integer scale.
