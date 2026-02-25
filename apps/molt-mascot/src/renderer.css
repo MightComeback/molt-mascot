@@ -356,6 +356,60 @@ kbd {
   padding: 20px;
 }
 
+/* Windows High Contrast Mode — ensure pill, context menu, and setup form
+   remain visible when the OS forces high-contrast colors. Without these
+   overrides, the semi-transparent backgrounds become invisible. */
+@media (forced-colors: active) {
+  #pill {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+  #molt-ctx {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+  #molt-ctx [role="menuitem"]:hover:not([data-disabled]),
+  #molt-ctx [role="menuitem"].ctx-focus:not([data-disabled]),
+  #molt-ctx [role="menuitemcheckbox"]:hover:not([data-disabled]),
+  #molt-ctx [role="menuitemcheckbox"].ctx-focus:not([data-disabled]) {
+    background: Highlight;
+    color: HighlightText;
+  }
+  #molt-ctx [data-separator] {
+    background: ButtonText;
+  }
+  #setup {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+  #setup input {
+    border: 1px solid ButtonText;
+    background: Field;
+    color: FieldText;
+  }
+  #setup input:focus-visible {
+    outline: 2px solid Highlight;
+  }
+  #setup button {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+  #setup button:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+  canvas:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+
 /* Screen reader only */
 .sr-only {
   position: absolute;
