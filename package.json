@@ -27,6 +27,7 @@
     "dist": "bun run build && bun run --cwd apps/molt-mascot dist",
     "test": "bun test packages/molt-mascot-plugin/test apps/molt-mascot/test",
     "test:watch": "bun test --watch packages/molt-mascot-plugin/test apps/molt-mascot/test",
+    "test:coverage": "bun test --coverage packages/molt-mascot-plugin/test apps/molt-mascot/test",
     "typecheck": "bun run --cwd packages/molt-mascot-plugin typecheck",
     "lint": "oxlint .",
     "format": "bun x biome check --apply .",
