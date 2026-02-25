@@ -502,6 +502,79 @@ describe("context-menu", () => {
     expect(menu._children[0]._classes.has("ctx-focus")).toBe(true);
   });
 
+  it("multi-character type-ahead matches longer prefixes", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Force Reconnect", action: () => {} },
+        { label: "Format Output", action: () => {} },
+      ],
+      { x: 0, y: 0 },
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Auto-focused on Alpha (0). Type "fo" quickly — multi-char search from
+    // current position finds "Force Reconnect" (1) first.
+    dispatch("f");
+    dispatch("o");
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
+
+    // Continue typing "rc" to narrow to "force" — still matches "Force Reconnect"
+    dispatch("r");
+    dispatch("c");
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
+  });
+
+  it("multi-character type-ahead distinguishes between similar prefixes", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Reset State", action: () => {} },
+        { label: "Reconnect Now", action: () => {} },
+      ],
+      { x: 0, y: 0 },
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Type "rec" — skips "Reset State", matches "Reconnect Now"
+    dispatch("r");
+    dispatch("e");
+    dispatch("c");
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+  });
+
+  it("multi-character type-ahead resets after timeout", async () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+        { label: "Gamma", action: () => {} },
+      ],
+      { x: 0, y: 0 },
+    );
+    await new Promise((r) => setTimeout(r, 5));
+
+    const keyHandlers = document._listeners["keydown"] || [];
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    // Type "b" to jump to Beta
+    dispatch("b");
+    expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
+
+    // Wait for type-ahead timeout to reset (500ms + buffer)
+    await new Promise((r) => setTimeout(r, 600));
+
+    // Type "g" to jump to Gamma (new search, not "bg")
+    dispatch("g");
+    expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
+  });
+
   it("mouseenter on item moves focus indicator to that item", async () => {
     const menu = ctxMenu.show(
       [

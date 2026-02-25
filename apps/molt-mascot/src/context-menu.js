@@ -111,6 +111,13 @@ export function show(items, { x, y }) {
   const menuItems = Array.from(menu.children);
   let focusIdx = -1;
 
+  // Multi-character type-ahead: accumulate typed characters within a short
+  // window so users can type "fo" to jump to "Force Reconnect" past "Format…".
+  // Resets after 500ms of inactivity (matches native macOS/Windows menu behavior).
+  let typeAheadBuffer = "";
+  let typeAheadTimer = null;
+  const TYPE_AHEAD_TIMEOUT_MS = 500;
+
   const interactiveIndices = menuItems
     .map((el, i) => ({ el, i }))
     .filter(
@@ -195,20 +202,45 @@ export function show(items, { x, y }) {
       menuItems[focusIdx].click();
       return;
     }
-    // Type-ahead: jump to the next menu item starting with the pressed letter
+    // Multi-character type-ahead: accumulate typed characters within a 500ms
+    // window to match menu items. Typing "fo" jumps to "Force Reconnect" past
+    // "Format…". Falls back to single-char cycling when only one character is
+    // buffered (preserves the original behavior of cycling through matches).
     if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
-      const ch = ev.key.toLowerCase();
+      if (typeAheadTimer) clearTimeout(typeAheadTimer);
+      typeAheadBuffer += ev.key.toLowerCase();
+      typeAheadTimer = setTimeout(() => {
+        typeAheadBuffer = "";
+        typeAheadTimer = null;
+      }, TYPE_AHEAD_TIMEOUT_MS);
+
       const curPos = interactiveIndices.indexOf(focusIdx);
-      // Search from the item after the current focus, wrapping around
-      for (let offset = 1; offset <= interactiveIndices.length; offset++) {
+
+      // Detect repeated single character (e.g. "aaa") — cycle through matches
+      // starting after current focus (original single-char behavior).
+      // Otherwise use the full accumulated buffer for prefix matching.
+      const isRepeatedChar =
+        typeAheadBuffer.length > 0 &&
+        typeAheadBuffer.split("").every((c) => c === typeAheadBuffer[0]);
+      const query = isRepeatedChar ? typeAheadBuffer[0] : typeAheadBuffer;
+      const startOffset = isRepeatedChar ? 1 : 0;
+
+      for (
+        let offset = startOffset;
+        offset <= interactiveIndices.length;
+        offset++
+      ) {
         const candidate =
-          interactiveIndices[(curPos + offset) % interactiveIndices.length];
+          interactiveIndices[
+            (curPos + offset + interactiveIndices.length) %
+              interactiveIndices.length
+          ];
         const label = (menuItems[candidate].textContent || "")
           .trim()
           .toLowerCase();
         // Skip checkmark prefix (✓) for matching
         const cleanLabel = label.replace(/^✓\s*/, "");
-        if (cleanLabel.startsWith(ch)) {
+        if (cleanLabel.startsWith(query)) {
           setFocus(candidate);
           break;
         }
@@ -222,6 +254,9 @@ export function show(items, { x, y }) {
     document.removeEventListener("keydown", onKey, true);
     document.removeEventListener("wheel", onWheel, true);
     window.removeEventListener("blur", cleanup);
+    if (typeAheadTimer) clearTimeout(typeAheadTimer);
+    typeAheadBuffer = "";
+    typeAheadTimer = null;
     activeCleanup = null;
     // Restore focus to the element that opened the menu (WAI-ARIA best practice).
     // Without this, focus is lost to <body> after dismiss, breaking keyboard flow.
