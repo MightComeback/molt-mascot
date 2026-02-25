@@ -583,6 +583,60 @@ function coerceFromString(rawVal, schema) {
   return { value: rawVal };
 }
 
+/**
+ * Diff two preference snapshots and return what changed.
+ * Useful for diagnostics logging ("alignment: bottom-right → top-left"),
+ * IPC change notifications, and undo/redo tracking.
+ *
+ * Only includes keys that actually differ (deep equality for objects).
+ * Keys present in `after` but not `before` are reported as additions (prev: undefined).
+ * Keys present in `before` but not `after` are reported as removals (next: undefined).
+ *
+ * @param {object} before - Previous preferences snapshot
+ * @param {object} after - Current preferences snapshot
+ * @returns {Array<{ key: string, prev: *, next: * }>} List of changed keys with before/after values
+ */
+function diffPrefs(before, after) {
+  const b = before && typeof before === "object" ? before : {};
+  const a = after && typeof after === "object" ? after : {};
+  const allKeys = new Set([...Object.keys(b), ...Object.keys(a)]);
+  const changes = [];
+  for (const key of allKeys) {
+    const prev = b[key];
+    const next = a[key];
+    // Deep-equal check for objects (e.g. draggedPosition {x, y})
+    if (
+      typeof prev === "object" &&
+      typeof next === "object" &&
+      prev !== null &&
+      next !== null
+    ) {
+      if (JSON.stringify(prev) === JSON.stringify(next)) continue;
+    } else if (prev === next) {
+      continue;
+    }
+    changes.push({ key, prev, next });
+  }
+  return changes;
+}
+
+/**
+ * Format a diffPrefs() result as a human-readable multi-line string.
+ * Each line shows: "key: prev → next" (or "key: (added) next" / "key: prev (removed)").
+ *
+ * @param {Array<{ key: string, prev: *, next: * }>} changes - Output of diffPrefs()
+ * @returns {string} Formatted diff string (empty string if no changes)
+ */
+function formatPrefsDiff(changes) {
+  if (!changes || changes.length === 0) return "";
+  return changes
+    .map(({ key, prev, next }) => {
+      const fmtVal = (v) => (v === undefined ? "(unset)" : JSON.stringify(v));
+      return `  ${key}: ${fmtVal(prev)} → ${fmtVal(next)}`;
+    })
+    .join("\n");
+}
+
 module.exports = {
   createPrefsManager,
   validatePrefs,
@@ -591,4 +645,6 @@ module.exports = {
   formatPrefSchema,
   exportPrefSchemaJSON,
   coerceFromString,
+  diffPrefs,
+  formatPrefsDiff,
 };

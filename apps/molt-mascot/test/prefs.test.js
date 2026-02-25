@@ -7,6 +7,8 @@ import {
   formatPrefSchema,
   exportPrefSchemaJSON,
   coerceFromString,
+  diffPrefs,
+  formatPrefsDiff,
 } from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
@@ -1233,5 +1235,92 @@ describe("coerceFromString", () => {
     expect(coerceFromString("bar", { type: "bigint" })).toEqual({
       value: "bar",
     });
+  });
+});
+
+describe("diffPrefs", () => {
+  it("returns empty array for identical objects", () => {
+    const a = { alignment: "bottom-right", opacity: 1 };
+    expect(diffPrefs(a, { ...a })).toEqual([]);
+  });
+
+  it("detects changed values", () => {
+    const before = { alignment: "bottom-right", opacity: 1 };
+    const after = { alignment: "top-left", opacity: 1 };
+    const diff = diffPrefs(before, after);
+    expect(diff).toEqual([
+      { key: "alignment", prev: "bottom-right", next: "top-left" },
+    ]);
+  });
+
+  it("detects added keys", () => {
+    const diff = diffPrefs({}, { size: "large" });
+    expect(diff).toEqual([{ key: "size", prev: undefined, next: "large" }]);
+  });
+
+  it("detects removed keys", () => {
+    const diff = diffPrefs({ size: "large" }, {});
+    expect(diff).toEqual([{ key: "size", prev: "large", next: undefined }]);
+  });
+
+  it("deep-compares objects (draggedPosition)", () => {
+    const before = { draggedPosition: { x: 10, y: 20 } };
+    const after = { draggedPosition: { x: 10, y: 20 } };
+    expect(diffPrefs(before, after)).toEqual([]);
+
+    const after2 = { draggedPosition: { x: 10, y: 30 } };
+    const diff = diffPrefs(before, after2);
+    expect(diff.length).toBe(1);
+    expect(diff[0].key).toBe("draggedPosition");
+  });
+
+  it("handles null/undefined inputs gracefully", () => {
+    expect(diffPrefs(null, null)).toEqual([]);
+    expect(diffPrefs(null, { a: 1 })).toEqual([
+      { key: "a", prev: undefined, next: 1 },
+    ]);
+    expect(diffPrefs({ a: 1 }, undefined)).toEqual([
+      { key: "a", prev: 1, next: undefined },
+    ]);
+  });
+
+  it("detects multiple changes at once", () => {
+    const before = { alignment: "bottom-right", opacity: 1, size: "medium" };
+    const after = { alignment: "top-left", opacity: 0.5, size: "medium" };
+    const diff = diffPrefs(before, after);
+    expect(diff.length).toBe(2);
+    expect(diff.map((d) => d.key).sort()).toEqual(["alignment", "opacity"]);
+  });
+});
+
+describe("formatPrefsDiff", () => {
+  it("returns empty string for no changes", () => {
+    expect(formatPrefsDiff([])).toBe("");
+    expect(formatPrefsDiff(null)).toBe("");
+  });
+
+  it("formats changed values with arrow notation", () => {
+    const changes = [
+      { key: "alignment", prev: "bottom-right", next: "top-left" },
+    ];
+    const result = formatPrefsDiff(changes);
+    expect(result).toContain("alignment:");
+    expect(result).toContain("→");
+    expect(result).toContain('"bottom-right"');
+    expect(result).toContain('"top-left"');
+  });
+
+  it("formats additions as (unset) → value", () => {
+    const changes = [{ key: "size", prev: undefined, next: "large" }];
+    const result = formatPrefsDiff(changes);
+    expect(result).toContain("(unset)");
+    expect(result).toContain('"large"');
+  });
+
+  it("formats removals as value → (unset)", () => {
+    const changes = [{ key: "size", prev: "large", next: undefined }];
+    const result = formatPrefsDiff(changes);
+    expect(result).toContain('"large"');
+    expect(result).toContain("(unset)");
   });
 });
