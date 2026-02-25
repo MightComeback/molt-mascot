@@ -197,11 +197,25 @@ Options:
   --capture-dir <path>   Screenshot capture directory (dev/CI asset generation)
 ```
 
+### Shell completions
+
+Tab-completion for all CLI flags is available for **Bash** and **Zsh**:
+
+```bash
+# Zsh — copy to a directory in your $fpath
+cp tools/completions.zsh /usr/local/share/zsh/site-functions/_molt-mascot
+
+# Bash — source in your profile
+echo 'source /path/to/molt-mascot/tools/completions.bash' >> ~/.bashrc
+```
+
+Completions include value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`.
+
 ## Project Structure
 
 - `apps/molt-mascot` (@molt/mascot): The Electron desktop app.
 - `packages/molt-mascot-plugin` (@molt/mascot-plugin): The optional OpenClaw server plugin.
-- `tools/`: Dev scripts (WS dump, etc).
+- `tools/`: Dev scripts (WS dump, shell completions).
 
 ## Dev tools
 
