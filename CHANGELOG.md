@@ -10,35 +10,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Connection success rate in context menu status line — shown when below 100% for reliability diagnostics (parity with tray tooltip and debug info)
 - Multi-character type-ahead keyboard navigation in context menu — typing "fo" jumps to "Force Reconnect" past other items (matches native OS menu behavior with 500ms reset timeout)
 - Windows High Contrast Mode support for pill, context menu, and setup form — ensures visibility when OS forces high-contrast colors
-
-### Changed
-- Plain `--version` output now includes plugin version, Electron version, and platform/arch (e.g. `molt-mascot 1.0.0 · plugin 1.0.0 · Electron 30.0.0 · darwin arm64`) — previously only showed `molt-mascot VERSION`; structured `--version --json` was already comprehensive
-- Extracted `computeShadowParams` from `drawLobster` as a pure testable function for shadow ellipse geometry
-
-### Fixed
-- Exposed `copyStatus` IPC bridge in preload — `molt-mascot:copy-status` was handled in electron-main (global shortcut ⌘⇧P, tray menu) but unreachable from renderer context menu; now uses main-process clipboard API (parity with `copyDebugInfo`)
-- Corrected eye blink coordinates to match actual sprite eye pixel positions
-- Context menu `transform-origin` now based on clamped position for correct animation direction when opening near screen edges
-
-### Performance
-- Added `will-change` CSS hints to animated pill states for GPU compositing
-
-### Security
-- Added explicit `img-src 'self'` CSP directive — previously fell back to `default-src 'self'` implicitly; now explicit for auditability (parity with `font-src`, `media-src`, `worker-src` directives)
-
-### Changed
-- Explicitly set `nodeIntegration: false` in BrowserWindow webPreferences for defense-in-depth (was already the Electron default, now explicit for auditability)
-- Hoisted `capitalize` utility to shared `@molt/mascot-plugin` package (single source of truth; previously duplicated in renderer utils)
-- Renderer uses preloaded `processStartedAt` from preload bridge instead of recomputing from `process.uptime()` (eliminates drift between main/renderer clocks)
-- Pill tooltip alignment now uses directional arrow indicators (parity with tray tooltip, context menu, and debug info — e.g. "↘ bottom-right")
-
-### Documentation
-- Added missing connection timing CLI flags to README (`--poll-interval`, `--reconnect-base`, `--reconnect-max`, `--stale-connection`, `--stale-check-interval`) — flags were implemented in `--help` and shell completions but absent from the README CLI reference
-
-### Fixed
-- Biome formatter now excludes `dist/` directories — prevents formatting build artifacts and fixes utils formatting inconsistencies
-
-### Added
 - `commit-msg` git hook — validates conventional commit format (`type(scope): message`) before allowing commits; accepts merge/revert commits; auto-installed via `bun run setup:hooks`
 - `--version --json` CLI flag combination — outputs structured version info (app, plugin, Electron, Chrome, Node, platform, arch) as JSON for scripting and CI pipelines
 - Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
@@ -133,7 +104,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `GatewayClient` unit and integration tests
 - Comprehensive `plugin-sync` unit tests
 
+### Changed
+- Plain `--version` output now includes plugin version, Electron version, and platform/arch (e.g. `molt-mascot 1.0.0 · plugin 1.0.0 · Electron 30.0.0 · darwin arm64`) — previously only showed `molt-mascot VERSION`; structured `--version --json` was already comprehensive
+- Extracted `computeShadowParams` from `drawLobster` as a pure testable function for shadow ellipse geometry
+- Explicitly set `nodeIntegration: false` in BrowserWindow webPreferences for defense-in-depth (was already the Electron default, now explicit for auditability)
+- Hoisted `capitalize` utility to shared `@molt/mascot-plugin` package (single source of truth; previously duplicated in renderer utils)
+- Renderer uses preloaded `processStartedAt` from preload bridge instead of recomputing from `process.uptime()` (eliminates drift between main/renderer clocks)
+- Pill tooltip alignment now uses directional arrow indicators (parity with tray tooltip, context menu, and debug info — e.g. "↘ bottom-right")
+- `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
+- `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check
+- `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
+- `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info
+- `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
+- `size` preference persisted by label (e.g. `"small"`) alongside numeric `sizeIndex` — robust against preset reordering; label takes priority on load
+- `isValidMode`, `isValidAlignment`, `isValidSize` use Set for O(1) lookups instead of Array.includes()
+- `status-cli` uses `isValidSize()` for O(1) Set lookup instead of linear scan
+- Renderer delegates `currentHealthStatus()` computation to shared `computeHealthStatus()` function (DRY)
+- Latency stats delegated from `GatewayClient` to shared `latency-tracker` module
+- `GatewayClient.toString()` includes close detail and reconnect count when disconnected
+- Sprite cache warmed on init and resize to eliminate first-frame fillRect overhead
+- Bob animation magic numbers extracted into named constants (`BOB_PERIOD_MS`, `BOB_AMPLITUDE_PX`)
+- Shadow geometry magic numbers extracted into named constants (`SHADOW_*`)
+- `coerceOpacity` and `coercePadding` extracted as standalone utilities
+- `VALID_ALIGNMENTS` delegated to plugin package (single source of truth)
+- Gateway client handshake failure cleanup deduplicated via `_cleanup()`
+- `currentTool` sync delegated to `plugin-sync` `onCurrentTool` callback
+- Size presets extracted into shared `size-presets.cjs` module
+- CLI `--size` validated early with other appearance flags
+- `isValidOpacity`/`isValidPadding` used in electron-main for consistent validation
+- Unused `'s'` (shadow) palette entry removed from sprites
+- Latency stats cached between accesses for performance (both gateway-client and renderer)
+
 ### Fixed
+- Exposed `copyStatus` IPC bridge in preload — `molt-mascot:copy-status` was handled in electron-main (global shortcut ⌘⇧P, tray menu) but unreachable from renderer context menu; now uses main-process clipboard API (parity with `copyDebugInfo`)
+- Corrected eye blink coordinates to match actual sprite eye pixel positions
+- Context menu `transform-origin` now based on clamped position for correct animation direction when opening near screen edges
+- Biome formatter now excludes `dist/` directories — prevents formatting build artifacts and fixes utils formatting inconsistencies
 - `--help` env vars section now documents fallback key chains for gateway URL and token (`GATEWAY_URL`, `OPENCLAW_GATEWAY_URL`, `CLAWDBOT_GATEWAY_URL` and their token equivalents) — previously only `MOLT_MASCOT_*` keys were shown, leaving users unaware of the legacy/shorthand alternatives
 - Pill CSS animations (pulse, sleep breathing, connected pop, error shake) now freeze when reduced motion is enabled via the app toggle (`Cmd/Ctrl+Shift+N`), not just the OS `prefers-reduced-motion` setting — also suppresses context menu appear animation
 - README now documents `MOLT_MASCOT_POLL_INTERVAL_MS` env var in the connection tuning section
@@ -164,30 +170,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `coerceSize` and `coerceAlignment` made case-insensitive with whitespace trimming
 - `--min-protocol` and `--max-protocol` CLI flags validated
 
-### Changed
-- `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
-- `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check
-- `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
-- `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info
-- `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
-- `size` preference persisted by label (e.g. `"small"`) alongside numeric `sizeIndex` — robust against preset reordering; label takes priority on load
-- `isValidMode`, `isValidAlignment`, `isValidSize` use Set for O(1) lookups instead of Array.includes()
-- `status-cli` uses `isValidSize()` for O(1) Set lookup instead of linear scan
-- Renderer delegates `currentHealthStatus()` computation to shared `computeHealthStatus()` function (DRY)
-- Latency stats delegated from `GatewayClient` to shared `latency-tracker` module
-- `GatewayClient.toString()` includes close detail and reconnect count when disconnected
-- Sprite cache warmed on init and resize to eliminate first-frame fillRect overhead
-- Bob animation magic numbers extracted into named constants (`BOB_PERIOD_MS`, `BOB_AMPLITUDE_PX`)
-- Shadow geometry magic numbers extracted into named constants (`SHADOW_*`)
-- `coerceOpacity` and `coercePadding` extracted as standalone utilities
-- `VALID_ALIGNMENTS` delegated to plugin package (single source of truth)
-- Gateway client handshake failure cleanup deduplicated via `_cleanup()`
-- `currentTool` sync delegated to `plugin-sync` `onCurrentTool` callback
-- Size presets extracted into shared `size-presets.cjs` module
-- CLI `--size` validated early with other appearance flags
-- `isValidOpacity`/`isValidPadding` used in electron-main for consistent validation
-- Unused `'s'` (shadow) palette entry removed from sprites
-- Latency stats cached between accesses for performance (both gateway-client and renderer)
+### Performance
+- Added `will-change` CSS hints to animated pill states for GPU compositing
+
+### Security
+- Added explicit `img-src 'self'` CSP directive — previously fell back to `default-src 'self'` implicitly; now explicit for auditability (parity with `font-src`, `media-src`, `worker-src` directives)
+
+### Documentation
+- Added missing connection timing CLI flags to README (`--poll-interval`, `--reconnect-base`, `--reconnect-max`, `--stale-connection`, `--stale-check-interval`) — flags were implemented in `--help` and shell completions but absent from the README CLI reference
 
 ## [0.2.0] - 2026-02-20
 
