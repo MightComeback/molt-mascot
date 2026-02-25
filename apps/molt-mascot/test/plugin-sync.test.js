@@ -245,6 +245,23 @@ describe("createPluginSync", () => {
     expect(called).toBe(true);
   });
 
+  it("rejects invalid padding values (negative, NaN, Infinity)", () => {
+    const values = [];
+    const sync = createPluginSync({
+      onPadding: (v) => values.push(v),
+    });
+
+    sync.sync({ padding: -10 });
+    sync.sync({ padding: NaN });
+    sync.sync({ padding: Infinity });
+    sync.sync({ padding: -Infinity });
+    expect(values).toEqual([]);
+
+    sync.sync({ padding: 0 });
+    sync.sync({ padding: 24 });
+    expect(values).toEqual([0, 24]);
+  });
+
   it("validates toolCalls is a non-negative integer", () => {
     const values = [];
     const sync = createPluginSync({

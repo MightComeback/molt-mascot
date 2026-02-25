@@ -13,6 +13,7 @@
 
 import { isValidAlignment, isValidSize } from "@molt/mascot-plugin";
 import { isValidOpacity } from "./opacity-presets.cjs";
+import { isValidPadding } from "./get-position.cjs";
 
 /**
  * Optional per-property validation.
@@ -25,7 +26,7 @@ const VALIDATORS = {
   alignment: isValidAlignment,
   size: isValidSize,
   opacity: isValidOpacity,
-  padding: (v) => v >= 0,
+  padding: isValidPadding,
   toolCalls: (v) => v >= 0 && Number.isInteger(v),
   toolErrors: (v) => v >= 0 && Number.isInteger(v),
   startedAt: (v) => v > 0,
