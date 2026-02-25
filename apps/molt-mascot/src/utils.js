@@ -371,7 +371,8 @@ export function buildTooltip(params) {
   }
   // Show layout info when non-default (avoids tooltip clutter for standard configs).
   // Uses formatAlignment() for directional arrow parity with tray tooltip, context menu, and debug info.
-  if (alignment && alignment !== "bottom-right") tip += ` · ${formatAlignment(alignment)}`;
+  if (alignment && alignment !== "bottom-right")
+    tip += ` · ${formatAlignment(alignment)}`;
   if (sizeLabel && sizeLabel !== "medium") tip += ` · ${sizeLabel}`;
   if (typeof opacity === "number" && opacity < 1)
     tip += ` · ${_formatOpacity(opacity)}`;
