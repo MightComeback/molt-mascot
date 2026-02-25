@@ -1281,6 +1281,43 @@ describe("GatewayClient", () => {
     });
   });
 
+  describe("connect() clears pending reconnect state", () => {
+    it("cancels a pending reconnect timer when connect() is called", async () => {
+      // Connect, open, then close to trigger a reconnect timer
+      client.connect({ url: "ws://a" });
+      const ws1 = FakeWebSocket._last;
+      ws1._open();
+      ws1._close(1006, "gone");
+
+      // A reconnect timer is now pending; calling connect() should clear it
+      client.connect({ url: "ws://b" });
+      const ws2 = FakeWebSocket._last;
+      expect(ws2.url).toBe("ws://b");
+
+      // Wait past the reconnect base delay — should NOT create a 3rd socket
+      await new Promise((r) => setTimeout(r, 200));
+      expect(FakeWebSocket._last).toBe(ws2);
+    });
+  });
+
+  describe("malformed WebSocket messages", () => {
+    it("ignores non-JSON messages without crashing", () => {
+      const messages = [];
+      client.onMessage = (m) => messages.push(m);
+      client.connect({ url: "ws://x" });
+      const ws = FakeWebSocket._last;
+      ws._open();
+
+      // Send a non-JSON string — should be silently ignored
+      ws._emit("message", { data: "not-json{{{" });
+      expect(messages).toHaveLength(0);
+
+      // Valid JSON still works after the bad one
+      ws._message({ result: "ok" });
+      expect(messages).toHaveLength(1);
+    });
+  });
+
   describe("PLUGIN_STATE_THROTTLE_MS", () => {
     it("is a positive finite number", () => {
       expect(typeof PLUGIN_STATE_THROTTLE_MS).toBe("number");
