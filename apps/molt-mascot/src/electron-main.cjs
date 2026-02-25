@@ -752,15 +752,10 @@ function getPosition(display, width, height, alignOverride, paddingOvr) {
  */
 function _resolveInitialOpacity(savedOpacityIndex, savedOpacity) {
   const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
-  if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
+  if (isValidOpacity(envVal)) return envVal;
   // Prefer raw opacity value (preserves arbitrary scroll-wheel values like 0.3
   // that don't exist in the preset cycle and would be lost via opacityIndex).
-  if (
-    typeof savedOpacity === "number" &&
-    Number.isFinite(savedOpacity) &&
-    savedOpacity >= 0 &&
-    savedOpacity <= 1
-  ) {
+  if (isValidOpacity(savedOpacity)) {
     return savedOpacity;
   }
   // Fall back to saved preset index for backward compatibility with prefs
