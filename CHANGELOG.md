@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- `--help` env vars section now documents fallback key chains for gateway URL and token (`GATEWAY_URL`, `OPENCLAW_GATEWAY_URL`, `CLAWDBOT_GATEWAY_URL` and their token equivalents) — previously only `MOLT_MASCOT_*` keys were shown, leaving users unaware of the legacy/shorthand alternatives
+
 ### Added
 - Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - Shell completions for Bash and Zsh (`tools/completions.bash`, `tools/completions.zsh`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
