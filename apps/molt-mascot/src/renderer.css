@@ -315,6 +315,14 @@ html.reduce-motion
 #setup .button-row #save {
   flex: 1;
   margin-top: 0;
+  background: rgba(10, 132, 255, 0.35);
+  border-color: rgba(10, 132, 255, 0.45);
+}
+#setup .button-row #save:hover {
+  background: rgba(10, 132, 255, 0.5);
+}
+#setup .button-row #save:active:not(:disabled) {
+  background: rgba(10, 132, 255, 0.25);
 }
 #setup .button-row #cancel {
   flex: 0 0 auto;
