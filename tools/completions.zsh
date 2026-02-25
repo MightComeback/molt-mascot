@@ -30,9 +30,9 @@ _arguments -s -S \
   '--max-protocol[Maximum Gateway protocol version]:version:' \
   '--list-prefs[Print saved preferences and exit]' \
   '--reset-prefs[Clear saved preferences and start fresh]' \
-  '--set-pref[Set a single preference]:key=value:' \
-  '--unset-pref[Remove a preference]:key:' \
-  '--get-pref[Print a single preference value]:key:' \
+  '--set-pref[Set a single preference]:key=value:(alignment sizeIndex size opacityIndex padding opacity clickThrough hideText gatewayUrl draggedPosition sleepThresholdS idleDelayMs errorHoldMs reducedMotion pollIntervalMs reconnectBaseMs reconnectMaxMs staleConnectionMs staleCheckIntervalMs)' \
+  '--unset-pref[Remove a preference]:key:(alignment sizeIndex size opacityIndex padding opacity clickThrough hideText gatewayUrl draggedPosition sleepThresholdS idleDelayMs errorHoldMs reducedMotion pollIntervalMs reconnectBaseMs reconnectMaxMs staleConnectionMs staleCheckIntervalMs)' \
+  '--get-pref[Print a single preference value]:key:(alignment sizeIndex size opacityIndex padding opacity clickThrough hideText gatewayUrl draggedPosition sleepThresholdS idleDelayMs errorHoldMs reducedMotion pollIntervalMs reconnectBaseMs reconnectMaxMs staleConnectionMs staleCheckIntervalMs)' \
   '--help-prefs[Print available preference keys]' \
   '--sleep-threshold[Idle seconds before sleep overlay]:seconds:' \
   '--idle-delay[Delay before returning to idle]:ms:' \
