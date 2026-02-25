@@ -199,7 +199,7 @@ Options:
 
 ### Shell completions
 
-Tab-completion for all CLI flags is available for **Bash** and **Zsh**:
+Tab-completion for all CLI flags is available for **Bash**, **Zsh**, and **Fish**:
 
 ```bash
 # Zsh — copy to a directory in your $fpath
@@ -207,6 +207,9 @@ cp tools/completions.zsh /usr/local/share/zsh/site-functions/_molt-mascot
 
 # Bash — source in your profile
 echo 'source /path/to/molt-mascot/tools/completions.bash' >> ~/.bashrc
+
+# Fish — copy to completions directory
+cp tools/completions.fish ~/.config/fish/completions/molt-mascot.fish
 ```
 
 Completions include value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`.

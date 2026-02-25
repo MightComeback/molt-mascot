@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - Shell completions for Bash and Zsh (`tools/completions.bash`, `tools/completions.zsh`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - `--get-pref key` CLI flag — query a single preference value with source indicator (saved vs default); supports `--json` for scripting
 - `--set-pref key=value` CLI flag — set individual preferences from the command line with schema validation (e.g. `molt-mascot --set-pref alignment=top-left`)

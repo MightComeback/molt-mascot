@@ -1,0 +1,36 @@
+# Fish completions for molt-mascot CLI
+# Install: cp tools/completions.fish ~/.config/fish/completions/molt-mascot.fish
+
+# Flags with no arguments
+complete -c molt-mascot -l version -s v -d 'Show version and exit'
+complete -c molt-mascot -l help -s h -d 'Show help'
+complete -c molt-mascot -l click-through -d 'Enable ghost mode (click-through)'
+complete -c molt-mascot -l hide-text -d 'Hide HUD text'
+complete -c molt-mascot -l debug -d 'Enable debug mode'
+complete -c molt-mascot -l disable-gpu -d 'Disable GPU acceleration'
+complete -c molt-mascot -l reduced-motion -d 'Enable reduced motion'
+complete -c molt-mascot -l status -d 'Print resolved config and exit'
+complete -c molt-mascot -l start-hidden -d 'Start with window hidden'
+complete -c molt-mascot -l no-tray -d 'Disable tray icon'
+complete -c molt-mascot -l no-shortcuts -d 'Disable global shortcuts'
+complete -c molt-mascot -l list-prefs -d 'List saved preferences'
+complete -c molt-mascot -l reset-prefs -d 'Reset all preferences'
+complete -c molt-mascot -l help-prefs -d 'Show preference schema'
+complete -c molt-mascot -l json -d 'JSON output (with --status, --help-prefs)'
+
+# Flags with value arguments
+complete -c molt-mascot -l gateway -x -d 'Gateway WebSocket URL'
+complete -c molt-mascot -l token -x -d 'Gateway auth token'
+complete -c molt-mascot -l align -x -a 'bottom-right bottom-left top-right top-left top-center bottom-center center-left center-right center' -d 'Window alignment'
+complete -c molt-mascot -l size -x -a 'tiny small medium large xlarge' -d 'Window size preset'
+complete -c molt-mascot -l opacity -x -d 'Window opacity (0-1)'
+complete -c molt-mascot -l padding -x -d 'Edge padding in pixels'
+complete -c molt-mascot -l min-protocol -x -d 'Minimum protocol version'
+complete -c molt-mascot -l max-protocol -x -d 'Maximum protocol version'
+complete -c molt-mascot -l sleep-threshold -x -d 'Idle seconds before sleep state'
+complete -c molt-mascot -l idle-delay -x -d 'Idle delay in ms'
+complete -c molt-mascot -l error-hold -x -d 'Error hold duration in ms'
+complete -c molt-mascot -l capture-dir -r -F -d 'Screenshot capture directory'
+complete -c molt-mascot -l set-pref -x -d 'Set preference (key=value)'
+complete -c molt-mascot -l unset-pref -x -d 'Unset preference (key)'
+complete -c molt-mascot -l get-pref -x -d 'Get preference value (key)'
