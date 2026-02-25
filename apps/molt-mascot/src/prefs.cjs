@@ -371,6 +371,11 @@ const PREF_SCHEMA = {
     validate: (v) => v === "" || /^wss?:\/\/.+/.test(v),
     description: "Gateway WebSocket URL (ws:// or wss://)",
   },
+  gatewayToken: {
+    type: "string",
+    default: "",
+    description: "Gateway auth token (persisted for reconnect across restarts)",
+  },
   draggedPosition: {
     type: "object",
     default: null,

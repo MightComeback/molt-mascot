@@ -802,6 +802,7 @@ describe("PREF_SCHEMA", () => {
       "clickThrough",
       "hideText",
       "gatewayUrl",
+      "gatewayToken",
       "draggedPosition",
     ];
     for (const key of expectedKeys) {
@@ -850,6 +851,28 @@ describe("validatePrefs gatewayUrl", () => {
     const { clean, dropped } = validatePrefs({ gatewayUrl: "ws://" });
     expect(clean.gatewayUrl).toBeUndefined();
     expect(dropped.some((d) => d.key === "gatewayUrl")).toBe(true);
+  });
+});
+
+describe("validatePrefs gatewayToken", () => {
+  it("accepts a non-empty token string", () => {
+    const { clean, dropped } = validatePrefs({
+      gatewayToken: "my-secret-token",
+    });
+    expect(clean.gatewayToken).toBe("my-secret-token");
+    expect(dropped).toEqual([]);
+  });
+
+  it("accepts empty string (cleared token)", () => {
+    const { clean, dropped } = validatePrefs({ gatewayToken: "" });
+    expect(clean.gatewayToken).toBe("");
+    expect(dropped).toEqual([]);
+  });
+
+  it("rejects non-string values", () => {
+    const { clean, dropped } = validatePrefs({ gatewayToken: 12345 });
+    expect(clean.gatewayToken).toBeUndefined();
+    expect(dropped.some((d) => d.key === "gatewayToken")).toBe(true);
   });
 });
 
@@ -1029,6 +1052,7 @@ describe("VALID_PREF_KEYS", () => {
       "clickThrough",
       "hideText",
       "gatewayUrl",
+      "gatewayToken",
       "draggedPosition",
       "sleepThresholdS",
       "idleDelayMs",
