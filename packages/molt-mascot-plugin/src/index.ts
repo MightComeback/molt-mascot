@@ -1,5 +1,41 @@
 import pkg from "../package.json";
 
+// Re-export all formatting utilities from the dedicated format module.
+// These were previously duplicated inline — format.ts is now the single source of truth.
+export {
+  clamp,
+  successRate,
+  formatPercent,
+  truncate,
+  formatCount,
+  formatBytes,
+  formatDuration,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+  capitalize,
+  pluralize,
+} from "./format.js";
+
+import {
+  clamp,
+  successRate,
+  formatPercent,
+  truncate,
+  formatCount,
+  formatBytes,
+  formatDuration,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+  capitalize,
+  pluralize,
+} from "./format.js";
+
 // Single source of truth: keep runtime id aligned with package.json name.
 // (Avoids subtle mismatches if the package is renamed.)
 export const id = pkg.name as string;
@@ -262,312 +298,13 @@ export function isValidPadding(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
-/**
- * Clamp a number to a [min, max] range.
- * Returns min if value is below min, max if above max, otherwise value.
- * Non-finite inputs (NaN, ±Infinity) return min as a safe fallback.
- *
- * Centralizes the repeated `Math.max(min, Math.min(value, max))` pattern
- * used across opacity clamping, padding bounds, position clamping, etc.
- *
- * @param value - The number to clamp
- * @param min - Lower bound (inclusive)
- * @param max - Upper bound (inclusive)
- * @returns Clamped value
- */
-export function clamp(value: number, min: number, max: number): number {
-  if (!Number.isFinite(value)) return min;
-  return Math.max(min, Math.min(value, max));
-}
+// clamp, successRate, formatPercent — re-exported from ./format.js
 
-/**
- * Compute a success-rate percentage from total calls and error count.
- * Returns null if totalCalls is 0 (avoids division by zero).
- *
- * @param totalCalls - Total number of calls
- * @param errorCount - Number of errors
- * @returns Integer percentage (0-100), or null if no calls
- */
-export function successRate(
-  totalCalls: number,
-  errorCount: number,
-): number | null {
-  if (!totalCalls || totalCalls <= 0) return null;
-  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
-  return Math.round(((totalCalls - errors) / totalCalls) * 100);
-}
+// truncate — re-exported from ./format.js
 
-/**
- * Format a percentage value as a compact string with a "%" suffix.
- * Accepts the output of `successRate()` (which may be null for no-data).
- * Returns "–" for null/undefined/non-finite inputs.
- *
- * @param value - Percentage (0-100), or null
- * @returns Formatted string, e.g. "95%", "0%", or "–"
- */
-export function formatPercent(value: number | null | undefined): string {
-  if (value == null || typeof value !== "number" || !Number.isFinite(value))
-    return "–";
-  return `${Math.round(value)}%`;
-}
-
-export function truncate(str: string, limit = 140): string {
-  if (limit <= 0) return "";
-  // Collapse whitespace/newlines to single spaces for cleaner display
-  const s = str.trim().replace(/\s+/g, " ");
-  // Use iterator to handle surrogate pairs (unicode-safe)
-  const chars = [...s];
-  if (chars.length <= limit) return s;
-  // If limit is too small to fit ellipsis, just truncate hard
-  if (limit <= 1) return chars.slice(0, limit).join("");
-
-  // Basic truncate
-  let cut = chars.slice(0, limit - 1).join("");
-  // Try to cut at space if reasonably close (last 20 chars) to avoid chopping words
-  const lastSpace = cut.lastIndexOf(" ");
-  if (lastSpace > -1 && cut.length - lastSpace < 20) {
-    cut = cut.slice(0, lastSpace);
-  }
-
-  return cut + "…";
-}
-
-/**
- * Format a large count into a compact human-readable string.
- * e.g. 0 → "0", 999 → "999", 1000 → "1.0K", 1500 → "1.5K", 1000000 → "1.0M"
- * Uses decimal (SI) units. Values below 1000 are returned as plain integers.
- * Useful for tool call/error counts in tooltips when the mascot runs for extended periods.
- */
-export function formatCount(n: number): string {
-  if (!Number.isFinite(n) || n < 0) return "0";
-  // Round first, then check threshold to avoid "1000" when rounding pushes n past 999.
-  const rounded = Math.round(n);
-  if (rounded < 1000) return `${rounded}`;
-  const units = ["K", "M", "B", "T"];
-  let value = n;
-  for (const unit of units) {
-    value /= 1000;
-    if (value < 1000 || unit === "T") {
-      return `${value.toFixed(1)}${unit}`;
-    }
-  }
-  return `${value.toFixed(1)}T`;
-}
-
-/**
- * Format a byte count into a compact human-readable string with appropriate unit.
- * e.g. 0 → "0 B", 1023 → "1023 B", 1536 → "1.5 KB", 1048576 → "1.0 MB"
- * Uses binary units (1 KB = 1024 bytes) consistent with OS conventions.
- */
-export function formatBytes(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes < 0) return "0 B";
-  if (bytes < 1024) return `${Math.round(bytes)} B`;
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes;
-  for (const unit of units) {
-    value /= 1024;
-    if (value < 1024 || unit === "TB") {
-      return `${value.toFixed(1)} ${unit}`;
-    }
-  }
-  return `${value.toFixed(1)} TB`;
-}
-
-/**
- * Format a duration in seconds into a compact human-readable string.
- * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
- * Exported so the Electron renderer can reuse the same implementation (single source of truth).
- */
-export function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds)) return "0s";
-  const s = Math.max(0, Math.round(seconds));
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
-  const rem = s % 60;
-  if (m < 60) return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
-  const h = Math.floor(m / 60);
-  const remM = m % 60;
-  if (h < 24) return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
-  const d = Math.floor(h / 24);
-  const remH = h % 24;
-  if (d < 7) return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
-  const w = Math.floor(d / 7);
-  const remD = d % 7;
-  return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
-}
-
-/**
- * Format the elapsed time since a past timestamp as a human-readable duration.
- * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
- * used across tooltip builders, debug info, and tray icon code.
- *
- * @param since - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch)
- * @returns Formatted duration string (e.g. "5m 30s")
- */
-export function formatElapsed(since: number, now: number): string {
-  if (
-    typeof since !== "number" ||
-    typeof now !== "number" ||
-    !Number.isFinite(since) ||
-    !Number.isFinite(now)
-  ) {
-    return "0s";
-  }
-  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
-}
-
-/**
- * Format a past timestamp as a human-readable relative time string.
- * Consolidates the repeated `formatElapsed(ts, now) + " ago"` pattern
- * and adds a "just now" threshold for sub-second durations.
- *
- * @param since - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
- * @returns Relative time string (e.g. "just now", "5m ago", "2h ago")
- */
-export function formatRelativeTime(since: number, now?: number): string {
-  const n = now ?? Date.now();
-  if (
-    typeof since !== "number" ||
-    typeof n !== "number" ||
-    !Number.isFinite(since) ||
-    !Number.isFinite(n)
-  ) {
-    return "just now";
-  }
-  const diffMs = Math.max(0, n - since);
-  if (diffMs < 1000) return "just now";
-  return `${formatDuration(Math.round(diffMs / 1000))} ago`;
-}
-
-/**
- * Format an epoch-ms timestamp as an ISO-8601 string.
- * Centralizes the repeated `new Date(ts).toISOString()` pattern used across
- * debug-info, tray tooltip, and diagnostics — with input validation so callers
- * don't need to guard against invalid/missing timestamps.
- *
- * @param ts - Epoch milliseconds
- * @returns ISO-8601 string, or '–' if the input is invalid
- */
-export function formatTimestamp(ts: number): string {
-  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
-  return new Date(ts).toISOString();
-}
-
-/**
- * Format an epoch-ms timestamp as a compact local time string.
- * Produces "HH:MM:SS" when the timestamp is today, or "Mon DD, HH:MM" otherwise.
- * Uses the system locale/timezone so debug output is immediately readable
- * without mental UTC conversion.
- *
- * Falls back to ISO-8601 if Intl is unavailable (e.g. stripped runtimes).
- *
- * @param ts - Epoch milliseconds
- * @param now - Current timestamp for "today" detection (defaults to Date.now())
- * @returns Compact local time string, or '–' if the input is invalid
- */
-export function formatTimestampLocal(ts: number, now?: number): string {
-  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
-  const date = new Date(ts);
-  const ref = new Date(now ?? Date.now());
-
-  const sameDay =
-    date.getFullYear() === ref.getFullYear() &&
-    date.getMonth() === ref.getMonth() &&
-    date.getDate() === ref.getDate();
-
-  if (sameDay) {
-    const h = String(date.getHours()).padStart(2, "0");
-    const m = String(date.getMinutes()).padStart(2, "0");
-    const s = String(date.getSeconds()).padStart(2, "0");
-    return `${h}:${m}:${s}`;
-  }
-
-  const MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const mon = MONTHS[date.getMonth()];
-  const day = date.getDate();
-  const h = String(date.getHours()).padStart(2, "0");
-  const m = String(date.getMinutes()).padStart(2, "0");
-
-  // Include the year when the timestamp is from a different year than the reference,
-  // so "Dec 31, 23:59" becomes "Dec 31 2025, 23:59" — avoids ambiguity in long uptimes.
-  if (date.getFullYear() !== ref.getFullYear()) {
-    return `${mon} ${day} ${date.getFullYear()}, ${h}:${m}`;
-  }
-  return `${mon} ${day}, ${h}:${m}`;
-}
-
-/**
- * Format a timestamp with both relative age and absolute time.
- * Consolidates the repeated `formatRelativeTime(ts, now) + " (at " + formatTimestamp(ts) + ")"`
- * and `formatElapsed(ts, now) + " (since " + formatTimestamp(ts) + ")"` patterns
- * used 5+ times across debug-info, tray tooltip, and diagnostics.
- *
- * @param ts - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
- * @param style - 'ago' for "5m ago (at ...)" or 'since' for "5m (since ...)"
- * @returns Formatted string, or '–' if the input is invalid
- */
-export function formatTimestampWithAge(
-  ts: number,
-  now?: number,
-  style: "ago" | "since" = "ago",
-): string {
-  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
-  const n = now ?? Date.now();
-  const iso = formatTimestamp(ts);
-  if (style === "since") {
-    return `${formatElapsed(ts, n)} (since ${iso})`;
-  }
-  return `${formatRelativeTime(ts, n)} (at ${iso})`;
-}
-
-/**
- * Capitalize the first character of a string.
- * Hoisted from the Electron renderer (apps/molt-mascot/src/utils.js) to the
- * shared plugin package so both the renderer and plugin can import from a
- * single source of truth — same pattern as truncate, formatDuration, etc.
- */
-export function capitalize(str: string): string {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/**
- * Simple English pluralization: append "s" (or a custom suffix) when count ≠ 1.
- * Replaces the `count !== 1 ? "s" : ""` pattern scattered across the codebase.
- *
- * @param count - The number to check
- * @param singular - The singular form of the word
- * @param plural - Optional custom plural form (defaults to singular + "s")
- * @returns The appropriate word form (without the count)
- *
- * @example
- * pluralize(1, "session")   // "session"
- * pluralize(3, "session")   // "sessions"
- * pluralize(0, "match", "matches") // "matches"
- */
-export function pluralize(
-  count: number,
-  singular: string,
-  plural?: string,
-): string {
-  return count === 1 ? singular : (plural ?? singular + "s");
-}
+// formatCount, formatBytes, formatDuration, formatElapsed, formatRelativeTime,
+// formatTimestamp, formatTimestampLocal, formatTimestampWithAge,
+// capitalize, pluralize — re-exported from ./format.js
 
 /**
  * Sensitive query parameter names whose values should be redacted in URLs.

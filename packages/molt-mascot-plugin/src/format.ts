@@ -1,0 +1,242 @@
+/**
+ * Formatting & display utilities.
+ *
+ * Extracted from the barrel index to keep the module focused and testable.
+ * All functions are pure (no side-effects, no imports beyond stdlib).
+ */
+
+/**
+ * Clamp a number within an inclusive range.
+ * Returns `min` for non-finite inputs.
+ */
+export function clamp(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
+  return Math.max(min, Math.min(value, max));
+}
+
+/**
+ * Compute a success-rate percentage from total calls and error count.
+ * Returns null if totalCalls is 0 (avoids division by zero).
+ */
+export function successRate(
+  totalCalls: number,
+  errorCount: number,
+): number | null {
+  if (!totalCalls || totalCalls <= 0) return null;
+  const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
+  return Math.round(((totalCalls - errors) / totalCalls) * 100);
+}
+
+/**
+ * Format a percentage value as a compact string with a "%" suffix.
+ * Returns "–" for null/undefined/non-finite inputs.
+ */
+export function formatPercent(value: number | null | undefined): string {
+  if (value == null || typeof value !== "number" || !Number.isFinite(value))
+    return "–";
+  return `${Math.round(value)}%`;
+}
+
+/**
+ * Truncate a string to a given character limit (unicode-safe).
+ * Collapses whitespace and tries to break at word boundaries.
+ */
+export function truncate(str: string, limit = 140): string {
+  if (limit <= 0) return "";
+  const s = str.trim().replace(/\s+/g, " ");
+  const chars = [...s];
+  if (chars.length <= limit) return s;
+  if (limit <= 1) return chars.slice(0, limit).join("");
+
+  let cut = chars.slice(0, limit - 1).join("");
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > -1 && cut.length - lastSpace < 20) {
+    cut = cut.slice(0, lastSpace);
+  }
+
+  return cut + "…";
+}
+
+/**
+ * Format a large count into a compact human-readable string.
+ * e.g. 0 → "0", 999 → "999", 1000 → "1.0K", 1500 → "1.5K", 1000000 → "1.0M"
+ */
+export function formatCount(n: number): string {
+  if (!Number.isFinite(n) || n < 0) return "0";
+  const rounded = Math.round(n);
+  if (rounded < 1000) return `${rounded}`;
+  const units = ["K", "M", "B", "T"];
+  let value = n;
+  for (const unit of units) {
+    value /= 1000;
+    if (value < 1000 || unit === "T") {
+      return `${value.toFixed(1)}${unit}`;
+    }
+  }
+  return `${value.toFixed(1)}T`;
+}
+
+/**
+ * Format a byte count into a compact human-readable string with appropriate unit.
+ * Uses binary units (1 KB = 1024 bytes).
+ */
+export function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return "0 B";
+  if (bytes < 1024) return `${Math.round(bytes)} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes;
+  for (const unit of units) {
+    value /= 1024;
+    if (value < 1024 || unit === "TB") {
+      return `${value.toFixed(1)} ${unit}`;
+    }
+  }
+  return `${value.toFixed(1)} TB`;
+}
+
+/**
+ * Format a duration in seconds into a compact human-readable string.
+ * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
+ */
+export function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds)) return "0s";
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  if (m < 60) return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const remM = m % 60;
+  if (h < 24) return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
+  const d = Math.floor(h / 24);
+  const remH = h % 24;
+  if (d < 7) return remH > 0 ? `${d}d ${remH}h` : `${d}d`;
+  const w = Math.floor(d / 7);
+  const remD = d % 7;
+  return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
+}
+
+/**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ */
+export function formatElapsed(since: number, now: number): string {
+  if (
+    typeof since !== "number" ||
+    typeof now !== "number" ||
+    !Number.isFinite(since) ||
+    !Number.isFinite(now)
+  ) {
+    return "0s";
+  }
+  return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
+}
+
+/**
+ * Format a past timestamp as a human-readable relative time string.
+ * e.g. "just now", "5m ago", "2h ago"
+ */
+export function formatRelativeTime(since: number, now?: number): string {
+  const n = now ?? Date.now();
+  if (
+    typeof since !== "number" ||
+    typeof n !== "number" ||
+    !Number.isFinite(since) ||
+    !Number.isFinite(n)
+  ) {
+    return "just now";
+  }
+  const diffMs = Math.max(0, n - since);
+  if (diffMs < 1000) return "just now";
+  return `${formatDuration(Math.round(diffMs / 1000))} ago`;
+}
+
+/**
+ * Format an epoch-ms timestamp as an ISO-8601 string.
+ * Returns '–' if the input is invalid.
+ */
+export function formatTimestamp(ts: number): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
+  return new Date(ts).toISOString();
+}
+
+/**
+ * Format an epoch-ms timestamp as a compact local time string.
+ * "HH:MM:SS" for today, "Mon DD, HH:MM" otherwise.
+ */
+export function formatTimestampLocal(ts: number, now?: number): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
+  const date = new Date(ts);
+  const ref = new Date(now ?? Date.now());
+
+  const sameDay =
+    date.getFullYear() === ref.getFullYear() &&
+    date.getMonth() === ref.getMonth() &&
+    date.getDate() === ref.getDate();
+
+  if (sameDay) {
+    const h = String(date.getHours()).padStart(2, "0");
+    const m = String(date.getMinutes()).padStart(2, "0");
+    const s = String(date.getSeconds()).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  const MONTHS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const mon = MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
+
+  if (date.getFullYear() !== ref.getFullYear()) {
+    return `${mon} ${day} ${date.getFullYear()}, ${h}:${m}`;
+  }
+  return `${mon} ${day}, ${h}:${m}`;
+}
+
+/**
+ * Format a timestamp with both relative age and absolute time.
+ */
+export function formatTimestampWithAge(
+  ts: number,
+  now?: number,
+  style: "ago" | "since" = "ago",
+): string {
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
+  const n = now ?? Date.now();
+  const iso = formatTimestamp(ts);
+  if (style === "since") {
+    return `${formatElapsed(ts, n)} (since ${iso})`;
+  }
+  return `${formatRelativeTime(ts, n)} (at ${iso})`;
+}
+
+/**
+ * Capitalize the first character of a string.
+ */
+export function capitalize(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Simple English pluralization: append "s" (or a custom suffix) when count ≠ 1.
+ */
+export function pluralize(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
+  return count === 1 ? singular : (plural ?? singular + "s");
+}
