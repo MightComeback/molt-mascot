@@ -61,6 +61,7 @@ if (process.argv.includes("--version") || process.argv.includes("-v")) {
           electron: process.versions.electron,
           chrome: process.versions.chrome,
           node: process.versions.node,
+          bun: process.versions.bun || null,
           platform: process.platform,
           arch: process.arch,
         },
