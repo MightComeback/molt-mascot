@@ -153,6 +153,19 @@ Gateway configuration env vars support ordered fallback chains (first non-empty 
 3. **Update help text** in `electron-main.cjs` (Environment section) and `README.md`.
 4. **Add tests** in `apps/molt-mascot/test/env-keys.test.js` for the new fallback order.
 
+## Adding a New Saved Preference
+
+User preferences are persisted to disk and validated through a schema. To add a new preference:
+
+1. **Schema (`apps/molt-mascot/src/prefs.cjs`)**: Add an entry to `PREF_SCHEMA` with `type`, `default`, `description`, and optional `validate` function. This is the single source of truth — `VALID_PREF_KEYS`, `formatPrefSchema()`, `exportPrefSchemaJSON()`, and `validatePrefs()` all derive from it automatically.
+2. **Status output (`apps/molt-mascot/src/status-cli.cjs`)**: Add the preference to `resolveStatusConfig()` (resolution logic) and `formatStatusText()` (display). If the preference can be overridden by an env var, add the env var to `ENV_OVERRIDES_MAP` as well.
+3. **Electron main (`apps/molt-mascot/src/electron-main.cjs`)**: Wire up the preference in the app-ready handler — load from prefs, respect env var override, and save on change (via IPC or context menu action).
+4. **Preload (`apps/molt-mascot/src/preload.cjs`)**: Expose via the `env` bridge if the renderer needs it.
+5. **Context menu** (optional): Add a toggle or display item in `context-menu-items.js` if the preference should be user-adjustable at runtime.
+6. **Tests**: Add validation tests in `apps/molt-mascot/test/prefs.test.js` (schema acceptance, rejection, type mismatch). The existing `VALID_PREF_KEYS` completeness test will catch missing schema entries.
+
+The prefs CLI (`--get-pref`, `--set-pref`, `--unset-pref`, `--help-prefs`) works automatically for any key in `PREF_SCHEMA` — no extra wiring needed.
+
 ## Adding a New Mode
 
 1. **Sprite**: Add overlay frames to `sprites.js` → `overlay.<mode>`.
