@@ -94,6 +94,10 @@ const INSTANCE_ID = `moltMascot-${Math.random().toString(16).slice(2)}`;
 
 const DEFAULT_IDLE_DELAY_MS = 800;
 const DEFAULT_ERROR_HOLD_MS = 5000;
+// Default WebSocket URL shown in the setup screen and used as a fallback
+// when no explicit URL is provided. Extracted to avoid repeating the string
+// in three separate call sites (showSetup / restoreConfig / init).
+const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 // Duration for transient pill feedback (e.g. "Copied ✓", "Opacity 80%").
 const TRANSIENT_FEEDBACK_MS = 700;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
@@ -177,7 +181,7 @@ function showSetup(prefill) {
   // claim ghost mode is active while the setup form is visible.
   isClickThrough = false;
   syncPill();
-  urlInput.value = prefill?.url || "ws://127.0.0.1:18789";
+  urlInput.value = prefill?.url || DEFAULT_WS_URL;
   tokenInput.value = prefill?.token || "";
   // Programmatically focus the URL input since the HTML autofocus attribute
   // only fires on initial page load, not when the form is dynamically shown.
@@ -1367,7 +1371,7 @@ function forceReconnectNow() {
   resetConnectionState();
   const cfg = loadCfg();
   if (cfg?.url) connect(cfg);
-  else showSetup({ url: "ws://127.0.0.1:18789", token: "" });
+  else showSetup({ url: DEFAULT_WS_URL, token: "" });
 }
 
 if (window.moltMascot?.onForceReconnect) {
@@ -1691,7 +1695,7 @@ function showContextMenu(e) {
     reconnect: forceReconnectNow,
     "change-gateway": () => {
       const cfg = loadCfg();
-      showSetup(cfg || { url: "ws://127.0.0.1:18789", token: "" });
+      showSetup(cfg || { url: DEFAULT_WS_URL, token: "" });
     },
     "reset-prefs": () => {
       if (window.moltMascot?.resetPrefs) window.moltMascot.resetPrefs();
