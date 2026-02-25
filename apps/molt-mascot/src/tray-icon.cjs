@@ -180,11 +180,12 @@ function renderTraySprite(scale, opts) {
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100); when provided, used directly for health reason diagnostics instead of computing from sessionConnectCount/sessionAttemptCount
  * @param {number|null} [params.connectionUptimePct] - Percentage of total lifetime spent connected (0-100); shown when <100% to surface flappy connections
  * @param {"rising"|"falling"|"stable"|null} [params.latencyTrend] - Latency trend direction from latency tracker (shown when non-stable to surface proactive diagnostics)
+ * @param {boolean} [params.reducedMotion=false] - Whether reduced-motion mode is active (shown in tooltip when true for accessibility awareness)
  * @param {number} [params.now] - Current timestamp (defaults to Date.now(); pass explicitly for deterministic tests)
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, processStartedAt, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, processStartedAt, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, reducedMotion = false, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -199,6 +200,7 @@ function buildTrayTooltip(params) {
   }
   if (clickThrough) parts.push('👻 Ghost');
   if (hideText) parts.push('🙈 Text hidden');
+  if (reducedMotion) parts.push('♿ Reduced motion');
   parts.push(`📍 ${formatAlignment(alignment)}`);
   parts.push(`📐 ${sizeLabel || 'medium'}`);
   if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);

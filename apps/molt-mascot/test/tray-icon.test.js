@@ -253,6 +253,16 @@ describe('tray-icon', () => {
       expect(tip).toContain('🙈 Text hidden');
     });
 
+    it('shows reduced motion indicator when active', () => {
+      const tip = buildTrayTooltip({ ...base, reducedMotion: true });
+      expect(tip).toContain('♿ Reduced motion');
+    });
+
+    it('omits reduced motion indicator when inactive', () => {
+      const tip = buildTrayTooltip({ ...base, reducedMotion: false });
+      expect(tip).not.toContain('Reduced motion');
+    });
+
     it('shows opacity when below 100%', () => {
       const tip = buildTrayTooltip({ ...base, opacityPercent: 60 });
       expect(tip).toContain('🔅 60%');
