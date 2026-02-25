@@ -548,6 +548,9 @@ export const ERROR_PREFIXES = [
   "KeyboardInterrupt",
   "SystemExit",
   "GeneratorExit",
+  // Swift/Rust runtime assertions (not matched by *Error pattern)
+  "Precondition failed",
+  "Assertion failed",
   // Java/JVM "Caused by:" chained exception prefix
   "Caused by",
   // Environment/Tool colon-prefixes

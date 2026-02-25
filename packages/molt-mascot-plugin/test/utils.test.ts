@@ -435,6 +435,16 @@ describe("utils", () => {
     expect(cleanErrorString("SystemExit: 1")).toBe("1");
     expect(cleanErrorString("GeneratorExit: cleanup")).toBe("cleanup");
     expect(cleanErrorString("StopAsyncIteration: exhausted")).toBe("exhausted");
+    // Swift/Rust runtime assertions
+    expect(cleanErrorString("Precondition failed: index out of range")).toBe(
+      "index out of range",
+    );
+    expect(cleanErrorString("Assertion failed: expected non-nil value")).toBe(
+      "expected non-nil value",
+    );
+    expect(
+      cleanErrorString("Fatal error: Precondition failed: capacity >= 0"),
+    ).toBe("capacity >= 0");
     // Container tools
     expect(cleanErrorString("podman: Error: no such container")).toBe(
       "no such container",
