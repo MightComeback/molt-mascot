@@ -861,7 +861,7 @@ describe("buildTooltip", () => {
       durationSec: 0,
       sessionConnectCount: 4,
     });
-    expect(tip).toContain("reconnected 3×");
+    expect(tip).toContain("↻3");
   });
 
   it("omits reconnect count when sessionConnectCount is 1 (no flaps)", () => {
@@ -870,7 +870,7 @@ describe("buildTooltip", () => {
       durationSec: 0,
       sessionConnectCount: 1,
     });
-    expect(tip).not.toContain("reconnected");
+    expect(tip).not.toContain("↻");
   });
 
   it("omits reconnect count when sessionConnectCount is 0 or not provided", () => {
@@ -879,9 +879,9 @@ describe("buildTooltip", () => {
       durationSec: 0,
       sessionConnectCount: 0,
     });
-    expect(tip).not.toContain("reconnected");
+    expect(tip).not.toContain("↻");
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
-    expect(tip2).not.toContain("reconnected");
+    expect(tip2).not.toContain("↻");
   });
 
   it("shows connectionSuccessRate when below 100%", () => {

@@ -416,7 +416,7 @@ export function buildTooltip(params) {
   {
     const reconnectStr = formatReconnectCount(sessionConnectCount);
     if (reconnectStr) {
-      tip += ` · reconnected ${sessionConnectCount - 1}×`;
+      tip += ` · ${reconnectStr}`;
     }
   }
   // Surface connection success rate when below 100% — indicates failed connection
