@@ -1,5 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { palette, lobsterIdle, overlay } from "../src/sprites.js";
+import {
+  palette,
+  lobsterIdle,
+  overlay,
+  OVERLAY_KEYS,
+  isValidOverlay,
+} from "../src/sprites.js";
 import { MODE_EMOJI } from "../src/mode-emoji.cjs";
 
 const EXPECTED_ROWS = 32;
@@ -227,6 +233,54 @@ describe("sprites", () => {
         (row, i) => row !== overlay.connected[1][i],
       );
       expect(hasDiff).toBe(true);
+    });
+  });
+
+  describe("OVERLAY_KEYS", () => {
+    it("is a frozen array", () => {
+      expect(Array.isArray(OVERLAY_KEYS)).toBe(true);
+      expect(Object.isFrozen(OVERLAY_KEYS)).toBe(true);
+    });
+
+    it("matches the actual overlay object keys", () => {
+      const actualKeys = Object.keys(overlay).sort();
+      const declaredKeys = [...OVERLAY_KEYS].sort();
+      expect(declaredKeys).toEqual(actualKeys);
+    });
+
+    it("contains all expected overlay types", () => {
+      for (const key of [
+        "sleep",
+        "thinking",
+        "tool",
+        "error",
+        "connecting",
+        "disconnected",
+        "connected",
+      ]) {
+        expect(OVERLAY_KEYS).toContain(key);
+      }
+    });
+  });
+
+  describe("isValidOverlay", () => {
+    it("returns true for all OVERLAY_KEYS", () => {
+      for (const key of OVERLAY_KEYS) {
+        expect(isValidOverlay(key)).toBe(true);
+      }
+    });
+
+    it("returns false for unknown strings", () => {
+      expect(isValidOverlay("invalid")).toBe(false);
+      expect(isValidOverlay("")).toBe(false);
+      expect(isValidOverlay("SLEEP")).toBe(false);
+    });
+
+    it("returns false for non-string values", () => {
+      expect(isValidOverlay(null)).toBe(false);
+      expect(isValidOverlay(undefined)).toBe(false);
+      expect(isValidOverlay(42)).toBe(false);
+      expect(isValidOverlay(true)).toBe(false);
     });
   });
 });

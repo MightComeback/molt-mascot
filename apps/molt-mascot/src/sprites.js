@@ -11,6 +11,38 @@
 // y yellow (error/connecting/disconnected overlay)
 // Y pale yellow (connected sparkle)
 
+/**
+ * Canonical list of overlay keys, derived from the overlay object below.
+ * Mirrors VALID_MODES, allowedSizes, allowedAlignments for consistent
+ * validation patterns across the codebase.
+ *
+ * @type {readonly string[]}
+ */
+export const OVERLAY_KEYS = Object.freeze([
+  "sleep",
+  "thinking",
+  "tool",
+  "error",
+  "connecting",
+  "disconnected",
+  "connected",
+]);
+
+/** @private O(1) lookup set for isValidOverlay(). */
+const _validOverlaySet = new Set(OVERLAY_KEYS);
+
+/**
+ * Check whether a value is a recognized overlay key (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidSize, isValidAlignment,
+ * isValidHealth, isValidWsReadyState, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidOverlay(value) {
+  return typeof value === "string" && _validOverlaySet.has(value);
+}
+
 export const palette = {
   ".": null,
   k: "#4a0f14",
