@@ -1398,6 +1398,13 @@ function showContextMenu(e) {
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     targetUrl: connectedUrl || loadCfg()?.url || undefined,
     reducedMotion,
+    connectionUptimePct: connectionUptimePercent({
+      processUptimeS: window.moltMascot?.processUptimeS?.() ?? null,
+      firstConnectedAt,
+      connectedSince,
+      lastDisconnectedAt,
+      now: Date.now(),
+    }),
   });
 
   // Map descriptor IDs to action callbacks
