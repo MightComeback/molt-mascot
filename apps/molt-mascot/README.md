@@ -92,6 +92,18 @@ To pre-configure the connection to the Gateway (skipping the setup screen):
 
 Back-compat aliases (checked in order): `GATEWAY_URL`/`GATEWAY_TOKEN`, `OPENCLAW_GATEWAY_URL`/`OPENCLAW_GATEWAY_TOKEN`, `CLAWDBOT_GATEWAY_URL`/`CLAWDBOT_GATEWAY_TOKEN`. Protocol vars also accept `GATEWAY_MIN_PROTOCOL`/`GATEWAY_MAX_PROTOCOL`.
 
+### Network Timing
+
+Fine-tune reconnection behavior and connection health detection:
+
+| Variable | Description | Default |
+|---|---|---|
+| `MOLT_MASCOT_RECONNECT_BASE_MS` | Initial reconnect delay (doubles each attempt with jitter) | `1500` |
+| `MOLT_MASCOT_RECONNECT_MAX_MS` | Maximum reconnect delay cap | `30000` |
+| `MOLT_MASCOT_STALE_CONNECTION_MS` | Time without a WS message before treating the connection as stale and reconnecting | `15000` |
+| `MOLT_MASCOT_STALE_CHECK_INTERVAL_MS` | How often to check for stale connections | `5000` |
+| `MOLT_MASCOT_POLL_INTERVAL_MS` | Plugin state polling interval (minimum `100`) | `1000` |
+
 ## System Tray
 
 On macOS, the dock icon is hidden for a clean desktop-widget feel. A system tray icon (pixel lobster) provides access to all controls and shows the current state in its tooltip.
