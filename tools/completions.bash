@@ -20,7 +20,7 @@ _molt_mascot() {
       COMPREPLY=( $(compgen -W "bash zsh fish" -- "$cur") )
       return ;;
     --set-pref|--unset-pref|--get-pref)
-      COMPREPLY=( $(compgen -W "alignment sizeIndex size opacityIndex padding opacity clickThrough hideText gatewayUrl draggedPosition sleepThresholdS idleDelayMs errorHoldMs reducedMotion pollIntervalMs reconnectBaseMs reconnectMaxMs staleConnectionMs staleCheckIntervalMs" -- "$cur") )
+      COMPREPLY=( $(compgen -W "alignment sizeIndex size opacityIndex padding opacity clickThrough hideText gatewayUrl gatewayToken draggedPosition sleepThresholdS idleDelayMs errorHoldMs reducedMotion pollIntervalMs reconnectBaseMs reconnectMaxMs staleConnectionMs staleCheckIntervalMs" -- "$cur") )
       return ;;
     --gateway|--token|--opacity|--padding|--min-protocol|--max-protocol|--sleep-threshold|--idle-delay|--error-hold|--poll-interval|--reconnect-base|--reconnect-max|--stale-connection|--stale-check-interval)
       return ;;
