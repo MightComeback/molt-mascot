@@ -6,42 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Fixed
-- `--help` env vars section now documents fallback key chains for gateway URL and token (`GATEWAY_URL`, `OPENCLAW_GATEWAY_URL`, `CLAWDBOT_GATEWAY_URL` and their token equivalents) — previously only `MOLT_MASCOT_*` keys were shown, leaving users unaware of the legacy/shorthand alternatives
-
 ### Added
 - Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - Shell completions for Bash and Zsh (`tools/completions.bash`, `tools/completions.zsh`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
 - `--get-pref key` CLI flag — query a single preference value with source indicator (saved vs default); supports `--json` for scripting
 - `--set-pref key=value` CLI flag — set individual preferences from the command line with schema validation (e.g. `molt-mascot --set-pref alignment=top-left`)
 - `--unset-pref key` CLI flag — remove a single preference to revert it to the default (e.g. `molt-mascot --unset-pref opacity`)
-
-### Added
 - `reducedMotion` plugin config key — sync reduced-motion preference from Gateway config (parity with `clickThrough`, `hideText`, and other UX toggles)
-
-### Fixed
-- Pill CSS animations (pulse, sleep breathing, connected pop, error shake) now freeze when reduced motion is enabled via the app toggle (`Cmd/Ctrl+Shift+N`), not just the OS `prefers-reduced-motion` setting — also suppresses context menu appear animation
-
-### Added
 - `--help-prefs --json` CLI flag — prints preference schema as machine-readable JSON for tooling, autocomplete engines, and CI config validation
 - `--help-prefs` CLI flag — prints all available preference keys with types and descriptions (surfaces existing `PREF_SCHEMA` metadata for discoverability)
 - "Reduced Motion" toggle in context menu — accessibility setting no longer requires env var or manual preference editing
 - `Cmd/Ctrl+Shift+N` keyboard shortcut for toggling reduced motion (parity with ghost mode and hide text shortcuts)
-
-### Changed
-- `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
-- `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check
-- `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
-- `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info
-- `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
-
-- `size` preference persisted by label (e.g. `"small"`) alongside numeric `sizeIndex` — robust against preset reordering; label takes priority on load
-
-### Fixed
-- README now documents `MOLT_MASCOT_POLL_INTERVAL_MS` env var in the connection tuning section
-- README now lists `size` as a supported plugin config key (was implemented but undocumented)
-
-### Added
 - Directional arrow indicators in alignment display across tray tooltip, context menu, and debug info (e.g. "↘ bottom-right", "↖ top-left")
 - `allTimeMin` / `allTimeMax` on latency tracker — extremes that survive ring-buffer eviction for "best/worst ever" diagnostics
 - `allTimeLatency` getter on `GatewayClient` — surfaces all-time latency extremes in debug info (shown only when they differ from rolling stats)
@@ -125,6 +100,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Comprehensive `plugin-sync` unit tests
 
 ### Fixed
+- `--help` env vars section now documents fallback key chains for gateway URL and token (`GATEWAY_URL`, `OPENCLAW_GATEWAY_URL`, `CLAWDBOT_GATEWAY_URL` and their token equivalents) — previously only `MOLT_MASCOT_*` keys were shown, leaving users unaware of the legacy/shorthand alternatives
+- Pill CSS animations (pulse, sleep breathing, connected pop, error shake) now freeze when reduced motion is enabled via the app toggle (`Cmd/Ctrl+Shift+N`), not just the OS `prefers-reduced-motion` setting — also suppresses context menu appear animation
+- README now documents `MOLT_MASCOT_POLL_INTERVAL_MS` env var in the connection tuning section
+- README now lists `size` as a supported plugin config key (was implemented but undocumented)
 - Pill label now shows duration and tool count in tool mode even without a tool name
 - Six unused imports removed from renderer.js (successRate, MODE_EMOJI, formatDuration, formatElapsed, formatCount, formatLatency)
 - Auto-reconnect stopped on fatal WebSocket close codes (auth failed, forbidden, protocol errors)
@@ -152,6 +131,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `--min-protocol` and `--max-protocol` CLI flags validated
 
 ### Changed
+- `ws-dump --state --compact` now prints a human-readable summary line (mode, latency, quality, active agents/tools, uptime) instead of single-line JSON — parity with `--watch --compact` for quick CLI checks
+- `ws-dump --state` output now includes `quality` and `healthStatus` fields when latency is measured — parity with `--health` output for quick diagnostics without a separate health check
+- `ws-dump --watch --compact` now prints a human-readable summary line per state change (mode, latency, quality, active agents/tools, uptime) instead of raw JSON — much easier for at-a-glance monitoring
+- `ws-dump --watch --compact` summary now includes cumulative agent session count (e.g. "12 sessions") for activity insight parity with tray tooltip and debug info
+- `ws-dump --watch --compact` now measures and includes round-trip poll latency in the summary line (connection quality at a glance without `--ping`)
+- `size` preference persisted by label (e.g. `"small"`) alongside numeric `sizeIndex` — robust against preset reordering; label takes priority on load
 - `isValidMode`, `isValidAlignment`, `isValidSize` use Set for O(1) lookups instead of Array.includes()
 - `status-cli` uses `isValidSize()` for O(1) Set lookup instead of linear scan
 - Renderer delegates `currentHealthStatus()` computation to shared `computeHealthStatus()` function (DRY)
