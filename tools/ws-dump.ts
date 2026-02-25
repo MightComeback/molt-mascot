@@ -1,6 +1,7 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
 import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary, successRate, healthStatusEmoji } from "../apps/molt-mascot/src/utils.js";
+import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } from "../apps/molt-mascot/src/env-keys.cjs";
 
 type GatewayCfg = {
   url: string;
@@ -43,11 +44,15 @@ Options:
   -V, --version           Show version and exit
   -h, --help              Show this help
 
-Environment:
-  GATEWAY_URL             WebSocket URL (default: ws://127.0.0.1:18789)
-  GATEWAY_TOKEN           Authentication token
-  OPENCLAW_GATEWAY_URL    Alias for GATEWAY_URL
-  OPENCLAW_GATEWAY_TOKEN  Alias for GATEWAY_TOKEN`);
+Environment (checked in priority order):
+  MOLT_MASCOT_GATEWAY_URL   WebSocket URL (highest priority)
+  GATEWAY_URL               WebSocket URL
+  OPENCLAW_GATEWAY_URL      Alias for GATEWAY_URL
+  CLAWDBOT_GATEWAY_URL      Alias for GATEWAY_URL (legacy)
+  MOLT_MASCOT_GATEWAY_TOKEN Auth token (highest priority)
+  GATEWAY_TOKEN             Authentication token
+  OPENCLAW_GATEWAY_TOKEN    Alias for GATEWAY_TOKEN
+  CLAWDBOT_GATEWAY_TOKEN    Alias for GATEWAY_TOKEN (legacy)`);
   process.exit(0);
 }
 
@@ -176,14 +181,16 @@ function formatWatchSummary(state: Record<string, any>): string {
 /** Log to stderr unless --quiet is active. */
 const info = (...a: unknown[]) => { if (!quiet) console.error(...a); };
 
-const rawGatewayUrl = process.env.GATEWAY_URL || process.env.OPENCLAW_GATEWAY_URL || process.env.CLAWDBOT_GATEWAY_URL || "ws://127.0.0.1:18789";
+// Use the canonical env-keys resolution (single source of truth with the Electron app)
+// instead of duplicating the fallback chain inline, avoiding drift.
+const rawGatewayUrl = resolveEnv(GATEWAY_URL_KEYS, process.env, "ws://127.0.0.1:18789");
 // Use the shared normalizeWsUrl (handles http→ws, https→wss, bare host:port, etc.)
 // instead of duplicating the logic inline, avoiding drift with the renderer/gateway-client.
 const normalizedGatewayUrl = normalizeWsUrl(rawGatewayUrl);
 
 const cfg: GatewayCfg = {
   url: normalizedGatewayUrl,
-  token: process.env.GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.CLAWDBOT_GATEWAY_TOKEN,
+  token: resolveEnv(GATEWAY_TOKEN_KEYS, process.env) || undefined,
 };
 
 let reqId = 0;
