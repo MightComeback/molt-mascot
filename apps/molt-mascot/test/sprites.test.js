@@ -14,7 +14,9 @@ function validateFrame(frame, name) {
   for (let r = 0; r < frame.length; r++) {
     const row = frame[r];
     if (row.length !== EXPECTED_COLS) {
-      throw new Error(`${name} row ${r}: expected ${EXPECTED_COLS} cols, got ${row.length}`);
+      throw new Error(
+        `${name} row ${r}: expected ${EXPECTED_COLS} cols, got ${row.length}`,
+      );
     }
     for (let c = 0; c < row.length; c++) {
       const ch = row[c];
@@ -53,7 +55,9 @@ describe("sprites", () => {
 
     it("idle frames differ (animation would be static otherwise)", () => {
       // At least one row must differ between the two frames for visible animation.
-      const hasDiff = lobsterIdle[0].some((row, i) => row !== lobsterIdle[1][i]);
+      const hasDiff = lobsterIdle[0].some(
+        (row, i) => row !== lobsterIdle[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
 
@@ -76,7 +80,9 @@ describe("sprites", () => {
     });
 
     it("sleep frames differ (animation would be static otherwise)", () => {
-      const hasDiff = overlay.sleep[0].some((row, i) => row !== overlay.sleep[1][i]);
+      const hasDiff = overlay.sleep[0].some(
+        (row, i) => row !== overlay.sleep[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -92,7 +98,9 @@ describe("sprites", () => {
     });
 
     it("thinking frames differ (animation would be static otherwise)", () => {
-      const hasDiff = overlay.thinking[0].some((row, i) => row !== overlay.thinking[1][i]);
+      const hasDiff = overlay.thinking[0].some(
+        (row, i) => row !== overlay.thinking[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -105,7 +113,9 @@ describe("sprites", () => {
       for (const frame of overlay.tool) validateFrame(frame, "tool");
     });
     it("frames differ (animation)", () => {
-      const hasDiff = overlay.tool[0].some((row, i) => row !== overlay.tool[1][i]);
+      const hasDiff = overlay.tool[0].some(
+        (row, i) => row !== overlay.tool[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -121,7 +131,9 @@ describe("sprites", () => {
     });
 
     it("frames differ (animation)", () => {
-      const hasDiff = overlay.error[0].some((row, i) => row !== overlay.error[1][i]);
+      const hasDiff = overlay.error[0].some(
+        (row, i) => row !== overlay.error[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -137,7 +149,9 @@ describe("sprites", () => {
     });
 
     it("disconnected frames differ (animation would be static otherwise)", () => {
-      const hasDiff = overlay.disconnected[0].some((row, i) => row !== overlay.disconnected[1][i]);
+      const hasDiff = overlay.disconnected[0].some(
+        (row, i) => row !== overlay.disconnected[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -153,7 +167,9 @@ describe("sprites", () => {
     });
 
     it("connecting frames differ (animation would be static otherwise)", () => {
-      const hasDiff = overlay.connecting[0].some((row, i) => row !== overlay.connecting[1][i]);
+      const hasDiff = overlay.connecting[0].some(
+        (row, i) => row !== overlay.connecting[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });
@@ -171,7 +187,14 @@ describe("sprites", () => {
     it("all active visual modes have overlays", () => {
       // Modes that display overlays in the renderer. "idle" uses "sleep" overlay
       // (triggered by duration threshold), so it doesn't need its own key.
-      const modesNeedingOverlays = ["thinking", "tool", "error", "connecting", "connected", "disconnected"];
+      const modesNeedingOverlays = [
+        "thinking",
+        "tool",
+        "error",
+        "connecting",
+        "connected",
+        "disconnected",
+      ];
       for (const mode of modesNeedingOverlays) {
         expect(overlay[mode]).toBeDefined();
         expect(overlay[mode].length).toBeGreaterThanOrEqual(1);
@@ -181,7 +204,9 @@ describe("sprites", () => {
     it("all overlay entries have exactly 2 frames", () => {
       for (const [key, frames] of Object.entries(overlay)) {
         if (frames.length !== 2) {
-          throw new Error(`overlay.${key} has ${frames.length} frames, expected 2`);
+          throw new Error(
+            `overlay.${key} has ${frames.length} frames, expected 2`,
+          );
         }
       }
     });
@@ -198,7 +223,9 @@ describe("sprites", () => {
     });
 
     it("connected frames differ (animation would be static otherwise)", () => {
-      const hasDiff = overlay.connected[0].some((row, i) => row !== overlay.connected[1][i]);
+      const hasDiff = overlay.connected[0].some(
+        (row, i) => row !== overlay.connected[1][i],
+      );
       expect(hasDiff).toBe(true);
     });
   });

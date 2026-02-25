@@ -1,160 +1,233 @@
-const { app, BrowserWindow, screen, globalShortcut, ipcMain, Tray, Menu, nativeImage } = require('electron');
-const path = require('path');
-const fs = require('fs');
+const {
+  app,
+  BrowserWindow,
+  screen,
+  globalShortcut,
+  ipcMain,
+  Tray,
+  Menu,
+  nativeImage,
+} = require("electron");
+const path = require("path");
+const fs = require("fs");
 
-const { isTruthyEnv, parseBooleanEnv } = require('./is-truthy-env.cjs');
-const { REPO_URL } = require('./env-keys.cjs');
-const { getPosition: _getPosition, clampToWorkArea } = require('./get-position.cjs');
-const { renderTraySprite, buildTrayTooltip } = require('./tray-icon.cjs');
-const { connectionUptimePercent: _connectionUptimePercent } = require('./format-latency.cjs');
-const { SIZE_PRESETS, DEFAULT_SIZE_INDEX, VALID_SIZES } = require('./size-presets.cjs');
-const { formatDuration } = require('@molt/mascot-plugin');
+const { isTruthyEnv, parseBooleanEnv } = require("./is-truthy-env.cjs");
+const { REPO_URL } = require("./env-keys.cjs");
+const {
+  getPosition: _getPosition,
+  clampToWorkArea,
+} = require("./get-position.cjs");
+const { renderTraySprite, buildTrayTooltip } = require("./tray-icon.cjs");
+const {
+  connectionUptimePercent: _connectionUptimePercent,
+} = require("./format-latency.cjs");
+const {
+  SIZE_PRESETS,
+  DEFAULT_SIZE_INDEX,
+  VALID_SIZES,
+} = require("./size-presets.cjs");
+const { formatDuration } = require("@molt/mascot-plugin");
 
-const APP_VERSION = require('../package.json').version;
+const APP_VERSION = require("../package.json").version;
 
 // Opacity presets cycled by the keyboard shortcut / context menu.
 // Imported from the shared module (single source of truth) so electron-main,
 // status-cli, and opacity-presets.test all reference the same values.
-const { OPACITY_PRESETS: OPACITY_CYCLE, formatOpacity } = require('./opacity-presets.cjs');
+const {
+  OPACITY_PRESETS: OPACITY_CYCLE,
+  formatOpacity,
+} = require("./opacity-presets.cjs");
 
 // --- User preference persistence ---
 // Delegated to prefs.cjs for testability (atomic writes, debounced batching).
-const { parseModeUpdate } = require('./parse-mode-update.cjs');
-const { createPrefsManager, validatePrefs } = require('./prefs.cjs');
-const PREFS_FILE = path.join(app.getPath('userData'), 'preferences.json');
+const { parseModeUpdate } = require("./parse-mode-update.cjs");
+const { createPrefsManager, validatePrefs } = require("./prefs.cjs");
+const PREFS_FILE = path.join(app.getPath("userData"), "preferences.json");
 const _prefs = createPrefsManager(PREFS_FILE);
 const loadPrefs = _prefs.load;
 const savePrefs = _prefs.save;
 
 // CLI flags: --version prints version and exits (standard UX pattern).
-if (process.argv.includes('--version') || process.argv.includes('-v')) {
+if (process.argv.includes("--version") || process.argv.includes("-v")) {
   process.stdout.write(`molt-mascot ${APP_VERSION}\n`);
   process.exit(0);
 }
 
 // CLI flags: --gateway <url> and --token <token> override env vars.
 // Parsed early so they're available as env vars for the preload script.
-const { parseCliArg, hasBoolFlag, parseNumericArg, parseStringArg } = require('./parse-cli-arg.cjs');
-const cliGatewayUrl = parseCliArg('--gateway');
-const cliGatewayToken = parseCliArg('--token');
+const {
+  parseCliArg,
+  hasBoolFlag,
+  parseNumericArg,
+  parseStringArg,
+} = require("./parse-cli-arg.cjs");
+const cliGatewayUrl = parseCliArg("--gateway");
+const cliGatewayToken = parseCliArg("--token");
 if (cliGatewayUrl) process.env.MOLT_MASCOT_GATEWAY_URL = cliGatewayUrl;
 if (cliGatewayToken) process.env.MOLT_MASCOT_GATEWAY_TOKEN = cliGatewayToken;
 
 // CLI flags for appearance customization (override env vars).
 // Uses parseStringArg with allowed-values validation for --align and --size,
 // consolidating the manual parseCliArg + isValid pattern into a single call.
-const { VALID_ALIGNMENTS, isValidPadding } = require('./get-position.cjs');
-const { isValidOpacity } = require('./opacity-presets.cjs');
+const { VALID_ALIGNMENTS, isValidPadding } = require("./get-position.cjs");
+const { isValidOpacity } = require("./opacity-presets.cjs");
 {
-  const raw = parseCliArg('--align');
-  const cliAlign = parseStringArg('--align', null, { allowed: VALID_ALIGNMENTS });
+  const raw = parseCliArg("--align");
+  const cliAlign = parseStringArg("--align", null, {
+    allowed: VALID_ALIGNMENTS,
+  });
   if (cliAlign) {
     process.env.MOLT_MASCOT_ALIGN = cliAlign;
   } else if (raw !== null) {
-    process.stderr.write(`molt-mascot: invalid --align "${raw}" (valid: ${VALID_ALIGNMENTS.join(', ')})\n`);
+    process.stderr.write(
+      `molt-mascot: invalid --align "${raw}" (valid: ${VALID_ALIGNMENTS.join(", ")})\n`,
+    );
   }
 }
 {
-  const raw = parseCliArg('--size');
-  const cliSize = parseStringArg('--size', null, { allowed: VALID_SIZES });
+  const raw = parseCliArg("--size");
+  const cliSize = parseStringArg("--size", null, { allowed: VALID_SIZES });
   if (cliSize) {
     process.env.MOLT_MASCOT_SIZE = cliSize.toLowerCase();
   } else if (raw !== null) {
-    process.stderr.write(`molt-mascot: invalid --size "${raw}" (valid: ${VALID_SIZES.join(', ')})\n`);
+    process.stderr.write(
+      `molt-mascot: invalid --size "${raw}" (valid: ${VALID_SIZES.join(", ")})\n`,
+    );
   }
 }
 {
-  const cliOpacity = parseCliArg('--opacity');
+  const cliOpacity = parseCliArg("--opacity");
   if (cliOpacity) {
     const ov = Number(cliOpacity);
     if (isValidOpacity(ov)) {
       process.env.MOLT_MASCOT_OPACITY = cliOpacity;
     } else {
-      process.stderr.write(`molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`);
+      process.stderr.write(
+        `molt-mascot: invalid --opacity "${cliOpacity}" (must be 0.0–1.0)\n`,
+      );
     }
   }
 }
 {
-  const cliPadding = parseCliArg('--padding');
+  const cliPadding = parseCliArg("--padding");
   if (cliPadding) {
     const pv = Number(cliPadding);
     if (isValidPadding(pv)) {
       process.env.MOLT_MASCOT_PADDING = cliPadding;
     } else {
-      process.stderr.write(`molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`);
+      process.stderr.write(
+        `molt-mascot: invalid --padding "${cliPadding}" (must be >= 0)\n`,
+      );
     }
   }
 }
 
 // CLI flags for boolean appearance toggles (override env vars).
-if (hasBoolFlag('--click-through')) process.env.MOLT_MASCOT_CLICK_THROUGH = '1';
-if (hasBoolFlag('--hide-text')) process.env.MOLT_MASCOT_HIDE_TEXT = '1';
-if (hasBoolFlag('--reduced-motion')) process.env.MOLT_MASCOT_REDUCED_MOTION = '1';
-if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
+if (hasBoolFlag("--click-through")) process.env.MOLT_MASCOT_CLICK_THROUGH = "1";
+if (hasBoolFlag("--hide-text")) process.env.MOLT_MASCOT_HIDE_TEXT = "1";
+if (hasBoolFlag("--reduced-motion"))
+  process.env.MOLT_MASCOT_REDUCED_MOTION = "1";
+if (hasBoolFlag("--start-hidden")) process.env.MOLT_MASCOT_START_HIDDEN = "1";
 
 // CLI flags for protocol negotiation (useful when connecting to different Gateway versions).
 // Uses parseNumericArg to replace the repeated parseCliArg + Number + validate pattern.
 {
-  const v = parseNumericArg('--min-protocol', -1, { min: 1, integer: true });
+  const v = parseNumericArg("--min-protocol", -1, { min: 1, integer: true });
   if (v > 0) process.env.MOLT_MASCOT_MIN_PROTOCOL = String(v);
-  else if (parseCliArg('--min-protocol') !== null) process.stderr.write(`molt-mascot: invalid --min-protocol "${parseCliArg('--min-protocol')}" (must be a positive integer)\n`);
+  else if (parseCliArg("--min-protocol") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --min-protocol "${parseCliArg("--min-protocol")}" (must be a positive integer)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--max-protocol', -1, { min: 1, integer: true });
+  const v = parseNumericArg("--max-protocol", -1, { min: 1, integer: true });
   if (v > 0) process.env.MOLT_MASCOT_MAX_PROTOCOL = String(v);
-  else if (parseCliArg('--max-protocol') !== null) process.stderr.write(`molt-mascot: invalid --max-protocol "${parseCliArg('--max-protocol')}" (must be a positive integer)\n`);
+  else if (parseCliArg("--max-protocol") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --max-protocol "${parseCliArg("--max-protocol")}" (must be a positive integer)\n`,
+    );
 }
 
 // CLI flags for timing customization (override env vars).
 {
-  const v = parseNumericArg('--sleep-threshold', -1, { min: 0 });
+  const v = parseNumericArg("--sleep-threshold", -1, { min: 0 });
   if (v >= 0) process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S = String(v);
-  else if (parseCliArg('--sleep-threshold') !== null) process.stderr.write(`molt-mascot: invalid --sleep-threshold "${parseCliArg('--sleep-threshold')}" (must be >= 0 seconds)\n`);
+  else if (parseCliArg("--sleep-threshold") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --sleep-threshold "${parseCliArg("--sleep-threshold")}" (must be >= 0 seconds)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--idle-delay', -1, { min: 0 });
+  const v = parseNumericArg("--idle-delay", -1, { min: 0 });
   if (v >= 0) process.env.MOLT_MASCOT_IDLE_DELAY_MS = String(v);
-  else if (parseCliArg('--idle-delay') !== null) process.stderr.write(`molt-mascot: invalid --idle-delay "${parseCliArg('--idle-delay')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--idle-delay") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --idle-delay "${parseCliArg("--idle-delay")}" (must be >= 0 ms)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--error-hold', -1, { min: 0 });
+  const v = parseNumericArg("--error-hold", -1, { min: 0 });
   if (v >= 0) process.env.MOLT_MASCOT_ERROR_HOLD_MS = String(v);
-  else if (parseCliArg('--error-hold') !== null) process.stderr.write(`molt-mascot: invalid --error-hold "${parseCliArg('--error-hold')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--error-hold") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --error-hold "${parseCliArg("--error-hold")}" (must be >= 0 ms)\n`,
+    );
 }
 
 // CLI flags for network timing customization (override env vars).
 // These mirror the PREF_SCHEMA timing keys and map to the same env vars
 // that GatewayClient and the renderer already read at startup.
 {
-  const v = parseNumericArg('--poll-interval', -1, { min: 100, integer: true });
+  const v = parseNumericArg("--poll-interval", -1, { min: 100, integer: true });
   if (v >= 100) process.env.MOLT_MASCOT_POLL_INTERVAL_MS = String(v);
-  else if (parseCliArg('--poll-interval') !== null) process.stderr.write(`molt-mascot: invalid --poll-interval "${parseCliArg('--poll-interval')}" (must be >= 100 ms)\n`);
+  else if (parseCliArg("--poll-interval") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --poll-interval "${parseCliArg("--poll-interval")}" (must be >= 100 ms)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--reconnect-base', -1, { min: 0, integer: true });
+  const v = parseNumericArg("--reconnect-base", -1, { min: 0, integer: true });
   if (v >= 0) process.env.MOLT_MASCOT_RECONNECT_BASE_MS = String(v);
-  else if (parseCliArg('--reconnect-base') !== null) process.stderr.write(`molt-mascot: invalid --reconnect-base "${parseCliArg('--reconnect-base')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--reconnect-base") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --reconnect-base "${parseCliArg("--reconnect-base")}" (must be >= 0 ms)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--reconnect-max', -1, { min: 0, integer: true });
+  const v = parseNumericArg("--reconnect-max", -1, { min: 0, integer: true });
   if (v >= 0) process.env.MOLT_MASCOT_RECONNECT_MAX_MS = String(v);
-  else if (parseCliArg('--reconnect-max') !== null) process.stderr.write(`molt-mascot: invalid --reconnect-max "${parseCliArg('--reconnect-max')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--reconnect-max") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --reconnect-max "${parseCliArg("--reconnect-max")}" (must be >= 0 ms)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--stale-connection', -1, { min: 0, integer: true });
+  const v = parseNumericArg("--stale-connection", -1, {
+    min: 0,
+    integer: true,
+  });
   if (v >= 0) process.env.MOLT_MASCOT_STALE_CONNECTION_MS = String(v);
-  else if (parseCliArg('--stale-connection') !== null) process.stderr.write(`molt-mascot: invalid --stale-connection "${parseCliArg('--stale-connection')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--stale-connection") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --stale-connection "${parseCliArg("--stale-connection")}" (must be >= 0 ms)\n`,
+    );
 }
 {
-  const v = parseNumericArg('--stale-check-interval', -1, { min: 0, integer: true });
+  const v = parseNumericArg("--stale-check-interval", -1, {
+    min: 0,
+    integer: true,
+  });
   if (v >= 0) process.env.MOLT_MASCOT_STALE_CHECK_INTERVAL_MS = String(v);
-  else if (parseCliArg('--stale-check-interval') !== null) process.stderr.write(`molt-mascot: invalid --stale-check-interval "${parseCliArg('--stale-check-interval')}" (must be >= 0 ms)\n`);
+  else if (parseCliArg("--stale-check-interval") !== null)
+    process.stderr.write(
+      `molt-mascot: invalid --stale-check-interval "${parseCliArg("--stale-check-interval")}" (must be >= 0 ms)\n`,
+    );
 }
 
 // CLI flag: --capture-dir <path> overrides MOLT_MASCOT_CAPTURE_DIR env var.
 // Useful for CI/dev screenshot pipelines without setting env vars.
 {
-  const v = parseCliArg('--capture-dir');
+  const v = parseCliArg("--capture-dir");
   if (v) process.env.MOLT_MASCOT_CAPTURE_DIR = v;
 }
 
@@ -162,28 +235,32 @@ if (hasBoolFlag('--start-hidden')) process.env.MOLT_MASCOT_START_HIDDEN = '1';
 // Useful when the mascot ends up in a bad state (off-screen, invisible, etc.).
 // Uses _prefs.clear() to atomically cancel pending writes and delete the file,
 // avoiding race conditions with any in-flight debounced saves.
-if (hasBoolFlag('--reset-prefs')) {
+if (hasBoolFlag("--reset-prefs")) {
   try {
     const deleted = _prefs.clear();
     if (deleted) {
-      process.stdout.write(`molt-mascot: preferences reset (deleted ${PREFS_FILE})\n`);
+      process.stdout.write(
+        `molt-mascot: preferences reset (deleted ${PREFS_FILE})\n`,
+      );
     } else {
       process.stdout.write(`molt-mascot: no preferences file to reset\n`);
     }
   } catch (err) {
-    process.stderr.write(`molt-mascot: failed to reset preferences: ${err.message}\n`);
+    process.stderr.write(
+      `molt-mascot: failed to reset preferences: ${err.message}\n`,
+    );
   }
   // Continue launching with defaults (don't exit) so the user sees the fresh state.
 }
 
 // CLI flags: --list-prefs prints the saved preferences file and exits.
 // Useful for diagnosing why the mascot is positioned oddly or has unexpected settings.
-if (hasBoolFlag('--list-prefs')) {
-  const jsonMode = hasBoolFlag('--json');
+if (hasBoolFlag("--list-prefs")) {
+  const jsonMode = hasBoolFlag("--json");
   try {
-    const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
+    const prefsPath = path.join(app.getPath("userData"), "preferences.json");
     if (fs.existsSync(prefsPath)) {
-      const data = fs.readFileSync(prefsPath, 'utf8');
+      const data = fs.readFileSync(prefsPath, "utf8");
       if (jsonMode) {
         // Machine-readable output: emit a JSON object with path, prefs, and warnings.
         try {
@@ -191,10 +268,16 @@ if (hasBoolFlag('--list-prefs')) {
           const { dropped } = validatePrefs(parsed);
           const output = { path: prefsPath, prefs: parsed };
           if (dropped.length > 0) output.warnings = dropped;
-          process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+          process.stdout.write(JSON.stringify(output, null, 2) + "\n");
         } catch {
           // Malformed JSON — still emit what we can
-          process.stdout.write(JSON.stringify({ path: prefsPath, raw: data, error: 'invalid JSON' }, null, 2) + '\n');
+          process.stdout.write(
+            JSON.stringify(
+              { path: prefsPath, raw: data, error: "invalid JSON" },
+              null,
+              2,
+            ) + "\n",
+          );
         }
       } else {
         process.stdout.write(`${prefsPath}\n${data}\n`);
@@ -204,7 +287,7 @@ if (hasBoolFlag('--list-prefs')) {
           const parsed = JSON.parse(data);
           const { dropped } = validatePrefs(parsed);
           if (dropped.length > 0) {
-            process.stdout.write('\nWarnings:\n');
+            process.stdout.write("\nWarnings:\n");
             for (const { key, reason } of dropped) {
               process.stdout.write(`  ⚠ ${key}: ${reason}\n`);
             }
@@ -213,14 +296,18 @@ if (hasBoolFlag('--list-prefs')) {
       }
     } else {
       if (jsonMode) {
-        process.stdout.write(JSON.stringify({ path: prefsPath, prefs: null }, null, 2) + '\n');
+        process.stdout.write(
+          JSON.stringify({ path: prefsPath, prefs: null }, null, 2) + "\n",
+        );
       } else {
         process.stdout.write(`No preferences file found (${prefsPath})\n`);
       }
     }
   } catch (err) {
     if (jsonMode) {
-      process.stdout.write(JSON.stringify({ error: err.message }, null, 2) + '\n');
+      process.stdout.write(
+        JSON.stringify({ error: err.message }, null, 2) + "\n",
+      );
     } else {
       process.stderr.write(`Failed to read preferences: ${err.message}\n`);
     }
@@ -232,24 +319,32 @@ if (hasBoolFlag('--list-prefs')) {
 // Validates through PREF_SCHEMA so invalid keys/values are rejected.
 // Useful for scripting: `molt-mascot --set-pref alignment=top-left`
 {
-  const setPrefRaw = parseCliArg('--set-pref');
+  const setPrefRaw = parseCliArg("--set-pref");
   if (setPrefRaw !== null) {
-    const eqIdx = setPrefRaw.indexOf('=');
+    const eqIdx = setPrefRaw.indexOf("=");
     if (eqIdx < 1) {
-      process.stderr.write(`molt-mascot: --set-pref requires key=value format (got "${setPrefRaw}")\n`);
+      process.stderr.write(
+        `molt-mascot: --set-pref requires key=value format (got "${setPrefRaw}")\n`,
+      );
       process.exit(1);
     }
     const key = setPrefRaw.slice(0, eqIdx).trim();
     const rawVal = setPrefRaw.slice(eqIdx + 1);
-    const { PREF_SCHEMA, VALID_PREF_KEYS, coerceFromString } = require('./prefs.cjs');
+    const {
+      PREF_SCHEMA,
+      VALID_PREF_KEYS,
+      coerceFromString,
+    } = require("./prefs.cjs");
     const schema = PREF_SCHEMA[key];
     if (!schema) {
-      process.stderr.write(`molt-mascot: unknown preference "${key}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      process.stderr.write(
+        `molt-mascot: unknown preference "${key}" (valid: ${VALID_PREF_KEYS.join(", ")})\n`,
+      );
       process.exit(1);
     }
     // Coerce the string value to the expected type
     const coerced = coerceFromString(rawVal, schema);
-    if ('error' in coerced) {
+    if ("error" in coerced) {
       process.stderr.write(`molt-mascot: "${key}" ${coerced.error}\n`);
       process.exit(1);
     }
@@ -257,30 +352,38 @@ if (hasBoolFlag('--list-prefs')) {
     // Validate through schema
     const { clean, dropped } = validatePrefs({ [key]: value });
     if (dropped.length > 0) {
-      process.stderr.write(`molt-mascot: invalid value for "${key}": ${dropped[0].reason}\n`);
+      process.stderr.write(
+        `molt-mascot: invalid value for "${key}": ${dropped[0].reason}\n`,
+      );
       process.exit(1);
     }
     _prefs.save(clean);
     _prefs.flush();
-    process.stdout.write(`molt-mascot: ${key} = ${JSON.stringify(clean[key])}\n`);
+    process.stdout.write(
+      `molt-mascot: ${key} = ${JSON.stringify(clean[key])}\n`,
+    );
     process.exit(0);
   }
 }
 
 // CLI flags: --unset-pref key removes a single preference (reverts to default).
 {
-  const unsetKey = parseCliArg('--unset-pref');
+  const unsetKey = parseCliArg("--unset-pref");
   if (unsetKey !== null) {
     const trimmed = unsetKey.trim();
-    const { PREF_SCHEMA } = require('./prefs.cjs');
+    const { PREF_SCHEMA } = require("./prefs.cjs");
     if (!PREF_SCHEMA[trimmed]) {
-      const { VALID_PREF_KEYS } = require('./prefs.cjs');
-      process.stderr.write(`molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      const { VALID_PREF_KEYS } = require("./prefs.cjs");
+      process.stderr.write(
+        `molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(", ")})\n`,
+      );
       process.exit(1);
     }
     _prefs.remove(trimmed);
     _prefs.flush();
-    process.stdout.write(`molt-mascot: unset "${trimmed}" (reverted to default)\n`);
+    process.stdout.write(
+      `molt-mascot: unset "${trimmed}" (reverted to default)\n`,
+    );
     process.exit(0);
   }
 }
@@ -289,25 +392,32 @@ if (hasBoolFlag('--list-prefs')) {
 // Complements --set-pref and --unset-pref for scriptable preference queries.
 // Outputs the saved value if set, or the schema default otherwise.
 {
-  const getKey = parseCliArg('--get-pref');
+  const getKey = parseCliArg("--get-pref");
   if (getKey !== null) {
     const trimmed = getKey.trim();
-    const { PREF_SCHEMA, VALID_PREF_KEYS } = require('./prefs.cjs');
+    const { PREF_SCHEMA, VALID_PREF_KEYS } = require("./prefs.cjs");
     const schema = PREF_SCHEMA[trimmed];
     if (!schema) {
-      process.stderr.write(`molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(', ')})\n`);
+      process.stderr.write(
+        `molt-mascot: unknown preference "${trimmed}" (valid: ${VALID_PREF_KEYS.join(", ")})\n`,
+      );
       process.exit(1);
     }
     const saved = _prefs.get(trimmed);
-    const jsonMode = hasBoolFlag('--json');
+    const jsonMode = hasBoolFlag("--json");
     if (jsonMode) {
       const output = {
         key: trimmed,
-        value: saved !== undefined ? saved : (schema.default !== undefined ? schema.default : null),
-        source: saved !== undefined ? 'saved' : 'default',
+        value:
+          saved !== undefined
+            ? saved
+            : schema.default !== undefined
+              ? schema.default
+              : null,
+        source: saved !== undefined ? "saved" : "default",
       };
       if (schema.description) output.description = schema.description;
-      process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+      process.stdout.write(JSON.stringify(output, null, 2) + "\n");
     } else {
       if (saved !== undefined) {
         process.stdout.write(`${trimmed} = ${JSON.stringify(saved)} (saved)\n`);
@@ -325,16 +435,24 @@ if (hasBoolFlag('--list-prefs')) {
 //   molt-mascot --completions bash >> ~/.bashrc
 //   molt-mascot --completions zsh >> ~/.zshrc
 //   molt-mascot --completions fish > ~/.config/fish/completions/molt-mascot.fish
-const cliCompletionsShell = parseStringArg('--completions', {
+const cliCompletionsShell = parseStringArg("--completions", {
   fallback: null,
-  allowed: ['bash', 'zsh', 'fish'],
+  allowed: ["bash", "zsh", "fish"],
 });
 if (cliCompletionsShell) {
-  const completionsPath = path.resolve(__dirname, '..', '..', 'tools', `completions.${cliCompletionsShell}`);
+  const completionsPath = path.resolve(
+    __dirname,
+    "..",
+    "..",
+    "tools",
+    `completions.${cliCompletionsShell}`,
+  );
   try {
-    process.stdout.write(fs.readFileSync(completionsPath, 'utf8'));
+    process.stdout.write(fs.readFileSync(completionsPath, "utf8"));
   } catch {
-    process.stderr.write(`molt-mascot: completions not found for ${cliCompletionsShell} (expected ${completionsPath})\n`);
+    process.stderr.write(
+      `molt-mascot: completions not found for ${cliCompletionsShell} (expected ${completionsPath})\n`,
+    );
     process.exit(1);
   }
   process.exit(0);
@@ -343,13 +461,15 @@ if (cliCompletionsShell) {
 // CLI flags: --help-prefs prints the preference key reference and exits.
 // Surfaces the PREF_SCHEMA metadata (types, descriptions, valid values) so
 // users can discover available keys without reading the source.
-if (hasBoolFlag('--help-prefs')) {
-  const { formatPrefSchema, exportPrefSchemaJSON } = require('./prefs.cjs');
-  if (hasBoolFlag('--json')) {
-    process.stdout.write(JSON.stringify(exportPrefSchemaJSON(), null, 2) + '\n');
+if (hasBoolFlag("--help-prefs")) {
+  const { formatPrefSchema, exportPrefSchemaJSON } = require("./prefs.cjs");
+  if (hasBoolFlag("--json")) {
+    process.stdout.write(
+      JSON.stringify(exportPrefSchemaJSON(), null, 2) + "\n",
+    );
   } else {
-    process.stdout.write('Available preference keys:\n');
-    process.stdout.write(formatPrefSchema() + '\n');
+    process.stdout.write("Available preference keys:\n");
+    process.stdout.write(formatPrefSchema() + "\n");
   }
   process.exit(0);
 }
@@ -358,9 +478,9 @@ if (hasBoolFlag('--help-prefs')) {
 // config (env vars + saved prefs + CLI overrides) and exits. Helps answer
 // "what settings will the mascot actually use?" without launching the GUI.
 // Logic extracted to status-cli.cjs for testability.
-if (hasBoolFlag('--status')) {
-  const { resolveStatusConfig, formatStatusText } = require('./status-cli.cjs');
-  const prefsPath = path.join(app.getPath('userData'), 'preferences.json');
+if (hasBoolFlag("--status")) {
+  const { resolveStatusConfig, formatStatusText } = require("./status-cli.cjs");
+  const prefsPath = path.join(app.getPath("userData"), "preferences.json");
   const prefsExist = fs.existsSync(prefsPath);
   const statusConfig = resolveStatusConfig({
     appVersion: APP_VERSION,
@@ -372,15 +492,15 @@ if (hasBoolFlag('--status')) {
     arch: process.arch,
     versions: process.versions,
     prefsPath: prefsExist ? prefsPath : null,
-    sizePresets: require('./size-presets.cjs'),
+    sizePresets: require("./size-presets.cjs"),
     opacityCycle: OPACITY_CYCLE,
     hasBoolFlag,
     uptimeSeconds: Math.round(process.uptime()),
     startedAt: Date.now() - Math.round(process.uptime()) * 1000,
   });
 
-  if (hasBoolFlag('--json')) {
-    process.stdout.write(JSON.stringify(statusConfig, null, 2) + '\n');
+  if (hasBoolFlag("--json")) {
+    process.stdout.write(JSON.stringify(statusConfig, null, 2) + "\n");
   } else {
     process.stdout.write(formatStatusText(statusConfig));
   }
@@ -390,28 +510,35 @@ if (hasBoolFlag('--status')) {
 // CLI flags: --disable-gpu disables hardware acceleration.
 // Useful on VMs, remote desktops, or Wayland compositors where GPU acceleration
 // causes rendering artifacts, blank windows, or crashes.
-if (hasBoolFlag('--disable-gpu') || isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_GPU)) {
+if (
+  hasBoolFlag("--disable-gpu") ||
+  isTruthyEnv(process.env.MOLT_MASCOT_DISABLE_GPU)
+) {
   app.disableHardwareAcceleration();
 }
 
 // CLI flags: --debug opens DevTools on launch for easier development.
 // Also accepts MOLT_MASCOT_DEBUG env var for headless/CI scenarios.
-const cliDebug = hasBoolFlag('--debug') || isTruthyEnv(process.env.MOLT_MASCOT_DEBUG);
+const cliDebug =
+  hasBoolFlag("--debug") || isTruthyEnv(process.env.MOLT_MASCOT_DEBUG);
 
 // CLI flags: --no-tray disables the system tray icon entirely.
 // Useful on Linux DEs where tray support is flaky (e.g. GNOME without extensions).
-const cliNoTray = hasBoolFlag('--no-tray') || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
+const cliNoTray =
+  hasBoolFlag("--no-tray") || isTruthyEnv(process.env.MOLT_MASCOT_NO_TRAY);
 
 // CLI flags: --no-shortcuts disables global keyboard shortcut registration.
 // Useful when the mascot's shortcuts (Cmd+Shift+M, etc.) conflict with other apps.
 // All actions remain accessible via the tray menu, context menu, and IPC.
-const cliNoShortcuts = hasBoolFlag('--no-shortcuts') || isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
+const cliNoShortcuts =
+  hasBoolFlag("--no-shortcuts") ||
+  isTruthyEnv(process.env.MOLT_MASCOT_NO_SHORTCUTS);
 
 // CLI flags: --help prints usage information and exits.
-if (hasBoolFlag('--help') || hasBoolFlag('-h')) {
+if (hasBoolFlag("--help") || hasBoolFlag("-h")) {
   // Platform-aware modifier key labels so the help text matches the user's OS.
-  const mod = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
-  const alt = process.platform === 'darwin' ? 'Option' : 'Alt';
+  const mod = process.platform === "darwin" ? "Cmd" : "Ctrl";
+  const alt = process.platform === "darwin" ? "Option" : "Alt";
   process.stdout.write(`molt-mascot ${APP_VERSION}
 
 A tiny always-on-top desktop mascot (pixel lobster) that reflects your
@@ -526,8 +653,8 @@ Mouse interactions:
 }
 
 // Fix for Windows notifications/taskbar grouping (matches package.json appId)
-if (process.platform === 'win32') {
-  app.setAppUserModelId('com.mightcomeback.molt-mascot');
+if (process.platform === "win32") {
+  app.setAppUserModelId("com.mightcomeback.molt-mascot");
 }
 
 // Single-instance lock: prevent duplicate mascots from cluttering the desktop.
@@ -536,7 +663,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on("second-instance", () => {
     withMainWin((w) => {
       if (!w.isVisible()) w.show();
       w.focus();
@@ -573,12 +700,17 @@ let userDragged = false;
  */
 function getPosition(display, width, height, alignOverride, paddingOvr) {
   const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
-  const basePadding = Math.max(0, Number.isFinite(envPadding) ? envPadding : 24);
-  const resolvedPadding = (Number.isFinite(paddingOvr) && paddingOvr >= 0) ? paddingOvr : basePadding;
+  const basePadding = Math.max(
+    0,
+    Number.isFinite(envPadding) ? envPadding : 24,
+  );
+  const resolvedPadding =
+    Number.isFinite(paddingOvr) && paddingOvr >= 0 ? paddingOvr : basePadding;
 
-  const resolvedAlign = (typeof alignOverride === 'string' && alignOverride.trim())
-    ? alignOverride
-    : (process.env.MOLT_MASCOT_ALIGN || 'bottom-right');
+  const resolvedAlign =
+    typeof alignOverride === "string" && alignOverride.trim()
+      ? alignOverride
+      : process.env.MOLT_MASCOT_ALIGN || "bottom-right";
 
   return _getPosition(display, width, height, resolvedAlign, resolvedPadding);
 }
@@ -594,29 +726,55 @@ function _resolveInitialOpacity(savedOpacityIndex, savedOpacity) {
   if (Number.isFinite(envVal) && envVal >= 0 && envVal <= 1) return envVal;
   // Prefer raw opacity value (preserves arbitrary scroll-wheel values like 0.3
   // that don't exist in the preset cycle and would be lost via opacityIndex).
-  if (typeof savedOpacity === 'number' && Number.isFinite(savedOpacity) && savedOpacity >= 0 && savedOpacity <= 1) {
+  if (
+    typeof savedOpacity === "number" &&
+    Number.isFinite(savedOpacity) &&
+    savedOpacity >= 0 &&
+    savedOpacity <= 1
+  ) {
     return savedOpacity;
   }
   // Fall back to saved preset index for backward compatibility with prefs
   // saved before the raw opacity key was introduced.
-  if (typeof savedOpacityIndex === 'number' && savedOpacityIndex >= 0 && savedOpacityIndex < OPACITY_CYCLE.length) {
+  if (
+    typeof savedOpacityIndex === "number" &&
+    savedOpacityIndex >= 0 &&
+    savedOpacityIndex < OPACITY_CYCLE.length
+  ) {
     return OPACITY_CYCLE[savedOpacityIndex];
   }
   return 1.0;
 }
 
-function createWindow({ capture = false, initWidth, initHeight, initOpacity, initPosition } = {}) {
+function createWindow({
+  capture = false,
+  initWidth,
+  initHeight,
+  initOpacity,
+  initPosition,
+} = {}) {
   const display = screen.getPrimaryDisplay();
   const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
   const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
-  const width = (Number.isFinite(initWidth) && initWidth > 0) ? initWidth
-    : (Number.isFinite(envWidth) && envWidth > 0 ? envWidth : 240);
-  const height = (Number.isFinite(initHeight) && initHeight > 0) ? initHeight
-    : (Number.isFinite(envHeight) && envHeight > 0 ? envHeight : 200);
+  const width =
+    Number.isFinite(initWidth) && initWidth > 0
+      ? initWidth
+      : Number.isFinite(envWidth) && envWidth > 0
+        ? envWidth
+        : 240;
+  const height =
+    Number.isFinite(initHeight) && initHeight > 0
+      ? initHeight
+      : Number.isFinite(envHeight) && envHeight > 0
+        ? envHeight
+        : 200;
   // Use saved drag position if provided and valid; otherwise compute from alignment.
-  const pos = (initPosition && Number.isFinite(initPosition.x) && Number.isFinite(initPosition.y))
-    ? initPosition
-    : getPosition(display, width, height, alignmentOverride, paddingOverride);
+  const pos =
+    initPosition &&
+    Number.isFinite(initPosition.x) &&
+    Number.isFinite(initPosition.y)
+      ? initPosition
+      : getPosition(display, width, height, alignmentOverride, paddingOverride);
 
   const win = new BrowserWindow({
     width,
@@ -624,8 +782,12 @@ function createWindow({ capture = false, initWidth, initHeight, initOpacity, ini
     x: Math.round(pos.x),
     y: Math.round(pos.y),
     transparent: capture ? false : true,
-    backgroundColor: capture ? '#111827' : '#00000000',
-    opacity: capture ? 1.0 : (typeof initOpacity === 'number' ? initOpacity : 1.0),
+    backgroundColor: capture ? "#111827" : "#00000000",
+    opacity: capture
+      ? 1.0
+      : typeof initOpacity === "number"
+        ? initOpacity
+        : 1.0,
     show: capture ? false : !isTruthyEnv(process.env.MOLT_MASCOT_START_HIDDEN),
     frame: false,
     resizable: false,
@@ -635,13 +797,13 @@ function createWindow({ capture = false, initWidth, initHeight, initOpacity, ini
     focusable: false,
     hasShadow: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
     },
   });
 
-  if (!capture) win.setAlwaysOnTop(true, 'screen-saver');
-  win.loadFile(path.join(__dirname, 'index.html'));
+  if (!capture) win.setAlwaysOnTop(true, "screen-saver");
+  win.loadFile(path.join(__dirname, "index.html"));
   return win;
 }
 
@@ -649,15 +811,29 @@ async function captureScreenshots() {
   fs.mkdirSync(CAPTURE_DIR, { recursive: true });
 
   const win = createWindow({ capture: true });
-  await new Promise((resolve) => win.webContents.once('did-finish-load', resolve));
+  await new Promise((resolve) =>
+    win.webContents.once("did-finish-load", resolve),
+  );
 
-  const modes = ['idle', 'thinking', 'tool', 'error', 'connecting', 'connected', 'disconnected'];
-  
+  const modes = [
+    "idle",
+    "thinking",
+    "tool",
+    "error",
+    "connecting",
+    "connected",
+    "disconnected",
+  ];
+
   // Freeze time at 0 for deterministic bobbing (frame 0)
-  await win.webContents.executeJavaScript(`window.__moltMascotSetTime && window.__moltMascotSetTime(0)`);
+  await win.webContents.executeJavaScript(
+    `window.__moltMascotSetTime && window.__moltMascotSetTime(0)`,
+  );
 
   for (const mode of modes) {
-    await win.webContents.executeJavaScript(`window.__moltMascotSetMode && window.__moltMascotSetMode(${JSON.stringify(mode)})`);
+    await win.webContents.executeJavaScript(
+      `window.__moltMascotSetMode && window.__moltMascotSetMode(${JSON.stringify(mode)})`,
+    );
     await new Promise((r) => setTimeout(r, 120));
     const img = await win.webContents.capturePage();
     fs.writeFileSync(path.join(CAPTURE_DIR, `${mode}.png`), img.toPNG());
@@ -671,26 +847,34 @@ async function captureScreenshots() {
   `);
   await new Promise((r) => setTimeout(r, 120));
   const sleepImg = await win.webContents.capturePage();
-  fs.writeFileSync(path.join(CAPTURE_DIR, 'sleeping.png'), sleepImg.toPNG());
+  fs.writeFileSync(path.join(CAPTURE_DIR, "sleeping.png"), sleepImg.toPNG());
 
   // Capture tray icon sprites for each mode (useful for docs/README assets).
   // Renders at 2× scale (32×32) for crisp display on retina/HiDPI screens.
   const trayScale = 2;
   const traySize = 16 * trayScale;
-  const allTrayModes = [...modes, 'sleeping'];
-  const trayDir = path.join(CAPTURE_DIR, 'tray');
+  const allTrayModes = [...modes, "sleeping"];
+  const trayDir = path.join(CAPTURE_DIR, "tray");
   fs.mkdirSync(trayDir, { recursive: true });
   for (const mode of allTrayModes) {
     const buf = renderTraySprite(trayScale, { mode });
-    const img = nativeImage.createFromBuffer(buf, { width: traySize, height: traySize });
+    const img = nativeImage.createFromBuffer(buf, {
+      width: traySize,
+      height: traySize,
+    });
     fs.writeFileSync(path.join(trayDir, `tray-${mode}.png`), img.toPNG());
   }
   // Also capture base sprite without status dot
   const baseBuf = renderTraySprite(trayScale);
-  const baseImg = nativeImage.createFromBuffer(baseBuf, { width: traySize, height: traySize });
-  fs.writeFileSync(path.join(trayDir, 'tray-base.png'), baseImg.toPNG());
+  const baseImg = nativeImage.createFromBuffer(baseBuf, {
+    width: traySize,
+    height: traySize,
+  });
+  fs.writeFileSync(path.join(trayDir, "tray-base.png"), baseImg.toPNG());
 
-  try { win.close(); } catch {}
+  try {
+    win.close();
+  } catch {}
 }
 
 function applyClickThrough(win, enabled) {
@@ -702,7 +886,7 @@ function applyClickThrough(win, enabled) {
 app.whenReady().then(async () => {
   // macOS About panel (visible via tray > right-click on app name in menu bar)
   app.setAboutPanelOptions({
-    applicationName: 'Molt Mascot',
+    applicationName: "Molt Mascot",
     applicationVersion: APP_VERSION,
     copyright: (() => {
       const startYear = 2026;
@@ -715,7 +899,7 @@ app.whenReady().then(async () => {
   });
 
   // Hide dock icon on macOS for a true desktop widget experience
-  if (process.platform === 'darwin' && app.dock) {
+  if (process.platform === "darwin" && app.dock) {
     app.dock.hide();
   }
 
@@ -737,17 +921,21 @@ app.whenReady().then(async () => {
   // picks them up via process.env.MOLT_MASCOT_*. Env vars and CLI flags
   // (already set above) take precedence; saved prefs fill in the gaps.
   const TIMING_PREF_ENV_MAP = [
-    ['sleepThresholdS',      'MOLT_MASCOT_SLEEP_THRESHOLD_S'],
-    ['idleDelayMs',          'MOLT_MASCOT_IDLE_DELAY_MS'],
-    ['errorHoldMs',          'MOLT_MASCOT_ERROR_HOLD_MS'],
-    ['pollIntervalMs',       'MOLT_MASCOT_POLL_INTERVAL_MS'],
-    ['reconnectBaseMs',      'MOLT_MASCOT_RECONNECT_BASE_MS'],
-    ['reconnectMaxMs',       'MOLT_MASCOT_RECONNECT_MAX_MS'],
-    ['staleConnectionMs',    'MOLT_MASCOT_STALE_CONNECTION_MS'],
-    ['staleCheckIntervalMs', 'MOLT_MASCOT_STALE_CHECK_INTERVAL_MS'],
+    ["sleepThresholdS", "MOLT_MASCOT_SLEEP_THRESHOLD_S"],
+    ["idleDelayMs", "MOLT_MASCOT_IDLE_DELAY_MS"],
+    ["errorHoldMs", "MOLT_MASCOT_ERROR_HOLD_MS"],
+    ["pollIntervalMs", "MOLT_MASCOT_POLL_INTERVAL_MS"],
+    ["reconnectBaseMs", "MOLT_MASCOT_RECONNECT_BASE_MS"],
+    ["reconnectMaxMs", "MOLT_MASCOT_RECONNECT_MAX_MS"],
+    ["staleConnectionMs", "MOLT_MASCOT_STALE_CONNECTION_MS"],
+    ["staleCheckIntervalMs", "MOLT_MASCOT_STALE_CHECK_INTERVAL_MS"],
   ];
   for (const [prefKey, envKey] of TIMING_PREF_ENV_MAP) {
-    if (!process.env[envKey] && typeof savedPrefs[prefKey] === 'number' && Number.isFinite(savedPrefs[prefKey])) {
+    if (
+      !process.env[envKey] &&
+      typeof savedPrefs[prefKey] === "number" &&
+      Number.isFinite(savedPrefs[prefKey])
+    ) {
       process.env[envKey] = String(savedPrefs[prefKey]);
     }
   }
@@ -755,17 +943,22 @@ app.whenReady().then(async () => {
   // Optional UX: make the mascot click-through so it never blocks clicks.
   // Toggle at runtime with Cmd/Ctrl+Shift+M.
   // Back-compat: accept both MOLT_MASCOT_CLICKTHROUGH and MOLT_MASCOT_CLICK_THROUGH
-  const envClickThrough = process.env.MOLT_MASCOT_CLICKTHROUGH ?? process.env.MOLT_MASCOT_CLICK_THROUGH;
-  let clickThrough = parseBooleanEnv(envClickThrough) ?? savedPrefs.clickThrough ?? false;
+  const envClickThrough =
+    process.env.MOLT_MASCOT_CLICKTHROUGH ??
+    process.env.MOLT_MASCOT_CLICK_THROUGH;
+  let clickThrough =
+    parseBooleanEnv(envClickThrough) ?? savedPrefs.clickThrough ?? false;
 
   // Back-compat: accept both MOLT_MASCOT_HIDETEXT and MOLT_MASCOT_HIDE_TEXT
-  const envHideText = process.env.MOLT_MASCOT_HIDETEXT ?? process.env.MOLT_MASCOT_HIDE_TEXT;
+  const envHideText =
+    process.env.MOLT_MASCOT_HIDETEXT ?? process.env.MOLT_MASCOT_HIDE_TEXT;
   let hideText = parseBooleanEnv(envHideText) ?? savedPrefs.hideText ?? false;
 
   // Reduced motion: disable bobbing, blinking, and pill pulse animations.
   // Env var overrides saved preference; OS media query is handled renderer-side.
   const envReducedMotion = process.env.MOLT_MASCOT_REDUCED_MOTION;
-  let reducedMotionPref = parseBooleanEnv(envReducedMotion) ?? savedPrefs.reducedMotion ?? false;
+  let reducedMotionPref =
+    parseBooleanEnv(envReducedMotion) ?? savedPrefs.reducedMotion ?? false;
 
   // Restore saved alignment if no env override
   if (!alignmentOverride && savedPrefs.alignment) {
@@ -773,7 +966,11 @@ app.whenReady().then(async () => {
   }
 
   // Restore saved padding if no env override
-  if (paddingOverride === null && typeof savedPrefs.padding === 'number' && savedPrefs.padding >= 0) {
+  if (
+    paddingOverride === null &&
+    typeof savedPrefs.padding === "number" &&
+    savedPrefs.padding >= 0
+  ) {
     paddingOverride = savedPrefs.padding;
   }
 
@@ -782,44 +979,51 @@ app.whenReady().then(async () => {
   // Each action is defined once to prevent drift between the three trigger paths.
 
   function actionToggleGhostMode(forceValue) {
-    clickThrough = forceValue !== undefined
-      ? (parseBooleanEnv(forceValue) ?? !clickThrough)
-      : !clickThrough;
+    clickThrough =
+      forceValue !== undefined
+        ? (parseBooleanEnv(forceValue) ?? !clickThrough)
+        : !clickThrough;
     withMainWin((w) => {
       applyClickThrough(w, clickThrough);
-      w.webContents.send('molt-mascot:click-through', clickThrough);
+      w.webContents.send("molt-mascot:click-through", clickThrough);
     });
     savePrefs({ clickThrough });
     rebuildTrayMenu();
   }
 
   function actionToggleHideText(forceValue) {
-    hideText = forceValue !== undefined
-      ? (parseBooleanEnv(forceValue) ?? !hideText)
-      : !hideText;
-    withMainWin((w) => w.webContents.send('molt-mascot:hide-text', hideText));
+    hideText =
+      forceValue !== undefined
+        ? (parseBooleanEnv(forceValue) ?? !hideText)
+        : !hideText;
+    withMainWin((w) => w.webContents.send("molt-mascot:hide-text", hideText));
     savePrefs({ hideText });
     rebuildTrayMenu();
   }
 
   function actionToggleReducedMotion(forceValue) {
-    reducedMotionPref = forceValue !== undefined
-      ? (parseBooleanEnv(forceValue) ?? !reducedMotionPref)
-      : !reducedMotionPref;
-    withMainWin((w) => w.webContents.send('molt-mascot:reduced-motion', reducedMotionPref));
+    reducedMotionPref =
+      forceValue !== undefined
+        ? (parseBooleanEnv(forceValue) ?? !reducedMotionPref)
+        : !reducedMotionPref;
+    withMainWin((w) =>
+      w.webContents.send("molt-mascot:reduced-motion", reducedMotionPref),
+    );
     savePrefs({ reducedMotion: reducedMotionPref });
     rebuildTrayMenu();
   }
 
   function actionResetState() {
-    withMainWin((w) => w.webContents.send('molt-mascot:reset'));
+    withMainWin((w) => w.webContents.send("molt-mascot:reset"));
   }
 
   function actionCycleAlignment() {
     alignmentIndex = (alignmentIndex + 1) % alignmentCycle.length;
     alignmentOverride = alignmentCycle[alignmentIndex];
     repositionMainWindow({ force: true });
-    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
+    withMainWin((w) =>
+      w.webContents.send("molt-mascot:alignment", alignmentOverride),
+    );
     savePrefs({ alignment: alignmentOverride, draggedPosition: null });
     rebuildTrayMenu();
   }
@@ -834,7 +1038,7 @@ app.whenReady().then(async () => {
 
   function actionSnapToPosition() {
     userDragged = false;
-    withMainWin((w) => w.webContents.send('molt-mascot:drag-position', false));
+    withMainWin((w) => w.webContents.send("molt-mascot:drag-position", false));
     savePrefs({ draggedPosition: null });
     repositionMainWindow({ force: true });
   }
@@ -848,7 +1052,7 @@ app.whenReady().then(async () => {
     const opacity = opacityCycle[opacityIndex];
     withMainWin((w) => {
       w.setOpacity(opacity);
-      w.webContents.send('molt-mascot:opacity', opacity);
+      w.webContents.send("molt-mascot:opacity", opacity);
     });
     savePrefs({ opacityIndex, opacity });
     rebuildTrayMenu();
@@ -860,44 +1064,48 @@ app.whenReady().then(async () => {
     withMainWin((w) => {
       w.setSize(width, height, true);
       repositionMainWindow({ force: true });
-      w.webContents.send('molt-mascot:size', label);
+      w.webContents.send("molt-mascot:size", label);
     });
     savePrefs({ sizeIndex, size: label });
     rebuildTrayMenu();
   }
 
   function actionForceReconnect() {
-    withMainWin((w) => w.webContents.send('molt-mascot:force-reconnect'));
+    withMainWin((w) => w.webContents.send("molt-mascot:force-reconnect"));
   }
 
   function actionToggleDevTools() {
     withMainWin((w) => {
       if (w.webContents.isDevToolsOpened()) w.webContents.closeDevTools();
-      else w.webContents.openDevTools({ mode: 'detach' });
+      else w.webContents.openDevTools({ mode: "detach" });
     });
   }
 
   async function actionCopyStatus() {
     const text = await withMainWin((w) =>
-      w.webContents.executeJavaScript('document.getElementById("pill")?.textContent || ""')
+      w.webContents.executeJavaScript(
+        'document.getElementById("pill")?.textContent || ""',
+      ),
     );
     if (text) {
-      const { clipboard } = require('electron');
+      const { clipboard } = require("electron");
       clipboard.writeText(text);
-      withMainWin((w) => w.webContents.send('molt-mascot:copied'));
+      withMainWin((w) => w.webContents.send("molt-mascot:copied"));
     }
   }
 
   async function actionCopyDebugInfo() {
     const info = await withMainWin((w) =>
-      w.webContents.executeJavaScript('window.__moltMascotBuildDebugInfo ? window.__moltMascotBuildDebugInfo() : "debug info unavailable"')
+      w.webContents.executeJavaScript(
+        'window.__moltMascotBuildDebugInfo ? window.__moltMascotBuildDebugInfo() : "debug info unavailable"',
+      ),
     );
     if (info) {
-      const { clipboard } = require('electron');
+      const { clipboard } = require("electron");
       clipboard.writeText(info);
       // Notify the renderer so it can show "Copied ✓" feedback in the pill,
       // matching the behavior when copy is triggered from the context menu.
-      withMainWin((w) => w.webContents.send('molt-mascot:copied'));
+      withMainWin((w) => w.webContents.send("molt-mascot:copied"));
     }
   }
 
@@ -907,13 +1115,13 @@ app.whenReady().then(async () => {
    * to avoid duplicating the same setup in two places.
    */
   function wireMainWindow(win) {
-    win.on('closed', () => {
+    win.on("closed", () => {
       if (_mainWin === win) _mainWin = null;
     });
-    win.on('moved', () => {
+    win.on("moved", () => {
       if (!repositioning) {
         userDragged = true;
-        win.webContents.send('molt-mascot:drag-position', true);
+        win.webContents.send("molt-mascot:drag-position", true);
         // Persist dragged position so it survives app restarts.
         // Debounced via savePrefs() so rapid drag events don't hammer disk.
         const [px, py] = win.getPosition();
@@ -921,26 +1129,31 @@ app.whenReady().then(async () => {
       }
     });
     applyClickThrough(win, clickThrough);
-    win.webContents.once('did-finish-load', () => {
+    win.webContents.once("did-finish-load", () => {
       withMainWin((w) => {
-        if (hideText) w.webContents.send('molt-mascot:hide-text', hideText);
-        if (clickThrough) w.webContents.send('molt-mascot:click-through', clickThrough);
-        if (reducedMotionPref) w.webContents.send('molt-mascot:reduced-motion', reducedMotionPref);
+        if (hideText) w.webContents.send("molt-mascot:hide-text", hideText);
+        if (clickThrough)
+          w.webContents.send("molt-mascot:click-through", clickThrough);
+        if (reducedMotionPref)
+          w.webContents.send("molt-mascot:reduced-motion", reducedMotionPref);
         // Send initial alignment so the renderer context menu reflects the saved
         // preference even when no plugin is connected to push it.
-        if (alignmentOverride) w.webContents.send('molt-mascot:alignment', alignmentOverride);
+        if (alignmentOverride)
+          w.webContents.send("molt-mascot:alignment", alignmentOverride);
         // Send initial opacity so the renderer displays the correct percentage
         // in the context menu without waiting for a plugin state push.
-        if (opacityIndex !== 0) w.webContents.send('molt-mascot:opacity', opacityCycle[opacityIndex]);
+        if (opacityIndex !== 0)
+          w.webContents.send("molt-mascot:opacity", opacityCycle[opacityIndex]);
         // Send initial size label so the renderer context menu reflects the
         // saved preference. Previously this was only sent outside wireMainWindow,
         // so macOS `activate` re-creation would miss it.
-        if (sizeIndex !== 1) w.webContents.send('molt-mascot:size', sizeCycle[sizeIndex].label);
+        if (sizeIndex !== 1)
+          w.webContents.send("molt-mascot:size", sizeCycle[sizeIndex].label);
         // Send initial drag state so "Snap to Position" is correctly enabled/disabled
         // in the renderer's custom context menu from the start.
-        if (userDragged) w.webContents.send('molt-mascot:drag-position', true);
+        if (userDragged) w.webContents.send("molt-mascot:drag-position", true);
         // Auto-open DevTools when --debug flag is passed (dev ergonomics).
-        if (cliDebug) w.webContents.openDevTools({ mode: 'detach' });
+        if (cliDebug) w.webContents.openDevTools({ mode: "detach" });
       });
     });
   }
@@ -949,14 +1162,20 @@ app.whenReady().then(async () => {
   const sizeCycle = SIZE_PRESETS;
   let sizeIndex = DEFAULT_SIZE_INDEX;
   // Prefer saved size label (robust across preset reorder) over numeric index.
-  if (typeof savedPrefs.size === 'string' && savedPrefs.size) {
-    const labelIdx = sizeCycle.findIndex((s) => s.label === savedPrefs.size.toLowerCase());
+  if (typeof savedPrefs.size === "string" && savedPrefs.size) {
+    const labelIdx = sizeCycle.findIndex(
+      (s) => s.label === savedPrefs.size.toLowerCase(),
+    );
     if (labelIdx >= 0) sizeIndex = labelIdx;
-  } else if (typeof savedPrefs.sizeIndex === 'number' && savedPrefs.sizeIndex >= 0 && savedPrefs.sizeIndex < sizeCycle.length) {
+  } else if (
+    typeof savedPrefs.sizeIndex === "number" &&
+    savedPrefs.sizeIndex >= 0 &&
+    savedPrefs.sizeIndex < sizeCycle.length
+  ) {
     sizeIndex = savedPrefs.sizeIndex;
   }
   // Env var MOLT_MASCOT_SIZE overrides saved preference (parity with MOLT_MASCOT_ALIGN etc.).
-  const envSize = (process.env.MOLT_MASCOT_SIZE || '').trim().toLowerCase();
+  const envSize = (process.env.MOLT_MASCOT_SIZE || "").trim().toLowerCase();
   if (envSize) {
     const envSizeIdx = sizeCycle.findIndex((s) => s.label === envSize);
     if (envSizeIdx >= 0) sizeIndex = envSizeIdx;
@@ -966,13 +1185,25 @@ app.whenReady().then(async () => {
 
   // Pass saved size and opacity into createWindow to avoid visible flash on launch.
   const initSize = sizeCycle[sizeIndex];
-  const initOpacity = _resolveInitialOpacity(savedPrefs.opacityIndex, savedPrefs.opacity);
+  const initOpacity = _resolveInitialOpacity(
+    savedPrefs.opacityIndex,
+    savedPrefs.opacity,
+  );
   // Restore drag position if the user previously dragged the window manually.
   const savedDragPos = savedPrefs.draggedPosition;
-  const initPosition = (savedDragPos && Number.isFinite(savedDragPos.x) && Number.isFinite(savedDragPos.y))
-    ? savedDragPos : undefined;
+  const initPosition =
+    savedDragPos &&
+    Number.isFinite(savedDragPos.x) &&
+    Number.isFinite(savedDragPos.y)
+      ? savedDragPos
+      : undefined;
   if (initPosition) userDragged = true; // Prevent auto-reposition from overriding on first display-metrics event
-  _mainWin = createWindow({ initWidth: initSize.width, initHeight: initSize.height, initOpacity, initPosition });
+  _mainWin = createWindow({
+    initWidth: initSize.width,
+    initHeight: initSize.height,
+    initOpacity,
+    initPosition,
+  });
   wireMainWindow(_mainWin);
 
   // --- System tray (makes the app discoverable when dock is hidden) ---
@@ -980,13 +1211,26 @@ app.whenReady().then(async () => {
   let tray = null;
   if (!cliNoTray) {
     // Build a multi-resolution tray icon: 16px @1x + 32px @2x + 48px @3x for crisp rendering on all DPIs.
-    const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), { width: 16, height: 16 });
-    trayIcon.addRepresentation({ buffer: renderTraySprite(2), width: 32, height: 32, scaleFactor: 2.0 });
-    trayIcon.addRepresentation({ buffer: renderTraySprite(3), width: 48, height: 48, scaleFactor: 3.0 });
+    const trayIcon = nativeImage.createFromBuffer(renderTraySprite(1), {
+      width: 16,
+      height: 16,
+    });
+    trayIcon.addRepresentation({
+      buffer: renderTraySprite(2),
+      width: 32,
+      height: 32,
+      scaleFactor: 2.0,
+    });
+    trayIcon.addRepresentation({
+      buffer: renderTraySprite(3),
+      width: 48,
+      height: 48,
+      scaleFactor: 3.0,
+    });
     // Mark as template on macOS so the system auto-tints the icon for light/dark menu bars.
     // Template images use alpha as the shape and ignore RGB values, which means the icon
     // stays legible regardless of the user's appearance setting.
-    if (process.platform === 'darwin') {
+    if (process.platform === "darwin") {
       trayIcon.setTemplateImage(true);
     }
     tray = new Tray(trayIcon);
@@ -1001,16 +1245,27 @@ app.whenReady().then(async () => {
         rebuildTrayMenu();
       });
     };
-    tray.on('click', trayToggle);
+    tray.on("click", trayToggle);
   }
 
   // Alignment cycling order for Cmd+Shift+A shortcut
   const alignmentCycle = [
-    'bottom-right', 'bottom-left', 'top-right', 'top-left',
-    'bottom-center', 'top-center', 'center-left', 'center-right', 'center',
+    "bottom-right",
+    "bottom-left",
+    "top-right",
+    "top-left",
+    "bottom-center",
+    "top-center",
+    "center-left",
+    "center-right",
+    "center",
   ];
   let alignmentIndex = alignmentCycle.indexOf(
-    (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()
+    (
+      alignmentOverride ||
+      process.env.MOLT_MASCOT_ALIGN ||
+      "bottom-right"
+    ).toLowerCase(),
   );
   if (alignmentIndex < 0) alignmentIndex = 0;
 
@@ -1018,14 +1273,18 @@ app.whenReady().then(async () => {
   // Note: the initial window opacity is already applied during createWindow() via
   // _resolveInitialOpacity(), so we only need to sync the opacityIndex here for
   // keyboard shortcut cycling to continue from the correct position.
-  if (typeof savedPrefs.opacityIndex === 'number' && savedPrefs.opacityIndex >= 0 && savedPrefs.opacityIndex < opacityCycle.length) {
+  if (
+    typeof savedPrefs.opacityIndex === "number" &&
+    savedPrefs.opacityIndex >= 0 &&
+    savedPrefs.opacityIndex < opacityCycle.length
+  ) {
     opacityIndex = savedPrefs.opacityIndex;
   }
 
   // Track current renderer mode for tray tooltip/icon updates.
   // Declared before rebuildTrayMenu() to avoid TDZ (temporal dead zone) errors
   // since rebuildTrayMenu() reads this variable and is called immediately below.
-  let currentRendererMode = 'idle';
+  let currentRendererMode = "idle";
   let modeChangedAt = Date.now();
 
   // Debounced wrapper: coalesces rapid consecutive calls (e.g. mode-update
@@ -1046,7 +1305,9 @@ app.whenReady().then(async () => {
     // Compute connection uptime string for tray tooltip (if connected).
     let uptimeStr;
     if (connectedSinceMs) {
-      uptimeStr = formatDuration(Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000)));
+      uptimeStr = formatDuration(
+        Math.max(0, Math.round((Date.now() - connectedSinceMs) / 1000)),
+      );
     }
     // Compute connection uptime percentage from process lifetime.
     // Delegates to the canonical implementation in format-latency.cjs (single source of truth).
@@ -1057,122 +1318,144 @@ app.whenReady().then(async () => {
       lastDisconnectedAt: lastDisconnectedMs,
       now: Date.now(),
     });
-    tray.setToolTip(buildTrayTooltip({
-      appVersion: APP_VERSION,
-      mode: trayShowsSleeping ? 'sleeping' : (currentRendererMode || 'idle'),
-      clickThrough,
-      hideText,
-      alignment: (alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase(),
-      sizeLabel: sizeCycle[sizeIndex].label,
-      opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
-      uptimeStr,
-      latencyMs: currentLatencyMs,
-      currentTool: currentToolName,
-      lastErrorMessage: currentErrorMessage,
-      modeDurationSec: Math.max(0, Math.round((Date.now() - modeChangedAt) / 1000)),
-      processUptimeS: process.uptime(),
-      processMemoryRssBytes: process.memoryUsage.rss(),
-      sessionConnectCount,
-      sessionAttemptCount,
-      toolCalls: currentToolCalls,
-      toolErrors: currentToolErrors,
-      lastCloseDetail: currentCloseDetail,
-      reconnectAttempt: currentReconnectAttempt,
-      targetUrl: currentTargetUrl,
-      activeAgents: currentActiveAgents,
-      activeTools: currentActiveTools,
-      agentSessions: currentAgentSessions,
-      pluginVersion: currentPluginVersion,
-      lastMessageAt: currentLastMessageAt,
-      latencyStats: currentLatencyStats,
-      pluginStartedAt: currentPluginStartedAt,
-      lastResetAt: currentLastResetAt,
-      healthStatus: currentHealthStatus,
-      connectionSuccessRate: currentConnectionSuccessRate,
-      connectionUptimePct: _uptimePct,
-      latencyTrend: currentLatencyTrend,
-    }));
+    tray.setToolTip(
+      buildTrayTooltip({
+        appVersion: APP_VERSION,
+        mode: trayShowsSleeping ? "sleeping" : currentRendererMode || "idle",
+        clickThrough,
+        hideText,
+        alignment: (
+          alignmentOverride ||
+          process.env.MOLT_MASCOT_ALIGN ||
+          "bottom-right"
+        ).toLowerCase(),
+        sizeLabel: sizeCycle[sizeIndex].label,
+        opacityPercent: Math.round(opacityCycle[opacityIndex] * 100),
+        uptimeStr,
+        latencyMs: currentLatencyMs,
+        currentTool: currentToolName,
+        lastErrorMessage: currentErrorMessage,
+        modeDurationSec: Math.max(
+          0,
+          Math.round((Date.now() - modeChangedAt) / 1000),
+        ),
+        processUptimeS: process.uptime(),
+        processMemoryRssBytes: process.memoryUsage.rss(),
+        sessionConnectCount,
+        sessionAttemptCount,
+        toolCalls: currentToolCalls,
+        toolErrors: currentToolErrors,
+        lastCloseDetail: currentCloseDetail,
+        reconnectAttempt: currentReconnectAttempt,
+        targetUrl: currentTargetUrl,
+        activeAgents: currentActiveAgents,
+        activeTools: currentActiveTools,
+        agentSessions: currentAgentSessions,
+        pluginVersion: currentPluginVersion,
+        lastMessageAt: currentLastMessageAt,
+        latencyStats: currentLatencyStats,
+        pluginStartedAt: currentPluginStartedAt,
+        lastResetAt: currentLastResetAt,
+        healthStatus: currentHealthStatus,
+        connectionSuccessRate: currentConnectionSuccessRate,
+        connectionUptimePct: _uptimePct,
+        latencyTrend: currentLatencyTrend,
+      }),
+    );
 
     const menu = Menu.buildFromTemplate([
       { label: `Molt Mascot v${APP_VERSION}`, enabled: false },
-      { label: 'About Molt Mascot', click: () => app.showAboutPanel() },
-      { label: 'Open on GitHub…', click: () => { const { shell } = require('electron'); shell.openExternal(REPO_URL); } },
-      { type: 'separator' },
+      { label: "About Molt Mascot", click: () => app.showAboutPanel() },
       {
-        label: withMainWin((w) => w.isVisible()) ? 'Hide Mascot' : 'Show Mascot',
-        accelerator: 'CommandOrControl+Shift+V',
+        label: "Open on GitHub…",
+        click: () => {
+          const { shell } = require("electron");
+          shell.openExternal(REPO_URL);
+        },
+      },
+      { type: "separator" },
+      {
+        label: withMainWin((w) => w.isVisible())
+          ? "Hide Mascot"
+          : "Show Mascot",
+        accelerator: "CommandOrControl+Shift+V",
         click: actionToggleVisibility,
       },
       {
-        label: 'Ghost Mode (Click-Through)',
-        type: 'checkbox',
+        label: "Ghost Mode (Click-Through)",
+        type: "checkbox",
         checked: clickThrough,
-        accelerator: 'CommandOrControl+Shift+M',
+        accelerator: "CommandOrControl+Shift+M",
         click: () => actionToggleGhostMode(),
       },
       {
-        label: 'Hide Text',
-        type: 'checkbox',
+        label: "Hide Text",
+        type: "checkbox",
         checked: hideText,
-        accelerator: 'CommandOrControl+Shift+H',
+        accelerator: "CommandOrControl+Shift+H",
         click: () => actionToggleHideText(),
       },
       {
-        label: 'Reduced Motion',
-        type: 'checkbox',
+        label: "Reduced Motion",
+        type: "checkbox",
         checked: reducedMotionPref,
-        accelerator: 'CommandOrControl+Shift+N',
+        accelerator: "CommandOrControl+Shift+N",
         click: () => actionToggleReducedMotion(),
       },
       {
-        label: `Cycle Alignment (${(alignmentOverride || process.env.MOLT_MASCOT_ALIGN || 'bottom-right').toLowerCase()})`,
-        accelerator: 'CommandOrControl+Shift+A',
+        label: `Cycle Alignment (${(alignmentOverride || process.env.MOLT_MASCOT_ALIGN || "bottom-right").toLowerCase()})`,
+        accelerator: "CommandOrControl+Shift+A",
         click: actionCycleAlignment,
       },
       {
         label: `Size: ${sizeCycle[sizeIndex].label} (${sizeCycle[sizeIndex].width}×${sizeCycle[sizeIndex].height})`,
-        accelerator: 'CommandOrControl+Shift+Z',
+        accelerator: "CommandOrControl+Shift+Z",
         click: actionCycleSize,
       },
       {
         label: `Opacity: ${formatOpacity(opacityCycle[opacityIndex])}`,
-        accelerator: 'CommandOrControl+Shift+O',
+        accelerator: "CommandOrControl+Shift+O",
         click: actionCycleOpacity,
       },
       {
-        label: 'Snap to Position',
-        toolTip: 'Reset manual drag and snap back to the configured alignment corner',
-        accelerator: 'CommandOrControl+Shift+S',
+        label: "Snap to Position",
+        toolTip:
+          "Reset manual drag and snap back to the configured alignment corner",
+        accelerator: "CommandOrControl+Shift+S",
         click: actionSnapToPosition,
       },
-      { type: 'separator' },
+      { type: "separator" },
       {
-        label: 'Force Reconnect',
-        accelerator: 'CommandOrControl+Shift+C',
+        label: "Force Reconnect",
+        accelerator: "CommandOrControl+Shift+C",
         click: actionForceReconnect,
       },
       {
-        label: 'Reset State',
-        accelerator: 'CommandOrControl+Shift+R',
+        label: "Reset State",
+        accelerator: "CommandOrControl+Shift+R",
         click: actionResetState,
       },
       {
-        label: 'Copy Status',
-        accelerator: 'CommandOrControl+Shift+P',
+        label: "Copy Status",
+        accelerator: "CommandOrControl+Shift+P",
         click: actionCopyStatus,
       },
       {
-        label: 'Copy Debug Info',
-        accelerator: 'CommandOrControl+Shift+I',
+        label: "Copy Debug Info",
+        accelerator: "CommandOrControl+Shift+I",
         click: actionCopyDebugInfo,
       },
       {
-        label: 'DevTools',
-        accelerator: 'CommandOrControl+Shift+D',
+        label: "DevTools",
+        accelerator: "CommandOrControl+Shift+D",
         click: actionToggleDevTools,
       },
-      { type: 'separator' },
-      { label: 'Quit', accelerator: 'CommandOrControl+Alt+Q', click: () => app.quit() },
+      { type: "separator" },
+      {
+        label: "Quit",
+        accelerator: "CommandOrControl+Alt+Q",
+        click: () => app.quit(),
+      },
     ]);
     tray.setContextMenu(menu);
   }
@@ -1187,66 +1470,75 @@ app.whenReady().then(async () => {
         }
       };
 
-      register('CommandOrControl+Shift+M', () => actionToggleGhostMode());
-      register('CommandOrControl+Shift+H', () => actionToggleHideText());
-      register('CommandOrControl+Shift+R', actionResetState);
-      register('CommandOrControl+Shift+A', actionCycleAlignment);
-      register('CommandOrControl+Shift+V', actionToggleVisibility);
-      register('CommandOrControl+Alt+Q', () => app.quit());
-      register('CommandOrControl+Shift+S', actionSnapToPosition);
-      register('CommandOrControl+Shift+Z', actionCycleSize);
-      register('CommandOrControl+Shift+O', actionCycleOpacity);
-      register('CommandOrControl+Shift+C', actionForceReconnect);
-      register('CommandOrControl+Shift+N', () => actionToggleReducedMotion());
-      register('CommandOrControl+Shift+D', actionToggleDevTools);
-      register('CommandOrControl+Shift+P', actionCopyStatus);
-      register('CommandOrControl+Shift+I', actionCopyDebugInfo);
+      register("CommandOrControl+Shift+M", () => actionToggleGhostMode());
+      register("CommandOrControl+Shift+H", () => actionToggleHideText());
+      register("CommandOrControl+Shift+R", actionResetState);
+      register("CommandOrControl+Shift+A", actionCycleAlignment);
+      register("CommandOrControl+Shift+V", actionToggleVisibility);
+      register("CommandOrControl+Alt+Q", () => app.quit());
+      register("CommandOrControl+Shift+S", actionSnapToPosition);
+      register("CommandOrControl+Shift+Z", actionCycleSize);
+      register("CommandOrControl+Shift+O", actionCycleOpacity);
+      register("CommandOrControl+Shift+C", actionForceReconnect);
+      register("CommandOrControl+Shift+N", () => actionToggleReducedMotion());
+      register("CommandOrControl+Shift+D", actionToggleDevTools);
+      register("CommandOrControl+Shift+P", actionCopyStatus);
+      register("CommandOrControl+Shift+I", actionCopyDebugInfo);
     } catch (err) {
-      console.error('molt-mascot: failed to register shortcuts', err);
+      console.error("molt-mascot: failed to register shortcuts", err);
     }
   }
 
-  ipcMain.on('molt-mascot:quit', () => app.quit());
-  ipcMain.on('molt-mascot:show-about', () => app.showAboutPanel());
-  ipcMain.on('molt-mascot:toggle-devtools', actionToggleDevTools);
-  ipcMain.on('molt-mascot:cycle-alignment', actionCycleAlignment);
-  ipcMain.on('molt-mascot:snap-to-position', actionSnapToPosition);
-  ipcMain.on('molt-mascot:hide', () => {
+  ipcMain.on("molt-mascot:quit", () => app.quit());
+  ipcMain.on("molt-mascot:show-about", () => app.showAboutPanel());
+  ipcMain.on("molt-mascot:toggle-devtools", actionToggleDevTools);
+  ipcMain.on("molt-mascot:cycle-alignment", actionCycleAlignment);
+  ipcMain.on("molt-mascot:snap-to-position", actionSnapToPosition);
+  ipcMain.on("molt-mascot:hide", () => {
     withMainWin((w) => {
       w.hide();
       rebuildTrayMenu();
     });
   });
-  ipcMain.on('molt-mascot:cycle-size', actionCycleSize);
-  ipcMain.on('molt-mascot:set-click-through', (_event, enabled) => actionToggleGhostMode(enabled));
-  ipcMain.on('molt-mascot:set-hide-text', (_event, hidden) => actionToggleHideText(hidden));
-  ipcMain.on('molt-mascot:set-reduced-motion', (_event, enabled) => actionToggleReducedMotion(enabled));
-  ipcMain.on('molt-mascot:cycle-opacity', actionCycleOpacity);
-  ipcMain.on('molt-mascot:force-reconnect', actionForceReconnect);
-  ipcMain.on('molt-mascot:copy-status', actionCopyStatus);
-  ipcMain.on('molt-mascot:copy-debug-info', actionCopyDebugInfo);
-  ipcMain.on('molt-mascot:reset-prefs', () => {
-    const { dialog } = require('electron');
-    dialog.showMessageBox(win, {
-      type: 'warning',
-      buttons: ['Reset', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      title: 'Reset Preferences',
-      message: 'Reset all preferences to defaults?',
-      detail: 'This clears all saved preferences (alignment, size, opacity, padding, ghost mode, hide text, reduced motion, gateway URL, and window position). The app will restart.',
-    }).then(({ response }) => {
-      if (response === 0) {
-        _prefs.clear();
-        app.relaunch();
-        app.quit();
-      }
-    });
+  ipcMain.on("molt-mascot:cycle-size", actionCycleSize);
+  ipcMain.on("molt-mascot:set-click-through", (_event, enabled) =>
+    actionToggleGhostMode(enabled),
+  );
+  ipcMain.on("molt-mascot:set-hide-text", (_event, hidden) =>
+    actionToggleHideText(hidden),
+  );
+  ipcMain.on("molt-mascot:set-reduced-motion", (_event, enabled) =>
+    actionToggleReducedMotion(enabled),
+  );
+  ipcMain.on("molt-mascot:cycle-opacity", actionCycleOpacity);
+  ipcMain.on("molt-mascot:force-reconnect", actionForceReconnect);
+  ipcMain.on("molt-mascot:copy-status", actionCopyStatus);
+  ipcMain.on("molt-mascot:copy-debug-info", actionCopyDebugInfo);
+  ipcMain.on("molt-mascot:reset-prefs", () => {
+    const { dialog } = require("electron");
+    dialog
+      .showMessageBox(win, {
+        type: "warning",
+        buttons: ["Reset", "Cancel"],
+        defaultId: 1,
+        cancelId: 1,
+        title: "Reset Preferences",
+        message: "Reset all preferences to defaults?",
+        detail:
+          "This clears all saved preferences (alignment, size, opacity, padding, ghost mode, hide text, reduced motion, gateway URL, and window position). The app will restart.",
+      })
+      .then(({ response }) => {
+        if (response === 0) {
+          _prefs.clear();
+          app.relaunch();
+          app.quit();
+        }
+      });
   });
-  ipcMain.on('molt-mascot:open-external', (_event, url) => {
+  ipcMain.on("molt-mascot:open-external", (_event, url) => {
     // Only allow https URLs to prevent shell injection via IPC.
-    if (typeof url === 'string' && /^https:\/\//i.test(url)) {
-      const { shell } = require('electron');
+    if (typeof url === "string" && /^https:\/\//i.test(url)) {
+      const { shell } = require("electron");
       shell.openExternal(url);
     }
   });
@@ -1270,16 +1562,23 @@ app.whenReady().then(async () => {
     try {
       let icon = _trayIconCache.get(mode);
       if (!icon) {
-        icon = nativeImage.createFromBuffer(
-          renderTraySprite(1, { mode }), { width: 16, height: 16 }
-        );
-        icon.addRepresentation({
-          buffer: renderTraySprite(2, { mode }), width: 32, height: 32, scaleFactor: 2.0,
+        icon = nativeImage.createFromBuffer(renderTraySprite(1, { mode }), {
+          width: 16,
+          height: 16,
         });
         icon.addRepresentation({
-          buffer: renderTraySprite(3, { mode }), width: 48, height: 48, scaleFactor: 3.0,
+          buffer: renderTraySprite(2, { mode }),
+          width: 32,
+          height: 32,
+          scaleFactor: 2.0,
         });
-        if (process.platform === 'darwin') icon.setTemplateImage(true);
+        icon.addRepresentation({
+          buffer: renderTraySprite(3, { mode }),
+          width: 48,
+          height: 48,
+          scaleFactor: 3.0,
+        });
+        if (process.platform === "darwin") icon.setTemplateImage(true);
         _trayIconCache.set(mode, icon);
       }
       tray.setImage(icon);
@@ -1317,7 +1616,7 @@ app.whenReady().then(async () => {
   let currentHealthStatus = null;
   let currentConnectionSuccessRate = null;
   let currentLatencyTrend = null;
-  ipcMain.on('molt-mascot:mode-update', (_event, raw) => {
+  ipcMain.on("molt-mascot:mode-update", (_event, raw) => {
     // Delegate all field validation/coercion to the extracted pure function.
     // Previously this was ~70 lines of inline typeof checks; now parseModeUpdate
     // handles type narrowing, NaN guards, and domain validation in one place.
@@ -1332,14 +1631,24 @@ app.whenReady().then(async () => {
     if (p.pluginVersion !== null) currentPluginVersion = p.pluginVersion;
     // Latency: update when provided, clear when explicitly null in raw payload.
     if (p.latencyMs !== null) currentLatencyMs = p.latencyMs;
-    else if (raw && (raw.latency === null || raw.latency === undefined || raw.latencyMs === null || raw.latencyMs === undefined)) currentLatencyMs = null;
+    else if (
+      raw &&
+      (raw.latency === null ||
+        raw.latency === undefined ||
+        raw.latencyMs === null ||
+        raw.latencyMs === undefined)
+    )
+      currentLatencyMs = null;
 
     if (p.closeDetail !== null) currentCloseDetail = p.closeDetail;
     else if (raw && raw.closeDetail === null) currentCloseDetail = null;
-    if (p.reconnectAttempt !== null) currentReconnectAttempt = p.reconnectAttempt;
+    if (p.reconnectAttempt !== null)
+      currentReconnectAttempt = p.reconnectAttempt;
 
-    if (p.sessionConnectCount !== null) sessionConnectCount = p.sessionConnectCount;
-    if (p.sessionAttemptCount !== null) sessionAttemptCount = p.sessionAttemptCount;
+    if (p.sessionConnectCount !== null)
+      sessionConnectCount = p.sessionConnectCount;
+    if (p.sessionAttemptCount !== null)
+      sessionAttemptCount = p.sessionAttemptCount;
 
     if (p.targetUrl !== null) currentTargetUrl = p.targetUrl;
     else if (raw && raw.targetUrl === null) currentTargetUrl = null;
@@ -1359,8 +1668,10 @@ app.whenReady().then(async () => {
     if (p.healthStatus !== null) currentHealthStatus = p.healthStatus;
     else if (raw && raw.healthStatus === null) currentHealthStatus = null;
 
-    if (p.connectionSuccessRate !== null) currentConnectionSuccessRate = p.connectionSuccessRate;
-    else if (raw && raw.connectionSuccessRate === null) currentConnectionSuccessRate = null;
+    if (p.connectionSuccessRate !== null)
+      currentConnectionSuccessRate = p.connectionSuccessRate;
+    else if (raw && raw.connectionSuccessRate === null)
+      currentConnectionSuccessRate = null;
 
     if (p.latencyTrend !== null) currentLatencyTrend = p.latencyTrend;
     else if (raw && raw.latencyTrend === null) currentLatencyTrend = null;
@@ -1382,13 +1693,13 @@ app.whenReady().then(async () => {
     if (p.mode !== null && p.mode !== currentRendererMode) {
       currentRendererMode = p.mode;
       modeChangedAt = Date.now();
-      if (p.mode !== 'idle') trayShowsSleeping = false;
-      if (p.mode === 'connected') {
+      if (p.mode !== "idle") trayShowsSleeping = false;
+      if (p.mode === "connected") {
         connectedSinceMs = Date.now();
         if (firstConnectedMs === null) firstConnectedMs = connectedSinceMs;
         currentCloseDetail = null;
         currentReconnectAttempt = 0;
-      } else if (p.mode === 'disconnected' || p.mode === 'connecting') {
+      } else if (p.mode === "disconnected" || p.mode === "connecting") {
         if (connectedSinceMs !== null) lastDisconnectedMs = Date.now();
         connectedSinceMs = null;
         currentLatencyMs = null;
@@ -1409,10 +1720,10 @@ app.whenReady().then(async () => {
   })();
   let trayShowsSleeping = false;
   const sleepCheckTimer = setInterval(() => {
-    if (currentRendererMode !== 'idle') {
+    if (currentRendererMode !== "idle") {
       if (trayShowsSleeping) {
         trayShowsSleeping = false;
-        updateTrayIcon('idle');
+        updateTrayIcon("idle");
         rebuildTrayMenu();
       }
       return;
@@ -1420,7 +1731,7 @@ app.whenReady().then(async () => {
     const idleDuration = Date.now() - modeChangedAt;
     if (idleDuration > SLEEP_THRESHOLD_MS && !trayShowsSleeping) {
       trayShowsSleeping = true;
-      updateTrayIcon('sleeping');
+      updateTrayIcon("sleeping");
       rebuildTrayMenu();
     }
   }, 10000); // Check every 10s — sleep threshold is 120s, so 10s granularity is fine.
@@ -1437,12 +1748,18 @@ app.whenReady().then(async () => {
         const [wx, wy] = w.getPosition();
         const [ww, wh] = w.getSize();
         const display = screen.getDisplayNearestPoint({ x: wx, y: wy });
-        const clamped = clampToWorkArea({ x: wx, y: wy }, { width: ww, height: wh }, display.workArea);
+        const clamped = clampToWorkArea(
+          { x: wx, y: wy },
+          { width: ww, height: wh },
+          display.workArea,
+        );
         if (clamped.changed) {
           repositioning = true;
           w.setPosition(clamped.x, clamped.y, true);
           savePrefs({ draggedPosition: { x: clamped.x, y: clamped.y } });
-          setTimeout(() => { repositioning = false; }, 100);
+          setTimeout(() => {
+            repositioning = false;
+          }, 100);
         }
         return;
       }
@@ -1452,17 +1769,25 @@ app.whenReady().then(async () => {
       const [wx, wy] = w.getPosition();
       const display = screen.getDisplayNearestPoint({ x: wx, y: wy });
       const [width, height] = w.getSize();
-      const pos = getPosition(display, width, height, alignmentOverride, paddingOverride);
+      const pos = getPosition(
+        display,
+        width,
+        height,
+        alignmentOverride,
+        paddingOverride,
+      );
       // Guard flag so the 'moved' event doesn't mark this as a user drag.
       repositioning = true;
       w.setPosition(Math.round(pos.x), Math.round(pos.y), true);
       userDragged = false;
       // Small delay to let the 'moved' event fire before clearing the guard.
-      setTimeout(() => { repositioning = false; }, 100);
+      setTimeout(() => {
+        repositioning = false;
+      }, 100);
     });
   }
 
-  ipcMain.on('molt-mascot:set-alignment', (event, align) => {
+  ipcMain.on("molt-mascot:set-alignment", (event, align) => {
     // Persist runtime alignment so other IPC updates (like padding) don't snap back
     // to the env/default alignment.
     alignmentOverride = align;
@@ -1472,12 +1797,14 @@ app.whenReady().then(async () => {
 
     repositionMainWindow({ force: true });
     // Notify renderer so the context menu label updates immediately
-    withMainWin((w) => w.webContents.send('molt-mascot:alignment', alignmentOverride));
+    withMainWin((w) =>
+      w.webContents.send("molt-mascot:alignment", alignmentOverride),
+    );
     savePrefs({ alignment: alignmentOverride, draggedPosition: null });
     rebuildTrayMenu();
   });
 
-  ipcMain.on('molt-mascot:set-opacity', (event, opacity) => {
+  ipcMain.on("molt-mascot:set-opacity", (event, opacity) => {
     withMainWin((w) => {
       const v = Number(opacity);
       if (isValidOpacity(v)) {
@@ -1488,21 +1815,24 @@ app.whenReady().then(async () => {
         let bestDist = Infinity;
         for (let i = 0; i < opacityCycle.length; i++) {
           const d = Math.abs(opacityCycle[i] - v);
-          if (d < bestDist) { bestDist = d; bestIdx = i; }
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = i;
+          }
         }
         opacityIndex = bestIdx;
         // Notify the renderer so the context menu and tooltip reflect the
         // updated opacity immediately (without waiting for the next plugin poll).
-        w.webContents.send('molt-mascot:opacity', v);
+        w.webContents.send("molt-mascot:opacity", v);
         savePrefs({ opacityIndex, opacity: v });
         rebuildTrayMenu();
       }
     });
   });
 
-  ipcMain.on('molt-mascot:set-size', (event, size) => {
+  ipcMain.on("molt-mascot:set-size", (event, size) => {
     // Accept preset name (string) or explicit { width, height } object.
-    if (typeof size === 'string') {
+    if (typeof size === "string") {
       const idx = sizeCycle.findIndex((s) => s.label === size);
       if (idx === -1) return;
       sizeIndex = idx;
@@ -1510,7 +1840,7 @@ app.whenReady().then(async () => {
       withMainWin((win) => {
         win.setSize(width, height, true);
         repositionMainWindow({ force: true });
-        win.webContents.send('molt-mascot:size', label);
+        win.webContents.send("molt-mascot:size", label);
       });
       savePrefs({ sizeIndex, size: label });
       rebuildTrayMenu();
@@ -1525,7 +1855,7 @@ app.whenReady().then(async () => {
     });
   });
 
-  ipcMain.on('molt-mascot:set-padding', (event, padding) => {
+  ipcMain.on("molt-mascot:set-padding", (event, padding) => {
     const v = Number(padding);
     if (!isValidPadding(v)) return;
     paddingOverride = v;
@@ -1546,36 +1876,57 @@ app.whenReady().then(async () => {
     }, 150);
   };
   try {
-    screen.on('display-metrics-changed', debouncedReposition);
-    screen.on('display-added', debouncedReposition);
-    screen.on('display-removed', debouncedReposition);
+    screen.on("display-metrics-changed", debouncedReposition);
+    screen.on("display-added", debouncedReposition);
+    screen.on("display-removed", debouncedReposition);
   } catch {}
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       const sz = sizeCycle[sizeIndex];
-      const reactivatePos = (savedPrefs.draggedPosition && userDragged) ? savedPrefs.draggedPosition : undefined;
-      _mainWin = createWindow({ initWidth: sz.width, initHeight: sz.height, initOpacity: opacityCycle[opacityIndex], initPosition: reactivatePos });
+      const reactivatePos =
+        savedPrefs.draggedPosition && userDragged
+          ? savedPrefs.draggedPosition
+          : undefined;
+      _mainWin = createWindow({
+        initWidth: sz.width,
+        initHeight: sz.height,
+        initOpacity: opacityCycle[opacityIndex],
+        initPosition: reactivatePos,
+      });
       wireMainWindow(_mainWin);
     }
   });
 
-  app.on('will-quit', () => {
-    try { globalShortcut.unregisterAll(); } catch {}
+  app.on("will-quit", () => {
+    try {
+      globalShortcut.unregisterAll();
+    } catch {}
     // Flush any pending preference writes before exit so the last action isn't lost.
     _prefs.flush();
     // Cancel pending tray menu rebuild.
-    if (_trayRebuildTimer) { clearTimeout(_trayRebuildTimer); _trayRebuildTimer = null; }
+    if (_trayRebuildTimer) {
+      clearTimeout(_trayRebuildTimer);
+      _trayRebuildTimer = null;
+    }
     // Destroy tray icon to prevent ghost icons on Windows/Linux after quit.
-    try { if (tray) { tray.destroy(); tray = null; } } catch {}
+    try {
+      if (tray) {
+        tray.destroy();
+        tray = null;
+      }
+    } catch {}
     // Cancel any pending display-metrics debounce timer.
-    if (displayDebounce) { clearTimeout(displayDebounce); displayDebounce = null; }
+    if (displayDebounce) {
+      clearTimeout(displayDebounce);
+      displayDebounce = null;
+    }
     // Cancel sleep detection timer.
     if (sleepCheckTimer) clearInterval(sleepCheckTimer);
   });
 });
 
-app.on('window-all-closed', () => {
+app.on("window-all-closed", () => {
   // With app.dock.hide(), we cannot re-activate the app if the window closes.
   // Ensure the process quits on all platforms to prevent zombies.
   app.quit();

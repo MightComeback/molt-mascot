@@ -90,17 +90,28 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows saved URL when disconnected", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, savedUrl: "ws://localhost:9999" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      savedUrl: "ws://localhost:9999",
+    });
     expect(info).toContain("Saved URL: ws://localhost:9999");
   });
 
   it("shows target URL when disconnected", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, targetUrl: "ws://10.0.0.5:18789" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      targetUrl: "ws://10.0.0.5:18789",
+    });
     expect(info).toContain("Target URL: ws://10.0.0.5:18789");
   });
 
   it("omits target URL when connected", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, connectedSince: Date.now() - 60000, connectedUrl: "ws://localhost:18789", targetUrl: "ws://localhost:18789" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      connectedSince: Date.now() - 60000,
+      connectedUrl: "ws://localhost:18789",
+      targetUrl: "ws://localhost:18789",
+    });
     expect(info).not.toContain("Target URL");
   });
 
@@ -124,7 +135,9 @@ describe("buildDebugInfo", () => {
       pluginResetMethod: "@molt/mascot-plugin.reset",
       pluginStartedAt: NOW - 120000,
     });
-    expect(info).toContain("Plugin method: @molt/mascot-plugin.state (reset: @molt/mascot-plugin.reset)");
+    expect(info).toContain(
+      "Plugin method: @molt/mascot-plugin.state (reset: @molt/mascot-plugin.reset)",
+    );
   });
 
   it("omits reset method suffix when pluginResetMethod is not provided", () => {
@@ -139,12 +152,20 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows tool call stats when > 0", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, pluginToolCalls: 42, pluginToolErrors: 3 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      pluginToolCalls: 42,
+      pluginToolErrors: 3,
+    });
     expect(info).toContain("Tool calls: 42, errors: 3 (93% ok)");
   });
 
   it("shows tool call stats without percentage when zero errors", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, pluginToolCalls: 10, pluginToolErrors: 0 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      pluginToolCalls: 10,
+      pluginToolErrors: 0,
+    });
     expect(info).toContain("Tool calls: 10, errors: 0");
     expect(info).not.toContain("% ok");
   });
@@ -170,7 +191,10 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows last error when set", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, lastErrorMessage: "connection refused" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      lastErrorMessage: "connection refused",
+    });
     expect(info).toContain("Last error: connection refused");
   });
 
@@ -190,7 +214,9 @@ describe("buildDebugInfo", () => {
 
   it("shows timing config", () => {
     const info = buildDebugInfo(BASE_PARAMS);
-    expect(info).toContain("Sleep threshold: 120s, Idle delay: 800ms, Error hold: 5000ms");
+    expect(info).toContain(
+      "Sleep threshold: 120s, Idle delay: 800ms, Error hold: 5000ms",
+    );
   });
 
   it("shows frame rate from interval", () => {
@@ -204,7 +230,11 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows actual FPS when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, actualFps: 12 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      actualFps: 12,
+    });
     expect(info).toContain("Frame rate: ~15fps, actual 12fps");
   });
 
@@ -215,19 +245,32 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows worst frame delta when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, actualFps: 12, worstFrameDeltaMs: 342.7 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      actualFps: 12,
+      worstFrameDeltaMs: 342.7,
+    });
     expect(info).toContain("worst 343ms");
   });
 
   it("omits worst frame delta when zero or not provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, worstFrameDeltaMs: 0 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      worstFrameDeltaMs: 0,
+    });
     expect(info).not.toContain("worst");
     const info2 = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66 });
     expect(info2).not.toContain("worst");
   });
 
   it("shows reduced motion suffix", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, reducedMotion: true, frameIntervalMs: 500 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      reducedMotion: true,
+      frameIntervalMs: 500,
+    });
     expect(info).toContain("(reduced)");
   });
 
@@ -239,9 +282,15 @@ describe("buildDebugInfo", () => {
   it("shows memory usage with pressure percentage when available", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
-      memory: { usedJSHeapSize: 10485760, totalJSHeapSize: 20971520, jsHeapSizeLimit: 2147483648 },
+      memory: {
+        usedJSHeapSize: 10485760,
+        totalJSHeapSize: 20971520,
+        jsHeapSizeLimit: 2147483648,
+      },
     });
-    expect(info).toContain("Memory: 10.0 MB used / 20.0 MB total (limit 2.0 GB)");
+    expect(info).toContain(
+      "Memory: 10.0 MB used / 20.0 MB total (limit 2.0 GB)",
+    );
     // Low pressure: shows percentage only
     expect(info).toMatch(/limit 2\.0 GB\) — \d+%$/m);
   });
@@ -250,7 +299,11 @@ describe("buildDebugInfo", () => {
     // 1.8 GB used of 2 GB limit = 90% → critical 🔴
     const info = buildDebugInfo({
       ...BASE_PARAMS,
-      memory: { usedJSHeapSize: 1932735283, totalJSHeapSize: 1932735283, jsHeapSizeLimit: 2147483648 },
+      memory: {
+        usedJSHeapSize: 1932735283,
+        totalJSHeapSize: 1932735283,
+        jsHeapSizeLimit: 2147483648,
+      },
     });
     expect(info).toContain("🔴");
     expect(info).toContain("critical");
@@ -266,7 +319,9 @@ describe("buildDebugInfo", () => {
       ...BASE_PARAMS,
       versions: { electron: "30.0.0", chrome: "124.0.0", node: "20.0.0" },
     });
-    expect(info).toContain("Runtime: Electron 30.0.0, Chrome 124.0.0, Node 20.0.0");
+    expect(info).toContain(
+      "Runtime: Electron 30.0.0, Chrome 124.0.0, Node 20.0.0",
+    );
   });
 
   it("shows bun version in runtime line when available", () => {
@@ -294,8 +349,14 @@ describe("buildDebugInfo", () => {
 
   it("shows process started-at timestamp alongside uptime", () => {
     const startedAt = Date.UTC(2026, 1, 24, 5, 0, 0); // 2026-02-24T05:00:00Z
-    const info = buildDebugInfo({ ...BASE_PARAMS, processUptimeS: 3600, processStartedAt: startedAt });
-    expect(info).toContain("Process uptime: 1h (since 2026-02-24T05:00:00.000Z)");
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      processUptimeS: 3600,
+      processStartedAt: startedAt,
+    });
+    expect(info).toContain(
+      "Process uptime: 1h (since 2026-02-24T05:00:00.000Z)",
+    );
   });
 
   it("omits process uptime when not provided", () => {
@@ -304,7 +365,10 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows process RSS when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, processMemoryRssBytes: 104857600 }); // 100 MB
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      processMemoryRssBytes: 104857600,
+    }); // 100 MB
     expect(info).toContain("Process RSS: 100.0 MB");
   });
 
@@ -337,7 +401,11 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows canvas pixel dimensions when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, canvasWidth: 96, canvasHeight: 96 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      canvasWidth: 96,
+      canvasHeight: 96,
+    });
     expect(info).toContain("canvas scale: 3, 96×96px");
   });
 
@@ -348,7 +416,10 @@ describe("buildDebugInfo", () => {
   });
 
   it("shows close reason when disconnected", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, lastCloseDetail: "abnormal closure" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      lastCloseDetail: "abnormal closure",
+    });
     expect(info).toContain("Close reason: abnormal closure");
   });
 
@@ -399,21 +470,35 @@ describe("buildDebugInfo", () => {
   });
 
   it("omits session connect count when 0 or 1 (no reconnects)", () => {
-    expect(buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 0 })).not.toContain("Session connects");
-    expect(buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 1 })).not.toContain("Session connects");
+    expect(
+      buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 0 }),
+    ).not.toContain("Session connects");
+    expect(
+      buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 1 }),
+    ).not.toContain("Session connects");
   });
 
   it("omits session connect count when undefined", () => {
-    expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Session connects");
+    expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain(
+      "Session connects",
+    );
   });
 
   it("shows attempt count alongside connect count when attempts exceed connects", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 3, sessionAttemptCount: 7 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      sessionConnectCount: 3,
+      sessionAttemptCount: 7,
+    });
     expect(info).toContain("Session connects: 3 (reconnected 2×, 7 attempts)");
   });
 
   it("omits attempt count when it equals connect count (no failures)", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, sessionConnectCount: 3, sessionAttemptCount: 3 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      sessionConnectCount: 3,
+      sessionAttemptCount: 3,
+    });
     expect(info).not.toContain("attempts");
   });
 
@@ -432,12 +517,18 @@ describe("buildDebugInfo", () => {
   });
 
   it("omits polling line when isPollingPaused is false and no plugin", () => {
-    expect(buildDebugInfo({ ...BASE_PARAMS, isPollingPaused: false })).not.toContain("Polling:");
+    expect(
+      buildDebugInfo({ ...BASE_PARAMS, isPollingPaused: false }),
+    ).not.toContain("Polling:");
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Polling:");
   });
 
   it("shows 'Polling: active' when plugin is active and not paused", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, hasPlugin: true, isPollingPaused: false });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      hasPlugin: true,
+      isPollingPaused: false,
+    });
     expect(info).toContain("Polling: active");
   });
 
@@ -462,97 +553,227 @@ describe("buildDebugInfo", () => {
   });
 
   it("omits latency line when latencyMs is null or undefined", () => {
-    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: null })).not.toContain("Latency:");
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: null })).not.toContain(
+      "Latency:",
+    );
     expect(buildDebugInfo({ ...BASE_PARAMS })).not.toContain("Latency:");
   });
 
   it("includes latency stats when latencyStats has multiple samples", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 } });
-    expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms, p95 38ms (30 samples)");
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: {
+        min: 5,
+        max: 40,
+        avg: 20,
+        median: 18,
+        p95: 38,
+        samples: 30,
+      },
+    });
+    expect(info).toContain(
+      "Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms, p95 38ms (30 samples)",
+    );
   });
 
   it("includes p99 in latency stats when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, p95: 38, p99: 40, samples: 30 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: {
+        min: 5,
+        max: 40,
+        avg: 20,
+        median: 18,
+        p95: 38,
+        p99: 40,
+        samples: 30,
+      },
+    });
     expect(info).toContain("p95 38ms, p99 40ms");
   });
 
   it("omits p95 from latency stats when not provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, samples: 30 } });
-    expect(info).toContain("Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms (30 samples)");
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: { min: 5, max: 40, avg: 20, median: 18, samples: 30 },
+    });
+    expect(info).toContain(
+      "Latency stats: min 5ms, max 40ms, avg 20ms, median 18ms (30 samples)",
+    );
   });
 
   it("includes jitter in latency stats when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 40, avg: 20, median: 18, p95: 38, jitter: 12, samples: 30 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: {
+        min: 5,
+        max: 40,
+        avg: 20,
+        median: 18,
+        p95: 38,
+        jitter: 12,
+        samples: 30,
+      },
+    });
     expect(info).toContain("jitter 12ms");
   });
 
   it("formats large jitter values with seconds notation", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: { min: 5, max: 2000, avg: 500, median: 18, p95: 1800, jitter: 1200, samples: 30 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: {
+        min: 5,
+        max: 2000,
+        avg: 500,
+        median: 18,
+        p95: 1800,
+        jitter: 1200,
+        samples: 30,
+      },
+    });
     expect(info).toContain("jitter 1.2s");
   });
 
   it("includes latency trend when rising or falling", () => {
-    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
-    const rising = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'rising' });
+    const stats = {
+      min: 5,
+      max: 40,
+      avg: 20,
+      median: 18,
+      p95: 38,
+      samples: 30,
+    };
+    const rising = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: stats,
+      latencyTrend: "rising",
+    });
     expect(rising).toContain(", rising (30 samples)");
-    const falling = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'falling' });
+    const falling = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: stats,
+      latencyTrend: "falling",
+    });
     expect(falling).toContain(", falling (30 samples)");
   });
 
   it("omits latency trend when stable", () => {
-    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: 'stable' });
+    const stats = {
+      min: 5,
+      max: 40,
+      avg: 20,
+      median: 18,
+      p95: 38,
+      samples: 30,
+    };
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: stats,
+      latencyTrend: "stable",
+    });
     expect(info).not.toContain("stable");
     expect(info).not.toContain("rising");
     expect(info).not.toContain("falling");
   });
 
   it("omits latency trend when null", () => {
-    const stats = { min: 5, max: 40, avg: 20, median: 18, p95: 38, samples: 30 };
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 20, latencyStats: stats, latencyTrend: null });
+    const stats = {
+      min: 5,
+      max: 40,
+      avg: 20,
+      median: 18,
+      p95: 38,
+      samples: 30,
+    };
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 20,
+      latencyStats: stats,
+      latencyTrend: null,
+    });
     expect(info).not.toContain("rising");
     expect(info).not.toContain("falling");
   });
 
   it("omits latency stats when only 1 sample (not useful)", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 10, max: 10, avg: 10, samples: 1 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 10,
+      latencyStats: { min: 10, max: 10, avg: 10, samples: 1 },
+    });
     expect(info).not.toContain("Latency stats");
   });
 
   it("omits latency stats when null", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: null });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 10,
+      latencyStats: null,
+    });
     expect(info).not.toContain("Latency stats");
   });
 
   it("appends connection quality emoji to latency line", () => {
     // < 50ms → excellent 🟢
-    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 25 })).toContain("Latency: 25ms 🟢");
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 25 })).toContain(
+      "Latency: 25ms 🟢",
+    );
     // 50–149ms → good 🟡
-    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 100 })).toContain("Latency: 100ms 🟡");
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 100 })).toContain(
+      "Latency: 100ms 🟡",
+    );
     // 150–499ms → fair 🟠
-    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 300 })).toContain("Latency: 300ms 🟠");
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 300 })).toContain(
+      "Latency: 300ms 🟠",
+    );
     // >= 500ms → poor 🔴
-    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 600 })).toContain("Latency: 600ms 🔴");
+    expect(buildDebugInfo({ ...BASE_PARAMS, latencyMs: 600 })).toContain(
+      "Latency: 600ms 🔴",
+    );
   });
 
   it("uses median from latency stats for quality label when available", () => {
     // Instant latency is 10ms (excellent) but median is 200ms (fair) — quality should reflect median
-    const info = buildDebugInfo({ ...BASE_PARAMS, latencyMs: 10, latencyStats: { min: 5, max: 400, avg: 200, median: 200, samples: 30 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      latencyMs: 10,
+      latencyStats: { min: 5, max: 400, avg: 200, median: 200, samples: 30 },
+    });
     expect(info).toContain("Latency: 10ms 🟠");
   });
 
   it("includes active agents/tools line when counts are non-zero", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 2, activeTools: 3 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      activeAgents: 2,
+      activeTools: 3,
+    });
     expect(info).toContain("Active: 2 agents, 3 tools");
   });
 
   it("includes singular forms for 1 agent/1 tool", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 1, activeTools: 1 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      activeAgents: 1,
+      activeTools: 1,
+    });
     expect(info).toContain("Active: 1 agent, 1 tool");
   });
 
   it("omits active line when both counts are zero", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, activeAgents: 0, activeTools: 0 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      activeAgents: 0,
+      activeTools: 0,
+    });
     expect(info).not.toContain("Active:");
   });
 
@@ -711,7 +932,10 @@ describe("connection uptime", () => {
   });
 
   it("includes instanceId when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, instanceId: "moltMascot-abc123" });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      instanceId: "moltMascot-abc123",
+    });
     expect(info).toContain("Instance: moltMascot-abc123");
   });
 
@@ -722,7 +946,11 @@ describe("connection uptime", () => {
 
   it("includes lastResetAt when provided", () => {
     const now = 1700000060000;
-    const info = buildDebugInfo({ ...BASE_PARAMS, lastResetAt: 1700000000000, now });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      lastResetAt: 1700000000000,
+      now,
+    });
     expect(info).toContain("Last reset: 1m");
   });
 
@@ -776,12 +1004,20 @@ describe("healthStatus in debug info", () => {
 
 describe("protocol version in debug info", () => {
   it("shows protocol range when min and max differ", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, minProtocol: 2, maxProtocol: 3 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      minProtocol: 2,
+      maxProtocol: 3,
+    });
     expect(info).toContain("Protocol: v2–v3");
   });
 
   it("shows single version when min equals max", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, minProtocol: 3, maxProtocol: 3 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      minProtocol: 3,
+      maxProtocol: 3,
+    });
     expect(info).toContain("Protocol: v3");
   });
 
@@ -807,12 +1043,20 @@ describe("formatElapsed", () => {
 
 describe("totalFrames in debug info", () => {
   it("shows total frame count when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, totalFrames: 500 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      totalFrames: 500,
+    });
     expect(info).toContain("500 total");
   });
 
   it("uses compact notation for large frame counts", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66, totalFrames: 15203 });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      totalFrames: 15203,
+    });
     expect(info).toContain("15.2K total");
   });
 
@@ -824,7 +1068,10 @@ describe("totalFrames in debug info", () => {
 
 describe("dragPosition", () => {
   it("shows drag position when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: 123.4, y: 567.8 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      dragPosition: { x: 123.4, y: 567.8 },
+    });
     expect(info).toContain("Drag position: 123, 568");
   });
 
@@ -839,17 +1086,26 @@ describe("dragPosition", () => {
   });
 
   it("omits drag position when coordinates are invalid", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, dragPosition: { x: "bad", y: 10 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      dragPosition: { x: "bad", y: 10 },
+    });
     expect(info).not.toContain("Drag position");
   });
 
   it("shows sprite cache diagnostics when provided", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, spriteCache: { size: 14, hitRate: 97 } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      spriteCache: { size: 14, hitRate: 97 },
+    });
     expect(info).toContain("Sprite cache: 14 entries, 97% hit");
   });
 
   it("shows sprite cache without hit rate when null", () => {
-    const info = buildDebugInfo({ ...BASE_PARAMS, spriteCache: { size: 0, hitRate: null } });
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      spriteCache: { size: 0, hitRate: null },
+    });
     expect(info).toContain("Sprite cache: 0 entries");
     expect(info).not.toContain("% hit");
   });
@@ -866,7 +1122,16 @@ describe("allTimeLatency in debug info", () => {
       ...BASE_PARAMS,
       connectedSince: NOW - 60000,
       latencyMs: 50,
-      latencyStats: { min: 40, max: 80, avg: 55, median: 50, p95: 75, p99: 80, jitter: 10, samples: 30 },
+      latencyStats: {
+        min: 40,
+        max: 80,
+        avg: 55,
+        median: 50,
+        p95: 75,
+        p99: 80,
+        jitter: 10,
+        samples: 30,
+      },
       allTimeLatency: { min: 5, max: 200 },
     });
     expect(info).toContain("Latency all-time: min 5ms, max 200ms");
@@ -877,7 +1142,16 @@ describe("allTimeLatency in debug info", () => {
       ...BASE_PARAMS,
       connectedSince: NOW - 60000,
       latencyMs: 50,
-      latencyStats: { min: 40, max: 80, avg: 55, median: 50, p95: 75, p99: 80, jitter: 10, samples: 30 },
+      latencyStats: {
+        min: 40,
+        max: 80,
+        avg: 55,
+        median: 50,
+        p95: 75,
+        p99: 80,
+        jitter: 10,
+        samples: 30,
+      },
       allTimeLatency: { min: 40, max: 80 },
     });
     expect(info).not.toContain("Latency all-time");

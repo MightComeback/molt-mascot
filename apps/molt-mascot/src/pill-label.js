@@ -8,7 +8,16 @@
  * @module pill-label
  */
 
-import { capitalize, truncate, formatDuration, MODE_DESCRIPTIONS, isSleepingMode, connectionQuality, connectionQualityEmoji, resolveQualitySource } from './utils.js';
+import {
+  capitalize,
+  truncate,
+  formatDuration,
+  MODE_DESCRIPTIONS,
+  isSleepingMode,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+} from "./utils.js";
 
 /**
  * Maximum pill label widths (in characters) per context.
@@ -58,9 +67,9 @@ export function buildPillLabel(params) {
     modeSince,
     sleepThresholdS,
     connectedSince = null,
-    currentTool = '',
-    lastErrorMessage = '',
-    lastCloseDetail = '',
+    currentTool = "",
+    lastErrorMessage = "",
+    lastCloseDetail = "",
     isClickThrough = false,
     activeAgents = 0,
     activeTools = 0,
@@ -75,21 +84,27 @@ export function buildPillLabel(params) {
 
   const now = nowOverride ?? Date.now();
   const duration = Math.max(0, Math.round((now - modeSince) / 1000));
-  const isSleeping = isSleepingMode(mode, duration * 1000, sleepThresholdS * 1000);
+  const isSleeping = isSleepingMode(
+    mode,
+    duration * 1000,
+    sleepThresholdS * 1000,
+  );
 
   let label = capitalize(mode);
 
   // Connection quality emoji for idle/sleeping states — gives at-a-glance
   // latency feedback without hovering (parity with context menu and tray tooltip).
   const qualityEmoji = (() => {
-    if (typeof latencyMs !== 'number' || latencyMs < 0) return '';
-    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
-    return quality ? ` ${connectionQualityEmoji(quality)}` : '';
+    if (typeof latencyMs !== "number" || latencyMs < 0) return "";
+    const quality = connectionQuality(
+      resolveQualitySource(latencyMs, latencyStats),
+    );
+    return quality ? ` ${connectionQualityEmoji(quality)}` : "";
   })();
 
-  if (mode === 'connected') {
-    label = sessionConnectCount > 1 ? 'Reconnected ✓' : 'Connected ✓';
-  } else if (mode === 'idle' && !isSleeping && connectedSince) {
+  if (mode === "connected") {
+    label = sessionConnectCount > 1 ? "Reconnected ✓" : "Connected ✓";
+  } else if (mode === "idle" && !isSleeping && connectedSince) {
     const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
     if (uptimeSec >= 60) {
       label = `Idle · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
@@ -106,68 +121,90 @@ export function buildPillLabel(params) {
         label += qualityEmoji;
       }
     }
-  } else if (mode === 'connecting') {
+  } else if (mode === "connecting") {
     // Always show ellipsis for connecting mode (indicates ongoing activity).
     // After 2s, append elapsed time so the user sees the connection isn't stuck.
     if (duration > 2) {
-      label = reconnectAttempt > 1
-        ? `Connecting… ${formatDuration(duration)} #${reconnectAttempt}`
-        : `Connecting… ${formatDuration(duration)}`;
+      label =
+        reconnectAttempt > 1
+          ? `Connecting… ${formatDuration(duration)} #${reconnectAttempt}`
+          : `Connecting… ${formatDuration(duration)}`;
     } else {
-      label = reconnectAttempt > 1
-        ? `Connecting… #${reconnectAttempt}`
-        : 'Connecting…';
+      label =
+        reconnectAttempt > 1
+          ? `Connecting… #${reconnectAttempt}`
+          : "Connecting…";
     }
-  } else if (mode === 'disconnected') {
-    const retrySuffix = reconnectAttempt > 0 ? ` #${reconnectAttempt}` : '';
+  } else if (mode === "disconnected") {
+    const retrySuffix = reconnectAttempt > 0 ? ` #${reconnectAttempt}` : "";
     label = lastCloseDetail
-      ? truncate(`Disconnected: ${lastCloseDetail}`, PILL_MAX_DISCONNECT_LEN - retrySuffix.length) + retrySuffix
+      ? truncate(
+          `Disconnected: ${lastCloseDetail}`,
+          PILL_MAX_DISCONNECT_LEN - retrySuffix.length,
+        ) + retrySuffix
       : `Disconnected ${formatDuration(duration)}${retrySuffix}`;
-  } else if (mode === 'thinking') {
+  } else if (mode === "thinking") {
     if (duration > 2) {
-      label = activeAgents > 1
-        ? `Thinking ${formatDuration(duration)} · ${activeAgents}`
-        : `Thinking ${formatDuration(duration)}`;
+      label =
+        activeAgents > 1
+          ? `Thinking ${formatDuration(duration)} · ${activeAgents}`
+          : `Thinking ${formatDuration(duration)}`;
     } else if (activeAgents > 1) {
       label = `Thinking · ${activeAgents}`;
     }
-  } else if (mode === 'tool') {
-    const toolSuffix = activeTools > 1 ? ` · ${activeTools}` : '';
+  } else if (mode === "tool") {
+    const toolSuffix = activeTools > 1 ? ` · ${activeTools}` : "";
     if (currentTool) {
-      label = duration > 2
-        ? truncate(`${currentTool} ${formatDuration(duration)}`, PILL_MAX_TOOL_LONG_LEN - toolSuffix.length) + toolSuffix
-        : truncate(currentTool, PILL_MAX_TOOL_SHORT_LEN - toolSuffix.length) + toolSuffix;
+      label =
+        duration > 2
+          ? truncate(
+              `${currentTool} ${formatDuration(duration)}`,
+              PILL_MAX_TOOL_LONG_LEN - toolSuffix.length,
+            ) + toolSuffix
+          : truncate(currentTool, PILL_MAX_TOOL_SHORT_LEN - toolSuffix.length) +
+            toolSuffix;
     } else {
-      label = duration > 2
-        ? `Tool ${formatDuration(duration)}${toolSuffix}`
-        : `Tool${toolSuffix}`;
+      label =
+        duration > 2
+          ? `Tool ${formatDuration(duration)}${toolSuffix}`
+          : `Tool${toolSuffix}`;
     }
-  } else if (mode === 'error' && lastErrorMessage) {
+  } else if (mode === "error" && lastErrorMessage) {
     label = truncate(lastErrorMessage, PILL_MAX_ERROR_LEN);
   }
 
   // Surface degraded/unhealthy connection status directly in the pill
   // so the user sees it without hovering. "healthy" is omitted to avoid clutter.
-  if (healthStatus === 'unhealthy' && mode !== 'disconnected' && mode !== 'error') {
-    label += ' 🔴';
-  } else if (healthStatus === 'degraded' && mode !== 'error') {
-    label += ' ⚠️';
+  if (
+    healthStatus === "unhealthy" &&
+    mode !== "disconnected" &&
+    mode !== "error"
+  ) {
+    label += " 🔴";
+  } else if (healthStatus === "degraded" && mode !== "error") {
+    label += " ⚠️";
   }
 
   // Append latency trend indicator when actively rising or falling.
   // "stable" is omitted to avoid pill clutter; parity with tray tooltip and context-menu.
-  if (typeof latencyTrend === 'string' && latencyTrend !== 'stable' && mode !== 'disconnected' && mode !== 'error') {
-    label += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+  if (
+    typeof latencyTrend === "string" &&
+    latencyTrend !== "stable" &&
+    mode !== "disconnected" &&
+    mode !== "error"
+  ) {
+    label += latencyTrend === "rising" ? " ↑" : " ↓";
   }
 
   if (isClickThrough) {
-    label += ' 👻';
+    label += " 👻";
   }
 
-  const cssClass = isSleeping ? 'pill--sleeping' : `pill--${mode}`;
-  const effectiveMode = isSleeping ? 'sleeping' : mode;
-  const ariaLive = mode === 'error' ? 'assertive' : 'polite';
-  const ariaLabel = MODE_DESCRIPTIONS[effectiveMode] || `Mascot is ${effectiveMode}`;
+  const cssClass = isSleeping ? "pill--sleeping" : `pill--${mode}`;
+  const effectiveMode = isSleeping ? "sleeping" : mode;
+  const ariaLive = mode === "error" ? "assertive" : "polite";
+  const ariaLabel =
+    MODE_DESCRIPTIONS[effectiveMode] || `Mascot is ${effectiveMode}`;
 
   return { label, cssClass, effectiveMode, ariaLive, ariaLabel };
 }

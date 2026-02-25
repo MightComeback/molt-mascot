@@ -1,5 +1,29 @@
 import { describe, expect, it } from "bun:test";
-import register, { cleanErrorString, truncate, coerceNumber, coerceBoolean, summarizeToolResultMessage, formatDuration, formatBytes, formatElapsed, formatCount, formatRelativeTime, formatTimestampLocal, formatTimestampWithAge, coerceSize, coerceAlignment, coerceOpacity, coercePadding, clamp, allowedAlignments, allowedSizes, successRate, sanitizeToolName, CONTENT_TOOLS, type PluginApi } from "../src/index.ts";
+import register, {
+  cleanErrorString,
+  truncate,
+  coerceNumber,
+  coerceBoolean,
+  summarizeToolResultMessage,
+  formatDuration,
+  formatBytes,
+  formatElapsed,
+  formatCount,
+  formatRelativeTime,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+  coerceSize,
+  coerceAlignment,
+  coerceOpacity,
+  coercePadding,
+  clamp,
+  allowedAlignments,
+  allowedSizes,
+  successRate,
+  sanitizeToolName,
+  CONTENT_TOOLS,
+  type PluginApi,
+} from "../src/index.ts";
 
 function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   handlers: Map<string, any>;
@@ -12,9 +36,19 @@ function createMockApi(overrides: Partial<PluginApi> = {}): PluginApi & {
   return {
     id: "@molt/mascot-plugin",
     logger: { info() {}, warn() {}, error() {} },
-    registerGatewayMethod(name: string, fn: any) { handlers.set(name, fn); },
-    registerService(svc: { id: string; start?: () => void; stop?: () => void }) { services.set(svc.id, svc); },
-    on(name: string, fn: any) { listeners.set(name, fn); },
+    registerGatewayMethod(name: string, fn: any) {
+      handlers.set(name, fn);
+    },
+    registerService(svc: {
+      id: string;
+      start?: () => void;
+      stop?: () => void;
+    }) {
+      services.set(svc.id, svc);
+    },
+    on(name: string, fn: any) {
+      listeners.set(name, fn);
+    },
     handlers,
     listeners,
     services,
@@ -34,7 +68,7 @@ describe("utils", () => {
     expect(truncate("hello", 10)).toBe("hello");
     expect(truncate("hello world", 5)).toBe("hell…"); // 5-1=4 -> hell…
     // Space aware truncation
-    expect(truncate("hello world", 9)).toBe("hello…"); 
+    expect(truncate("hello world", 9)).toBe("hello…");
     // "hello world" (11). limit 9. cut=8. "hello wo" -> lastSpace=5 -> "hello" -> "hello…"
     // Unicode surrogate pairs: emoji counts as 1 char
     expect(truncate("🦞🦞🦞", 2)).toBe("🦞…");
@@ -153,91 +187,198 @@ describe("utils", () => {
     expect(cleanErrorString("Error: foo")).toBe("foo");
     expect(cleanErrorString("Tool failed: Error: foo")).toBe("foo");
     expect(cleanErrorString("Command failed: foo")).toBe("foo");
-    expect(cleanErrorString("GitError: fatal: branch not found")).toBe("branch not found");
-    expect(cleanErrorString("sh: foo: command not found")).toBe("foo: command not found");
+    expect(cleanErrorString("GitError: fatal: branch not found")).toBe(
+      "branch not found",
+    );
+    expect(cleanErrorString("sh: foo: command not found")).toBe(
+      "foo: command not found",
+    );
     // Strip ANSI
     expect(cleanErrorString("\u001b[31mError:\u001b[0m foo")).toBe("foo");
     // Strip CSI sequences that end with non-letter final bytes (e.g. "~")
     expect(cleanErrorString("\u001b[1~Error: foo")).toBe("foo");
     // Strip OSC (common in terminal hyperlinks / title sequences)
-    expect(cleanErrorString("\u001b]8;;https://example.com\u0007Error: boom\u001b]8;;\u0007")).toBe("boom");
+    expect(
+      cleanErrorString(
+        "\u001b]8;;https://example.com\u0007Error: boom\u001b]8;;\u0007",
+      ),
+    ).toBe("boom");
     // Exit code handling
-    expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
+    expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe(
+      "Details here",
+    );
     // Trailing colon after exit code (some shells format this way)
-    expect(cleanErrorString("Command failed with exit code 1:\nError: missing token")).toBe("missing token");
+    expect(
+      cleanErrorString(
+        "Command failed with exit code 1:\nError: missing token",
+      ),
+    ).toBe("missing token");
 
     // Multi-line logs: prefer the first strong error line over noisy info
-    expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
-      .toBe("Failed to connect");
+    expect(
+      cleanErrorString("info: starting\nError: Failed to connect\nmore"),
+    ).toBe("Failed to connect");
     // Python-style traceback: prefer concrete final error over traceback header
     expect(
       cleanErrorString(
-        "Traceback (most recent call last):\n  File \"main.py\", line 1\nValueError: bad input"
-      )
+        'Traceback (most recent call last):\n  File "main.py", line 1\nValueError: bad input',
+      ),
     ).toBe("bad input");
     // Log-level prefixes
     expect(cleanErrorString("info: starting up")).toBe("starting up");
     expect(cleanErrorString("debug: variable dump")).toBe("variable dump");
     expect(cleanErrorString("trace: call stack")).toBe("call stack");
-    expect(cleanErrorString("warn: deprecation notice")).toBe("deprecation notice");
+    expect(cleanErrorString("warn: deprecation notice")).toBe(
+      "deprecation notice",
+    );
     // 8-bit CSI (0x9B) sequences
     expect(cleanErrorString("\x9B31mError:\x9B0m foo")).toBe("foo");
     // Custom error types
-    expect(cleanErrorString("MoltError: Connection lost")).toBe("Connection lost");
+    expect(cleanErrorString("MoltError: Connection lost")).toBe(
+      "Connection lost",
+    );
     // New channels
-    expect(cleanErrorString("DiscordError: API unavailable")).toBe("API unavailable");
-    expect(cleanErrorString("SlackError: channel_not_found")).toBe("channel_not_found");
+    expect(cleanErrorString("DiscordError: API unavailable")).toBe(
+      "API unavailable",
+    );
+    expect(cleanErrorString("SlackError: channel_not_found")).toBe(
+      "channel_not_found",
+    );
     // Python built-in exceptions
-    expect(cleanErrorString("FileNotFoundError: [Errno 2] No such file")).toBe("[Errno 2] No such file");
-    expect(cleanErrorString("ConnectionRefusedError: [Errno 111] Connection refused")).toBe("[Errno 111] Connection refused");
-    expect(cleanErrorString("BrokenPipeError: [Errno 32] Broken pipe")).toBe("[Errno 32] Broken pipe");
-    expect(cleanErrorString("RecursionError: maximum recursion depth exceeded")).toBe("maximum recursion depth exceeded");
-    expect(cleanErrorString("NotImplementedError: abstract method")).toBe("abstract method");
-    expect(cleanErrorString("OSError: [Errno 28] No space left on device")).toBe("[Errno 28] No space left on device");
+    expect(cleanErrorString("FileNotFoundError: [Errno 2] No such file")).toBe(
+      "[Errno 2] No such file",
+    );
+    expect(
+      cleanErrorString(
+        "ConnectionRefusedError: [Errno 111] Connection refused",
+      ),
+    ).toBe("[Errno 111] Connection refused");
+    expect(cleanErrorString("BrokenPipeError: [Errno 32] Broken pipe")).toBe(
+      "[Errno 32] Broken pipe",
+    );
+    expect(
+      cleanErrorString("RecursionError: maximum recursion depth exceeded"),
+    ).toBe("maximum recursion depth exceeded");
+    expect(cleanErrorString("NotImplementedError: abstract method")).toBe(
+      "abstract method",
+    );
+    expect(
+      cleanErrorString("OSError: [Errno 28] No space left on device"),
+    ).toBe("[Errno 28] No space left on device");
     // ISO-8601 timestamp prefixes from log output
-    expect(cleanErrorString("[2026-02-17T15:30:00Z] Error: timeout")).toBe("timeout");
-    expect(cleanErrorString("2026-02-17T15:30:00.123Z Error: connection lost")).toBe("connection lost");
-    expect(cleanErrorString("[2026-02-17 15:30:00] fatal: bad ref")).toBe("bad ref");
+    expect(cleanErrorString("[2026-02-17T15:30:00Z] Error: timeout")).toBe(
+      "timeout",
+    );
+    expect(
+      cleanErrorString("2026-02-17T15:30:00.123Z Error: connection lost"),
+    ).toBe("connection lost");
+    expect(cleanErrorString("[2026-02-17 15:30:00] fatal: bad ref")).toBe(
+      "bad ref",
+    );
     // POSIX errno codes (Node/Bun style)
-    expect(cleanErrorString("ENOENT: no such file or directory, open '/foo'")).toBe("no such file or directory, open '/foo'");
-    expect(cleanErrorString("EACCES: permission denied, open '/etc/shadow'")).toBe("permission denied, open '/etc/shadow'");
-    expect(cleanErrorString("EPERM: operation not permitted")).toBe("operation not permitted");
-    expect(cleanErrorString("ECONNREFUSED: connection refused")).toBe("connection refused");
-    expect(cleanErrorString("Error: ENOENT: no such file")).toBe("no such file");
+    expect(
+      cleanErrorString("ENOENT: no such file or directory, open '/foo'"),
+    ).toBe("no such file or directory, open '/foo'");
+    expect(
+      cleanErrorString("EACCES: permission denied, open '/etc/shadow'"),
+    ).toBe("permission denied, open '/etc/shadow'");
+    expect(cleanErrorString("EPERM: operation not permitted")).toBe(
+      "operation not permitted",
+    );
+    expect(cleanErrorString("ECONNREFUSED: connection refused")).toBe(
+      "connection refused",
+    );
+    expect(cleanErrorString("Error: ENOENT: no such file")).toBe(
+      "no such file",
+    );
     // POSIX signal descriptions: strip trailing signal number for brevity
     expect(cleanErrorString("Killed: 9")).toBe("Killed");
-    expect(cleanErrorString("Segmentation fault: 11")).toBe("Segmentation fault");
+    expect(cleanErrorString("Segmentation fault: 11")).toBe(
+      "Segmentation fault",
+    );
     expect(cleanErrorString("Abort trap: 6")).toBe("Abort trap");
     expect(cleanErrorString("Bus error: 10")).toBe("Bus error");
     // Multi-line with signal: first line kept as-is (regex only matches at end of string)
-    expect(cleanErrorString("Killed: 9\nError: out of memory")).toBe("out of memory");
+    expect(cleanErrorString("Killed: 9\nError: out of memory")).toBe(
+      "out of memory",
+    );
     expect(cleanErrorString("Terminated: 15")).toBe("Terminated");
 
     // File-path:line:col prefixes (Node/Bun stack traces)
-    expect(cleanErrorString("/Users/foo/bar.js:42:10: TypeError: Cannot read properties")).toBe("Cannot read properties");
-    expect(cleanErrorString("/app/src/index.ts:100: Error: connection failed")).toBe("connection failed");
-    expect(cleanErrorString("C:\\Users\\dev\\app.js:15:3: RangeError: out of bounds")).toBe("out of bounds");
+    expect(
+      cleanErrorString(
+        "/Users/foo/bar.js:42:10: TypeError: Cannot read properties",
+      ),
+    ).toBe("Cannot read properties");
+    expect(
+      cleanErrorString("/app/src/index.ts:100: Error: connection failed"),
+    ).toBe("connection failed");
+    expect(
+      cleanErrorString(
+        "C:\\Users\\dev\\app.js:15:3: RangeError: out of bounds",
+      ),
+    ).toBe("out of bounds");
     // file:// URL prefixes
-    expect(cleanErrorString("file:///Users/foo/bar.js:42:10: TypeError: oops")).toBe("oops");
+    expect(
+      cleanErrorString("file:///Users/foo/bar.js:42:10: TypeError: oops"),
+    ).toBe("oops");
     // Trailing " at <path>:<line>:<col>" suffixes from flattened stack traces
-    expect(cleanErrorString("Cannot find module 'foo' at /app/index.js:10:5")).toBe("Cannot find module 'foo'");
+    expect(
+      cleanErrorString("Cannot find module 'foo' at /app/index.js:10:5"),
+    ).toBe("Cannot find module 'foo'");
     expect(cleanErrorString("ENOENT at /app/src/main.ts:42")).toBe("ENOENT");
-    expect(cleanErrorString("Missing key at Object.<anonymous> (/app/index.js:10:5)")).toBe("Missing key");
+    expect(
+      cleanErrorString(
+        "Missing key at Object.<anonymous> (/app/index.js:10:5)",
+      ),
+    ).toBe("Missing key");
     // Node.js bracketed error codes: [ERR_*]:
-    expect(cleanErrorString("Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'foo'")).toBe("Cannot find package 'foo'");
-    expect(cleanErrorString("TypeError [ERR_INVALID_ARG_TYPE]: The argument must be string")).toBe("The argument must be string");
-    expect(cleanErrorString("[ERR_REQUIRE_ESM]: require() of ES Module not supported")).toBe("require() of ES Module not supported");
+    expect(
+      cleanErrorString(
+        "Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'foo'",
+      ),
+    ).toBe("Cannot find package 'foo'");
+    expect(
+      cleanErrorString(
+        "TypeError [ERR_INVALID_ARG_TYPE]: The argument must be string",
+      ),
+    ).toBe("The argument must be string");
+    expect(
+      cleanErrorString(
+        "[ERR_REQUIRE_ESM]: require() of ES Module not supported",
+      ),
+    ).toBe("require() of ES Module not supported");
     // Rust panic messages (old format, pre-1.73)
-    expect(cleanErrorString("thread 'main' panicked at 'index out of bounds', src/main.rs:42:5")).toBe("index out of bounds");
-    expect(cleanErrorString("thread 'tokio-runtime-worker' panicked at 'connection refused', src/net.rs:10")).toBe("connection refused");
+    expect(
+      cleanErrorString(
+        "thread 'main' panicked at 'index out of bounds', src/main.rs:42:5",
+      ),
+    ).toBe("index out of bounds");
+    expect(
+      cleanErrorString(
+        "thread 'tokio-runtime-worker' panicked at 'connection refused', src/net.rs:10",
+      ),
+    ).toBe("connection refused");
     // Rust panic messages (new format, 1.73+)
-    expect(cleanErrorString("thread 'main' panicked at src/main.rs:42:5:\nindex out of bounds")).toBe("index out of bounds");
-    expect(cleanErrorString("thread 'tokio-runtime-worker' panicked at src/net.rs:10:3:\nconnection refused")).toBe("connection refused");
+    expect(
+      cleanErrorString(
+        "thread 'main' panicked at src/main.rs:42:5:\nindex out of bounds",
+      ),
+    ).toBe("index out of bounds");
+    expect(
+      cleanErrorString(
+        "thread 'tokio-runtime-worker' panicked at src/net.rs:10:3:\nconnection refused",
+      ),
+    ).toBe("connection refused");
     // Go runtime errors
     expect(cleanErrorString("runtime: out of memory")).toBe("out of memory");
-    expect(cleanErrorString("fatal error: runtime: out of memory")).toBe("out of memory");
+    expect(cleanErrorString("fatal error: runtime: out of memory")).toBe(
+      "out of memory",
+    );
     // Bracketed log-level prefixes (Java/Rust/Go structured loggers)
-    expect(cleanErrorString("[ERROR] connection refused")).toBe("connection refused");
+    expect(cleanErrorString("[ERROR] connection refused")).toBe(
+      "connection refused",
+    );
     expect(cleanErrorString("[WARN] deprecated API")).toBe("deprecated API");
     expect(cleanErrorString("[WARNING] slow query")).toBe("slow query");
     expect(cleanErrorString("[INFO] starting up")).toBe("starting up");
@@ -245,139 +386,333 @@ describe("utils", () => {
     expect(cleanErrorString("[CRITICAL] disk full")).toBe("disk full");
     expect(cleanErrorString("[PANIC] stack overflow")).toBe("stack overflow");
     // With timestamp prefix inside brackets
-    expect(cleanErrorString("[2026-02-18 12:00:00 ERROR] connection refused")).toBe("connection refused");
+    expect(
+      cleanErrorString("[2026-02-18 12:00:00 ERROR] connection refused"),
+    ).toBe("connection refused");
     // With colon after bracket
-    expect(cleanErrorString("[ERROR]: connection refused")).toBe("connection refused");
+    expect(cleanErrorString("[ERROR]: connection refused")).toBe(
+      "connection refused",
+    );
     // Java/JVM-style fully-qualified exception class prefixes
-    expect(cleanErrorString("java.lang.NullPointerException: Cannot invoke method on null")).toBe("Cannot invoke method on null");
-    expect(cleanErrorString("java.io.FileNotFoundException: /tmp/missing.txt (No such file)")).toBe("/tmp/missing.txt (No such file)");
-    expect(cleanErrorString("kotlin.KotlinNullPointerException: parameter must not be null")).toBe("parameter must not be null");
+    expect(
+      cleanErrorString(
+        "java.lang.NullPointerException: Cannot invoke method on null",
+      ),
+    ).toBe("Cannot invoke method on null");
+    expect(
+      cleanErrorString(
+        "java.io.FileNotFoundException: /tmp/missing.txt (No such file)",
+      ),
+    ).toBe("/tmp/missing.txt (No such file)");
+    expect(
+      cleanErrorString(
+        "kotlin.KotlinNullPointerException: parameter must not be null",
+      ),
+    ).toBe("parameter must not be null");
     // .NET/C# exceptions
-    expect(cleanErrorString("System.InvalidOperationException: Sequence contains no elements")).toBe("Sequence contains no elements");
-    expect(cleanErrorString("System.IO.FileNotFoundException: Could not find file")).toBe("Could not find file");
+    expect(
+      cleanErrorString(
+        "System.InvalidOperationException: Sequence contains no elements",
+      ),
+    ).toBe("Sequence contains no elements");
+    expect(
+      cleanErrorString("System.IO.FileNotFoundException: Could not find file"),
+    ).toBe("Could not find file");
     // Java "Caused by:" chained exception prefix
-    expect(cleanErrorString("Caused by: java.net.ConnectException: Connection refused")).toBe("Connection refused");
+    expect(
+      cleanErrorString(
+        "Caused by: java.net.ConnectException: Connection refused",
+      ),
+    ).toBe("Connection refused");
     // Python non-Error exceptions
     expect(cleanErrorString("KeyboardInterrupt: ")).toBe("");
     expect(cleanErrorString("SystemExit: 1")).toBe("1");
     expect(cleanErrorString("GeneratorExit: cleanup")).toBe("cleanup");
     expect(cleanErrorString("StopAsyncIteration: exhausted")).toBe("exhausted");
     // Container tools
-    expect(cleanErrorString("podman: Error: no such container")).toBe("no such container");
-    expect(cleanErrorString("helm: Error: chart not found")).toBe("chart not found");
+    expect(cleanErrorString("podman: Error: no such container")).toBe(
+      "no such container",
+    );
+    expect(cleanErrorString("helm: Error: chart not found")).toBe(
+      "chart not found",
+    );
     // Cloud CLI prefixes
-    expect(cleanErrorString("aws: error: no such command")).toBe("no such command");
-    expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe("permission denied");
+    expect(cleanErrorString("aws: error: no such command")).toBe(
+      "no such command",
+    );
+    expect(cleanErrorString("gcloud: ERROR: permission denied")).toBe(
+      "permission denied",
+    );
     expect(cleanErrorString("az: command not found")).toBe("command not found");
-    expect(cleanErrorString("pip: No matching distribution found")).toBe("No matching distribution found");
+    expect(cleanErrorString("pip: No matching distribution found")).toBe(
+      "No matching distribution found",
+    );
     // Cloudflare tooling
-    expect(cleanErrorString("wrangler: Error: No account id found")).toBe("No account id found");
-    expect(cleanErrorString("workerd: Error: Worker exceeded CPU time limit")).toBe("Worker exceeded CPU time limit");
-    expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe("fetch failed");
+    expect(cleanErrorString("wrangler: Error: No account id found")).toBe(
+      "No account id found",
+    );
+    expect(
+      cleanErrorString("workerd: Error: Worker exceeded CPU time limit"),
+    ).toBe("Worker exceeded CPU time limit");
+    expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe(
+      "fetch failed",
+    );
     // Deno runtime
-    expect(cleanErrorString("deno: error: Module not found")).toBe("Module not found");
+    expect(cleanErrorString("deno: error: Module not found")).toBe(
+      "Module not found",
+    );
     // Bun runtime
-    expect(cleanErrorString("bun: error: ModuleNotFound resolving 'missing'")).toBe("ModuleNotFound resolving 'missing'");
+    expect(
+      cleanErrorString("bun: error: ModuleNotFound resolving 'missing'"),
+    ).toBe("ModuleNotFound resolving 'missing'");
     // Node.js internal module prefixes
-    expect(cleanErrorString("node: bad option: --inspect-brk=0")).toBe("bad option: --inspect-brk=0");
-    expect(cleanErrorString("internal: process.binding is not supported")).toBe("process.binding is not supported");
-    expect(cleanErrorString("commonjs: Cannot find module 'foo'")).toBe("Cannot find module 'foo'");
+    expect(cleanErrorString("node: bad option: --inspect-brk=0")).toBe(
+      "bad option: --inspect-brk=0",
+    );
+    expect(cleanErrorString("internal: process.binding is not supported")).toBe(
+      "process.binding is not supported",
+    );
+    expect(cleanErrorString("commonjs: Cannot find module 'foo'")).toBe(
+      "Cannot find module 'foo'",
+    );
     expect(cleanErrorString("fs: ENOENT: no such file")).toBe("no such file");
-    expect(cleanErrorString("process: unhandled rejection")).toBe("unhandled rejection");
+    expect(cleanErrorString("process: unhandled rejection")).toBe(
+      "unhandled rejection",
+    );
     // OpenClaw ecosystem prefixes
-    expect(cleanErrorString("openclaw: gateway connection failed")).toBe("gateway connection failed");
-    expect(cleanErrorString("clawd: plugin load error")).toBe("plugin load error");
-    expect(cleanErrorString("clawdbot: channel init failed")).toBe("channel init failed");
+    expect(cleanErrorString("openclaw: gateway connection failed")).toBe(
+      "gateway connection failed",
+    );
+    expect(cleanErrorString("clawd: plugin load error")).toBe(
+      "plugin load error",
+    );
+    expect(cleanErrorString("clawdbot: channel init failed")).toBe(
+      "channel init failed",
+    );
     expect(cleanErrorString("cron: job timed out")).toBe("job timed out");
-    expect(cleanErrorString("nodes: device unreachable")).toBe("device unreachable");
-    expect(cleanErrorString("hakky: linear API error")).toBe("linear API error");
-    expect(cleanErrorString("hakky-tools: missing env var")).toBe("missing env var");
+    expect(cleanErrorString("nodes: device unreachable")).toBe(
+      "device unreachable",
+    );
+    expect(cleanErrorString("hakky: linear API error")).toBe(
+      "linear API error",
+    );
+    expect(cleanErrorString("hakky-tools: missing env var")).toBe(
+      "missing env var",
+    );
     // RPC/gRPC prefixes
-    expect(cleanErrorString("rpc: connection refused")).toBe("connection refused");
-    expect(cleanErrorString("grpc: deadline exceeded")).toBe("deadline exceeded");
+    expect(cleanErrorString("rpc: connection refused")).toBe(
+      "connection refused",
+    );
+    expect(cleanErrorString("grpc: deadline exceeded")).toBe(
+      "deadline exceeded",
+    );
     // Docker/container tools
-    expect(cleanErrorString("docker: Error response from daemon: conflict")).toBe("response from daemon: conflict");
-    expect(cleanErrorString("kubectl: error: no matching resources found")).toBe("no matching resources found");
-    expect(cleanErrorString("terraform: Error: Invalid provider configuration")).toBe("Invalid provider configuration");
-    expect(cleanErrorString("ansible: fatal: unreachable host")).toBe("unreachable host");
+    expect(
+      cleanErrorString("docker: Error response from daemon: conflict"),
+    ).toBe("response from daemon: conflict");
+    expect(
+      cleanErrorString("kubectl: error: no matching resources found"),
+    ).toBe("no matching resources found");
+    expect(
+      cleanErrorString("terraform: Error: Invalid provider configuration"),
+    ).toBe("Invalid provider configuration");
+    expect(cleanErrorString("ansible: fatal: unreachable host")).toBe(
+      "unreachable host",
+    );
     // Build tools
-    expect(cleanErrorString("make: *** [all] Error 2")).toBe("*** [all] Error 2");
-    expect(cleanErrorString("cmake: Error: could not find CMakeLists.txt")).toBe("could not find CMakeLists.txt");
-    expect(cleanErrorString("gradle: FAILURE: Build failed with an exception")).toBe("FAILURE: Build failed with an exception");
+    expect(cleanErrorString("make: *** [all] Error 2")).toBe(
+      "*** [all] Error 2",
+    );
+    expect(
+      cleanErrorString("cmake: Error: could not find CMakeLists.txt"),
+    ).toBe("could not find CMakeLists.txt");
+    expect(
+      cleanErrorString("gradle: FAILURE: Build failed with an exception"),
+    ).toBe("FAILURE: Build failed with an exception");
     expect(cleanErrorString("mvn: BUILD FAILURE")).toBe("BUILD FAILURE");
     // Media tools
-    expect(cleanErrorString("ffmpeg: error: codec not found")).toBe("codec not found");
+    expect(cleanErrorString("ffmpeg: error: codec not found")).toBe(
+      "codec not found",
+    );
     // Browser automation
-    expect(cleanErrorString("browser: timeout waiting for selector")).toBe("timeout waiting for selector");
-    expect(cleanErrorString("playwright: Error: page.click: Timeout 30000ms exceeded")).toBe("page.click: Timeout 30000ms exceeded");
-    expect(cleanErrorString("chrome: ERR_CONNECTION_REFUSED")).toBe("ERR_CONNECTION_REFUSED");
-    expect(cleanErrorString("firefox: NS_ERROR_FAILURE")).toBe("NS_ERROR_FAILURE");
-    expect(cleanErrorString("safari: WebDriver error: timeout")).toBe("WebDriver error: timeout");
+    expect(cleanErrorString("browser: timeout waiting for selector")).toBe(
+      "timeout waiting for selector",
+    );
+    expect(
+      cleanErrorString(
+        "playwright: Error: page.click: Timeout 30000ms exceeded",
+      ),
+    ).toBe("page.click: Timeout 30000ms exceeded");
+    expect(cleanErrorString("chrome: ERR_CONNECTION_REFUSED")).toBe(
+      "ERR_CONNECTION_REFUSED",
+    );
+    expect(cleanErrorString("firefox: NS_ERROR_FAILURE")).toBe(
+      "NS_ERROR_FAILURE",
+    );
+    expect(cleanErrorString("safari: WebDriver error: timeout")).toBe(
+      "WebDriver error: timeout",
+    );
     // Cloud storage
-    expect(cleanErrorString("gsutil: CommandException: No URLs matched")).toBe("CommandException: No URLs matched");
+    expect(cleanErrorString("gsutil: CommandException: No URLs matched")).toBe(
+      "CommandException: No URLs matched",
+    );
     // Go goroutine stack trace headers
-    expect(cleanErrorString("goroutine 1 [running]:\npanic: runtime error: index out of range")).toBe("runtime error: index out of range");
+    expect(
+      cleanErrorString(
+        "goroutine 1 [running]:\npanic: runtime error: index out of range",
+      ),
+    ).toBe("runtime error: index out of range");
     // Unhandled promise rejection wrapper (Node.js / Deno)
-    expect(cleanErrorString("Uncaught (in promise) TypeError: Failed to fetch")).toBe("Failed to fetch");
-    expect(cleanErrorString("(in promise) ReferenceError: x is not defined")).toBe("x is not defined");
-    expect(cleanErrorString("error: Uncaught (in promise) TypeError: Cannot read properties of null")).toBe("Cannot read properties of null");
+    expect(
+      cleanErrorString("Uncaught (in promise) TypeError: Failed to fetch"),
+    ).toBe("Failed to fetch");
+    expect(
+      cleanErrorString("(in promise) ReferenceError: x is not defined"),
+    ).toBe("x is not defined");
+    expect(
+      cleanErrorString(
+        "error: Uncaught (in promise) TypeError: Cannot read properties of null",
+      ),
+    ).toBe("Cannot read properties of null");
     // Compiler / type-checker prefixes
-    expect(cleanErrorString("tsc: error TS2304: Cannot find name 'foo'")).toBe("TS2304: Cannot find name 'foo'");
-    expect(cleanErrorString("swiftc: error: no such module 'Bar'")).toBe("no such module 'Bar'");
-    expect(cleanErrorString("javac: error: class not found: Foo")).toBe("class not found: Foo");
-    expect(cleanErrorString("gcc: error: unrecognized option '-foo'")).toBe("unrecognized option '-foo'");
-    expect(cleanErrorString("g++: error: missing argument")).toBe("missing argument");
-    expect(cleanErrorString("clang: error: linker command failed")).toBe("linker command failed");
-    expect(cleanErrorString("clang++: error: no input files")).toBe("no input files");
-    expect(cleanErrorString("esbuild: error: Could not resolve 'missing'")).toBe("Could not resolve 'missing'");
+    expect(cleanErrorString("tsc: error TS2304: Cannot find name 'foo'")).toBe(
+      "TS2304: Cannot find name 'foo'",
+    );
+    expect(cleanErrorString("swiftc: error: no such module 'Bar'")).toBe(
+      "no such module 'Bar'",
+    );
+    expect(cleanErrorString("javac: error: class not found: Foo")).toBe(
+      "class not found: Foo",
+    );
+    expect(cleanErrorString("gcc: error: unrecognized option '-foo'")).toBe(
+      "unrecognized option '-foo'",
+    );
+    expect(cleanErrorString("g++: error: missing argument")).toBe(
+      "missing argument",
+    );
+    expect(cleanErrorString("clang: error: linker command failed")).toBe(
+      "linker command failed",
+    );
+    expect(cleanErrorString("clang++: error: no input files")).toBe(
+      "no input files",
+    );
+    expect(
+      cleanErrorString("esbuild: error: Could not resolve 'missing'"),
+    ).toBe("Could not resolve 'missing'");
     expect(cleanErrorString("vite: error: Build failed")).toBe("Build failed");
-    expect(cleanErrorString("zig: error: expected token '}'")).toBe("expected token '}'");
-    expect(cleanErrorString("swc: failed to compile module")).toBe("failed to compile module");
-    expect(cleanErrorString("biome: lint error in src/index.ts")).toBe("lint error in src/index.ts");
+    expect(cleanErrorString("zig: error: expected token '}'")).toBe(
+      "expected token '}'",
+    );
+    expect(cleanErrorString("swc: failed to compile module")).toBe(
+      "failed to compile module",
+    );
+    expect(cleanErrorString("biome: lint error in src/index.ts")).toBe(
+      "lint error in src/index.ts",
+    );
     expect(cleanErrorString("oxlint: 3 errors found")).toBe("3 errors found");
-    expect(cleanErrorString("eslint: Unexpected token")).toBe("Unexpected token");
-    expect(cleanErrorString("prettier: SyntaxError: Unexpected token")).toBe("Unexpected token");
-    expect(cleanErrorString("turbo: error: could not find turbo.json")).toBe("could not find turbo.json");
-    expect(cleanErrorString("nx: Cannot find project 'app'")).toBe("Cannot find project 'app'");
+    expect(cleanErrorString("eslint: Unexpected token")).toBe(
+      "Unexpected token",
+    );
+    expect(cleanErrorString("prettier: SyntaxError: Unexpected token")).toBe(
+      "Unexpected token",
+    );
+    expect(cleanErrorString("turbo: error: could not find turbo.json")).toBe(
+      "could not find turbo.json",
+    );
+    expect(cleanErrorString("nx: Cannot find project 'app'")).toBe(
+      "Cannot find project 'app'",
+    );
     // Package runner prefixes (npx, pnpx, bunx)
-    expect(cleanErrorString("npx: command not found")).toBe("command not found");
-    expect(cleanErrorString("pnpx: command not found")).toBe("command not found");
-    expect(cleanErrorString("bunx: failed to resolve 'missing-pkg'")).toBe("failed to resolve 'missing-pkg'");
+    expect(cleanErrorString("npx: command not found")).toBe(
+      "command not found",
+    );
+    expect(cleanErrorString("pnpx: command not found")).toBe(
+      "command not found",
+    );
+    expect(cleanErrorString("bunx: failed to resolve 'missing-pkg'")).toBe(
+      "failed to resolve 'missing-pkg'",
+    );
     // Ruby/PHP/Perl/Elixir ecosystem
-    expect(cleanErrorString("ruby: No such file or directory -- script.rb")).toBe("No such file or directory -- script.rb");
-    expect(cleanErrorString("php: Parse error: syntax error")).toBe("Parse error: syntax error");
-    expect(cleanErrorString("perl: warning: Setting locale failed")).toBe("Setting locale failed");
-    expect(cleanErrorString("elixir: ** (CompileError) lib/app.ex:1")).toBe("** (CompileError) lib/app.ex:1");
-    expect(cleanErrorString("mix: Could not find task 'phx.server'")).toBe("Could not find task 'phx.server'");
-    expect(cleanErrorString("bundle: command not found: rails")).toBe("command not found: rails");
-    expect(cleanErrorString("gem: ERROR: While executing gem")).toBe("While executing gem");
+    expect(
+      cleanErrorString("ruby: No such file or directory -- script.rb"),
+    ).toBe("No such file or directory -- script.rb");
+    expect(cleanErrorString("php: Parse error: syntax error")).toBe(
+      "Parse error: syntax error",
+    );
+    expect(cleanErrorString("perl: warning: Setting locale failed")).toBe(
+      "Setting locale failed",
+    );
+    expect(cleanErrorString("elixir: ** (CompileError) lib/app.ex:1")).toBe(
+      "** (CompileError) lib/app.ex:1",
+    );
+    expect(cleanErrorString("mix: Could not find task 'phx.server'")).toBe(
+      "Could not find task 'phx.server'",
+    );
+    expect(cleanErrorString("bundle: command not found: rails")).toBe(
+      "command not found: rails",
+    );
+    expect(cleanErrorString("gem: ERROR: While executing gem")).toBe(
+      "While executing gem",
+    );
     // Swift runtime
-    expect(cleanErrorString("swift: error: no such module 'Foundation'")).toBe("no such module 'Foundation'");
+    expect(cleanErrorString("swift: error: no such module 'Foundation'")).toBe(
+      "no such module 'Foundation'",
+    );
     // .NET CLI
-    expect(cleanErrorString("dotnet: error: Project file does not exist")).toBe("Project file does not exist");
+    expect(cleanErrorString("dotnet: error: Project file does not exist")).toBe(
+      "Project file does not exist",
+    );
     // Python ecosystem tools (pip3, uv, poetry, conda, etc.)
-    expect(cleanErrorString("pip3: No matching distribution found for foo")).toBe("No matching distribution found for foo");
-    expect(cleanErrorString("uv: error: No solution found")).toBe("No solution found");
-    expect(cleanErrorString("uvx: error: Package 'missing' not found")).toBe("Package 'missing' not found");
-    expect(cleanErrorString("poetry: command not found")).toBe("command not found");
-    expect(cleanErrorString("pdm: No matching version found")).toBe("No matching version found");
-    expect(cleanErrorString("rye: error: failed to download")).toBe("failed to download");
-    expect(cleanErrorString("hatch: error: Environment 'test' not found")).toBe("Environment 'test' not found");
-    expect(cleanErrorString("conda: PackagesNotFoundError: missing")).toBe("missing");
-    expect(cleanErrorString("mamba: error: libmamba Could not solve")).toBe("libmamba Could not solve");
-    expect(cleanErrorString("pixi: error: No task named 'build'")).toBe("No task named 'build'");
+    expect(
+      cleanErrorString("pip3: No matching distribution found for foo"),
+    ).toBe("No matching distribution found for foo");
+    expect(cleanErrorString("uv: error: No solution found")).toBe(
+      "No solution found",
+    );
+    expect(cleanErrorString("uvx: error: Package 'missing' not found")).toBe(
+      "Package 'missing' not found",
+    );
+    expect(cleanErrorString("poetry: command not found")).toBe(
+      "command not found",
+    );
+    expect(cleanErrorString("pdm: No matching version found")).toBe(
+      "No matching version found",
+    );
+    expect(cleanErrorString("rye: error: failed to download")).toBe(
+      "failed to download",
+    );
+    expect(cleanErrorString("hatch: error: Environment 'test' not found")).toBe(
+      "Environment 'test' not found",
+    );
+    expect(cleanErrorString("conda: PackagesNotFoundError: missing")).toBe(
+      "missing",
+    );
+    expect(cleanErrorString("mamba: error: libmamba Could not solve")).toBe(
+      "libmamba Could not solve",
+    );
+    expect(cleanErrorString("pixi: error: No task named 'build'")).toBe(
+      "No task named 'build'",
+    );
     // JSON error strings: extract message from stringified JSON objects
-    expect(cleanErrorString('{"error":"rate limited","code":429}')).toBe("rate limited");
-    expect(cleanErrorString('{"error":{"message":"quota exceeded","code":429}}')).toBe("quota exceeded");
+    expect(cleanErrorString('{"error":"rate limited","code":429}')).toBe(
+      "rate limited",
+    );
+    expect(
+      cleanErrorString('{"error":{"message":"quota exceeded","code":429}}'),
+    ).toBe("quota exceeded");
     expect(cleanErrorString('{"message":"not found"}')).toBe("not found");
-    expect(cleanErrorString('{"detail":"invalid API key"}')).toBe("invalid API key");
+    expect(cleanErrorString('{"detail":"invalid API key"}')).toBe(
+      "invalid API key",
+    );
     expect(cleanErrorString('{"reason":"timeout"}')).toBe("timeout");
     // JSON without a recognized message field falls through to normal processing
     expect(cleanErrorString('{"status":500}')).toBe('{"status":500}');
     // Invalid JSON starting with { falls through gracefully
     expect(cleanErrorString("{not json}")).toBe("{not json}");
     // Nested error prefix stripping after JSON extraction
-    expect(cleanErrorString('{"error":"Error: connection refused"}')).toBe("connection refused");
+    expect(cleanErrorString('{"error":"Error: connection refused"}')).toBe(
+      "connection refused",
+    );
   });
 
   it("summarizeToolResultMessage", () => {
@@ -388,17 +723,25 @@ describe("utils", () => {
     expect(summarizeToolResultMessage({ result: "done" })).toBe("done");
 
     // Priorities
-    expect(summarizeToolResultMessage({ error: "fail", result: "ok" })).toBe("fail");
-    expect(summarizeToolResultMessage({ stderr: "bad", stdout: "good" })).toBe("bad");
+    expect(summarizeToolResultMessage({ error: "fail", result: "ok" })).toBe(
+      "fail",
+    );
+    expect(summarizeToolResultMessage({ stderr: "bad", stdout: "good" })).toBe(
+      "bad",
+    );
 
     // Complex objects
-    expect(summarizeToolResultMessage({ error: { message: "nested" } })).toBe("nested");
+    expect(summarizeToolResultMessage({ error: { message: "nested" } })).toBe(
+      "nested",
+    );
 
     // Exit codes
     expect(summarizeToolResultMessage({ exitCode: 127 })).toBe("exit code 127");
 
     // Cleaning
-    expect(summarizeToolResultMessage({ error: "Error: something" })).toBe("something");
+    expect(summarizeToolResultMessage({ error: "Error: something" })).toBe(
+      "something",
+    );
   });
 
   it("resolves config from canonical id even when runtime id is an alias", async () => {
@@ -435,8 +778,6 @@ describe("utils", () => {
     expect(payload?.state?.padding).toBe(12);
   });
 
-
-
   it("preserves envelope sessionKey/tool when payload is a primitive (v2 framing)", async () => {
     const handlers = new Map<string, any>();
     const listeners = new Map<string, any>();
@@ -467,7 +808,10 @@ describe("utils", () => {
     expect(typeof stateFn).toBe("function");
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
 
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.mode).toBe("tool");
@@ -498,7 +842,10 @@ describe("utils", () => {
     expect(typeof stateFn).toBe("function");
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
 
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.mode).toBe("tool");
@@ -538,7 +885,9 @@ describe("utils", () => {
       id: "@molt/mascot-plugin",
       pluginConfig: {},
       logger: { info() {}, warn() {} },
-      registerGatewayMethod(name: string, fn: any) { handlers.set(name, fn); },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers.set(name, fn);
+      },
     });
 
     const fn = handlers.get("@molt/mascot-plugin.state");
@@ -552,7 +901,9 @@ describe("utils", () => {
       id: "@molt/mascot-plugin",
       pluginConfig: { size: "small" },
       logger: { info() {}, warn() {} },
-      registerGatewayMethod(name: string, fn: any) { handlers2.set(name, fn); },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers2.set(name, fn);
+      },
     });
     const fn2 = handlers2.get("@molt/mascot-plugin.state");
     await fn2({}, { respond: (_ok: boolean, data: any) => (payload = data) });
@@ -565,7 +916,9 @@ describe("utils", () => {
       // @ts-expect-error - intentionally invalid for test
       pluginConfig: { size: "huge" },
       logger: { info() {}, warn() {} },
-      registerGatewayMethod(name: string, fn: any) { handlers3.set(name, fn); },
+      registerGatewayMethod(name: string, fn: any) {
+        handlers3.set(name, fn);
+      },
     });
     const fn3 = handlers3.get("@molt/mascot-plugin.state");
     await fn3({}, { respond: (_ok: boolean, data: any) => (payload = data) });
@@ -662,7 +1015,10 @@ describe("utils", () => {
     // The 12th start should trigger auto-heal (threshold is 10)
     // After heal, the set is cleared and only the triggering agent remains
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     // Mode should still be thinking (the triggering agent is active)
     expect(payload?.state?.mode).toBe("thinking");
   });
@@ -686,14 +1042,20 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("something broke");
 
     // Wait for error hold to expire
     await new Promise((r) => setTimeout(r, 80));
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("idle");
     // lastError should be cleared when not in error mode
     expect(payload?.state?.lastError).toBeUndefined();
@@ -713,12 +1075,18 @@ describe("utils", () => {
     toolListener({ phase: "start", sessionKey: "s1", tool: "web_search" });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("web_search");
 
     // Reset
-    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await resetFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.ok).toBe(true);
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
@@ -731,7 +1099,10 @@ describe("utils", () => {
     register(api);
     const stateFn = api.handlers.get("@molt/mascot-plugin.state");
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.lastResetAt).toBeUndefined();
   });
 
@@ -748,7 +1119,10 @@ describe("utils", () => {
     toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("exec");
 
@@ -758,7 +1132,10 @@ describe("utils", () => {
     svc!.stop?.();
 
     // State should be fully reset
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
     expect(payload?.state?.lastError).toBeUndefined();
@@ -771,12 +1148,12 @@ describe("utils", () => {
       summarizeToolResultMessage({
         message: "Command exited with code 1",
         stderr: "ENOENT: no such file or directory",
-      })
+      }),
     ).toBe("no such file or directory");
 
     // When the only info IS the exit code, still return it
     expect(
-      summarizeToolResultMessage({ message: "Command exited with code 127" })
+      summarizeToolResultMessage({ message: "Command exited with code 127" }),
     ).toBe("Command exited with code 127");
 
     // undefined returns the string "undefined"
@@ -784,54 +1161,104 @@ describe("utils", () => {
 
     // BigInt primitives are stringified without throwing
     expect(summarizeToolResultMessage(BigInt(42))).toBe("42");
-    expect(summarizeToolResultMessage(BigInt("99999999999999999999"))).toBe("99999999999999999999");
+    expect(summarizeToolResultMessage(BigInt("99999999999999999999"))).toBe(
+      "99999999999999999999",
+    );
 
     // Objects containing BigInt values don't throw during JSON.stringify
-    expect(summarizeToolResultMessage({ error: { code: BigInt(1234) } })).toBe('{"code":"1234"}');
+    expect(summarizeToolResultMessage({ error: { code: BigInt(1234) } })).toBe(
+      '{"code":"1234"}',
+    );
 
     // Top-level arrays (e.g. memory_search, agents_list results)
     expect(summarizeToolResultMessage(["foo", "bar"])).toBe("foo, bar");
-    expect(summarizeToolResultMessage([{ text: "a" }, { text: "b" }])).toBe("a, b");
-    expect(summarizeToolResultMessage([{ name: "agent1" }, { name: "agent2" }])).toBe("agent1, agent2");
+    expect(summarizeToolResultMessage([{ text: "a" }, { text: "b" }])).toBe(
+      "a, b",
+    );
+    expect(
+      summarizeToolResultMessage([{ name: "agent1" }, { name: "agent2" }]),
+    ).toBe("agent1, agent2");
     expect(summarizeToolResultMessage([{ title: "Task A" }])).toBe("Task A");
     expect(summarizeToolResultMessage([])).toBe("empty");
 
     // Non-text content blocks (e.g. image results from vision tools)
-    expect(summarizeToolResultMessage({ content: [{ type: "image", source: { data: "..." } }] })).toBe("image");
-    expect(summarizeToolResultMessage({ content: [{ type: "image" }, { type: "audio" }] })).toBe("image, audio");
+    expect(
+      summarizeToolResultMessage({
+        content: [{ type: "image", source: { data: "..." } }],
+      }),
+    ).toBe("image");
+    expect(
+      summarizeToolResultMessage({
+        content: [{ type: "image" }, { type: "audio" }],
+      }),
+    ).toBe("image, audio");
     // Mixed text + non-text: text wins
-    expect(summarizeToolResultMessage({ content: [{ type: "text", text: "ok" }, { type: "image" }] })).toBe("ok");
+    expect(
+      summarizeToolResultMessage({
+        content: [{ type: "text", text: "ok" }, { type: "image" }],
+      }),
+    ).toBe("ok");
 
     // REST API error fields: detail and description
-    expect(summarizeToolResultMessage({ detail: "rate limit exceeded" })).toBe("rate limit exceeded");
-    expect(summarizeToolResultMessage({ description: "invalid API key" })).toBe("invalid API key");
+    expect(summarizeToolResultMessage({ detail: "rate limit exceeded" })).toBe(
+      "rate limit exceeded",
+    );
+    expect(summarizeToolResultMessage({ description: "invalid API key" })).toBe(
+      "invalid API key",
+    );
     // detail/description are lower priority than stderr/error
-    expect(summarizeToolResultMessage({ error: "auth failed", detail: "see docs" })).toBe("auth failed");
+    expect(
+      summarizeToolResultMessage({ error: "auth failed", detail: "see docs" }),
+    ).toBe("auth failed");
 
     // error as object with .text field
-    expect(summarizeToolResultMessage({ error: { text: "socket hangup" } })).toBe("socket hangup");
+    expect(
+      summarizeToolResultMessage({ error: { text: "socket hangup" } }),
+    ).toBe("socket hangup");
     // error as object with .message takes priority over .text
-    expect(summarizeToolResultMessage({ error: { message: "timeout", text: "fallback" } })).toBe("timeout");
+    expect(
+      summarizeToolResultMessage({
+        error: { message: "timeout", text: "fallback" },
+      }),
+    ).toBe("timeout");
 
     // data.message and data.error paths
-    expect(summarizeToolResultMessage({ data: { message: "rate limited" } })).toBe("rate limited");
-    expect(summarizeToolResultMessage({ data: { error: "quota exceeded" } })).toBe("quota exceeded");
+    expect(
+      summarizeToolResultMessage({ data: { message: "rate limited" } }),
+    ).toBe("rate limited");
+    expect(
+      summarizeToolResultMessage({ data: { error: "quota exceeded" } }),
+    ).toBe("quota exceeded");
 
     // Structured error fallback via JSON.stringify when no stable .message exists
-    expect(summarizeToolResultMessage({ error: { code: 503, status: "unavailable" } })).toBe('{"code":503,"status":"unavailable"}');
+    expect(
+      summarizeToolResultMessage({
+        error: { code: 503, status: "unavailable" },
+      }),
+    ).toBe('{"code":503,"status":"unavailable"}');
 
     // errorMessage and error_message fields (common in REST APIs)
-    expect(summarizeToolResultMessage({ errorMessage: "not found" })).toBe("not found");
-    expect(summarizeToolResultMessage({ error_message: "bad request" })).toBe("bad request");
+    expect(summarizeToolResultMessage({ errorMessage: "not found" })).toBe(
+      "not found",
+    );
+    expect(summarizeToolResultMessage({ error_message: "bad request" })).toBe(
+      "bad request",
+    );
 
     // failure field
-    expect(summarizeToolResultMessage({ failure: "disk full" })).toBe("disk full");
+    expect(summarizeToolResultMessage({ failure: "disk full" })).toBe(
+      "disk full",
+    );
 
     // err field (shorthand used by some tools)
-    expect(summarizeToolResultMessage({ err: "connection reset" })).toBe("connection reset");
+    expect(summarizeToolResultMessage({ err: "connection reset" })).toBe(
+      "connection reset",
+    );
 
     // status: 'failed' triggers isError detection (tested via plugin error mode, but also verify summary)
-    expect(summarizeToolResultMessage({ status: "failed", message: "build broke" })).toBe("build broke");
+    expect(
+      summarizeToolResultMessage({ status: "failed", message: "build broke" }),
+    ).toBe("build broke");
 
     // NaN and Infinity are not finite, should fall through
     expect(summarizeToolResultMessage(NaN)).toBe("tool error");
@@ -855,15 +1282,26 @@ describe("utils", () => {
     toolListener({ phase: "start", sessionKey: "b", tool: "exec" });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     // Most recent tool (session B) should win
     expect(payload?.state?.currentTool).toBe("exec");
 
     // End session B's tool — session A's tool should now show
-    toolListener({ phase: "end", sessionKey: "b", tool: "exec", result: { status: "ok" } });
+    toolListener({
+      phase: "end",
+      sessionKey: "b",
+      tool: "exec",
+      result: { status: "ok" },
+    });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("web_search");
   });
@@ -884,11 +1322,15 @@ describe("utils", () => {
       phase: "end",
       sessionKey: "s1",
       tool: "image",
-      result: "The image shows an error: 404 page not found displayed on screen",
+      result:
+        "The image shows an error: 404 page not found displayed on screen",
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("thinking"); // back to thinking, not error
 
     // tts tool similarly
@@ -900,7 +1342,10 @@ describe("utils", () => {
       result: "error: this is just the text being spoken",
     });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("thinking"); // still not error
   });
 
@@ -914,7 +1359,10 @@ describe("utils", () => {
     const resetFn = api.handlers.get("@molt/mascot-plugin.reset");
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
 
     expect(typeof payload?.state?.startedAt).toBe("number");
     expect(payload.state.startedAt).toBeGreaterThanOrEqual(before);
@@ -923,7 +1371,10 @@ describe("utils", () => {
     const originalStartedAt = payload.state.startedAt;
 
     // Reset should preserve startedAt (it's static metadata)
-    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await resetFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.startedAt).toBe(originalStartedAt);
   });
 
@@ -935,7 +1386,10 @@ describe("utils", () => {
     expect(typeof stateFn).toBe("function");
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
 
     expect(payload?.ok).toBe(true);
     // Version should be a non-empty semver-like string from package.json
@@ -955,28 +1409,50 @@ describe("utils", () => {
     let payload: any;
 
     // Initially zero
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.toolCalls).toBe(0);
     expect(payload?.state?.toolErrors).toBe(0);
 
     // Start and end a tool successfully — increments toolCalls only
     toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
-    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "read",
+      result: { status: "ok" },
+    });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.toolCalls).toBe(1);
     expect(payload?.state?.toolErrors).toBe(0);
 
     // Start and end a tool with error — increments both
     toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
-    toolListener({ phase: "end", sessionKey: "s1", tool: "exec", result: { status: "error", error: "fail" } });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "exec",
+      result: { status: "error", error: "fail" },
+    });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.toolCalls).toBe(2);
     expect(payload?.state?.toolErrors).toBe(1);
 
     // Reset clears counters
-    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await resetFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.toolCalls).toBe(0);
     expect(payload?.state?.toolErrors).toBe(0);
   });
@@ -992,30 +1468,45 @@ describe("utils", () => {
     let payload: any;
 
     // Initially zero
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.agentSessions).toBe(0);
 
     // Start two agents — counter increments per start
     agentListener({ phase: "start", sessionKey: "s1" });
     agentListener({ phase: "start", sessionKey: "s2" });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.agentSessions).toBe(2);
 
     // End one agent — counter stays (cumulative, not active)
     agentListener({ phase: "end", sessionKey: "s1" });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.agentSessions).toBe(2);
 
     // Start another — increments again
     agentListener({ phase: "start", sessionKey: "s3" });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.agentSessions).toBe(3);
 
     // Reset clears it
-    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await resetFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.agentSessions).toBe(0);
   });
 
@@ -1031,42 +1522,68 @@ describe("utils", () => {
     let payload: any;
 
     // Initially zero
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeAgents).toBe(0);
     expect(payload?.state?.activeTools).toBe(0);
 
     // Start an agent — activeAgents increments
     agentListener({ phase: "start", sessionKey: "s1" });
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeAgents).toBe(1);
     expect(payload?.state?.activeTools).toBe(0);
 
     // Start a tool — activeTools increments
     toolListener({ phase: "start", sessionKey: "s1", tool: "exec" });
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeAgents).toBe(1);
     expect(payload?.state?.activeTools).toBe(1);
 
     // Start a nested tool — activeTools increments again
     toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeTools).toBe(2);
 
     // End one tool — activeTools decrements
-    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "read",
+      result: { status: "ok" },
+    });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeTools).toBe(1);
 
     // End agent — activeAgents decrements, tool stack cleared
     agentListener({ phase: "end", sessionKey: "s1" });
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeAgents).toBe(0);
     expect(payload?.state?.activeTools).toBe(0);
 
     // Reset clears counters
     agentListener({ phase: "start", sessionKey: "s2" });
     toolListener({ phase: "start", sessionKey: "s2", tool: "web_search" });
-    await resetFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await resetFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.activeAgents).toBe(0);
     expect(payload?.state?.activeTools).toBe(0);
   });
@@ -1083,24 +1600,43 @@ describe("utils", () => {
     toolListener({ phase: "start", sessionKey: "s1", tool: "read" });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("read");
 
     // End inner tool — should show outer tool
-    toolListener({ phase: "end", sessionKey: "s1", tool: "read", result: { status: "ok" } });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "read",
+      result: { status: "ok" },
+    });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("tool");
     expect(payload?.state?.currentTool).toBe("sessions_spawn");
 
     // End outer tool — triggers scheduleIdle (800ms default delay)
-    toolListener({ phase: "end", sessionKey: "s1", tool: "sessions_spawn", result: { status: "ok" } });
+    toolListener({
+      phase: "end",
+      sessionKey: "s1",
+      tool: "sessions_spawn",
+      result: { status: "ok" },
+    });
 
     // Wait for idle delay to fire (30ms configured above)
     await new Promise((r) => setTimeout(r, 60));
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
   });
@@ -1198,7 +1734,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("web_fetch");
     expect(payload?.state?.lastError?.message).toContain("request timed out");
@@ -1220,7 +1759,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("spawn ENOENT");
   });
@@ -1241,7 +1783,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("rate limit exceeded");
 
@@ -1256,7 +1801,10 @@ describe("utils", () => {
       error: { description: "invalid API key" },
     });
 
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("invalid API key");
   });
@@ -1276,7 +1824,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("ECONNRESET");
   });
@@ -1297,7 +1848,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("permission denied");
   });
@@ -1320,7 +1874,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("thinking");
   });
 
@@ -1329,7 +1886,13 @@ describe("utils", () => {
     expect(allowedAlignments).toContain("bottom-right");
     expect(allowedAlignments).toContain("center");
     expect(allowedAlignments).toHaveLength(9);
-    expect(allowedSizes).toEqual(["tiny", "small", "medium", "large", "xlarge"]);
+    expect(allowedSizes).toEqual([
+      "tiny",
+      "small",
+      "medium",
+      "large",
+      "xlarge",
+    ]);
   });
 
   it("success: false on tool result triggers error mode", async () => {
@@ -1348,9 +1911,14 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
-    expect(payload?.state?.lastError?.message).toContain("DNS resolution failed");
+    expect(payload?.state?.lastError?.message).toContain(
+      "DNS resolution failed",
+    );
   });
 
   it("status: 'failed' on tool result triggers error mode", async () => {
@@ -1369,7 +1937,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("timeout after 30s");
   });
@@ -1390,7 +1961,10 @@ describe("utils", () => {
     });
 
     let payload: any;
-    await stateFn({}, { respond: (_ok: boolean, data: any) => (payload = data) });
+    await stateFn(
+      {},
+      { respond: (_ok: boolean, data: any) => (payload = data) },
+    );
     expect(payload?.state?.mode).toBe("error");
     expect(payload?.state?.lastError?.message).toContain("permission denied");
   });
@@ -1415,7 +1989,9 @@ describe("utils", () => {
     expect(sanitizeToolName("functions.read")).toBe("read");
     expect(sanitizeToolName("multi_tool_use.parallel")).toBe("parallel");
     // Combined: default_api prefix with functions. inside — only strips leading prefix
-    expect(sanitizeToolName("default_api:functions.web_search")).toBe("web_search");
+    expect(sanitizeToolName("default_api:functions.web_search")).toBe(
+      "web_search",
+    );
     // No prefix — pass through unchanged
     expect(sanitizeToolName("exec")).toBe("exec");
     expect(sanitizeToolName("web_search")).toBe("web_search");
@@ -1468,7 +2044,15 @@ describe("utils", () => {
     expect(CONTENT_TOOLS).toBeInstanceOf(Set);
     expect(CONTENT_TOOLS.size).toBeGreaterThan(0);
     // Verify core tools are present
-    for (const tool of ["read", "write", "edit", "exec", "web_fetch", "browser", "image"]) {
+    for (const tool of [
+      "read",
+      "write",
+      "edit",
+      "exec",
+      "web_fetch",
+      "browser",
+      "image",
+    ]) {
       expect(CONTENT_TOOLS.has(tool)).toBe(true);
     }
     // Verify both dash and underscore variants are included for aliased tools
@@ -1527,10 +2111,10 @@ describe("utils", () => {
     expect(ago).toContain(new Date(ts).toISOString());
 
     // Explicit 'ago' style
-    expect(formatTimestampWithAge(ts, now, 'ago')).toBe(ago);
+    expect(formatTimestampWithAge(ts, now, "ago")).toBe(ago);
 
     // 'since' style
-    const since = formatTimestampWithAge(ts, now, 'since');
+    const since = formatTimestampWithAge(ts, now, "since");
     expect(since).toContain("5m");
     expect(since).toContain("(since ");
     expect(since).toContain(new Date(ts).toISOString());

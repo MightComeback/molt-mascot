@@ -1,5 +1,13 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON, coerceFromString } from "../src/prefs.cjs";
+import {
+  createPrefsManager,
+  validatePrefs,
+  PREF_SCHEMA,
+  VALID_PREF_KEYS,
+  formatPrefSchema,
+  exportPrefSchemaJSON,
+  coerceFromString,
+} from "../src/prefs.cjs";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -14,7 +22,9 @@ describe("createPrefsManager", () => {
   });
 
   afterEach(() => {
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
   });
 
   it("load returns empty object when file does not exist", () => {
@@ -43,7 +53,10 @@ describe("createPrefsManager", () => {
   });
 
   it("save merges with existing preferences", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", sizeIndex: 2 }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: "top-left", sizeIndex: 2 }),
+    );
     const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
     mgr.save({ alignment: "bottom-right" });
     mgr.flush();
@@ -58,7 +71,11 @@ describe("createPrefsManager", () => {
     mgr.save({ opacityIndex: 1 });
     mgr.flush();
     const data = JSON.parse(fs.readFileSync(prefsPath, "utf8"));
-    expect(data).toEqual({ alignment: "top-left", sizeIndex: 3, opacityIndex: 1 });
+    expect(data).toEqual({
+      alignment: "top-left",
+      sizeIndex: 3,
+      opacityIndex: 1,
+    });
   });
 
   it("later save patches override earlier ones", () => {
@@ -110,7 +127,10 @@ describe("createPrefsManager", () => {
   });
 
   it("remove deletes a single key from preferences", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", sizeIndex: 2 }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: "top-left", sizeIndex: 2 }),
+    );
     const mgr = createPrefsManager(prefsPath, { debounceMs: 10000 });
     mgr.remove("alignment");
     mgr.flush();
@@ -266,7 +286,10 @@ describe("createPrefsManager", () => {
     });
 
     it("returns falsy values (0, false, empty string) without falling back", () => {
-      fs.writeFileSync(prefsPath, JSON.stringify({ count: 0, enabled: false, name: "" }));
+      fs.writeFileSync(
+        prefsPath,
+        JSON.stringify({ count: 0, enabled: false, name: "" }),
+      );
       const mgr = createPrefsManager(prefsPath);
       expect(mgr.get("count", 99)).toBe(0);
       expect(mgr.get("enabled", true)).toBe(false);
@@ -282,7 +305,10 @@ describe("createPrefsManager", () => {
     });
 
     it("returns keys from persisted preferences", () => {
-      fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", size: "large" }));
+      fs.writeFileSync(
+        prefsPath,
+        JSON.stringify({ alignment: "top-left", size: "large" }),
+      );
       const mgr = createPrefsManager(prefsPath);
       const k = mgr.keys();
       expect(k).toContain("alignment");
@@ -415,14 +441,23 @@ describe("createPrefsManager", () => {
 
 describe("validatePrefs", () => {
   it("passes through valid preferences unchanged", () => {
-    const raw = { alignment: "top-left", sizeIndex: 2, clickThrough: true, padding: 10 };
+    const raw = {
+      alignment: "top-left",
+      sizeIndex: 2,
+      clickThrough: true,
+      padding: 10,
+    };
     const { clean, dropped } = validatePrefs(raw);
     expect(clean).toEqual(raw);
     expect(dropped).toEqual([]);
   });
 
   it("drops unknown keys with reason", () => {
-    const { clean, dropped } = validatePrefs({ alignment: "center", bogus: 42, foo: "bar" });
+    const { clean, dropped } = validatePrefs({
+      alignment: "center",
+      bogus: 42,
+      foo: "bar",
+    });
     expect(clean).toEqual({ alignment: "center" });
     const droppedKeys = dropped.map((d) => d.key);
     expect(droppedKeys).toContain("bogus");
@@ -431,22 +466,41 @@ describe("validatePrefs", () => {
   });
 
   it("drops keys with wrong type and includes reason", () => {
-    const { clean, dropped } = validatePrefs({ alignment: 123, clickThrough: "yes", sizeIndex: "two" });
+    const { clean, dropped } = validatePrefs({
+      alignment: 123,
+      clickThrough: "yes",
+      sizeIndex: "two",
+    });
     expect(clean).toEqual({});
-    expect(dropped.map((d) => d.key)).toEqual(["alignment", "clickThrough", "sizeIndex"]);
+    expect(dropped.map((d) => d.key)).toEqual([
+      "alignment",
+      "clickThrough",
+      "sizeIndex",
+    ]);
     expect(dropped[0].reason).toBe("expected string, got number");
     expect(dropped[1].reason).toBe("expected boolean, got string");
   });
 
   it("drops numbers that fail validation (negative index, NaN padding)", () => {
-    const { clean, dropped } = validatePrefs({ sizeIndex: -1, opacityIndex: 1.5, padding: -10 });
+    const { clean, dropped } = validatePrefs({
+      sizeIndex: -1,
+      opacityIndex: 1.5,
+      padding: -10,
+    });
     expect(clean).toEqual({});
-    expect(dropped.map((d) => d.key)).toEqual(["sizeIndex", "opacityIndex", "padding"]);
+    expect(dropped.map((d) => d.key)).toEqual([
+      "sizeIndex",
+      "opacityIndex",
+      "padding",
+    ]);
     for (const d of dropped) expect(d.reason).toMatch(/failed validation/);
   });
 
   it("drops NaN and Infinity numbers", () => {
-    const { clean, dropped } = validatePrefs({ padding: NaN, sizeIndex: Infinity });
+    const { clean, dropped } = validatePrefs({
+      padding: NaN,
+      sizeIndex: Infinity,
+    });
     expect(clean).toEqual({});
     const droppedKeys = dropped.map((d) => d.key);
     expect(droppedKeys).toContain("padding");
@@ -454,10 +508,14 @@ describe("validatePrefs", () => {
   });
 
   it("validates draggedPosition object shape", () => {
-    const { clean: good } = validatePrefs({ draggedPosition: { x: 100, y: 200 } });
+    const { clean: good } = validatePrefs({
+      draggedPosition: { x: 100, y: 200 },
+    });
     expect(good.draggedPosition).toEqual({ x: 100, y: 200 });
 
-    const { clean: bad, dropped } = validatePrefs({ draggedPosition: { x: "a", y: 10 } });
+    const { clean: bad, dropped } = validatePrefs({
+      draggedPosition: { x: "a", y: 10 },
+    });
     expect(bad.draggedPosition).toBeUndefined();
     expect(dropped.map((d) => d.key)).toContain("draggedPosition");
   });
@@ -550,7 +608,9 @@ describe("validatePrefs", () => {
     expect(m1.reconnectMaxMs).toBe(60000);
 
     // reconnectMaxMs: non-integer rejected
-    const { clean: m2, dropped: d5 } = validatePrefs({ reconnectMaxMs: 1000.5 });
+    const { clean: m2, dropped: d5 } = validatePrefs({
+      reconnectMaxMs: 1000.5,
+    });
     expect(m2.reconnectMaxMs).toBeUndefined();
     expect(d5.map((d) => d.key)).toContain("reconnectMaxMs");
 
@@ -563,7 +623,9 @@ describe("validatePrefs", () => {
     expect(s2.staleConnectionMs).toBe(0);
 
     // staleConnectionMs: non-integer rejected
-    const { clean: s3, dropped: d6 } = validatePrefs({ staleConnectionMs: 500.5 });
+    const { clean: s3, dropped: d6 } = validatePrefs({
+      staleConnectionMs: 500.5,
+    });
     expect(s3.staleConnectionMs).toBeUndefined();
     expect(d6.map((d) => d.key)).toContain("staleConnectionMs");
 
@@ -577,12 +639,16 @@ describe("validatePrefs", () => {
     expect(c1.staleCheckIntervalMs).toBe(10000);
 
     // staleCheckIntervalMs: non-integer rejected
-    const { clean: c2, dropped: d8 } = validatePrefs({ staleCheckIntervalMs: 2000.7 });
+    const { clean: c2, dropped: d8 } = validatePrefs({
+      staleCheckIntervalMs: 2000.7,
+    });
     expect(c2.staleCheckIntervalMs).toBeUndefined();
     expect(d8.map((d) => d.key)).toContain("staleCheckIntervalMs");
 
     // staleCheckIntervalMs: negative rejected
-    const { clean: c3, dropped: d9 } = validatePrefs({ staleCheckIntervalMs: -100 });
+    const { clean: c3, dropped: d9 } = validatePrefs({
+      staleCheckIntervalMs: -100,
+    });
     expect(c3.staleCheckIntervalMs).toBeUndefined();
     expect(d9.map((d) => d.key)).toContain("staleCheckIntervalMs");
   });
@@ -617,11 +683,16 @@ describe("loadValidated", () => {
   });
 
   afterEach(() => {
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
   });
 
   it("returns clean prefs and empty dropped for valid data", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", clickThrough: true }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: "top-left", clickThrough: true }),
+    );
     const mgr = createPrefsManager(prefsPath);
     const { clean, dropped } = mgr.loadValidated();
     expect(clean).toEqual({ alignment: "top-left", clickThrough: true });
@@ -629,7 +700,10 @@ describe("loadValidated", () => {
   });
 
   it("strips unknown keys from persisted file", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "center", bogus: 42 }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: "center", bogus: 42 }),
+    );
     const mgr = createPrefsManager(prefsPath);
     const { clean, dropped } = mgr.loadValidated();
     expect(clean).toEqual({ alignment: "center" });
@@ -637,7 +711,10 @@ describe("loadValidated", () => {
   });
 
   it("drops invalid values", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: 123, padding: -5 }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: 123, padding: -5 }),
+    );
     const mgr = createPrefsManager(prefsPath);
     const { clean, dropped } = mgr.loadValidated();
     expect(clean).toEqual({});
@@ -662,7 +739,9 @@ describe("getSnapshot / toJSON", () => {
   });
 
   afterEach(() => {
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
   });
 
   it("getSnapshot returns expected shape when empty", () => {
@@ -714,7 +793,17 @@ describe("getSnapshot / toJSON", () => {
 
 describe("PREF_SCHEMA", () => {
   it("covers all expected preference keys", () => {
-    const expectedKeys = ["alignment", "sizeIndex", "opacityIndex", "opacity", "padding", "clickThrough", "hideText", "gatewayUrl", "draggedPosition"];
+    const expectedKeys = [
+      "alignment",
+      "sizeIndex",
+      "opacityIndex",
+      "opacity",
+      "padding",
+      "clickThrough",
+      "hideText",
+      "gatewayUrl",
+      "draggedPosition",
+    ];
     for (const key of expectedKeys) {
       expect(PREF_SCHEMA[key]).toBeDefined();
     }
@@ -723,13 +812,17 @@ describe("PREF_SCHEMA", () => {
 
 describe("validatePrefs gatewayUrl", () => {
   it("accepts valid ws:// URL", () => {
-    const { clean, dropped } = validatePrefs({ gatewayUrl: "ws://127.0.0.1:18789" });
+    const { clean, dropped } = validatePrefs({
+      gatewayUrl: "ws://127.0.0.1:18789",
+    });
     expect(clean.gatewayUrl).toBe("ws://127.0.0.1:18789");
     expect(dropped).toEqual([]);
   });
 
   it("accepts valid wss:// URL", () => {
-    const { clean } = validatePrefs({ gatewayUrl: "wss://gateway.example.com/ws" });
+    const { clean } = validatePrefs({
+      gatewayUrl: "wss://gateway.example.com/ws",
+    });
     expect(clean.gatewayUrl).toBe("wss://gateway.example.com/ws");
   });
 
@@ -740,21 +833,23 @@ describe("validatePrefs gatewayUrl", () => {
   });
 
   it("rejects http:// URL", () => {
-    const { clean, dropped } = validatePrefs({ gatewayUrl: "http://example.com" });
+    const { clean, dropped } = validatePrefs({
+      gatewayUrl: "http://example.com",
+    });
     expect(clean.gatewayUrl).toBeUndefined();
-    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+    expect(dropped.some((d) => d.key === "gatewayUrl")).toBe(true);
   });
 
   it("rejects random string", () => {
     const { clean, dropped } = validatePrefs({ gatewayUrl: "not-a-url" });
     expect(clean.gatewayUrl).toBeUndefined();
-    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+    expect(dropped.some((d) => d.key === "gatewayUrl")).toBe(true);
   });
 
   it("rejects ws:// with no host", () => {
     const { clean, dropped } = validatePrefs({ gatewayUrl: "ws://" });
     expect(clean.gatewayUrl).toBeUndefined();
-    expect(dropped.some(d => d.key === "gatewayUrl")).toBe(true);
+    expect(dropped.some((d) => d.key === "gatewayUrl")).toBe(true);
   });
 });
 
@@ -768,7 +863,9 @@ describe("saveValidated", () => {
   });
 
   afterEach(() => {
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
   });
 
   it("persists valid keys and drops invalid ones", () => {
@@ -785,7 +882,7 @@ describe("saveValidated", () => {
       expect.arrayContaining([
         expect.objectContaining({ key: "bogus", reason: "unknown key" }),
         expect.objectContaining({ key: "sizeIndex" }),
-      ])
+      ]),
     );
     const saved = mgr.load();
     expect(saved.alignment).toBe("top-left");
@@ -831,11 +928,16 @@ describe("toString", () => {
   });
 
   afterEach(() => {
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
   });
 
   it("returns summary with key count and no pending when clean", () => {
-    fs.writeFileSync(prefsPath, JSON.stringify({ alignment: "top-left", clickThrough: true }));
+    fs.writeFileSync(
+      prefsPath,
+      JSON.stringify({ alignment: "top-left", clickThrough: true }),
+    );
     const mgr = createPrefsManager(prefsPath);
     expect(mgr.toString()).toBe("PrefsManager<2 keys, no pending>");
   });
@@ -872,13 +974,13 @@ describe("validatePrefs timing prefs", () => {
   it("rejects negative sleepThresholdS", () => {
     const { clean, dropped } = validatePrefs({ sleepThresholdS: -10 });
     expect(clean.sleepThresholdS).toBeUndefined();
-    expect(dropped.some(d => d.key === "sleepThresholdS")).toBe(true);
+    expect(dropped.some((d) => d.key === "sleepThresholdS")).toBe(true);
   });
 
   it("rejects non-number sleepThresholdS", () => {
     const { clean, dropped } = validatePrefs({ sleepThresholdS: "120" });
     expect(clean.sleepThresholdS).toBeUndefined();
-    expect(dropped.some(d => d.key === "sleepThresholdS")).toBe(true);
+    expect(dropped.some((d) => d.key === "sleepThresholdS")).toBe(true);
   });
 
   it("accepts valid idleDelayMs", () => {
@@ -889,7 +991,7 @@ describe("validatePrefs timing prefs", () => {
   it("rejects non-integer idleDelayMs", () => {
     const { clean, dropped } = validatePrefs({ idleDelayMs: 500.5 });
     expect(clean.idleDelayMs).toBeUndefined();
-    expect(dropped.some(d => d.key === "idleDelayMs")).toBe(true);
+    expect(dropped.some((d) => d.key === "idleDelayMs")).toBe(true);
   });
 
   it("accepts valid errorHoldMs", () => {
@@ -900,7 +1002,7 @@ describe("validatePrefs timing prefs", () => {
   it("rejects negative errorHoldMs", () => {
     const { clean, dropped } = validatePrefs({ errorHoldMs: -1 });
     expect(clean.errorHoldMs).toBeUndefined();
-    expect(dropped.some(d => d.key === "errorHoldMs")).toBe(true);
+    expect(dropped.some((d) => d.key === "errorHoldMs")).toBe(true);
   });
 });
 
@@ -911,14 +1013,26 @@ describe("VALID_PREF_KEYS", () => {
   });
 
   it("matches PREF_SCHEMA keys exactly", () => {
-    expect([...VALID_PREF_KEYS].sort()).toEqual(Object.keys(PREF_SCHEMA).sort());
+    expect([...VALID_PREF_KEYS].sort()).toEqual(
+      Object.keys(PREF_SCHEMA).sort(),
+    );
   });
 
   it("contains all expected preference keys", () => {
     const expected = [
-      "alignment", "sizeIndex", "size", "opacityIndex", "padding",
-      "opacity", "clickThrough", "hideText", "gatewayUrl",
-      "draggedPosition", "sleepThresholdS", "idleDelayMs", "errorHoldMs",
+      "alignment",
+      "sizeIndex",
+      "size",
+      "opacityIndex",
+      "padding",
+      "opacity",
+      "clickThrough",
+      "hideText",
+      "gatewayUrl",
+      "draggedPosition",
+      "sleepThresholdS",
+      "idleDelayMs",
+      "errorHoldMs",
       "reducedMotion",
     ];
     for (const key of expected) {
@@ -969,7 +1083,7 @@ describe("formatPrefSchema", () => {
   });
 
   it("has one line per key", () => {
-    const lines = formatPrefSchema().split('\n');
+    const lines = formatPrefSchema().split("\n");
     expect(lines.length).toBe(VALID_PREF_KEYS.length);
   });
 
@@ -1036,7 +1150,9 @@ describe("coerceFromString", () => {
 
   it("coerces boolean falsy values", () => {
     for (const v of ["false", "0", "no", "off", "FALSE", "No", "OFF"]) {
-      expect(coerceFromString(v, { type: "boolean" })).toEqual({ value: false });
+      expect(coerceFromString(v, { type: "boolean" })).toEqual({
+        value: false,
+      });
     }
   });
 
@@ -1056,28 +1172,42 @@ describe("coerceFromString", () => {
   it("returns error for non-finite numbers", () => {
     expect(coerceFromString("abc", { type: "number" })).toHaveProperty("error");
     expect(coerceFromString("NaN", { type: "number" })).toHaveProperty("error");
-    expect(coerceFromString("Infinity", { type: "number" })).toHaveProperty("error");
+    expect(coerceFromString("Infinity", { type: "number" })).toHaveProperty(
+      "error",
+    );
   });
 
   it("passes strings through unchanged", () => {
-    expect(coerceFromString("bottom-right", { type: "string" })).toEqual({ value: "bottom-right" });
+    expect(coerceFromString("bottom-right", { type: "string" })).toEqual({
+      value: "bottom-right",
+    });
     expect(coerceFromString("", { type: "string" })).toEqual({ value: "" });
   });
 
   it("coerces valid JSON for object type", () => {
-    expect(coerceFromString('{"x":1,"y":2}', { type: "object" })).toEqual({ value: { x: 1, y: 2 } });
+    expect(coerceFromString('{"x":1,"y":2}', { type: "object" })).toEqual({
+      value: { x: 1, y: 2 },
+    });
   });
 
   it("returns error for invalid JSON object", () => {
-    expect(coerceFromString("not-json", { type: "object" })).toHaveProperty("error");
+    expect(coerceFromString("not-json", { type: "object" })).toHaveProperty(
+      "error",
+    );
   });
 
   it("returns error for invalid schema", () => {
-    expect(coerceFromString("foo", null)).toEqual({ error: "invalid schema entry" });
-    expect(coerceFromString("foo", {})).toEqual({ error: "invalid schema entry" });
+    expect(coerceFromString("foo", null)).toEqual({
+      error: "invalid schema entry",
+    });
+    expect(coerceFromString("foo", {})).toEqual({
+      error: "invalid schema entry",
+    });
   });
 
   it("passes through unknown types as string", () => {
-    expect(coerceFromString("bar", { type: "bigint" })).toEqual({ value: "bar" });
+    expect(coerceFromString("bar", { type: "bigint" })).toEqual({
+      value: "bar",
+    });
   });
 });

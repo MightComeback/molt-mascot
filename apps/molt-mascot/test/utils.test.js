@@ -129,66 +129,83 @@ describe("cleanErrorString", () => {
   });
 
   it("handles exit code lines", () => {
-    expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe("Details here");
+    expect(cleanErrorString("Command exited with code 1\nDetails here")).toBe(
+      "Details here",
+    );
   });
 
   it("prefers concrete error lines over info lines", () => {
-    expect(cleanErrorString("info: starting\nError: Failed to connect\nmore"))
-      .toBe("Failed to connect");
+    expect(
+      cleanErrorString("info: starting\nError: Failed to connect\nmore"),
+    ).toBe("Failed to connect");
   });
 
   it("handles Python tracebacks", () => {
     expect(
       cleanErrorString(
-        "Traceback (most recent call last):\n  File \"main.py\", line 1\nValueError: bad input"
-      )
+        'Traceback (most recent call last):\n  File "main.py", line 1\nValueError: bad input',
+      ),
     ).toBe("bad input");
   });
 });
 
 describe("isMissingMethodResponse", () => {
   it("returns false for successful responses", () => {
-    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(false);
+    expect(isMissingMethodResponse({ ok: true, payload: { ok: true } })).toBe(
+      false,
+    );
   });
 
   it("detects method not found", () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { message: "method not found" } },
-    })).toBe(true);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        payload: { error: { message: "method not found" } },
+      }),
+    ).toBe(true);
   });
 
   it("detects unknown method", () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      error: { message: "unknown method" },
-    })).toBe(true);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        error: { message: "unknown method" },
+      }),
+    ).toBe(true);
   });
 
   it("detects JSON-RPC -32601 error code", () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { code: -32601, message: "Method not found" } },
-    })).toBe(true);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        payload: { error: { code: -32601, message: "Method not found" } },
+      }),
+    ).toBe(true);
     // numeric code alone, no descriptive message
-    expect(isMissingMethodResponse({
-      ok: false,
-      error: { code: -32601 },
-    })).toBe(true);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        error: { code: -32601 },
+      }),
+    ).toBe(true);
   });
 
   it("detects unknown rpc method", () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      error: "unknown rpc method",
-    })).toBe(true);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        error: "unknown rpc method",
+      }),
+    ).toBe(true);
   });
 
   it("returns false for other errors", () => {
-    expect(isMissingMethodResponse({
-      ok: false,
-      payload: { error: { message: "auth denied" } },
-    })).toBe(false);
+    expect(
+      isMissingMethodResponse({
+        ok: false,
+        payload: { error: { message: "auth denied" } },
+      }),
+    ).toBe(false);
   });
 });
 
@@ -268,7 +285,18 @@ describe("formatElapsed", () => {
 
 describe("isTruthyEnv", () => {
   it("returns true for truthy strings", () => {
-    for (const v of ["1", "true", "t", "yes", "y", "on", "TRUE", "Yes", " 1 ", " ON "]) {
+    for (const v of [
+      "1",
+      "true",
+      "t",
+      "yes",
+      "y",
+      "on",
+      "TRUE",
+      "Yes",
+      " 1 ",
+      " ON ",
+    ]) {
       expect(isTruthyEnv(v)).toBe(true);
     }
   });
@@ -370,28 +398,52 @@ describe("getFrameIntervalMs", () => {
 
 describe("getReconnectDelayMs", () => {
   it("returns base delay for attempt 0", () => {
-    const delay = getReconnectDelayMs(0, { baseMs: 1500, maxMs: 30000, jitterFraction: 0 });
+    const delay = getReconnectDelayMs(0, {
+      baseMs: 1500,
+      maxMs: 30000,
+      jitterFraction: 0,
+    });
     expect(delay).toBe(1500);
   });
 
   it("doubles delay with each attempt", () => {
-    const d0 = getReconnectDelayMs(0, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
-    const d1 = getReconnectDelayMs(1, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
-    const d2 = getReconnectDelayMs(2, { baseMs: 1000, maxMs: 100000, jitterFraction: 0 });
+    const d0 = getReconnectDelayMs(0, {
+      baseMs: 1000,
+      maxMs: 100000,
+      jitterFraction: 0,
+    });
+    const d1 = getReconnectDelayMs(1, {
+      baseMs: 1000,
+      maxMs: 100000,
+      jitterFraction: 0,
+    });
+    const d2 = getReconnectDelayMs(2, {
+      baseMs: 1000,
+      maxMs: 100000,
+      jitterFraction: 0,
+    });
     expect(d0).toBe(1000);
     expect(d1).toBe(2000);
     expect(d2).toBe(4000);
   });
 
   it("caps at maxMs", () => {
-    const delay = getReconnectDelayMs(20, { baseMs: 1500, maxMs: 30000, jitterFraction: 0 });
+    const delay = getReconnectDelayMs(20, {
+      baseMs: 1500,
+      maxMs: 30000,
+      jitterFraction: 0,
+    });
     expect(delay).toBe(30000);
   });
 
   it("adds jitter within expected range", () => {
     // With jitterFraction=0.2, delay should be in [base, base * 1.2]
     for (let i = 0; i < 20; i++) {
-      const delay = getReconnectDelayMs(0, { baseMs: 1000, maxMs: 30000, jitterFraction: 0.2 });
+      const delay = getReconnectDelayMs(0, {
+        baseMs: 1000,
+        maxMs: 30000,
+        jitterFraction: 0.2,
+      });
       expect(delay).toBeGreaterThanOrEqual(1000);
       expect(delay).toBeLessThanOrEqual(1200);
     }
@@ -413,76 +465,140 @@ describe("buildTooltip", () => {
   });
 
   it("includes error message when provided", () => {
-    const tip = buildTooltip({ displayMode: "error", durationSec: 5, lastErrorMessage: "timeout" });
+    const tip = buildTooltip({
+      displayMode: "error",
+      durationSec: 5,
+      lastErrorMessage: "timeout",
+    });
     expect(tip).toContain("— timeout");
   });
 
   it("includes ghost mode indicator", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isClickThrough: true });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      isClickThrough: true,
+    });
     expect(tip).toContain("ghost mode");
   });
 
   it("includes connected URL", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectedUrl: "ws://localhost:18789" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectedUrl: "ws://localhost:18789",
+    });
     expect(tip).toContain("ws://localhost:18789");
   });
 
   it("includes retry count when disconnected", () => {
-    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, reconnectAttempt: 3, connectedSince: null });
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 10,
+      reconnectAttempt: 3,
+      connectedSince: null,
+    });
     expect(tip).toContain("retry #3");
   });
 
   it("shows disconnected duration when lastDisconnectedAt is provided and not connected", () => {
     const now = Date.now();
-    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, lastDisconnectedAt: now - 120_000, connectedSince: null, now });
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 10,
+      lastDisconnectedAt: now - 120_000,
+      connectedSince: null,
+      now,
+    });
     expect(tip).toContain("disconnected 2m ago");
   });
 
   it("treats connectedSince=0 as connected (epoch timestamp)", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectedSince: 0, now: 60000 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectedSince: 0,
+      now: 60000,
+    });
     expect(tip).toContain("connected 1m");
     expect(tip).not.toContain("retry");
   });
 
   it("omits disconnected duration when connected", () => {
     const now = Date.now();
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, lastDisconnectedAt: now - 60_000, connectedSince: now - 30_000, now });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      lastDisconnectedAt: now - 60_000,
+      connectedSince: now - 30_000,
+      now,
+    });
     expect(tip).not.toContain("disconnected");
   });
 
   it("omits disconnected duration when lastDisconnectedAt is null", () => {
-    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastDisconnectedAt: null, connectedSince: null });
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 5,
+      lastDisconnectedAt: null,
+      connectedSince: null,
+    });
     expect(tip).not.toContain("ago");
   });
 
   it("omits retry count when connected", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, reconnectAttempt: 3, connectedSince: Date.now() });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      reconnectAttempt: 3,
+      connectedSince: Date.now(),
+    });
     expect(tip).not.toContain("retry");
   });
 
   it("includes tool call stats", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 42, pluginToolErrors: 3 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      pluginToolCalls: 42,
+      pluginToolErrors: 3,
+    });
     expect(tip).toContain("42 calls");
     expect(tip).toContain("3 errors");
     expect(tip).toContain("93% ok");
   });
 
   it("omits success rate when no tool errors", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 10, pluginToolErrors: 0 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      pluginToolCalls: 10,
+      pluginToolErrors: 0,
+    });
     expect(tip).toContain("10 calls");
     expect(tip).not.toContain("errors");
     expect(tip).not.toContain("% ok");
   });
 
   it("formats large tool counts with compact notation", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginToolCalls: 1500, pluginToolErrors: 200 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      pluginToolCalls: 1500,
+      pluginToolErrors: 200,
+    });
     expect(tip).toContain("1.5K calls");
     expect(tip).toContain("200 errors");
     expect(tip).toContain("87% ok");
   });
 
   it("includes version info", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, appVersion: "1.2.3", pluginVersion: "0.5.0" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      appVersion: "1.2.3",
+      pluginVersion: "0.5.0",
+    });
     expect(tip).toContain("v1.2.3");
     expect(tip).toContain("plugin v0.5.0");
   });
@@ -493,107 +609,188 @@ describe("buildTooltip", () => {
   });
 
   it("includes current tool name when in tool mode", () => {
-    const tip = buildTooltip({ displayMode: "tool", durationSec: 5, currentTool: "web_search" });
+    const tip = buildTooltip({
+      displayMode: "tool",
+      durationSec: 5,
+      currentTool: "web_search",
+    });
     expect(tip).toContain("(web_search)");
   });
 
   it("omits tool name when not in tool mode", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 5, currentTool: "web_search" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 5,
+      currentTool: "web_search",
+    });
     expect(tip).not.toContain("web_search");
   });
 
   it("includes size label when non-default", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sizeLabel: "large" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      sizeLabel: "large",
+    });
     expect(tip).toContain("large");
   });
 
   it("omits size label when medium (default)", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sizeLabel: "medium" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      sizeLabel: "medium",
+    });
     expect(tip).not.toContain("medium");
   });
 
   it("includes opacity when below 100%", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, opacity: 0.6 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      opacity: 0.6,
+    });
     expect(tip).toContain("60%");
   });
 
   it("omits opacity when at 100%", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, opacity: 1 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      opacity: 1,
+    });
     expect(tip).not.toContain("%");
   });
 
   it("includes alignment when non-default", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: "top-left" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      alignment: "top-left",
+    });
     expect(tip).toContain("top-left");
   });
 
   it("omits alignment when bottom-right (default)", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: "bottom-right" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      alignment: "bottom-right",
+    });
     expect(tip).not.toContain("bottom-right");
   });
 
   it("omits alignment when null/undefined", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, alignment: null });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      alignment: null,
+    });
     expect(tip).not.toContain("null");
   });
 
   it("shows plugin uptime when pluginStartedAt is provided", () => {
     const now = Date.now();
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginStartedAt: now - 3600_000, now });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      pluginStartedAt: now - 3600_000,
+      now,
+    });
     expect(tip).toContain("plugin up 1h");
   });
 
   it("omits plugin uptime when pluginStartedAt is null", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, pluginStartedAt: null });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      pluginStartedAt: null,
+    });
     expect(tip).not.toContain("plugin up");
   });
 
   it("shows text hidden indicator when isTextHidden is true", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: true });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      isTextHidden: true,
+    });
     expect(tip).toContain("text hidden");
   });
 
   it("omits text hidden indicator when isTextHidden is false", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, isTextHidden: false });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      isTextHidden: false,
+    });
     expect(tip).not.toContain("text hidden");
   });
 
   it("shows reconnect count when sessionConnectCount > 1", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 4 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      sessionConnectCount: 4,
+    });
     expect(tip).toContain("reconnected 3×");
   });
 
   it("omits reconnect count when sessionConnectCount is 1 (no flaps)", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 1 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      sessionConnectCount: 1,
+    });
     expect(tip).not.toContain("reconnected");
   });
 
   it("omits reconnect count when sessionConnectCount is 0 or not provided", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, sessionConnectCount: 0 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      sessionConnectCount: 0,
+    });
     expect(tip).not.toContain("reconnected");
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip2).not.toContain("reconnected");
   });
 
   it("shows connectionUptimePct when below 100%", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: 85 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionUptimePct: 85,
+    });
     expect(tip).toContain("85% connected");
   });
 
   it("omits connectionUptimePct when 100%", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: 100 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionUptimePct: 100,
+    });
     expect(tip).not.toContain("% connected");
   });
 
   it("omits connectionUptimePct when null or not provided", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, connectionUptimePct: null });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      connectionUptimePct: null,
+    });
     expect(tip).not.toContain("% connected");
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip2).not.toContain("% connected");
   });
 
   it("includes lastCloseDetail when disconnected", () => {
-    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 5, lastCloseDetail: "code 1006" });
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 5,
+      lastCloseDetail: "code 1006",
+    });
     expect(tip).toContain("last close: code 1006");
   });
 
@@ -631,12 +828,20 @@ describe("buildTooltip", () => {
   });
 
   it("includes latencyMs when provided", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 42 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 42,
+    });
     expect(tip).toContain("42ms");
   });
 
   it("omits latencyMs when null or undefined", () => {
-    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: null });
+    const tip1 = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: null,
+    });
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip1).not.toContain("ms");
     // "ms" appears in formatDuration output for durations like "0s", so check no standalone ms
@@ -644,20 +849,37 @@ describe("buildTooltip", () => {
   });
 
   it("includes latencyMs of 0", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 0 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 0,
+    });
     expect(tip).toContain("< 1ms");
   });
 
   it("appends connection quality label from instant latency", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 10 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 10,
+    });
     expect(tip).toContain("[excellent]");
   });
 
   it("uses median for quality label when latencyStats available", () => {
     // Instant latency is 400ms (fair) but median is 30ms (excellent) — should use median
     const tip = buildTooltip({
-      displayMode: "idle", durationSec: 0, latencyMs: 400,
-      latencyStats: { min: 10, max: 500, avg: 100, median: 30, p95: 450, samples: 10 },
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 400,
+      latencyStats: {
+        min: 10,
+        max: 500,
+        avg: 100,
+        median: 30,
+        p95: 450,
+        samples: 10,
+      },
     });
     expect(tip).toContain("[excellent]");
     expect(tip).not.toContain("[fair]");
@@ -665,7 +887,9 @@ describe("buildTooltip", () => {
 
   it("falls back to instant latency for quality when stats have 1 sample", () => {
     const tip = buildTooltip({
-      displayMode: "idle", durationSec: 0, latencyMs: 200,
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 200,
       latencyStats: { min: 200, max: 200, avg: 200, median: 200, samples: 1 },
     });
     expect(tip).toContain("[fair]");
@@ -673,40 +897,84 @@ describe("buildTooltip", () => {
 
   it("shows jitter when it exceeds 50% of median", () => {
     const tip = buildTooltip({
-      displayMode: "idle", durationSec: 0, latencyMs: 50,
-      latencyStats: { min: 10, max: 200, avg: 80, median: 50, p95: 180, jitter: 40, samples: 10 },
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyStats: {
+        min: 10,
+        max: 200,
+        avg: 80,
+        median: 50,
+        p95: 180,
+        jitter: 40,
+        samples: 10,
+      },
     });
     expect(tip).toContain("jitter 40ms");
   });
 
   it("omits jitter when below 50% of median", () => {
     const tip = buildTooltip({
-      displayMode: "idle", durationSec: 0, latencyMs: 50,
-      latencyStats: { min: 10, max: 200, avg: 80, median: 100, p95: 180, jitter: 40, samples: 10 },
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyStats: {
+        min: 10,
+        max: 200,
+        avg: 80,
+        median: 100,
+        p95: 180,
+        jitter: 40,
+        samples: 10,
+      },
     });
     expect(tip).not.toContain("jitter");
   });
 
   it("omits jitter when not present in stats", () => {
     const tip = buildTooltip({
-      displayMode: "idle", durationSec: 0, latencyMs: 50,
-      latencyStats: { min: 10, max: 200, avg: 80, median: 50, p95: 180, samples: 10 },
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyStats: {
+        min: 10,
+        max: 200,
+        avg: 80,
+        median: 50,
+        p95: 180,
+        samples: 10,
+      },
     });
     expect(tip).not.toContain("jitter");
   });
 
   it("shows active agents and tools when non-zero", () => {
-    const tip = buildTooltip({ displayMode: "thinking", durationSec: 5, activeAgents: 2, activeTools: 3 });
+    const tip = buildTooltip({
+      displayMode: "thinking",
+      durationSec: 5,
+      activeAgents: 2,
+      activeTools: 3,
+    });
     expect(tip).toContain("2 agents, 3 tools");
   });
 
   it("uses singular form for 1 agent/tool", () => {
-    const tip = buildTooltip({ displayMode: "tool", durationSec: 1, activeAgents: 1, activeTools: 1 });
+    const tip = buildTooltip({
+      displayMode: "tool",
+      durationSec: 1,
+      activeAgents: 1,
+      activeTools: 1,
+    });
     expect(tip).toContain("1 agent, 1 tool");
   });
 
   it("omits active agents/tools when both zero", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, activeAgents: 0, activeTools: 0 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      activeAgents: 0,
+      activeTools: 0,
+    });
     expect(tip).not.toContain("agent");
     expect(tip).not.toContain("tool");
   });
@@ -717,18 +985,30 @@ describe("buildTooltip", () => {
   });
 
   it("shows agentSessions count when > 0", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 15 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      agentSessions: 15,
+    });
     expect(tip).toContain("15 sessions");
   });
 
   it("shows singular session label when agentSessions is 1", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 1 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      agentSessions: 1,
+    });
     expect(tip).toContain("1 session");
     expect(tip).not.toContain("1 sessions");
   });
 
   it("omits agentSessions when zero", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, agentSessions: 0 });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      agentSessions: 0,
+    });
     expect(tip).not.toMatch(/\d+ sessions?/);
   });
 
@@ -738,12 +1018,21 @@ describe("buildTooltip", () => {
   });
 
   it("shows targetUrl when disconnected", () => {
-    const tip = buildTooltip({ displayMode: "disconnected", durationSec: 10, targetUrl: "ws://127.0.0.1:18789" });
+    const tip = buildTooltip({
+      displayMode: "disconnected",
+      durationSec: 10,
+      targetUrl: "ws://127.0.0.1:18789",
+    });
     expect(tip).toContain("→ ws://127.0.0.1:18789");
   });
 
   it("omits targetUrl when connected", () => {
-    const tip = buildTooltip({ displayMode: "connected", durationSec: 10, connectedSince: Date.now() - 5000, targetUrl: "ws://127.0.0.1:18789" });
+    const tip = buildTooltip({
+      displayMode: "connected",
+      durationSec: 10,
+      connectedSince: Date.now() - 5000,
+      targetUrl: "ws://127.0.0.1:18789",
+    });
     expect(tip).not.toContain("→ ws://127.0.0.1:18789");
   });
 
@@ -754,24 +1043,41 @@ describe("buildTooltip", () => {
 
   it("shows lastResetAt when provided", () => {
     const now = Date.now();
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, lastResetAt: now - 300_000, now });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      lastResetAt: now - 300_000,
+      now,
+    });
     expect(tip).toContain("reset 5m ago");
   });
 
   it("omits lastResetAt when not provided or zero", () => {
     const tip = buildTooltip({ displayMode: "idle", durationSec: 0 });
     expect(tip).not.toContain("reset");
-    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0, lastResetAt: 0 });
+    const tip2 = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      lastResetAt: 0,
+    });
     expect(tip2).not.toContain("reset");
   });
 
   it("shows degraded health status", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "degraded" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      healthStatus: "degraded",
+    });
     expect(tip).toContain("⚠️ degraded");
   });
 
   it("shows unhealthy health status", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "unhealthy" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      healthStatus: "unhealthy",
+    });
     expect(tip).toContain("🔴 unhealthy");
   });
 
@@ -803,7 +1109,11 @@ describe("buildTooltip", () => {
   });
 
   it("omits health status when healthy or not provided", () => {
-    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, healthStatus: "healthy" });
+    const tip1 = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      healthStatus: "healthy",
+    });
     expect(tip1).not.toContain("degraded");
     expect(tip1).not.toContain("unhealthy");
     const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0 });
@@ -812,32 +1122,60 @@ describe("buildTooltip", () => {
   });
 
   it("shows rising latency trend arrow", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "rising" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyTrend: "rising",
+    });
     expect(tip).toContain("↑");
   });
 
   it("shows falling latency trend arrow", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "falling" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyTrend: "falling",
+    });
     expect(tip).toContain("↓");
   });
 
   it("omits trend arrow when stable", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: "stable" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyTrend: "stable",
+    });
     expect(tip).not.toContain("↑");
     expect(tip).not.toContain("↓");
   });
 
   it("omits trend arrow when latencyTrend is null or not provided", () => {
-    const tip1 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50, latencyTrend: null });
+    const tip1 = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+      latencyTrend: null,
+    });
     expect(tip1).not.toContain("↑");
     expect(tip1).not.toContain("↓");
-    const tip2 = buildTooltip({ displayMode: "idle", durationSec: 0, latencyMs: 50 });
+    const tip2 = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyMs: 50,
+    });
     expect(tip2).not.toContain("↑");
     expect(tip2).not.toContain("↓");
   });
 
   it("omits trend arrow when latencyMs is not provided", () => {
-    const tip = buildTooltip({ displayMode: "idle", durationSec: 0, latencyTrend: "rising" });
+    const tip = buildTooltip({
+      displayMode: "idle",
+      durationSec: 0,
+      latencyTrend: "rising",
+    });
     expect(tip).not.toContain("↑");
   });
 
@@ -879,11 +1217,15 @@ describe("buildTooltip", () => {
 
 describe("normalizeWsUrl", () => {
   it("converts http:// to ws://", () => {
-    expect(normalizeWsUrl("http://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+    expect(normalizeWsUrl("http://127.0.0.1:18789")).toBe(
+      "ws://127.0.0.1:18789",
+    );
   });
 
   it("converts https:// to wss://", () => {
-    expect(normalizeWsUrl("https://gateway.example.com/ws")).toBe("wss://gateway.example.com/ws");
+    expect(normalizeWsUrl("https://gateway.example.com/ws")).toBe(
+      "wss://gateway.example.com/ws",
+    );
   });
 
   it("leaves ws:// unchanged", () => {
@@ -891,7 +1233,9 @@ describe("normalizeWsUrl", () => {
   });
 
   it("leaves wss:// unchanged", () => {
-    expect(normalizeWsUrl("wss://gateway.example.com")).toBe("wss://gateway.example.com");
+    expect(normalizeWsUrl("wss://gateway.example.com")).toBe(
+      "wss://gateway.example.com",
+    );
   });
 
   it("is case-insensitive for http/https scheme", () => {
@@ -901,13 +1245,17 @@ describe("normalizeWsUrl", () => {
 
   it("normalizes uppercase WS/WSS schemes to lowercase", () => {
     expect(normalizeWsUrl("WS://127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
-    expect(normalizeWsUrl("WSS://gateway.example.com")).toBe("wss://gateway.example.com");
+    expect(normalizeWsUrl("WSS://gateway.example.com")).toBe(
+      "wss://gateway.example.com",
+    );
     expect(normalizeWsUrl("Ws://localhost:8080")).toBe("ws://localhost:8080");
     expect(normalizeWsUrl("Wss://localhost")).toBe("wss://localhost");
   });
 
   it("trims whitespace", () => {
-    expect(normalizeWsUrl("  http://localhost:18789  ")).toBe("ws://localhost:18789");
+    expect(normalizeWsUrl("  http://localhost:18789  ")).toBe(
+      "ws://localhost:18789",
+    );
   });
 
   it("passes through non-string values", () => {
@@ -918,7 +1266,9 @@ describe("normalizeWsUrl", () => {
   it("auto-adds ws:// for bare host:port URLs", () => {
     expect(normalizeWsUrl("127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
     expect(normalizeWsUrl("localhost:8080/ws")).toBe("ws://localhost:8080/ws");
-    expect(normalizeWsUrl("gateway.example.com")).toBe("ws://gateway.example.com");
+    expect(normalizeWsUrl("gateway.example.com")).toBe(
+      "ws://gateway.example.com",
+    );
   });
 
   it("handles empty string", () => {
@@ -943,9 +1293,15 @@ describe("validateWsUrl", () => {
   });
 
   it("rejects non-WebSocket schemes", () => {
-    expect(validateWsUrl("http://localhost:8080")).toBe("URL must start with ws:// or wss://");
-    expect(validateWsUrl("https://localhost")).toBe("URL must start with ws:// or wss://");
-    expect(validateWsUrl("ftp://example.com")).toBe("URL must start with ws:// or wss://");
+    expect(validateWsUrl("http://localhost:8080")).toBe(
+      "URL must start with ws:// or wss://",
+    );
+    expect(validateWsUrl("https://localhost")).toBe(
+      "URL must start with ws:// or wss://",
+    );
+    expect(validateWsUrl("ftp://example.com")).toBe(
+      "URL must start with ws:// or wss://",
+    );
   });
 
   it("rejects URLs with missing hostname", () => {
@@ -973,8 +1329,12 @@ describe("validateWsUrl", () => {
   });
 
   it("rejects URLs with embedded credentials", () => {
-    expect(validateWsUrl("ws://user:pass@localhost:8080")).toMatch(/credentials/i);
-    expect(validateWsUrl("wss://admin:secret@example.com/ws")).toMatch(/credentials/i);
+    expect(validateWsUrl("ws://user:pass@localhost:8080")).toMatch(
+      /credentials/i,
+    );
+    expect(validateWsUrl("wss://admin:secret@example.com/ws")).toMatch(
+      /credentials/i,
+    );
     expect(validateWsUrl("ws://user@localhost")).toMatch(/credentials/i);
   });
 });
@@ -989,12 +1349,18 @@ describe("formatCloseDetail", () => {
   });
 
   it("shows reason with code for searchability", () => {
-    expect(formatCloseDetail(1006, "server restarting")).toBe("server restarting (1006)");
-    expect(formatCloseDetail(1001, "shutting down")).toBe("shutting down (1001)");
+    expect(formatCloseDetail(1006, "server restarting")).toBe(
+      "server restarting (1006)",
+    );
+    expect(formatCloseDetail(1001, "shutting down")).toBe(
+      "shutting down (1001)",
+    );
   });
 
   it("shows reason without code when code is null", () => {
-    expect(formatCloseDetail(null, "server restarting")).toBe("server restarting");
+    expect(formatCloseDetail(null, "server restarting")).toBe(
+      "server restarting",
+    );
     expect(formatCloseDetail(undefined, "custom reason")).toBe("custom reason");
   });
 
@@ -1016,8 +1382,12 @@ describe("formatCloseDetail", () => {
 
   it("prefers custom reason over label for application-specific codes", () => {
     // When the server provides a custom reason, it takes precedence over the generic label
-    expect(formatCloseDetail(4001, "invalid token")).toBe("invalid token (4001)");
-    expect(formatCloseDetail(4010, "upgrading to v2")).toBe("upgrading to v2 (4010)");
+    expect(formatCloseDetail(4001, "invalid token")).toBe(
+      "invalid token (4001)",
+    );
+    expect(formatCloseDetail(4010, "upgrading to v2")).toBe(
+      "upgrading to v2 (4010)",
+    );
   });
 
   it("returns friendly label for normal close (1000) with no reason", () => {
@@ -1042,12 +1412,16 @@ describe("formatCloseDetail", () => {
 
   it("preserves short reason strings with code appended", () => {
     const shortReason = "server restarting gracefully";
-    expect(formatCloseDetail(1006, shortReason)).toBe("server restarting gracefully (1006)");
+    expect(formatCloseDetail(1006, shortReason)).toBe(
+      "server restarting gracefully (1006)",
+    );
   });
 
   it("collapses multi-line close reasons into a single line", () => {
     const multiLine = "server shutting down\nplease reconnect later";
-    expect(formatCloseDetail(1001, multiLine)).toBe("server shutting down please reconnect later (1001)");
+    expect(formatCloseDetail(1001, multiLine)).toBe(
+      "server shutting down please reconnect later (1001)",
+    );
   });
 
   it("formats all application-specific close codes (4000-4014)", () => {
@@ -1328,125 +1702,153 @@ describe("computeHealthStatus", () => {
   });
 
   it("returns healthy when connected with good latency", () => {
-    expect(computeHealthStatus({ isConnected: true, latencyMs: 20, now })).toBe("healthy");
+    expect(computeHealthStatus({ isConnected: true, latencyMs: 20, now })).toBe(
+      "healthy",
+    );
   });
 
   it("returns degraded when latency is poor (>=500ms)", () => {
-    expect(computeHealthStatus({ isConnected: true, latencyMs: 600, now })).toBe("degraded");
+    expect(
+      computeHealthStatus({ isConnected: true, latencyMs: 600, now }),
+    ).toBe("degraded");
   });
 
   it("returns degraded when connection is stale (>10s no messages)", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      isPollingPaused: false,
-      lastMessageAt: now - 11000,
-      latencyMs: 20,
-      now,
-    })).toBe("degraded");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        isPollingPaused: false,
+        lastMessageAt: now - 11000,
+        latencyMs: 20,
+        now,
+      }),
+    ).toBe("degraded");
   });
 
   it("ignores stale check when polling is paused", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      isPollingPaused: true,
-      lastMessageAt: now - 20000,
-      latencyMs: 20,
-      now,
-    })).toBe("healthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        isPollingPaused: true,
+        lastMessageAt: now - 20000,
+        latencyMs: 20,
+        now,
+      }),
+    ).toBe("healthy");
   });
 
   it("returns degraded when connection success rate is below 80%", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      connectionSuccessRate: 50,
-      latencyMs: 20,
-      now,
-    })).toBe("degraded");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        connectionSuccessRate: 50,
+        latencyMs: 20,
+        now,
+      }),
+    ).toBe("degraded");
   });
 
   it("returns healthy when success rate is 80% or above", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      connectionSuccessRate: 80,
-      latencyMs: 20,
-      now,
-    })).toBe("healthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        connectionSuccessRate: 80,
+        latencyMs: 20,
+        now,
+      }),
+    ).toBe("healthy");
   });
 
   it("prefers median from latency stats over instant latency", () => {
     // Instant latency is fine (20ms) but median is poor (600ms)
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 20,
-      latencyStats: { median: 600, samples: 10 },
-      now,
-    })).toBe("degraded");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 20,
+        latencyStats: { median: 600, samples: 10 },
+        now,
+      }),
+    ).toBe("degraded");
   });
 
   it("returns degraded when jitter exceeds 200ms", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 40,
-      latencyStats: { median: 40, jitter: 250, samples: 10 },
-      now,
-    })).toBe("degraded");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 40,
+        latencyStats: { median: 40, jitter: 250, samples: 10 },
+        now,
+      }),
+    ).toBe("degraded");
   });
 
   it("returns degraded when jitter exceeds 150% of median", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 30,
-      latencyStats: { median: 50, jitter: 80, samples: 10 },
-      now,
-    })).toBe("degraded");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 30,
+        latencyStats: { median: 50, jitter: 80, samples: 10 },
+        now,
+      }),
+    ).toBe("degraded");
   });
 
   it("returns healthy when jitter is moderate", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 30,
-      latencyStats: { median: 40, jitter: 50, samples: 10 },
-      now,
-    })).toBe("healthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 30,
+        latencyStats: { median: 40, jitter: 50, samples: 10 },
+        now,
+      }),
+    ).toBe("healthy");
   });
 
   it("returns healthy when all signals are good", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      isPollingPaused: false,
-      lastMessageAt: now - 1000,
-      latencyMs: 30,
-      latencyStats: { median: 40, samples: 30 },
-      connectionSuccessRate: 95,
-      now,
-    })).toBe("healthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        isPollingPaused: false,
+        lastMessageAt: now - 1000,
+        latencyMs: 30,
+        latencyStats: { median: 40, samples: 30 },
+        connectionSuccessRate: 95,
+        now,
+      }),
+    ).toBe("healthy");
   });
 
   it("returns unhealthy when connection is very stale (>30s no messages)", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      isPollingPaused: false,
-      lastMessageAt: now - 35000,
-      latencyMs: 20,
-      now,
-    })).toBe("unhealthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        isPollingPaused: false,
+        lastMessageAt: now - 35000,
+        latencyMs: 20,
+        now,
+      }),
+    ).toBe("unhealthy");
   });
 
   it("returns unhealthy when latency exceeds 5s", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 6000,
-      now,
-    })).toBe("unhealthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 6000,
+        now,
+      }),
+    ).toBe("unhealthy");
   });
 
   it("returns unhealthy when median latency from stats exceeds 5s", () => {
-    expect(computeHealthStatus({
-      isConnected: true,
-      latencyMs: 20,
-      latencyStats: { median: 7000, samples: 10 },
-      now,
-    })).toBe("unhealthy");
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: 20,
+        latencyStats: { median: 7000, samples: 10 },
+        now,
+      }),
+    ).toBe("unhealthy");
   });
 });
 
@@ -1458,7 +1860,9 @@ describe("computeHealthReasons", () => {
   });
 
   it("returns 'disconnected' when not connected", () => {
-    expect(computeHealthReasons({ isConnected: false, now })).toEqual(["disconnected"]);
+    expect(computeHealthReasons({ isConnected: false, now })).toEqual([
+      "disconnected",
+    ]);
   });
 
   it("reports stale connection", () => {
@@ -1477,7 +1881,7 @@ describe("computeHealthReasons", () => {
       latencyMs: 6000,
       now,
     });
-    expect(reasons.some(r => r.includes("extreme latency"))).toBe(true);
+    expect(reasons.some((r) => r.includes("extreme latency"))).toBe(true);
   });
 
   it("reports poor latency", () => {
@@ -1486,7 +1890,7 @@ describe("computeHealthReasons", () => {
       latencyMs: 600,
       now,
     });
-    expect(reasons.some(r => r.includes("poor latency"))).toBe(true);
+    expect(reasons.some((r) => r.includes("poor latency"))).toBe(true);
   });
 
   it("reports high jitter", () => {
@@ -1496,7 +1900,7 @@ describe("computeHealthReasons", () => {
       latencyStats: { median: 50, jitter: 250, samples: 10 },
       now,
     });
-    expect(reasons.some(r => r.includes("high jitter"))).toBe(true);
+    expect(reasons.some((r) => r.includes("high jitter"))).toBe(true);
   });
 
   it("reports low success rate", () => {
@@ -1505,7 +1909,7 @@ describe("computeHealthReasons", () => {
       connectionSuccessRate: 60,
       now,
     });
-    expect(reasons.some(r => r.includes("low success rate: 60%"))).toBe(true);
+    expect(reasons.some((r) => r.includes("low success rate: 60%"))).toBe(true);
   });
 
   it("distinguishes severely stale (>30s) from mildly stale (>10s)", () => {
@@ -1522,7 +1926,7 @@ describe("computeHealthReasons", () => {
       now,
     });
     expect(mild[0]).toMatch(/stale connection: 15s$/);
-    expect(mild[0]).not.toContain('dead');
+    expect(mild[0]).not.toContain("dead");
   });
 
   it("collects multiple reasons", () => {
@@ -1544,13 +1948,18 @@ describe("isRecoverableCloseCode", () => {
   });
 
   it("returns true for transient codes", () => {
-    for (const code of [1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011]) {
+    for (const code of [
+      1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010,
+      4011,
+    ]) {
       expect(isRecoverableCloseCode(code)).toBe(true);
     }
   });
 
   it("returns false for fatal codes", () => {
-    for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
+    for (const code of [
+      1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014,
+    ]) {
       expect(isRecoverableCloseCode(code)).toBe(false);
     }
   });
@@ -1560,13 +1969,18 @@ describe("RECOVERABLE_CLOSE_CODES", () => {
   it("is a non-empty Set containing all recoverable codes", () => {
     expect(RECOVERABLE_CLOSE_CODES).toBeInstanceOf(Set);
     expect(RECOVERABLE_CLOSE_CODES.size).toBeGreaterThan(0);
-    for (const code of [1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011]) {
+    for (const code of [
+      1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010,
+      4011,
+    ]) {
       expect(RECOVERABLE_CLOSE_CODES.has(code)).toBe(true);
     }
   });
 
   it("does not contain fatal codes", () => {
-    for (const code of [1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014]) {
+    for (const code of [
+      1002, 1003, 1008, 4001, 4003, 4004, 4007, 4012, 4013, 4014,
+    ]) {
       expect(RECOVERABLE_CLOSE_CODES.has(code)).toBe(false);
     }
   });
@@ -1606,8 +2020,12 @@ describe("connectionUptimePercent", () => {
   });
 
   it("returns null when firstConnectedAt is null or 0", () => {
-    expect(connectionUptimePercent({ ...base, firstConnectedAt: null })).toBeNull();
-    expect(connectionUptimePercent({ ...base, firstConnectedAt: 0 })).toBeNull();
+    expect(
+      connectionUptimePercent({ ...base, firstConnectedAt: null }),
+    ).toBeNull();
+    expect(
+      connectionUptimePercent({ ...base, firstConnectedAt: 0 }),
+    ).toBeNull();
   });
 
   it("returns null when now is not finite", () => {
@@ -1629,7 +2047,13 @@ describe("connectionUptimePercent", () => {
   });
 
   it("returns null when firstConnectedAt is in the future (clock skew)", () => {
-    expect(connectionUptimePercent({ ...base, firstConnectedAt: 200000, now: 101000 })).toBeNull();
+    expect(
+      connectionUptimePercent({
+        ...base,
+        firstConnectedAt: 200000,
+        now: 101000,
+      }),
+    ).toBeNull();
   });
 
   it("caps at 100% even if firstConnectedAt is before process start", () => {
@@ -1825,33 +2249,57 @@ describe("memoryPressure", () => {
     expect(memoryPressure(undefined)).toBeNull();
     expect(memoryPressure({})).toBeNull();
     expect(memoryPressure({ usedJSHeapSize: 100 })).toBeNull();
-    expect(memoryPressure({ usedJSHeapSize: NaN, jsHeapSizeLimit: 1000 })).toBeNull();
-    expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: 0 })).toBeNull();
-    expect(memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: -1 })).toBeNull();
-    expect(memoryPressure({ usedJSHeapSize: -50, jsHeapSizeLimit: 1000 })).toBeNull();
+    expect(
+      memoryPressure({ usedJSHeapSize: NaN, jsHeapSizeLimit: 1000 }),
+    ).toBeNull();
+    expect(
+      memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: 0 }),
+    ).toBeNull();
+    expect(
+      memoryPressure({ usedJSHeapSize: 100, jsHeapSizeLimit: -1 }),
+    ).toBeNull();
+    expect(
+      memoryPressure({ usedJSHeapSize: -50, jsHeapSizeLimit: 1000 }),
+    ).toBeNull();
   });
 
   it("returns low for < 50% usage", () => {
-    const result = memoryPressure({ usedJSHeapSize: 40, totalJSHeapSize: 60, jsHeapSizeLimit: 100 });
+    const result = memoryPressure({
+      usedJSHeapSize: 40,
+      totalJSHeapSize: 60,
+      jsHeapSizeLimit: 100,
+    });
     expect(result.level).toBe("low");
     expect(result.usedPercent).toBe(40);
     expect(result.totalPercent).toBe(60);
   });
 
   it("returns moderate for 50-75% usage", () => {
-    const result = memoryPressure({ usedJSHeapSize: 60, totalJSHeapSize: 70, jsHeapSizeLimit: 100 });
+    const result = memoryPressure({
+      usedJSHeapSize: 60,
+      totalJSHeapSize: 70,
+      jsHeapSizeLimit: 100,
+    });
     expect(result.level).toBe("moderate");
     expect(result.usedPercent).toBe(60);
   });
 
   it("returns high for 75-90% usage", () => {
-    const result = memoryPressure({ usedJSHeapSize: 80, totalJSHeapSize: 90, jsHeapSizeLimit: 100 });
+    const result = memoryPressure({
+      usedJSHeapSize: 80,
+      totalJSHeapSize: 90,
+      jsHeapSizeLimit: 100,
+    });
     expect(result.level).toBe("high");
     expect(result.usedPercent).toBe(80);
   });
 
   it("returns critical for > 90% usage", () => {
-    const result = memoryPressure({ usedJSHeapSize: 95, totalJSHeapSize: 98, jsHeapSizeLimit: 100 });
+    const result = memoryPressure({
+      usedJSHeapSize: 95,
+      totalJSHeapSize: 98,
+      jsHeapSizeLimit: 100,
+    });
     expect(result.level).toBe("critical");
     expect(result.usedPercent).toBe(95);
   });
@@ -1887,7 +2335,11 @@ describe("formatMemorySummary", () => {
   });
 
   it("formats memory without pressure", () => {
-    const mem = { usedJSHeapSize: 10 * 1024 * 1024, totalJSHeapSize: 20 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const mem = {
+      usedJSHeapSize: 10 * 1024 * 1024,
+      totalJSHeapSize: 20 * 1024 * 1024,
+      jsHeapSizeLimit: 50 * 1024 * 1024,
+    };
     const result = formatMemorySummary(mem);
     expect(result).toContain("10.0 MB used");
     expect(result).toContain("20.0 MB total");
@@ -1896,7 +2348,11 @@ describe("formatMemorySummary", () => {
   });
 
   it("formats memory with low pressure (shows percentage only)", () => {
-    const mem = { usedJSHeapSize: 10 * 1024 * 1024, totalJSHeapSize: 20 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const mem = {
+      usedJSHeapSize: 10 * 1024 * 1024,
+      totalJSHeapSize: 20 * 1024 * 1024,
+      jsHeapSizeLimit: 50 * 1024 * 1024,
+    };
     const pressure = { level: "low", usedPercent: 20 };
     const result = formatMemorySummary(mem, pressure);
     expect(result).toContain("— 20%");
@@ -1904,7 +2360,11 @@ describe("formatMemorySummary", () => {
   });
 
   it("formats memory with high pressure (shows emoji + level)", () => {
-    const mem = { usedJSHeapSize: 40 * 1024 * 1024, totalJSHeapSize: 45 * 1024 * 1024, jsHeapSizeLimit: 50 * 1024 * 1024 };
+    const mem = {
+      usedJSHeapSize: 40 * 1024 * 1024,
+      totalJSHeapSize: 45 * 1024 * 1024,
+      jsHeapSizeLimit: 50 * 1024 * 1024,
+    };
     const pressure = { level: "high", usedPercent: 80 };
     const result = formatMemorySummary(mem, pressure);
     expect(result).toContain("🟠");

@@ -31,12 +31,24 @@ function mockCtx() {
   return {
     calls,
     fillStyle: "",
-    clearRect(...args) { calls.push({ fn: "clearRect", args }); },
-    fillRect(...args) { calls.push({ fn: "fillRect", args, fillStyle: this.fillStyle }); },
-    drawImage(...args) { calls.push({ fn: "drawImage", args }); },
-    beginPath() { calls.push({ fn: "beginPath" }); },
-    ellipse(...args) { calls.push({ fn: "ellipse", args }); },
-    fill() { calls.push({ fn: "fill" }); },
+    clearRect(...args) {
+      calls.push({ fn: "clearRect", args });
+    },
+    fillRect(...args) {
+      calls.push({ fn: "fillRect", args, fillStyle: this.fillStyle });
+    },
+    drawImage(...args) {
+      calls.push({ fn: "drawImage", args });
+    },
+    beginPath() {
+      calls.push({ fn: "beginPath" });
+    },
+    ellipse(...args) {
+      calls.push({ fn: "ellipse", args });
+    },
+    fill() {
+      calls.push({ fn: "fill" });
+    },
   };
 }
 
@@ -162,20 +174,20 @@ describe("createBlinkState", () => {
     const blink = createBlinkState({ initialBlinkAt: 5000 });
     // oxlint-disable-next-line number-arg-out-of-range -- custom toString(now), not Number.prototype.toString
     const str = blink.toString(3000);
-    expect(str).toContain('BlinkState<');
-    expect(str).toContain('0 blinks');
-    expect(str).toContain('next in');
+    expect(str).toContain("BlinkState<");
+    expect(str).toContain("0 blinks");
+    expect(str).toContain("next in");
     // After triggering a blink
     blink.isBlinking(5000);
     blink.isBlinking(5000 + BLINK_DURATION_MS);
     // oxlint-disable-next-line number-arg-out-of-range -- custom toString(now), not Number.prototype.toString
     const str2 = blink.toString(6000);
-    expect(str2).toContain('1 blink,'); // singular
+    expect(str2).toContain("1 blink,"); // singular
   });
 
   it("toString shows paused when reducedMotion is active", () => {
     const blink = createBlinkState({ reducedMotion: true });
-    expect(blink.toString()).toBe('BlinkState<paused>');
+    expect(blink.toString()).toBe("BlinkState<paused>");
   });
 
   it("reset() clears blinkCount and schedules next blink in the future", () => {
@@ -188,7 +200,9 @@ describe("createBlinkState", () => {
     // Reset at t=5000
     blink.reset(5000);
     expect(blink.blinkCount).toBe(0);
-    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(5000 + BLINK_MIN_INTERVAL_MS);
+    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(
+      5000 + BLINK_MIN_INTERVAL_MS,
+    );
     expect(blink.nextBlinkAt).toBeLessThanOrEqual(5000 + BLINK_MAX_INTERVAL_MS);
   });
 
@@ -202,8 +216,12 @@ describe("createBlinkState", () => {
     const after = Date.now();
 
     expect(blink.blinkCount).toBe(0);
-    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(before + BLINK_MIN_INTERVAL_MS);
-    expect(blink.nextBlinkAt).toBeLessThanOrEqual(after + BLINK_MAX_INTERVAL_MS);
+    expect(blink.nextBlinkAt).toBeGreaterThanOrEqual(
+      before + BLINK_MIN_INTERVAL_MS,
+    );
+    expect(blink.nextBlinkAt).toBeLessThanOrEqual(
+      after + BLINK_MAX_INTERVAL_MS,
+    );
   });
 
   it("reset() prevents immediate blink after mode transition", () => {
@@ -279,11 +297,12 @@ describe("drawLobster", () => {
 
     // Blink draws 2 red rectangles at the eye positions
     const fills = ctx.calls.filter((c) => c.fn === "fillRect");
-    const eyeFills = fills.filter((c) =>
-      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
-      c.args[1] === EYE_ROW * 3 &&
-      c.args[2] === EYE_SIZE * 3 &&
-      c.args[3] === EYE_SIZE * 3
+    const eyeFills = fills.filter(
+      (c) =>
+        (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+        c.args[1] === EYE_ROW * 3 &&
+        c.args[2] === EYE_SIZE * 3 &&
+        c.args[3] === EYE_SIZE * 3,
     );
     expect(eyeFills.length).toBe(2);
   });
@@ -310,11 +329,12 @@ describe("drawLobster", () => {
     const fills = ctx.calls.filter((c) => c.fn === "fillRect");
     // Blink should be at EYE_ROW * scale + bobY (canvas pixels), not (EYE_ROW + bobY) * scale
     const expectedY = EYE_ROW * 3 + bobY;
-    const eyeFills = fills.filter((c) =>
-      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
-      c.args[1] === expectedY &&
-      c.args[2] === EYE_SIZE * 3 &&
-      c.args[3] === EYE_SIZE * 3
+    const eyeFills = fills.filter(
+      (c) =>
+        (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+        c.args[1] === expectedY &&
+        c.args[2] === EYE_SIZE * 3 &&
+        c.args[3] === EYE_SIZE * 3,
     );
     expect(eyeFills.length).toBe(2);
   });
@@ -333,11 +353,12 @@ describe("drawLobster", () => {
 
     const fills = ctx.calls.filter((c) => c.fn === "fillRect");
     // Should not have eye-sized fills at exact eye positions with red color
-    const eyeFills = fills.filter((c) =>
-      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
-      c.args[1] === EYE_ROW * 3 &&
-      c.args[2] === EYE_SIZE * 3 &&
-      c.args[3] === EYE_SIZE * 3
+    const eyeFills = fills.filter(
+      (c) =>
+        (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+        c.args[1] === EYE_ROW * 3 &&
+        c.args[2] === EYE_SIZE * 3 &&
+        c.args[3] === EYE_SIZE * 3,
     );
     expect(eyeFills.length).toBe(0);
   });
@@ -427,42 +448,54 @@ describe("drawLobster", () => {
       canvas: { width: 96, height: 96 },
     });
 
-    const noSleepFills = noSleepCtx.calls.filter((c) => c.fn === "fillRect").length;
+    const noSleepFills = noSleepCtx.calls.filter(
+      (c) => c.fn === "fillRect",
+    ).length;
     const sleepFills = sleepCtx.calls.filter((c) => c.fn === "fillRect").length;
     // Sleep overlay should add extra pixels
     expect(sleepFills).toBeGreaterThan(noSleepFills);
   });
 });
 
-  it("freezes overlay animation on frame 0 when reducedMotion is true", () => {
-    // With reducedMotion=false, different t values should produce different overlay frames
-    // (for modes with multi-frame overlays like 'thinking').
-    // With reducedMotion=true, the overlay should always show frame 0 regardless of t.
-    const thinkingTiming = OVERLAY_TIMING.thinking;
-    // Pick two t values that map to different frame indices when animated
-    const t0 = 0;
-    const t1 = thinkingTiming.frameDurationMs; // should be frame 1 when animated
+it("freezes overlay animation on frame 0 when reducedMotion is true", () => {
+  // With reducedMotion=false, different t values should produce different overlay frames
+  // (for modes with multi-frame overlays like 'thinking').
+  // With reducedMotion=true, the overlay should always show frame 0 regardless of t.
+  const thinkingTiming = OVERLAY_TIMING.thinking;
+  // Pick two t values that map to different frame indices when animated
+  const t0 = 0;
+  const t1 = thinkingTiming.frameDurationMs; // should be frame 1 when animated
 
-    // reducedMotion=true: both times should produce identical output
-    const ctx1 = mockCtx();
-    drawLobster(ctx1, {
-      mode: "thinking", t: t0, scale: 3, spriteSize: 32,
-      reducedMotion: true, blinking: false, canvas: { width: 96, height: 96 },
-    });
-    const ctx2 = mockCtx();
-    drawLobster(ctx2, {
-      mode: "thinking", t: t1, scale: 3, spriteSize: 32,
-      reducedMotion: true, blinking: false, canvas: { width: 96, height: 96 },
-    });
-    const fills1 = ctx1.calls.filter(c => c.fn === "fillRect");
-    const fills2 = ctx2.calls.filter(c => c.fn === "fillRect");
-    // Same frame 0 → identical fill calls
-    expect(fills1.length).toBe(fills2.length);
-    for (let i = 0; i < fills1.length; i++) {
-      expect(fills1[i].args).toEqual(fills2[i].args);
-      expect(fills1[i].fillStyle).toBe(fills2[i].fillStyle);
-    }
+  // reducedMotion=true: both times should produce identical output
+  const ctx1 = mockCtx();
+  drawLobster(ctx1, {
+    mode: "thinking",
+    t: t0,
+    scale: 3,
+    spriteSize: 32,
+    reducedMotion: true,
+    blinking: false,
+    canvas: { width: 96, height: 96 },
   });
+  const ctx2 = mockCtx();
+  drawLobster(ctx2, {
+    mode: "thinking",
+    t: t1,
+    scale: 3,
+    spriteSize: 32,
+    reducedMotion: true,
+    blinking: false,
+    canvas: { width: 96, height: 96 },
+  });
+  const fills1 = ctx1.calls.filter((c) => c.fn === "fillRect");
+  const fills2 = ctx2.calls.filter((c) => c.fn === "fillRect");
+  // Same frame 0 → identical fill calls
+  expect(fills1.length).toBe(fills2.length);
+  for (let i = 0; i < fills1.length; i++) {
+    expect(fills1[i].args).toEqual(fills2[i].args);
+    expect(fills1[i].fillStyle).toBe(fills2[i].fillStyle);
+  }
+});
 
 describe("_spriteCache", () => {
   it("returns null in test environment (no OffscreenCanvas/DOM)", () => {
@@ -472,7 +505,7 @@ describe("_spriteCache", () => {
     // In a test env without OffscreenCanvas or document.createElement('canvas'),
     // the cache gracefully returns null and drawSprite falls back to fillRect.
     // If OffscreenCanvas IS available (e.g. newer Bun), it returns a canvas object.
-    expect(result === null || typeof result === 'object').toBe(true);
+    expect(result === null || typeof result === "object").toBe(true);
   });
 
   it("clear() resets the cache", () => {
@@ -578,7 +611,10 @@ describe("_spriteCache", () => {
 
   it("hitRate() tracks cache misses on first access", () => {
     _spriteCache.clear();
-    const sprite = [["r", "."], [".", "w"]];
+    const sprite = [
+      ["r", "."],
+      [".", "w"],
+    ];
     _spriteCache.get(sprite, 3); // miss (or null in test env)
     const rate = _spriteCache.hitRate();
     // In test env without OffscreenCanvas, get() returns null without recording a miss,
@@ -624,7 +660,15 @@ describe("_spriteCache", () => {
 
 describe("OVERLAY_TIMING", () => {
   it("has entries for all overlay modes", () => {
-    const expected = ["thinking", "tool", "error", "sleep", "connecting", "connected", "disconnected"];
+    const expected = [
+      "thinking",
+      "tool",
+      "error",
+      "sleep",
+      "connecting",
+      "connected",
+      "disconnected",
+    ];
     for (const mode of expected) {
       expect(OVERLAY_TIMING[mode]).toBeDefined();
       expect(Array.isArray(OVERLAY_TIMING[mode].sprites)).toBe(true);
@@ -634,7 +678,15 @@ describe("OVERLAY_TIMING", () => {
   });
 
   it("all overlays have positive frameDurationMs (animated)", () => {
-    for (const mode of ["thinking", "tool", "error", "sleep", "connecting", "connected", "disconnected"]) {
+    for (const mode of [
+      "thinking",
+      "tool",
+      "error",
+      "sleep",
+      "connecting",
+      "connected",
+      "disconnected",
+    ]) {
       expect(OVERLAY_TIMING[mode].frameDurationMs).toBeGreaterThan(0);
     }
   });
@@ -719,8 +771,10 @@ describe("animation constants", () => {
   it("drawLobster bob uses BOB_PERIOD_MS and BOB_AMPLITUDE_PX consistently", () => {
     // At t=0, sin(0)=0 so bob=0. At t=BOB_PERIOD_MS*π/2, sin(π/2)=1 so bob=AMPLITUDE.
     // Verify the blink eye position shifts by the expected bob at peak.
-    const peakT = BOB_PERIOD_MS * Math.PI / 2;
-    const expectedBob = Math.round(Math.sin(peakT / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX);
+    const peakT = (BOB_PERIOD_MS * Math.PI) / 2;
+    const expectedBob = Math.round(
+      Math.sin(peakT / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX,
+    );
     expect(expectedBob).toBe(Math.round(BOB_AMPLITUDE_PX)); // sin(π/2)=1
 
     const ctx = mockCtx();
@@ -736,11 +790,12 @@ describe("animation constants", () => {
 
     const fills = ctx.calls.filter((c) => c.fn === "fillRect");
     const eyeY = EYE_ROW * 3 + expectedBob;
-    const eyeFills = fills.filter((c) =>
-      (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
-      c.args[1] === eyeY &&
-      c.args[2] === EYE_SIZE * 3 &&
-      c.args[3] === EYE_SIZE * 3
+    const eyeFills = fills.filter(
+      (c) =>
+        (c.args[0] === EYE_LEFT_COL * 3 || c.args[0] === EYE_RIGHT_COL * 3) &&
+        c.args[1] === eyeY &&
+        c.args[2] === EYE_SIZE * 3 &&
+        c.args[3] === EYE_SIZE * 3,
     );
     expect(eyeFills.length).toBe(2);
   });

@@ -6,11 +6,11 @@
  * to a JSON file so they survive app restarts without requiring env vars.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { isValidAlignment } = require('./get-position.cjs');
-const { isValidSize } = require('./size-presets.cjs');
-const { isValidOpacity } = require('./opacity-presets.cjs');
+const fs = require("fs");
+const path = require("path");
+const { isValidAlignment } = require("./get-position.cjs");
+const { isValidSize } = require("./size-presets.cjs");
+const { isValidOpacity } = require("./opacity-presets.cjs");
 
 /**
  * Create a preferences manager.
@@ -35,7 +35,7 @@ function createPrefsManager(filePath, opts = {}) {
    */
   function load() {
     try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return JSON.parse(fs.readFileSync(filePath, "utf8"));
     } catch {
       return {};
     }
@@ -46,7 +46,10 @@ function createPrefsManager(filePath, opts = {}) {
    * Called internally by the debounce timer and exposed for shutdown cleanup.
    */
   function flush() {
-    if (_timer) { clearTimeout(_timer); _timer = null; }
+    if (_timer) {
+      clearTimeout(_timer);
+      _timer = null;
+    }
     if (!_pending) return;
     const merged = _pending;
     _pending = null;
@@ -63,7 +66,9 @@ function createPrefsManager(filePath, opts = {}) {
         // On Windows, renameSync can fail with EPERM/EACCES when overwriting.
         // Fall back to copy + unlink which is less atomic but more portable.
         fs.copyFileSync(tmp, filePath);
-        try { fs.unlinkSync(tmp); } catch {}
+        try {
+          fs.unlinkSync(tmp);
+        } catch {}
       }
     } catch {
       // Best-effort; don't crash if disk is full or permissions are wrong.
@@ -115,13 +120,16 @@ function createPrefsManager(filePath, opts = {}) {
    */
   function clear() {
     // Cancel any pending debounced write so it doesn't recreate the file.
-    if (_timer) { clearTimeout(_timer); _timer = null; }
+    if (_timer) {
+      clearTimeout(_timer);
+      _timer = null;
+    }
     _pending = null;
     try {
       fs.unlinkSync(filePath);
       return true;
     } catch (err) {
-      if (err.code === 'ENOENT') return false;
+      if (err.code === "ENOENT") return false;
       throw err;
     }
   }
@@ -275,11 +283,29 @@ function createPrefsManager(filePath, opts = {}) {
    */
   function toString() {
     const n = size();
-    const pendingStr = _pending !== null ? 'pending' : 'no pending';
-    return `PrefsManager<${n} key${n !== 1 ? 's' : ''}, ${pendingStr}>`;
+    const pendingStr = _pending !== null ? "pending" : "no pending";
+    return `PrefsManager<${n} key${n !== 1 ? "s" : ""}, ${pendingStr}>`;
   }
 
-  return { load, loadValidated, save, saveValidated, set, remove, flush, clear, has, get, getAll, keys, size, getSnapshot, toJSON, toString, filePath };
+  return {
+    load,
+    loadValidated,
+    save,
+    saveValidated,
+    set,
+    remove,
+    flush,
+    clear,
+    has,
+    get,
+    getAll,
+    keys,
+    size,
+    getSnapshot,
+    toJSON,
+    toString,
+    filePath,
+  };
 }
 
 /**
@@ -290,25 +316,128 @@ function createPrefsManager(filePath, opts = {}) {
  * Adding a new pref? Add an entry here and it's automatically validated.
  */
 const PREF_SCHEMA = {
-  alignment:    { type: 'string', default: 'bottom-right', validate: (v) => isValidAlignment(v), description: 'Window alignment position (e.g. bottom-right, top-left, center)' },
-  sizeIndex:    { type: 'number', default: null, validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into SIZE_PRESETS (legacy; prefer "size")' },
-  size:         { type: 'string', default: 'medium', validate: (v) => isValidSize(v), description: 'Window size preset label (tiny, small, medium, large, xlarge)' },
-  opacityIndex: { type: 'number', default: null, validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")' },
-  padding:      { type: 'number', default: 24, validate: (v) => Number.isFinite(v) && v >= 0, description: 'Edge padding in pixels when snapped to an alignment' },
-  opacity:      { type: 'number', default: 1.0, validate: isValidOpacity, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
-  clickThrough: { type: 'boolean', default: false, description: 'Ghost mode — clicks pass through the mascot window' },
-  hideText:     { type: 'boolean', default: false, description: 'Hide the HUD pill text overlay' },
-  gatewayUrl:   { type: 'string', default: '', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v), description: 'Gateway WebSocket URL (ws:// or wss://)' },
-  draggedPosition: { type: 'object', default: null, validate: (v) => v !== null && typeof v.x === 'number' && typeof v.y === 'number' && Number.isFinite(v.x) && Number.isFinite(v.y), description: 'Last user-dragged window position {x, y}' },
-  sleepThresholdS: { type: 'number', default: 120, validate: (v) => Number.isFinite(v) && v >= 0, description: 'Seconds of idle before entering sleeping state' },
-  idleDelayMs:     { type: 'number', default: 800, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Delay in ms before transitioning to idle after activity stops' },
-  errorHoldMs:     { type: 'number', default: 5000, validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v), description: 'Duration in ms to hold the error state before clearing' },
-  reducedMotion:   { type: 'boolean', default: false, description: 'Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility' },
-  pollIntervalMs:  { type: 'number', default: 1000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 100, description: 'Plugin state poll interval in ms (min 100)' },
-  reconnectBaseMs: { type: 'number', default: 1500, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Base delay in ms before reconnecting after disconnect' },
-  reconnectMaxMs:  { type: 'number', default: 30000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Maximum reconnect delay in ms (exponential backoff cap)' },
-  staleConnectionMs:    { type: 'number', default: 15000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Time in ms before a silent WebSocket is considered stale and recycled' },
-  staleCheckIntervalMs: { type: 'number', default: 5000, validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0, description: 'Interval in ms between stale-connection health checks' },
+  alignment: {
+    type: "string",
+    default: "bottom-right",
+    validate: (v) => isValidAlignment(v),
+    description:
+      "Window alignment position (e.g. bottom-right, top-left, center)",
+  },
+  sizeIndex: {
+    type: "number",
+    default: null,
+    validate: (v) => Number.isInteger(v) && v >= 0,
+    description: 'Numeric index into SIZE_PRESETS (legacy; prefer "size")',
+  },
+  size: {
+    type: "string",
+    default: "medium",
+    validate: (v) => isValidSize(v),
+    description:
+      "Window size preset label (tiny, small, medium, large, xlarge)",
+  },
+  opacityIndex: {
+    type: "number",
+    default: null,
+    validate: (v) => Number.isInteger(v) && v >= 0,
+    description:
+      'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")',
+  },
+  padding: {
+    type: "number",
+    default: 24,
+    validate: (v) => Number.isFinite(v) && v >= 0,
+    description: "Edge padding in pixels when snapped to an alignment",
+  },
+  opacity: {
+    type: "number",
+    default: 1.0,
+    validate: isValidOpacity,
+    description: "Window opacity (0.0 = transparent, 1.0 = opaque)",
+  },
+  clickThrough: {
+    type: "boolean",
+    default: false,
+    description: "Ghost mode — clicks pass through the mascot window",
+  },
+  hideText: {
+    type: "boolean",
+    default: false,
+    description: "Hide the HUD pill text overlay",
+  },
+  gatewayUrl: {
+    type: "string",
+    default: "",
+    validate: (v) => v === "" || /^wss?:\/\/.+/.test(v),
+    description: "Gateway WebSocket URL (ws:// or wss://)",
+  },
+  draggedPosition: {
+    type: "object",
+    default: null,
+    validate: (v) =>
+      v !== null &&
+      typeof v.x === "number" &&
+      typeof v.y === "number" &&
+      Number.isFinite(v.x) &&
+      Number.isFinite(v.y),
+    description: "Last user-dragged window position {x, y}",
+  },
+  sleepThresholdS: {
+    type: "number",
+    default: 120,
+    validate: (v) => Number.isFinite(v) && v >= 0,
+    description: "Seconds of idle before entering sleeping state",
+  },
+  idleDelayMs: {
+    type: "number",
+    default: 800,
+    validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v),
+    description:
+      "Delay in ms before transitioning to idle after activity stops",
+  },
+  errorHoldMs: {
+    type: "number",
+    default: 5000,
+    validate: (v) => Number.isFinite(v) && v >= 0 && Number.isInteger(v),
+    description: "Duration in ms to hold the error state before clearing",
+  },
+  reducedMotion: {
+    type: "boolean",
+    default: false,
+    description:
+      "Disable all animations (bobbing, blinking, overlays, pill pulse) for accessibility",
+  },
+  pollIntervalMs: {
+    type: "number",
+    default: 1000,
+    validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 100,
+    description: "Plugin state poll interval in ms (min 100)",
+  },
+  reconnectBaseMs: {
+    type: "number",
+    default: 1500,
+    validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0,
+    description: "Base delay in ms before reconnecting after disconnect",
+  },
+  reconnectMaxMs: {
+    type: "number",
+    default: 30000,
+    validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0,
+    description: "Maximum reconnect delay in ms (exponential backoff cap)",
+  },
+  staleConnectionMs: {
+    type: "number",
+    default: 15000,
+    validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0,
+    description:
+      "Time in ms before a silent WebSocket is considered stale and recycled",
+  },
+  staleCheckIntervalMs: {
+    type: "number",
+    default: 5000,
+    validate: (v) => Number.isFinite(v) && Number.isInteger(v) && v >= 0,
+    description: "Interval in ms between stale-connection health checks",
+  },
 };
 
 /**
@@ -322,7 +451,7 @@ const PREF_SCHEMA = {
  * @returns {{ clean: object, dropped: Array<{ key: string, reason: string }> }} Sanitized prefs + list of dropped keys with reasons
  */
 function validatePrefs(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     return { clean: {}, dropped: [] };
   }
   const clean = {};
@@ -330,19 +459,25 @@ function validatePrefs(raw) {
   for (const [key, value] of Object.entries(raw)) {
     const schema = PREF_SCHEMA[key];
     if (!schema) {
-      dropped.push({ key, reason: 'unknown key' });
+      dropped.push({ key, reason: "unknown key" });
       continue;
     }
     if (typeof value !== schema.type) {
-      dropped.push({ key, reason: `expected ${schema.type}, got ${typeof value}` });
+      dropped.push({
+        key,
+        reason: `expected ${schema.type}, got ${typeof value}`,
+      });
       continue;
     }
-    if (schema.type === 'number' && !Number.isFinite(value)) {
+    if (schema.type === "number" && !Number.isFinite(value)) {
       dropped.push({ key, reason: `non-finite number: ${value}` });
       continue;
     }
     if (schema.validate && !schema.validate(value)) {
-      dropped.push({ key, reason: `failed validation: ${JSON.stringify(value)}` });
+      dropped.push({
+        key,
+        reason: `failed validation: ${JSON.stringify(value)}`,
+      });
       continue;
     }
     clean[key] = value;
@@ -370,13 +505,14 @@ function formatPrefSchema() {
   const lines = [];
   for (const key of VALID_PREF_KEYS) {
     const entry = PREF_SCHEMA[key];
-    const desc = entry.description || '(no description)';
-    const defaultStr = entry.default !== null && entry.default !== undefined
-      ? ` [default: ${JSON.stringify(entry.default)}]`
-      : '';
+    const desc = entry.description || "(no description)";
+    const defaultStr =
+      entry.default !== null && entry.default !== undefined
+        ? ` [default: ${JSON.stringify(entry.default)}]`
+        : "";
     lines.push(`  ${key} (${entry.type}) — ${desc}${defaultStr}`);
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 /**
@@ -390,7 +526,11 @@ function exportPrefSchemaJSON() {
   const result = {};
   for (const key of VALID_PREF_KEYS) {
     const entry = PREF_SCHEMA[key];
-    result[key] = { type: entry.type, default: entry.default ?? null, description: entry.description || '' };
+    result[key] = {
+      type: entry.type,
+      default: entry.default ?? null,
+      description: entry.description || "",
+    };
   }
   return result;
 }
@@ -407,24 +547,27 @@ function exportPrefSchemaJSON() {
  * @returns {{ value: * } | { error: string }}
  */
 function coerceFromString(rawVal, schema) {
-  if (!schema || typeof schema.type !== 'string') {
-    return { error: 'invalid schema entry' };
+  if (!schema || typeof schema.type !== "string") {
+    return { error: "invalid schema entry" };
   }
-  if (schema.type === 'boolean') {
+  if (schema.type === "boolean") {
     const lower = rawVal.trim().toLowerCase();
-    if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') return { value: true };
-    if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return { value: false };
+    if (lower === "true" || lower === "1" || lower === "yes" || lower === "on")
+      return { value: true };
+    if (lower === "false" || lower === "0" || lower === "no" || lower === "off")
+      return { value: false };
     return { error: `expects boolean (true/false), got "${rawVal}"` };
   }
-  if (schema.type === 'number') {
+  if (schema.type === "number") {
     const n = Number(rawVal);
-    if (!Number.isFinite(n)) return { error: `expects a number, got "${rawVal}"` };
+    if (!Number.isFinite(n))
+      return { error: `expects a number, got "${rawVal}"` };
     return { value: n };
   }
-  if (schema.type === 'string') {
+  if (schema.type === "string") {
     return { value: rawVal };
   }
-  if (schema.type === 'object') {
+  if (schema.type === "object") {
     try {
       return { value: JSON.parse(rawVal) };
     } catch {
@@ -435,4 +578,12 @@ function coerceFromString(rawVal, schema) {
   return { value: rawVal };
 }
 
-module.exports = { createPrefsManager, validatePrefs, PREF_SCHEMA, VALID_PREF_KEYS, formatPrefSchema, exportPrefSchemaJSON, coerceFromString };
+module.exports = {
+  createPrefsManager,
+  validatePrefs,
+  PREF_SCHEMA,
+  VALID_PREF_KEYS,
+  formatPrefSchema,
+  exportPrefSchemaJSON,
+  coerceFromString,
+};

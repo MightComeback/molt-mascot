@@ -3,77 +3,92 @@ declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
 type Size = "tiny" | "small" | "medium" | "large" | "xlarge";
 type PluginConfig = {
-    idleDelayMs?: number;
-    errorHoldMs?: number;
-    alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
-    clickThrough?: boolean;
-    hideText?: boolean;
-    reducedMotion?: boolean;
-    padding?: number;
-    opacity?: number;
-    size?: Size;
+  idleDelayMs?: number;
+  errorHoldMs?: number;
+  alignment?:
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "top-center"
+    | "bottom-center"
+    | "center-left"
+    | "center-right"
+    | "center";
+  clickThrough?: boolean;
+  hideText?: boolean;
+  reducedMotion?: boolean;
+  padding?: number;
+  opacity?: number;
+  size?: Size;
 };
 type State = {
-    mode: Mode;
-    since: number;
-    lastError?: {
-        message: string;
-        ts: number;
-    };
-    alignment?: PluginConfig["alignment"];
-    clickThrough?: boolean;
-    hideText?: boolean;
-    reducedMotion?: boolean;
-    padding?: number;
-    opacity?: number;
-    size?: Size;
-    currentTool?: string;
-    version?: string;
-    /** Cumulative count of tool invocations since plugin start. */
-    toolCalls?: number;
-    /** Cumulative count of tool errors since plugin start. */
-    toolErrors?: number;
-    /** Epoch ms when the plugin was registered (for uptime calculation). */
-    startedAt?: number;
-    /** Cumulative count of agent sessions started since plugin start. */
-    agentSessions?: number;
-    /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
-    activeAgents?: number;
-    /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
-    activeTools?: number;
-    /** Epoch ms of the last manual reset (undefined if never reset). */
-    lastResetAt?: number;
+  mode: Mode;
+  since: number;
+  lastError?: {
+    message: string;
+    ts: number;
+  };
+  alignment?: PluginConfig["alignment"];
+  clickThrough?: boolean;
+  hideText?: boolean;
+  reducedMotion?: boolean;
+  padding?: number;
+  opacity?: number;
+  size?: Size;
+  currentTool?: string;
+  version?: string;
+  /** Cumulative count of tool invocations since plugin start. */
+  toolCalls?: number;
+  /** Cumulative count of tool errors since plugin start. */
+  toolErrors?: number;
+  /** Epoch ms when the plugin was registered (for uptime calculation). */
+  startedAt?: number;
+  /** Cumulative count of agent sessions started since plugin start. */
+  agentSessions?: number;
+  /** Number of currently active agent sessions (helps diagnose stuck thinking state). */
+  activeAgents?: number;
+  /** Number of currently in-flight tool calls across all sessions (helps diagnose stuck tool state). */
+  activeTools?: number;
+  /** Epoch ms of the last manual reset (undefined if never reset). */
+  lastResetAt?: number;
 };
 interface PluginApi {
-    id?: string;
-    pluginConfig?: PluginConfig;
-    config?: {
-        plugins?: {
-            entries?: Record<string, {
-                config?: any;
-            }>;
-        };
+  id?: string;
+  pluginConfig?: PluginConfig;
+  config?: {
+    plugins?: {
+      entries?: Record<
+        string,
+        {
+          config?: any;
+        }
+      >;
     };
-    logger?: {
-        info?: (msg: string) => void;
-        warn?: (msg: string) => void;
-        error?: (msg: string) => void;
-    };
-    registerGatewayMethod?: (method: string, handler: any) => void;
-    registerService?: (service: {
-        id: string;
-        start?: () => void;
-        stop?: () => void;
-    }) => void;
-    on?: (event: string, handler: (data: any) => void) => void | (() => void);
-    off?: (event: string, handler: (data: any) => void) => void;
+  };
+  logger?: {
+    info?: (msg: string) => void;
+    warn?: (msg: string) => void;
+    error?: (msg: string) => void;
+  };
+  registerGatewayMethod?: (method: string, handler: any) => void;
+  registerService?: (service: {
+    id: string;
+    start?: () => void;
+    stop?: () => void;
+  }) => void;
+  on?: (event: string, handler: (data: any) => void) => void | (() => void);
+  off?: (event: string, handler: (data: any) => void) => void;
 }
 declare function coerceNumber(v: unknown, fallback: number): number;
 declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
 declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
 declare const allowedSizes: Size[];
 declare function coerceSize(v: unknown, fallback: Size): Size;
-declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
+declare function coerceAlignment(
+  v: unknown,
+  fallback: NonNullable<PluginConfig["alignment"]>,
+): NonNullable<PluginConfig["alignment"]>;
 /**
  * Coerce a value to a valid opacity (0–1).
  * Accepts numbers and numeric strings. Returns fallback for invalid/out-of-range values.
@@ -106,7 +121,10 @@ declare function clamp(value: number, min: number, max: number): number;
  * @param errorCount - Number of errors
  * @returns Integer percentage (0-100), or null if no calls
  */
-declare function successRate(totalCalls: number, errorCount: number): number | null;
+declare function successRate(
+  totalCalls: number,
+  errorCount: number,
+): number | null;
 declare function truncate(str: string, limit?: number): string;
 /**
  * Format a large count into a compact human-readable string.
@@ -181,7 +199,11 @@ declare function formatTimestampLocal(ts: number, now?: number): string;
  * @param style - 'ago' for "5m ago (at ...)" or 'since' for "5m (since ...)"
  * @returns Formatted string, or '–' if the input is invalid
  */
-declare function formatTimestampWithAge(ts: number, now?: number, style?: 'ago' | 'since'): string;
+declare function formatTimestampWithAge(
+  ts: number,
+  now?: number,
+  style?: "ago" | "since",
+): string;
 /**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
@@ -230,4 +252,38 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export {
+  CONTENT_TOOLS,
+  ERROR_PREFIXES,
+  ERROR_PREFIX_REGEX,
+  type Mode,
+  type PluginApi,
+  type PluginConfig,
+  type Size,
+  type State,
+  allowedAlignments,
+  allowedSizes,
+  clamp,
+  cleanErrorString,
+  coerceAlignment,
+  coerceBoolean,
+  coerceNumber,
+  coerceOpacity,
+  coercePadding,
+  coerceSize,
+  register as default,
+  formatBytes,
+  formatCount,
+  formatDuration,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+  id,
+  sanitizeToolName,
+  successRate,
+  summarizeToolResultMessage,
+  truncate,
+  version,
+};

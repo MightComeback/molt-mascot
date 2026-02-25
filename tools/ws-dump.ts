@@ -1,7 +1,26 @@
 // Import shared utilities at the top so they're available for URL normalization
 // and protocol method probing below (single source of truth, no drift).
-import { PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, isMissingMethodResponse, normalizeWsUrl, computeHealthStatus, computeHealthReasons, formatLatency, formatDuration, MODE_EMOJI, connectionQuality, connectionQualityEmoji, formatActiveSummary, successRate, healthStatusEmoji } from "../apps/molt-mascot/src/utils.js";
-import { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv } from "../apps/molt-mascot/src/env-keys.cjs";
+import {
+  PLUGIN_STATE_METHODS,
+  PLUGIN_RESET_METHODS,
+  isMissingMethodResponse,
+  normalizeWsUrl,
+  computeHealthStatus,
+  computeHealthReasons,
+  formatLatency,
+  formatDuration,
+  MODE_EMOJI,
+  connectionQuality,
+  connectionQualityEmoji,
+  formatActiveSummary,
+  successRate,
+  healthStatusEmoji,
+} from "../apps/molt-mascot/src/utils.js";
+import {
+  GATEWAY_URL_KEYS,
+  GATEWAY_TOKEN_KEYS,
+  resolveEnv,
+} from "../apps/molt-mascot/src/env-keys.cjs";
 
 type GatewayCfg = {
   url: string;
@@ -56,7 +75,8 @@ Environment (checked in priority order):
   process.exit(0);
 }
 
-const once = args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
+const once =
+  args.has("--once") || args.has("--exit") || args.has("--exit-after-hello");
 const stateMode = args.has("--state");
 const watchMode = args.has("--watch");
 const resetMode = args.has("--reset");
@@ -74,9 +94,15 @@ const getArg = (name: string): string | undefined => {
 
 // Compatibility: protocol version can change across Gateway builds.
 // Default to v3 (current), but allow overriding for older gateways.
-const minProtocol = Number(getArg("--min-protocol") ?? process.env.GATEWAY_MIN_PROTOCOL ?? 3);
-const maxProtocol = Number(getArg("--max-protocol") ?? process.env.GATEWAY_MAX_PROTOCOL ?? 3);
-const onceTimeoutMs = Number(getArg("--timeout-ms") ?? process.env.GATEWAY_ONCE_TIMEOUT_MS ?? 5000);
+const minProtocol = Number(
+  getArg("--min-protocol") ?? process.env.GATEWAY_MIN_PROTOCOL ?? 3,
+);
+const maxProtocol = Number(
+  getArg("--max-protocol") ?? process.env.GATEWAY_MAX_PROTOCOL ?? 3,
+);
+const onceTimeoutMs = Number(
+  getArg("--timeout-ms") ?? process.env.GATEWAY_ONCE_TIMEOUT_MS ?? 5000,
+);
 
 if (!Number.isFinite(minProtocol) || !Number.isFinite(maxProtocol)) {
   console.error("Invalid --min-protocol/--max-protocol (must be numbers)");
@@ -89,7 +115,9 @@ if (!Number.isFinite(onceTimeoutMs) || onceTimeoutMs <= 0) {
 }
 
 if (minProtocol > maxProtocol) {
-  console.error("Invalid protocol range: --min-protocol cannot be greater than --max-protocol");
+  console.error(
+    "Invalid protocol range: --min-protocol cannot be greater than --max-protocol",
+  );
   process.exit(2);
 }
 
@@ -111,13 +139,18 @@ function formatWatchSummary(state: Record<string, any>): string {
 
   // Detect sleeping state: idle beyond the sleep threshold (default 120s),
   // matching the desktop app's pill-label, context-menu, and tray tooltip behavior.
-  const modeDurationMs = typeof state.since === "number" && state.since > 0
-    ? Math.max(0, Date.now() - state.since)
-    : 0;
+  const modeDurationMs =
+    typeof state.since === "number" && state.since > 0
+      ? Math.max(0, Date.now() - state.since)
+      : 0;
   const DEFAULT_SLEEP_THRESHOLD_MS = 120_000;
-  const isSleeping = mode === "idle" && modeDurationMs > DEFAULT_SLEEP_THRESHOLD_MS;
+  const isSleeping =
+    mode === "idle" && modeDurationMs > DEFAULT_SLEEP_THRESHOLD_MS;
   const displayMode = isSleeping ? "sleeping" : mode;
-  const emoji = (MODE_EMOJI as Record<string, string>)[displayMode] || (MODE_EMOJI as Record<string, string>)[mode] || "";
+  const emoji =
+    (MODE_EMOJI as Record<string, string>)[displayMode] ||
+    (MODE_EMOJI as Record<string, string>)[mode] ||
+    "";
   parts.push(`${emoji} ${displayMode}`.trim());
 
   // Show how long the mascot has been in the current mode (useful for spotting stuck states).
@@ -126,29 +159,40 @@ function formatWatchSummary(state: Record<string, any>): string {
     if (modeSec > 0) parts.push(formatDuration(modeSec));
   }
 
-  if (mode === "tool" && state.currentTool) parts.push(`tool=${state.currentTool}`);
-  if (mode === "error" && state.lastError?.message) parts.push(state.lastError.message.slice(0, 40));
+  if (mode === "tool" && state.currentTool)
+    parts.push(`tool=${state.currentTool}`);
+  if (mode === "error" && state.lastError?.message)
+    parts.push(state.lastError.message.slice(0, 40));
 
   if (typeof state.latencyMs === "number" && state.latencyMs >= 0) {
     const q = connectionQuality(state.latencyMs);
-    parts.push(`${formatLatency(state.latencyMs)} ${connectionQualityEmoji(q)}`.trim());
+    parts.push(
+      `${formatLatency(state.latencyMs)} ${connectionQualityEmoji(q)}`.trim(),
+    );
   }
 
   if (state.activeAgents > 0 || state.activeTools > 0) {
-    parts.push(formatActiveSummary(state.activeAgents || 0, state.activeTools || 0));
+    parts.push(
+      formatActiveSummary(state.activeAgents || 0, state.activeTools || 0),
+    );
   }
 
   if (state.toolCalls > 0) {
     let s = `${state.toolCalls} call${state.toolCalls > 1 ? "s" : ""}`;
     if (state.toolErrors > 0) {
       const rate = successRate(state.toolCalls, state.toolErrors);
-      s += rate !== null ? ` (${state.toolErrors} err, ${rate}% ok)` : ` (${state.toolErrors} err)`;
+      s +=
+        rate !== null
+          ? ` (${state.toolErrors} err, ${rate}% ok)`
+          : ` (${state.toolErrors} err)`;
     }
     parts.push(s);
   }
 
   if (typeof state.agentSessions === "number" && state.agentSessions > 0) {
-    parts.push(`${state.agentSessions} session${state.agentSessions !== 1 ? "s" : ""}`);
+    parts.push(
+      `${state.agentSessions} session${state.agentSessions !== 1 ? "s" : ""}`,
+    );
   }
 
   if (state.startedAt > 0) {
@@ -159,13 +203,18 @@ function formatWatchSummary(state: Record<string, any>): string {
   // Show time since last manual reset (parity with tray tooltip and debug info).
   if (typeof state.lastResetAt === "number" && state.lastResetAt > 0) {
     const resetAgoSec = Math.round((Date.now() - state.lastResetAt) / 1000);
-    if (resetAgoSec >= 0) parts.push(`reset ${formatDuration(resetAgoSec)} ago`);
+    if (resetAgoSec >= 0)
+      parts.push(`reset ${formatDuration(resetAgoSec)} ago`);
   }
 
   // Surface health status when degraded or unhealthy (matches pill-label and tray-tooltip behavior).
   // Pass latencyStats when available so jitter-based degradation is detected.
   if (typeof state.latencyMs === "number") {
-    const healthParams = { isConnected: true, latencyMs: state.latencyMs, latencyStats: state.latencyStats ?? undefined };
+    const healthParams = {
+      isConnected: true,
+      latencyMs: state.latencyMs,
+      latencyStats: state.latencyStats ?? undefined,
+    };
     const health = computeHealthStatus(healthParams);
     if (health === "degraded" || health === "unhealthy") {
       const reasons = computeHealthReasons(healthParams);
@@ -177,13 +226,18 @@ function formatWatchSummary(state: Record<string, any>): string {
   return parts.join(" · ");
 }
 
-
 /** Log to stderr unless --quiet is active. */
-const info = (...a: unknown[]) => { if (!quiet) console.error(...a); };
+const info = (...a: unknown[]) => {
+  if (!quiet) console.error(...a);
+};
 
 // Use the canonical env-keys resolution (single source of truth with the Electron app)
 // instead of duplicating the fallback chain inline, avoiding drift.
-const rawGatewayUrl = resolveEnv(GATEWAY_URL_KEYS, process.env, "ws://127.0.0.1:18789");
+const rawGatewayUrl = resolveEnv(
+  GATEWAY_URL_KEYS,
+  process.env,
+  "ws://127.0.0.1:18789",
+);
 // Use the shared normalizeWsUrl (handles http→ws, https→wss, bare host:port, etc.)
 // instead of duplicating the logic inline, avoiding drift with the renderer/gateway-client.
 const normalizedGatewayUrl = normalizeWsUrl(rawGatewayUrl);
@@ -279,72 +333,95 @@ ws.addEventListener("message", (ev) => {
         // Probe plugin state for health assessment
         stateReqId = nextId("h");
         pingSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
       } else if (pingMode) {
         // Send first ping
         stateReqId = nextId("ping");
         pingSentAt = performance.now();
         pingsSent = 1;
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
       } else if (resetMode) {
         resetReqId = nextId("r");
-        ws.send(JSON.stringify({
-          type: "req", id: resetReqId,
-          method: PLUGIN_RESET_METHODS[resetMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: resetReqId,
+            method: PLUGIN_RESET_METHODS[resetMethodIndex],
+            params: {},
+          }),
+        );
       } else if (watchMode) {
         // Start polling plugin state; print only when it changes.
         stateReqId = nextId("s");
         watchPollSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
         watchInterval = setInterval(() => {
           if (ws.readyState !== WebSocket.OPEN) return;
           stateReqId = nextId("s");
           watchPollSentAt = performance.now();
-          ws.send(JSON.stringify({
-            type: "req", id: stateReqId,
-            method: PLUGIN_STATE_METHODS[stateMethodIndex],
-            params: {},
-          }));
+          ws.send(
+            JSON.stringify({
+              type: "req",
+              id: stateReqId,
+              method: PLUGIN_STATE_METHODS[stateMethodIndex],
+              params: {},
+            }),
+          );
         }, watchPollMs);
       } else if (stateMode) {
         stateReqId = nextId("s");
         pingSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
       } else if (once) {
-        try { ws.close(); } catch {}
+        try {
+          ws.close();
+        } catch {}
       } else {
-        ws.send(JSON.stringify({ type: "req", id: nextId("h"), method: "health" }));
+        ws.send(
+          JSON.stringify({ type: "req", id: nextId("h"), method: "health" }),
+        );
       }
     }
 
     // Apply filter: match against msg.type, msg.event, or msg.payload?.phase.
     // Bypass the filter for responses to our own requests (state/reset/ping/health/watch)
     // so mode-specific handlers below still see their replies when --filter is active.
-    const isOwnResponse = msg.type === "res" && (
-      msg.id === stateReqId || msg.id === resetReqId
-    );
+    const isOwnResponse =
+      msg.type === "res" && (msg.id === stateReqId || msg.id === resetReqId);
     if (filters.length > 0 && !isOwnResponse) {
-      const candidates = new Set([msg.type, msg.event, msg.payload?.phase].map((v) =>
-        typeof v === "string" ? v.toLowerCase() : ""
-      ));
+      const candidates = new Set(
+        [msg.type, msg.event, msg.payload?.phase].map((v) =>
+          typeof v === "string" ? v.toLowerCase() : "",
+        ),
+      );
       if (!filters.some((f) => candidates.has(f))) return;
     }
 
@@ -362,11 +439,18 @@ ws.addEventListener("message", (ev) => {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
         const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
         const state = msg.payload.state;
-        const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
-        const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
-        const uptimeMs = typeof state.startedAt === 'number' && state.startedAt > 0
-          ? Date.now() - state.startedAt
-          : null;
+        const status = computeHealthStatus({
+          isConnected: true,
+          latencyMs: rtt,
+        });
+        const reasons = computeHealthReasons({
+          isConnected: true,
+          latencyMs: rtt,
+        });
+        const uptimeMs =
+          typeof state.startedAt === "number" && state.startedAt > 0
+            ? Date.now() - state.startedAt
+            : null;
         const quality = connectionQuality(rtt);
         const result = {
           status,
@@ -380,36 +464,53 @@ ws.addEventListener("message", (ev) => {
           toolCalls: state.toolCalls ?? 0,
           toolErrors: state.toolErrors ?? 0,
           ...((state.toolCalls ?? 0) > 0 && (state.toolErrors ?? 0) > 0
-            ? { toolSuccessRate: successRate(state.toolCalls, state.toolErrors) }
+            ? {
+                toolSuccessRate: successRate(state.toolCalls, state.toolErrors),
+              }
             : {}),
           agentSessions: state.agentSessions ?? 0,
           activeAgents: state.activeAgents ?? 0,
           activeTools: state.activeTools ?? 0,
           ...(state.lastError ? { lastError: state.lastError.message } : {}),
-          ...(typeof state.lastResetAt === 'number' && state.lastResetAt > 0 ? { lastResetAt: state.lastResetAt } : {}),
+          ...(typeof state.lastResetAt === "number" && state.lastResetAt > 0
+            ? { lastResetAt: state.lastResetAt }
+            : {}),
           ...(reasons.length > 0 ? { reasons } : {}),
         };
-        console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
-        try { ws.close(); } catch {}
+        console.log(
+          compact ? JSON.stringify(result) : JSON.stringify(result, null, 2),
+        );
+        try {
+          ws.close();
+        } catch {}
         process.exitCode = status === "healthy" ? 0 : 1;
         return;
       }
-      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+      if (
+        isMissingMethod(msg) &&
+        stateMethodIndex < PLUGIN_STATE_METHODS.length - 1
+      ) {
         stateMethodIndex++;
         stateReqId = nextId("h");
         pingSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
         return;
       }
       // No plugin — still report health based on connection alone.
       // Use the probe RTT so high-latency connections still surface as degraded.
       const rtt = Math.round((performance.now() - pingSentAt) * 100) / 100;
       const status = computeHealthStatus({ isConnected: true, latencyMs: rtt });
-      const reasons = computeHealthReasons({ isConnected: true, latencyMs: rtt });
+      const reasons = computeHealthReasons({
+        isConnected: true,
+        latencyMs: rtt,
+      });
       const quality = connectionQuality(rtt);
       const result = {
         status,
@@ -419,8 +520,12 @@ ws.addEventListener("message", (ev) => {
         plugin: false,
         ...(reasons.length > 0 ? { reasons } : {}),
       };
-      console.log(compact ? JSON.stringify(result) : JSON.stringify(result, null, 2));
-      try { ws.close(); } catch {}
+      console.log(
+        compact ? JSON.stringify(result) : JSON.stringify(result, null, 2),
+      );
+      try {
+        ws.close();
+      } catch {}
       process.exitCode = status === "healthy" ? 0 : 1;
       return;
     }
@@ -438,11 +543,14 @@ ws.addEventListener("message", (ev) => {
             stateReqId = nextId("ping");
             pingSentAt = performance.now();
             pingsSent++;
-            ws.send(JSON.stringify({
-              type: "req", id: stateReqId,
-              method: PLUGIN_STATE_METHODS[stateMethodIndex],
-              params: {},
-            }));
+            ws.send(
+              JSON.stringify({
+                type: "req",
+                id: stateReqId,
+                method: PLUGIN_STATE_METHODS[stateMethodIndex],
+                params: {},
+              }),
+            );
           }, 200);
           return;
         }
@@ -451,35 +559,61 @@ ws.addEventListener("message", (ev) => {
         const sorted = pingResults.slice().sort((a, b) => a - b);
         const min = sorted[0];
         const max = sorted[sorted.length - 1];
-        const avg = Math.round((sorted.reduce((s, v) => s + v, 0) / sorted.length) * 100) / 100;
+        const avg =
+          Math.round(
+            (sorted.reduce((s, v) => s + v, 0) / sorted.length) * 100,
+          ) / 100;
         const mid = Math.floor(sorted.length / 2);
-        const median = sorted.length % 2 === 0
-          ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
-          : sorted[mid];
+        const median =
+          sorted.length % 2 === 0
+            ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
+            : sorted[mid];
         // Jitter: standard deviation — same definition as the latency-tracker
         // module uses (sqrt of mean squared deviation), giving a consistent
         // metric across the desktop app's rolling stats and the CLI's ping summary.
-        const jitter = sorted.length > 1
-          ? Math.round(Math.sqrt(sorted.reduce((s, v) => s + (v - avg) ** 2, 0) / sorted.length) * 100) / 100
-          : 0;
+        const jitter =
+          sorted.length > 1
+            ? Math.round(
+                Math.sqrt(
+                  sorted.reduce((s, v) => s + (v - avg) ** 2, 0) /
+                    sorted.length,
+                ) * 100,
+              ) / 100
+            : 0;
 
-        console.log(compact
-          ? JSON.stringify({ count: pingCount, min, max, avg, median, jitter })
-          : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`
+        console.log(
+          compact
+            ? JSON.stringify({
+                count: pingCount,
+                min,
+                max,
+                avg,
+                median,
+                jitter,
+              })
+            : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`,
         );
-        try { ws.close(); } catch {}
+        try {
+          ws.close();
+        } catch {}
         return;
       }
       // Method fallback (same as --state mode)
-      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+      if (
+        isMissingMethod(msg) &&
+        stateMethodIndex < PLUGIN_STATE_METHODS.length - 1
+      ) {
         stateMethodIndex++;
         stateReqId = nextId("ping");
         pingSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
         return;
       }
       console.error("ws-dump: plugin not available (no state method found)");
@@ -490,18 +624,30 @@ ws.addEventListener("message", (ev) => {
     if (resetMode && msg.type === "res" && msg.id === resetReqId) {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
         info("ws-dump: plugin state reset");
-        console.log(compact ? JSON.stringify(msg.payload.state) : JSON.stringify(msg.payload.state, null, 2));
-        try { ws.close(); } catch {}
+        console.log(
+          compact
+            ? JSON.stringify(msg.payload.state)
+            : JSON.stringify(msg.payload.state, null, 2),
+        );
+        try {
+          ws.close();
+        } catch {}
         return;
       }
-      if (isMissingMethod(msg) && resetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
+      if (
+        isMissingMethod(msg) &&
+        resetMethodIndex < PLUGIN_RESET_METHODS.length - 1
+      ) {
         resetMethodIndex++;
         resetReqId = nextId("r");
-        ws.send(JSON.stringify({
-          type: "req", id: resetReqId,
-          method: PLUGIN_RESET_METHODS[resetMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: resetReqId,
+            method: PLUGIN_RESET_METHODS[resetMethodIndex],
+            params: {},
+          }),
+        );
         return;
       }
       console.error("ws-dump: plugin not available (no reset method found)");
@@ -518,12 +664,14 @@ ws.addEventListener("message", (ev) => {
           const ts = new Date().toISOString().slice(11, 23);
           // Measure round-trip latency of the poll and inject into state
           // so the compact summary can show connection quality at a glance.
-          const rtt = watchPollSentAt > 0
-            ? Math.round((performance.now() - watchPollSentAt) * 100) / 100
-            : undefined;
-          const stateWithLatency = rtt !== undefined
-            ? { ...msg.payload.state, latencyMs: rtt }
-            : msg.payload.state;
+          const rtt =
+            watchPollSentAt > 0
+              ? Math.round((performance.now() - watchPollSentAt) * 100) / 100
+              : undefined;
+          const stateWithLatency =
+            rtt !== undefined
+              ? { ...msg.payload.state, latencyMs: rtt }
+              : msg.payload.state;
           const line = compact
             ? formatWatchSummary(stateWithLatency)
             : JSON.stringify(msg.payload.state, null, 2);
@@ -532,20 +680,28 @@ ws.addEventListener("message", (ev) => {
           if (watchMaxChanges > 0 && watchChangeCount >= watchMaxChanges) {
             info(`ws-dump: reached ${watchMaxChanges} change(s), exiting`);
             if (watchInterval) clearInterval(watchInterval);
-            try { ws.close(); } catch {}
+            try {
+              ws.close();
+            } catch {}
             return;
           }
         }
         return;
       }
-      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+      if (
+        isMissingMethod(msg) &&
+        stateMethodIndex < PLUGIN_STATE_METHODS.length - 1
+      ) {
         stateMethodIndex++;
         stateReqId = nextId("s");
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
         return;
       }
       console.error("ws-dump: plugin not available (no state method found)");
@@ -557,30 +713,46 @@ ws.addEventListener("message", (ev) => {
       if (msg.ok && msg.payload?.ok && msg.payload?.state) {
         // Include round-trip latency, connection quality, and health status
         // in the output for quick diagnostics (parity with --health mode).
-        const rtt = pingSentAt > 0
-          ? Math.round((performance.now() - pingSentAt) * 100) / 100
-          : undefined;
+        const rtt =
+          pingSentAt > 0
+            ? Math.round((performance.now() - pingSentAt) * 100) / 100
+            : undefined;
         const extras: Record<string, unknown> = {};
         if (rtt !== undefined) {
           extras.latencyMs = rtt;
           const q = connectionQuality(rtt);
           if (q) extras.quality = q;
-          extras.healthStatus = computeHealthStatus({ isConnected: true, latencyMs: rtt });
+          extras.healthStatus = computeHealthStatus({
+            isConnected: true,
+            latencyMs: rtt,
+          });
         }
         const output = { ...msg.payload.state, ...extras };
-        console.log(compact ? formatWatchSummary(output) : JSON.stringify(output, null, 2));
-        try { ws.close(); } catch {}
+        console.log(
+          compact
+            ? formatWatchSummary(output)
+            : JSON.stringify(output, null, 2),
+        );
+        try {
+          ws.close();
+        } catch {}
         return;
       }
-      if (isMissingMethod(msg) && stateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
+      if (
+        isMissingMethod(msg) &&
+        stateMethodIndex < PLUGIN_STATE_METHODS.length - 1
+      ) {
         stateMethodIndex++;
         stateReqId = nextId("s");
         pingSentAt = performance.now();
-        ws.send(JSON.stringify({
-          type: "req", id: stateReqId,
-          method: PLUGIN_STATE_METHODS[stateMethodIndex],
-          params: {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "req",
+            id: stateReqId,
+            method: PLUGIN_STATE_METHODS[stateMethodIndex],
+            params: {},
+          }),
+        );
         return;
       }
       console.error("ws-dump: plugin not available (no state method found)");
@@ -594,7 +766,9 @@ ws.addEventListener("message", (ev) => {
 // Safety: in --once/--state mode, don't hang forever if the server never replies.
 // (--watch mode runs indefinitely, so no timeout for it.)
 if (once || stateMode || resetMode || pingMode || healthMode) {
-  const effectiveTimeout = pingMode ? Math.max(onceTimeoutMs, pingCount * 1000) : onceTimeoutMs;
+  const effectiveTimeout = pingMode
+    ? Math.max(onceTimeoutMs, pingCount * 1000)
+    : onceTimeoutMs;
   setTimeout(() => {
     if (!gotHello) {
       console.error(`Timed out waiting for hello-ok after ${onceTimeoutMs}ms`);
@@ -628,7 +802,9 @@ ws.addEventListener("close", () => {
 // gateway sees a normal close frame instead of a TCP reset.
 function gracefulShutdown() {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    try { ws.close(); } catch {}
+    try {
+      ws.close();
+    } catch {}
   } else {
     process.exit(0);
   }

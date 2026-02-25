@@ -4,7 +4,7 @@
  */
 
 export function coerceDelayMs(v, fallback) {
-  if (v === '' || v === null || v === undefined) return fallback;
+  if (v === "" || v === null || v === undefined) return fallback;
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
@@ -12,13 +12,72 @@ export function coerceDelayMs(v, fallback) {
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.
-import { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, successRate, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge } from '@molt/mascot-plugin';
-export { truncate, cleanErrorString, formatDuration, formatBytes, formatCount, successRate, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge };
+import {
+  truncate,
+  cleanErrorString,
+  formatDuration,
+  formatBytes,
+  formatCount,
+  successRate,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+} from "@molt/mascot-plugin";
+export {
+  truncate,
+  cleanErrorString,
+  formatDuration,
+  formatBytes,
+  formatCount,
+  successRate,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampLocal,
+  formatTimestampWithAge,
+};
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
 // Previously duplicated between tray-icon.cjs and utils.js; now single source of truth.
-import { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons as _computeHealthReasons, computeHealthStatus as _computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend, formatHealthSummary as _formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate as _computeConnectionSuccessRate, connectionUptimePercent as _connectionUptimePercent } from './format-latency.cjs';
-export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend, formatActiveSummary, formatProtocolRange };
+import {
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  formatQualitySummary,
+  QUALITY_THRESHOLDS,
+  HEALTH_THRESHOLDS,
+  healthStatusEmoji,
+  computeHealthReasons as _computeHealthReasons,
+  computeHealthStatus as _computeHealthStatus,
+  VALID_HEALTH_STATUSES,
+  isValidHealth,
+  VALID_LATENCY_TRENDS,
+  isValidLatencyTrend,
+  formatHealthSummary as _formatHealthSummary,
+  formatActiveSummary,
+  formatProtocolRange,
+  computeConnectionSuccessRate as _computeConnectionSuccessRate,
+  connectionUptimePercent as _connectionUptimePercent,
+} from "./format-latency.cjs";
+export {
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  formatQualitySummary,
+  QUALITY_THRESHOLDS,
+  HEALTH_THRESHOLDS,
+  healthStatusEmoji,
+  VALID_HEALTH_STATUSES,
+  isValidHealth,
+  VALID_LATENCY_TRENDS,
+  isValidLatencyTrend,
+  formatActiveSummary,
+  formatProtocolRange,
+};
 
 /**
  * Determine whether the mascot is in "sleeping" state (idle beyond threshold).
@@ -31,7 +90,7 @@ export { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualit
  * @returns {boolean}
  */
 export function isSleepingMode(mode, idleDurationMs, sleepThresholdMs) {
-  return mode === 'idle' && idleDurationMs > sleepThresholdMs;
+  return mode === "idle" && idleDurationMs > sleepThresholdMs;
 }
 
 /**
@@ -50,8 +109,8 @@ export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;
   const payloadOk = msg?.payload?.ok;
   const err = msg?.payload?.error || msg?.error || null;
-  const code = (err?.code || err?.name || '').toString().toLowerCase();
-  const message = (err?.message || err || '').toString().toLowerCase();
+  const code = (err?.code || err?.name || "").toString().toLowerCase();
+  const message = (err?.message || err || "").toString().toLowerCase();
 
   if (ok === true && payloadOk === true) return false;
 
@@ -59,10 +118,11 @@ export function isMissingMethodResponse(msg) {
   const numericCode = Number(err?.code);
   if (numericCode === -32601) return true;
 
-  if (code.includes('method') && code.includes('not') && code.includes('found')) return true;
-  if (message.includes('method not found')) return true;
-  if (message.includes('unknown method')) return true;
-  if (message.includes('unknown rpc method')) return true;
+  if (code.includes("method") && code.includes("not") && code.includes("found"))
+    return true;
+  if (message.includes("method not found")) return true;
+  if (message.includes("unknown method")) return true;
+  if (message.includes("unknown rpc method")) return true;
 
   return false;
 }
@@ -71,9 +131,9 @@ export function isMissingMethodResponse(msg) {
  * Convert a WebSocket readyState number to a human-readable label.
  * Avoids inline magic-array indexing scattered through rendering/debug code.
  */
-const WS_STATE_LABELS = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const WS_STATE_LABELS = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
 export function wsReadyStateLabel(readyState) {
-  if (readyState === null || readyState === undefined) return 'null';
+  if (readyState === null || readyState === undefined) return "null";
   return WS_STATE_LABELS[readyState] ?? String(readyState);
 }
 
@@ -90,23 +150,23 @@ export function wsReadyStateLabel(readyState) {
  * Reduced-motion intervals are 2-10× slower to respect the preference.
  */
 const FRAME_INTERVALS = Object.freeze({
-  idle:         66,
-  thinking:     66,
-  tool:         66,
-  connecting:   66,
-  connected:    150,
+  idle: 66,
+  thinking: 66,
+  tool: 66,
+  connecting: 66,
+  connected: 150,
   disconnected: 100,
-  error:        100,
+  error: 100,
 });
 
 const FRAME_INTERVALS_REDUCED = Object.freeze({
-  idle:         1000,
-  thinking:     500,
-  tool:         500,
-  connecting:   500,
-  connected:    500,
+  idle: 1000,
+  thinking: 500,
+  tool: 500,
+  connecting: 500,
+  connected: 500,
   disconnected: 500,
-  error:        500,
+  error: 500,
 });
 
 /** Default interval for unknown/future modes (~15fps, safe CPU budget). */
@@ -123,7 +183,12 @@ const DEFAULT_INTERVAL_REDUCED = 500;
  * @param {boolean} reducedMotion - Whether prefers-reduced-motion is active
  * @returns {number} Frame interval in milliseconds
  */
-export function getFrameIntervalMs(mode, idleDurationMs, sleepThresholdMs, reducedMotion) {
+export function getFrameIntervalMs(
+  mode,
+  idleDurationMs,
+  sleepThresholdMs,
+  reducedMotion,
+) {
   if (reducedMotion) {
     // Sleeping idle gets an even slower rate (2s between frames).
     if (isSleepingMode(mode, idleDurationMs, sleepThresholdMs)) return 2000;
@@ -232,27 +297,37 @@ export function buildTooltip(params) {
   const now = nowOverride ?? Date.now();
 
   let tip = `${displayMode} for ${formatDuration(durationSec)}`;
-  if (displayMode === 'tool' && currentTool) tip += ` (${currentTool})`;
+  if (displayMode === "tool" && currentTool) tip += ` (${currentTool})`;
   if (lastErrorMessage) tip += ` — ${lastErrorMessage}`;
-  if (isClickThrough) tip += ' (ghost mode)';
-  if (isTextHidden) tip += ' (text hidden)';
-  const isConnected = typeof connectedSince === 'number' && connectedSince >= 0;
+  if (isClickThrough) tip += " (ghost mode)";
+  if (isTextHidden) tip += " (text hidden)";
+  const isConnected = typeof connectedSince === "number" && connectedSince >= 0;
   if (isConnected) {
     tip += ` · connected ${formatElapsed(connectedSince, now)}`;
   }
   if (connectedUrl) tip += ` · ${connectedUrl}`;
-  if (!isConnected && typeof lastDisconnectedAt === 'number' && lastDisconnectedAt > 0) {
+  if (
+    !isConnected &&
+    typeof lastDisconnectedAt === "number" &&
+    lastDisconnectedAt > 0
+  ) {
     tip += ` · disconnected ${formatElapsed(lastDisconnectedAt, now)} ago`;
   }
-  if (reconnectAttempt > 0 && !isConnected) tip += ` · retry #${reconnectAttempt}`;
+  if (reconnectAttempt > 0 && !isConnected)
+    tip += ` · retry #${reconnectAttempt}`;
   // Show target URL when disconnected to help diagnose which endpoint is failing.
-  if (typeof targetUrl === 'string' && targetUrl && !isConnected) tip += ` · → ${targetUrl}`;
+  if (typeof targetUrl === "string" && targetUrl && !isConnected)
+    tip += ` · → ${targetUrl}`;
   // Show close reason when disconnected, or when connected but the connection has flapped
   // (helps diagnose why the last disconnect happened without opening debug info).
-  if (lastCloseDetail && (!isConnected || (typeof sessionConnectCount === 'number' && sessionConnectCount > 1))) {
+  if (
+    lastCloseDetail &&
+    (!isConnected ||
+      (typeof sessionConnectCount === "number" && sessionConnectCount > 1))
+  ) {
     tip += ` · last close: ${lastCloseDetail}`;
   }
-  if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
+  if (typeof pluginStartedAt === "number" && pluginStartedAt > 0) {
     tip += ` · plugin up ${formatElapsed(pluginStartedAt, now)}`;
   }
   if (pluginToolCalls > 0) {
@@ -262,18 +337,24 @@ export function buildTooltip(params) {
       tip += `, ${formatCount(pluginToolErrors)} errors (${rate}% ok)`;
     }
   }
-  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+  if (
+    typeof activeAgents === "number" &&
+    typeof activeTools === "number" &&
+    (activeAgents > 0 || activeTools > 0)
+  ) {
     tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
   }
-  if (typeof agentSessions === 'number' && agentSessions > 0) {
-    tip += ` · ${formatCount(agentSessions)} session${agentSessions !== 1 ? 's' : ''}`;
+  if (typeof agentSessions === "number" && agentSessions > 0) {
+    tip += ` · ${formatCount(agentSessions)} session${agentSessions !== 1 ? "s" : ""}`;
   }
-  if (typeof latencyMs === 'number' && latencyMs >= 0) {
-    let latencyPart = formatQualitySummary(latencyMs, latencyStats, { emoji: false }).text;
+  if (typeof latencyMs === "number" && latencyMs >= 0) {
+    let latencyPart = formatQualitySummary(latencyMs, latencyStats, {
+      emoji: false,
+    }).text;
     // Append trend indicator when latency is actively rising or falling.
     // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
-    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
-      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
+      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
     }
     tip += ` · ${latencyPart}`;
   }
@@ -281,27 +362,32 @@ export function buildTooltip(params) {
   // before the stale-check timer (15s) triggers a reconnect. Below 5s the latency
   // line already conveys liveness, so we avoid tooltip clutter.
   // Parity with tray tooltip's lastMessageAt indicator.
-  if (typeof lastMessageAt === 'number' && lastMessageAt > 0 && isConnected) {
+  if (typeof lastMessageAt === "number" && lastMessageAt > 0 && isConnected) {
     const gapMs = now - lastMessageAt;
     if (gapMs >= 5000) {
       tip += ` · last msg ${formatElapsed(lastMessageAt, now)} ago`;
     }
   }
   // Show layout info when non-default (avoids tooltip clutter for standard configs)
-  if (alignment && alignment !== 'bottom-right') tip += ` · ${alignment}`;
-  if (sizeLabel && sizeLabel !== 'medium') tip += ` · ${sizeLabel}`;
-  if (typeof opacity === 'number' && opacity < 1) tip += ` · ${_formatOpacity(opacity)}`;
+  if (alignment && alignment !== "bottom-right") tip += ` · ${alignment}`;
+  if (sizeLabel && sizeLabel !== "medium") tip += ` · ${sizeLabel}`;
+  if (typeof opacity === "number" && opacity < 1)
+    tip += ` · ${_formatOpacity(opacity)}`;
   // Show reconnect count when the connection has flapped (>1 handshake since launch).
   // Helps users diagnose flaky gateway connections without opening debug info.
-  if (typeof lastResetAt === 'number' && lastResetAt > 0) {
+  if (typeof lastResetAt === "number" && lastResetAt > 0) {
     tip += ` · reset ${formatElapsed(lastResetAt, now)} ago`;
   }
-  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
     tip += ` · reconnected ${sessionConnectCount - 1}×`;
   }
   // Surface connection uptime percentage when below 100% to highlight flappy connections.
   // Parity with tray tooltip's connectionUptimePct indicator.
-  if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
+  if (
+    typeof connectionUptimePct === "number" &&
+    connectionUptimePct >= 0 &&
+    connectionUptimePct < 100
+  ) {
     tip += ` · ${connectionUptimePct}% connected`;
   }
   // Show health status when degraded or unhealthy for at-a-glance diagnostics.
@@ -318,7 +404,12 @@ export function buildTooltip(params) {
   if (healthSummary) {
     tip += ` · ${healthSummary.text}`;
   }
-  const verParts = [appVersion ? `v${appVersion}` : '', pluginVersion ? `plugin v${pluginVersion}` : ''].filter(Boolean).join(', ');
+  const verParts = [
+    appVersion ? `v${appVersion}` : "",
+    pluginVersion ? `plugin v${pluginVersion}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
   if (verParts) tip += ` (${verParts})`;
   return tip;
 }
@@ -334,15 +425,18 @@ export function buildTooltip(params) {
  * @returns {string} URL with ws:// or wss:// scheme
  */
 export function normalizeWsUrl(url) {
-  if (typeof url !== 'string') return url;
+  if (typeof url !== "string") return url;
   const trimmed = url.trim();
-  if (/^https:\/\//i.test(trimmed)) return trimmed.replace(/^https:\/\//i, 'wss://');
-  if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:\/\//i, 'ws://');
+  if (/^https:\/\//i.test(trimmed))
+    return trimmed.replace(/^https:\/\//i, "wss://");
+  if (/^http:\/\//i.test(trimmed))
+    return trimmed.replace(/^http:\/\//i, "ws://");
   // Normalize uppercase WebSocket schemes to lowercase for consistency.
   // Most WebSocket implementations are case-insensitive, but lowercase is canonical
   // and avoids cosmetic inconsistencies in tooltips, debug info, and saved URLs.
-  if (/^wss:\/\//i.test(trimmed)) return trimmed.replace(/^wss:\/\//i, 'wss://');
-  if (/^ws:\/\//i.test(trimmed)) return trimmed.replace(/^ws:\/\//i, 'ws://');
+  if (/^wss:\/\//i.test(trimmed))
+    return trimmed.replace(/^wss:\/\//i, "wss://");
+  if (/^ws:\/\//i.test(trimmed)) return trimmed.replace(/^ws:\/\//i, "ws://");
   // Auto-add ws:// for bare host(:port) URLs — common user mistake when pasting
   // gateway addresses without a scheme (e.g. "127.0.0.1:18789" or "localhost:8080/ws").
   if (trimmed && !/:\/\//.test(trimmed)) return `ws://${trimmed}`;
@@ -364,26 +458,27 @@ export function normalizeWsUrl(url) {
  * @returns {string|null} Error message, or null if valid
  */
 export function validateWsUrl(url) {
-  if (typeof url !== 'string' || !url.trim()) return 'URL is empty';
+  if (typeof url !== "string" || !url.trim()) return "URL is empty";
   const trimmed = url.trim();
-  if (!/^wss?:\/\//i.test(trimmed)) return 'URL must start with ws:// or wss://';
+  if (!/^wss?:\/\//i.test(trimmed))
+    return "URL must start with ws:// or wss://";
 
   let parsed;
   try {
     // URL constructor requires http(s) scheme; swap temporarily to parse.
-    const httpUrl = trimmed.replace(/^ws(s?):\/\//i, 'http$1://');
+    const httpUrl = trimmed.replace(/^ws(s?):\/\//i, "http$1://");
     parsed = new URL(httpUrl);
   } catch {
-    return 'URL is malformed';
+    return "URL is malformed";
   }
 
-  if (!parsed.hostname) return 'URL is missing a hostname';
+  if (!parsed.hostname) return "URL is missing a hostname";
 
   // Reject URLs with embedded credentials (ws://user:pass@host).
   // Most WebSocket implementations silently strip or reject userinfo,
   // and it's a security anti-pattern (credentials visible in logs/tooltips).
   if (parsed.username || parsed.password) {
-    return 'URL must not contain credentials (user:pass@)';
+    return "URL must not contain credentials (user:pass@)";
   }
 
   // Port range check (URL constructor accepts any digits but WebSocket connect will fail).
@@ -404,39 +499,39 @@ export function validateWsUrl(url) {
  * @see https://www.iana.org/assignments/websocket/websocket.xhtml#close-code-number
  */
 export const WS_CLOSE_CODE_LABELS = {
-  1000: 'normal',
-  1001: 'going away',
-  1002: 'protocol error',
-  1003: 'unsupported data',
-  1005: 'no status',
-  1006: 'abnormal closure',
-  1007: 'invalid payload',
-  1008: 'policy violation',
-  1009: 'message too big',
-  1010: 'missing extension',
-  1011: 'internal error',
-  1012: 'service restart',
-  1013: 'try again later',
-  1014: 'bad gateway',
-  1015: 'TLS handshake failed',
+  1000: "normal",
+  1001: "going away",
+  1002: "protocol error",
+  1003: "unsupported data",
+  1005: "no status",
+  1006: "abnormal closure",
+  1007: "invalid payload",
+  1008: "policy violation",
+  1009: "message too big",
+  1010: "missing extension",
+  1011: "internal error",
+  1012: "service restart",
+  1013: "try again later",
+  1014: "bad gateway",
+  1015: "TLS handshake failed",
   // Application-specific codes (4000-4999): common Gateway/server conventions.
   // These are not standardized by IANA but widely used by WebSocket servers
   // (including OpenClaw Gateway, Discord, Cloudflare, etc.).
-  4000: 'unknown error',
-  4001: 'auth failed',
-  4002: 'rate limited',
-  4003: 'forbidden',
-  4004: 'not found',
-  4005: 'already connected',
-  4006: 'session replaced',
-  4007: 'invalid payload',
-  4008: 'request timeout',
-  4009: 'session expired',
-  4010: 'server restart',
-  4011: 'reconnect required',
-  4012: 'invalid version',
-  4013: 'invalid intent',
-  4014: 'disallowed intent',
+  4000: "unknown error",
+  4001: "auth failed",
+  4002: "rate limited",
+  4003: "forbidden",
+  4004: "not found",
+  4005: "already connected",
+  4006: "session replaced",
+  4007: "invalid payload",
+  4008: "request timeout",
+  4009: "session expired",
+  4010: "server restart",
+  4011: "reconnect required",
+  4012: "invalid version",
+  4013: "invalid intent",
+  4014: "disallowed intent",
 };
 
 /**
@@ -452,11 +547,12 @@ export function formatCloseDetail(code, reason) {
   const MAX_REASON_LEN = 80;
   // Collapse whitespace/newlines to single spaces — some servers send multi-line
   // close reasons that would break single-line tooltip/debug display.
-  const rawReason = (reason || '').trim().replace(/\s+/g, ' ');
-  const trimmedReason = rawReason.length > MAX_REASON_LEN
-    ? rawReason.slice(0, MAX_REASON_LEN - 1) + '…'
-    : rawReason;
-  const label = (code != null) ? WS_CLOSE_CODE_LABELS[code] : undefined;
+  const rawReason = (reason || "").trim().replace(/\s+/g, " ");
+  const trimmedReason =
+    rawReason.length > MAX_REASON_LEN
+      ? rawReason.slice(0, MAX_REASON_LEN - 1) + "…"
+      : rawReason;
+  const label = code != null ? WS_CLOSE_CODE_LABELS[code] : undefined;
 
   // If we have a human reason string, append the numeric code for searchability
   // (e.g. "server going down (1001)" helps when looking up close codes in docs).
@@ -472,7 +568,7 @@ export function formatCloseDetail(code, reason) {
   if (code != null) {
     return `code ${code}`;
   }
-  return '';
+  return "";
 }
 
 /**
@@ -503,8 +599,7 @@ export function formatCloseDetail(code, reason) {
  * 4007 (invalid payload), 4012 (invalid version), 4013/4014 (intent errors)
  */
 export const RECOVERABLE_CLOSE_CODES = new Set([
-  1000, 1001, 1006, 1012, 1013,
-  4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011,
+  1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011,
 ]);
 
 /**
@@ -531,19 +626,19 @@ export function isRecoverableCloseCode(code) {
  * Shared across renderer.js, gateway-client.js, and ws-dump.ts to avoid drift.
  */
 export const PLUGIN_STATE_METHODS = [
-  '@molt/mascot-plugin.state',
-  'molt-mascot.state',
-  'molt-mascot-plugin.state',
-  'moltMascot.state',
-  'moltMascotPlugin.state',
+  "@molt/mascot-plugin.state",
+  "molt-mascot.state",
+  "molt-mascot-plugin.state",
+  "moltMascot.state",
+  "moltMascotPlugin.state",
 ];
 
 export const PLUGIN_RESET_METHODS = [
-  '@molt/mascot-plugin.reset',
-  'molt-mascot.reset',
-  'molt-mascot-plugin.reset',
-  'moltMascot.reset',
-  'moltMascotPlugin.reset',
+  "@molt/mascot-plugin.reset",
+  "molt-mascot.reset",
+  "molt-mascot-plugin.reset",
+  "moltMascot.reset",
+  "moltMascotPlugin.reset",
 ];
 
 /**
@@ -629,11 +724,16 @@ export const computeConnectionSuccessRate = _computeConnectionSuccessRate;
  */
 export function memoryPressureEmoji(level) {
   switch (level) {
-    case 'low':      return '🟢';
-    case 'moderate': return '🟡';
-    case 'high':     return '🟠';
-    case 'critical': return '🔴';
-    default:         return '⚪';
+    case "low":
+      return "🟢";
+    case "moderate":
+      return "🟡";
+    case "high":
+      return "🟠";
+    case "critical":
+      return "🔴";
+    default:
+      return "⚪";
   }
 }
 
@@ -651,23 +751,27 @@ export function memoryPressureEmoji(level) {
  * @returns {{ usedPercent: number, totalPercent: number, level: "low"|"moderate"|"high"|"critical" }|null}
  */
 export function memoryPressure(memory) {
-  if (!memory || typeof memory !== 'object') return null;
+  if (!memory || typeof memory !== "object") return null;
   const { usedJSHeapSize, jsHeapSizeLimit } = memory;
-  if (typeof usedJSHeapSize !== 'number' || typeof jsHeapSizeLimit !== 'number') return null;
-  if (!Number.isFinite(usedJSHeapSize) || !Number.isFinite(jsHeapSizeLimit)) return null;
+  if (typeof usedJSHeapSize !== "number" || typeof jsHeapSizeLimit !== "number")
+    return null;
+  if (!Number.isFinite(usedJSHeapSize) || !Number.isFinite(jsHeapSizeLimit))
+    return null;
   if (usedJSHeapSize < 0) return null;
   if (jsHeapSizeLimit <= 0) return null;
 
   const usedPercent = Math.round((usedJSHeapSize / jsHeapSizeLimit) * 100);
-  const totalPercent = typeof memory.totalJSHeapSize === 'number' && Number.isFinite(memory.totalJSHeapSize)
-    ? Math.round((memory.totalJSHeapSize / jsHeapSizeLimit) * 100)
-    : usedPercent;
+  const totalPercent =
+    typeof memory.totalJSHeapSize === "number" &&
+    Number.isFinite(memory.totalJSHeapSize)
+      ? Math.round((memory.totalJSHeapSize / jsHeapSizeLimit) * 100)
+      : usedPercent;
 
   let level;
-  if (usedPercent >= 90) level = 'critical';
-  else if (usedPercent >= 75) level = 'high';
-  else if (usedPercent >= 50) level = 'moderate';
-  else level = 'low';
+  if (usedPercent >= 90) level = "critical";
+  else if (usedPercent >= 75) level = "high";
+  else if (usedPercent >= 50) level = "moderate";
+  else level = "low";
 
   return { usedPercent, totalPercent, level };
 }
@@ -682,21 +786,36 @@ export function memoryPressure(memory) {
  * @returns {string|null} e.g. "12.5 MB used / 25.0 MB total (limit 50.0 MB) — 25%", or null if no data
  */
 export function formatMemorySummary(memory, pressure) {
-  if (!memory || typeof memory.usedJSHeapSize !== 'number') return null;
+  if (!memory || typeof memory.usedJSHeapSize !== "number") return null;
   const used = formatBytes(memory.usedJSHeapSize);
   const total = formatBytes(memory.totalJSHeapSize);
   const limit = formatBytes(memory.jsHeapSizeLimit);
   if (!pressure) return `${used} used / ${total} total (limit ${limit})`;
-  const pressureSuffix = pressure.level !== 'low'
-    ? ` — ${memoryPressureEmoji(pressure.level)} ${pressure.usedPercent}% ${pressure.level}`
-    : ` — ${pressure.usedPercent}%`;
+  const pressureSuffix =
+    pressure.level !== "low"
+      ? ` — ${memoryPressureEmoji(pressure.level)} ${pressure.usedPercent}% ${pressure.level}`
+      : ` — ${pressure.usedPercent}%`;
   return `${used} used / ${total} total (limit ${limit})${pressureSuffix}`;
 }
 
 // Re-export from shared CJS module so both electron-main and renderer use the same impl.
 // Bun/esbuild handle CJS → ESM interop transparently.
-export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from './is-truthy-env.cjs';
-export { MODE, MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode } from './mode-emoji.cjs';
-export { REPO_URL } from './env-keys.cjs';
-import { formatOpacity as _formatOpacity, stepOpacity as _stepOpacity, isValidOpacity as _isValidOpacity } from './opacity-presets.cjs';
-export { _formatOpacity as formatOpacity, _stepOpacity as stepOpacity, _isValidOpacity as isValidOpacity };
+export { isTruthyEnv, isFalsyEnv, parseBooleanEnv } from "./is-truthy-env.cjs";
+export {
+  MODE,
+  MODE_EMOJI,
+  MODE_DESCRIPTIONS,
+  VALID_MODES,
+  isValidMode,
+} from "./mode-emoji.cjs";
+export { REPO_URL } from "./env-keys.cjs";
+import {
+  formatOpacity as _formatOpacity,
+  stepOpacity as _stepOpacity,
+  isValidOpacity as _isValidOpacity,
+} from "./opacity-presets.cjs";
+export {
+  _formatOpacity as formatOpacity,
+  _stepOpacity as stepOpacity,
+  _isValidOpacity as isValidOpacity,
+};

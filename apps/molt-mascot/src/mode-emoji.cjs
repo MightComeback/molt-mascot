@@ -5,14 +5,14 @@
  * Import this instead to avoid drift between the mode enum and VALID_MODES.
  */
 const MODE = Object.freeze({
-  idle: 'idle',
-  thinking: 'thinking',
-  tool: 'tool',
-  error: 'error',
-  connecting: 'connecting',
-  connected: 'connected',
-  disconnected: 'disconnected',
-  sleeping: 'sleeping',
+  idle: "idle",
+  thinking: "thinking",
+  tool: "tool",
+  error: "error",
+  connecting: "connecting",
+  connected: "connected",
+  disconnected: "disconnected",
+  sleeping: "sleeping",
 });
 
 /**
@@ -20,14 +20,14 @@ const MODE = Object.freeze({
  * Single source of truth: previously duplicated in renderer.js and tray-icon.cjs.
  */
 const MODE_EMOJI = Object.freeze({
-  idle: '●',
-  thinking: '🧠',
-  tool: '🔧',
-  error: '❌',
-  connecting: '🔄',
-  disconnected: '⚡',
-  connected: '✅',
-  sleeping: '💤',
+  idle: "●",
+  thinking: "🧠",
+  tool: "🔧",
+  error: "❌",
+  connecting: "🔄",
+  disconnected: "⚡",
+  connected: "✅",
+  sleeping: "💤",
 });
 
 /**
@@ -37,14 +37,14 @@ const MODE_EMOJI = Object.freeze({
  * across renderer, tray, and context-menu code.
  */
 const MODE_DESCRIPTIONS = Object.freeze({
-  idle: 'Waiting for activity',
-  thinking: 'Processing a response',
-  tool: 'Running a tool',
-  error: 'An error occurred',
-  connecting: 'Connecting to gateway',
-  disconnected: 'Disconnected from gateway',
-  connected: 'Successfully connected',
-  sleeping: 'Idle for an extended period',
+  idle: "Waiting for activity",
+  thinking: "Processing a response",
+  tool: "Running a tool",
+  error: "An error occurred",
+  connecting: "Connecting to gateway",
+  disconnected: "Disconnected from gateway",
+  connected: "Successfully connected",
+  sleeping: "Idle for an extended period",
 });
 
 /**
@@ -69,8 +69,14 @@ const _VALID_MODES_SET = new Set(VALID_MODES);
  * @returns {boolean}
  */
 function isValidMode(value) {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== "string") return false;
   return _VALID_MODES_SET.has(value);
 }
 
-module.exports = { MODE, MODE_EMOJI, MODE_DESCRIPTIONS, VALID_MODES, isValidMode };
+module.exports = {
+  MODE,
+  MODE_EMOJI,
+  MODE_DESCRIPTIONS,
+  VALID_MODES,
+  isValidMode,
+};

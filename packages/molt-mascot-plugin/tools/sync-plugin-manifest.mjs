@@ -30,6 +30,6 @@ const after = JSON.stringify(next, null, 2) + "\n";
 if (before !== after) {
   fs.writeFileSync(manifestPath, after, "utf8");
   process.stdout.write(
-    `synced clawdbot.plugin.json: ${manifest.id}@${manifest.version} -> ${next.id}@${next.version}\n`
+    `synced clawdbot.plugin.json: ${manifest.id}@${manifest.version} -> ${next.id}@${next.version}\n`,
   );
 }

@@ -6,7 +6,7 @@
  * to produce a real-time FPS measurement without allocations in the hot path.
  */
 
-import { formatCount } from './utils.js';
+import { formatCount } from "./utils.js";
 
 /**
  * Create an FPS counter instance.
@@ -144,7 +144,8 @@ export function createFpsCounter(opts = {}) {
    */
   function percentAboveThreshold(thresholdMs) {
     if (count < 2) return null;
-    if (typeof thresholdMs !== 'number' || !Number.isFinite(thresholdMs)) return null;
+    if (typeof thresholdMs !== "number" || !Number.isFinite(thresholdMs))
+      return null;
 
     // Scan consecutive pairs in the ring buffer to compute inter-frame deltas.
     // We iterate from oldest to newest; only pairs where both entries are valid
@@ -215,14 +216,14 @@ export function createFpsCounter(opts = {}) {
     const newerAvg = newerSum / newerCount;
 
     // Avoid division by zero when older average is 0.
-    if (olderAvg === 0) return newerAvg === 0 ? 'stable' : 'degrading';
+    if (olderAvg === 0) return newerAvg === 0 ? "stable" : "degrading";
 
     // Higher frame time = worse performance, so positive change = degrading.
     const changePercent = ((newerAvg - olderAvg) / olderAvg) * 100;
 
-    if (changePercent > thresholdPercent) return 'degrading';
-    if (changePercent < -thresholdPercent) return 'improving';
-    return 'stable';
+    if (changePercent > thresholdPercent) return "degrading";
+    if (changePercent < -thresholdPercent) return "improving";
+    return "stable";
   }
 
   /**
@@ -243,19 +244,33 @@ export function createFpsCounter(opts = {}) {
    * @returns {string} e.g. "FpsCounter<15fps, 1.2K frames, worst 42ms, stable>"
    */
   function toString() {
-    if (totalFrames === 0) return 'FpsCounter<empty>';
+    if (totalFrames === 0) return "FpsCounter<empty>";
     const parts = [`${currentFps}fps`];
     if (totalFrames >= 1000) {
       // Use formatCount for compact display when frame counts are large
       parts.push(`${formatCount(totalFrames)} frames`);
     } else {
-      parts.push(`${totalFrames} frame${totalFrames !== 1 ? 's' : ''}`);
+      parts.push(`${totalFrames} frame${totalFrames !== 1 ? "s" : ""}`);
     }
-    if (worstFrameDeltaMs > 0) parts.push(`worst ${Math.round(worstFrameDeltaMs)}ms`);
+    if (worstFrameDeltaMs > 0)
+      parts.push(`worst ${Math.round(worstFrameDeltaMs)}ms`);
     const t = trend();
     if (t) parts.push(t);
-    return `FpsCounter<${parts.join(', ')}>`;
+    return `FpsCounter<${parts.join(", ")}>`;
   }
 
-  return { update, fps, reset, frameCount, getSnapshot, worstDelta, last, percentAboveThreshold, isFull, trend, toJSON, toString };
+  return {
+    update,
+    fps,
+    reset,
+    frameCount,
+    getSnapshot,
+    worstDelta,
+    last,
+    percentAboveThreshold,
+    isFull,
+    trend,
+    toJSON,
+    toString,
+  };
 }

@@ -30,7 +30,7 @@ export function createLatencyTracker(opts = {}) {
   let cache = null;
 
   function push(ms) {
-    if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return;
+    if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return;
     ring[head] = ms;
     head = (head + 1) % maxSamples;
     if (_count < maxSamples) _count++;
@@ -66,14 +66,21 @@ export function createLatencyTracker(opts = {}) {
 
     const sorted = _toArray().sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    const median = sorted.length % 2 === 0
-      ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-      : Math.round(sorted[mid]);
+    const median =
+      sorted.length % 2 === 0
+        ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+        : Math.round(sorted[mid]);
 
-    const p95Idx = Math.min(Math.ceil(sorted.length * 0.95) - 1, sorted.length - 1);
+    const p95Idx = Math.min(
+      Math.ceil(sorted.length * 0.95) - 1,
+      sorted.length - 1,
+    );
     const p95 = Math.round(sorted[Math.max(0, p95Idx)]);
 
-    const p99Idx = Math.min(Math.ceil(sorted.length * 0.99) - 1, sorted.length - 1);
+    const p99Idx = Math.min(
+      Math.ceil(sorted.length * 0.99) - 1,
+      sorted.length - 1,
+    );
     const p99 = Math.round(sorted[Math.max(0, p99Idx)]);
 
     const avg = sum / _count;
@@ -196,7 +203,8 @@ export function createLatencyTracker(opts = {}) {
    */
   function percentAbove(thresholdMs) {
     if (_count === 0) return null;
-    if (typeof thresholdMs !== 'number' || !Number.isFinite(thresholdMs)) return null;
+    if (typeof thresholdMs !== "number" || !Number.isFinite(thresholdMs))
+      return null;
     const start = _count < maxSamples ? 0 : head;
     let above = 0;
     for (let i = 0; i < _count; i++) {
@@ -252,13 +260,13 @@ export function createLatencyTracker(opts = {}) {
     const newerAvg = newerSum / newerCount;
 
     // Avoid division by zero when older average is 0 (all-zero latencies).
-    if (olderAvg === 0) return newerAvg === 0 ? 'stable' : 'rising';
+    if (olderAvg === 0) return newerAvg === 0 ? "stable" : "rising";
 
     const changePercent = ((newerAvg - olderAvg) / olderAvg) * 100;
 
-    if (changePercent > thresholdPercent) return 'rising';
-    if (changePercent < -thresholdPercent) return 'falling';
-    return 'stable';
+    if (changePercent > thresholdPercent) return "rising";
+    if (changePercent < -thresholdPercent) return "falling";
+    return "stable";
   }
 
   /**
@@ -282,9 +290,9 @@ export function createLatencyTracker(opts = {}) {
    * @returns {string}
    */
   function toString() {
-    if (_count === 0) return 'LatencyTracker<empty>';
+    if (_count === 0) return "LatencyTracker<empty>";
     const s = stats();
-    const parts = [`${s.samples} sample${s.samples !== 1 ? 's' : ''}`];
+    const parts = [`${s.samples} sample${s.samples !== 1 ? "s" : ""}`];
     parts.push(`avg=${s.avg}ms`);
     parts.push(`median=${s.median}ms`);
     if (s.samples >= 5) parts.push(`p95=${s.p95}ms`);
@@ -296,8 +304,24 @@ export function createLatencyTracker(opts = {}) {
     if (atMax !== null && atMax > s.max) parts.push(`all-time-max=${atMax}ms`);
     const t = trend();
     if (t) parts.push(t);
-    return `LatencyTracker<${parts.join(', ')}>`;
+    return `LatencyTracker<${parts.join(", ")}>`;
   }
 
-  return { push, stats, reset, samples, count, last, percentAbove, totalPushed, allTimeMin, allTimeMax, getSnapshot, isFull, trend, toJSON, toString };
+  return {
+    push,
+    stats,
+    reset,
+    samples,
+    count,
+    last,
+    percentAbove,
+    totalPushed,
+    allTimeMin,
+    allTimeMax,
+    getSnapshot,
+    isFull,
+    trend,
+    toJSON,
+    toString,
+  };
 }

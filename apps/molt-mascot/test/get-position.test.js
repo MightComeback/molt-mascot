@@ -1,6 +1,18 @@
 import { describe, expect, it } from "bun:test";
 
-const { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment } = require("../src/get-position.cjs");
+const {
+  getPosition,
+  clampToWorkArea,
+  VALID_ALIGNMENTS,
+  isValidAlignment,
+  isValidPadding,
+  nextAlignmentIndex,
+  prevAlignmentIndex,
+  findAlignmentIndex,
+  ALIGNMENT_ARROWS,
+  alignmentArrow,
+  formatAlignment,
+} = require("../src/get-position.cjs");
 const { isValidOpacity } = require("../src/opacity-presets.cjs");
 
 const display = { workArea: { x: 0, y: 0, width: 1920, height: 1080 } };
@@ -317,9 +329,15 @@ describe("prevAlignmentIndex", () => {
 
 describe("findAlignmentIndex", () => {
   it("finds valid alignments (case-insensitive)", () => {
-    expect(findAlignmentIndex("bottom-right")).toBe(VALID_ALIGNMENTS.indexOf("bottom-right"));
-    expect(findAlignmentIndex("TOP-LEFT")).toBe(VALID_ALIGNMENTS.indexOf("top-left"));
-    expect(findAlignmentIndex("  Center  ")).toBe(VALID_ALIGNMENTS.indexOf("center"));
+    expect(findAlignmentIndex("bottom-right")).toBe(
+      VALID_ALIGNMENTS.indexOf("bottom-right"),
+    );
+    expect(findAlignmentIndex("TOP-LEFT")).toBe(
+      VALID_ALIGNMENTS.indexOf("top-left"),
+    );
+    expect(findAlignmentIndex("  Center  ")).toBe(
+      VALID_ALIGNMENTS.indexOf("center"),
+    );
   });
 
   it("returns -1 for invalid alignments", () => {

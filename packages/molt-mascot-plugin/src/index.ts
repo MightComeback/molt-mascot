@@ -115,7 +115,13 @@ export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "center",
 ];
 
-export const allowedSizes: Size[] = ["tiny", "small", "medium", "large", "xlarge"];
+export const allowedSizes: Size[] = [
+  "tiny",
+  "small",
+  "medium",
+  "large",
+  "xlarge",
+];
 
 export function coerceSize(v: unknown, fallback: Size): Size {
   if (typeof v === "string") {
@@ -127,11 +133,12 @@ export function coerceSize(v: unknown, fallback: Size): Size {
 
 export function coerceAlignment(
   v: unknown,
-  fallback: NonNullable<PluginConfig["alignment"]>
+  fallback: NonNullable<PluginConfig["alignment"]>,
 ): NonNullable<PluginConfig["alignment"]> {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if ((allowedAlignments as string[]).includes(lower)) return lower as NonNullable<PluginConfig["alignment"]>;
+    if ((allowedAlignments as string[]).includes(lower))
+      return lower as NonNullable<PluginConfig["alignment"]>;
   }
   return fallback;
 }
@@ -182,7 +189,10 @@ export function clamp(value: number, min: number, max: number): number {
  * @param errorCount - Number of errors
  * @returns Integer percentage (0-100), or null if no calls
  */
-export function successRate(totalCalls: number, errorCount: number): number | null {
+export function successRate(
+  totalCalls: number,
+  errorCount: number,
+): number | null {
   if (!totalCalls || totalCalls <= 0) return null;
   const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
   return Math.round(((totalCalls - errors) / totalCalls) * 100);
@@ -283,8 +293,13 @@ export function formatDuration(seconds: number): string {
  * @returns Formatted duration string (e.g. "5m 30s")
  */
 export function formatElapsed(since: number, now: number): string {
-  if (typeof since !== 'number' || typeof now !== 'number' || !Number.isFinite(since) || !Number.isFinite(now)) {
-    return '0s';
+  if (
+    typeof since !== "number" ||
+    typeof now !== "number" ||
+    !Number.isFinite(since) ||
+    !Number.isFinite(now)
+  ) {
+    return "0s";
   }
   return formatDuration(Math.max(0, Math.round((now - since) / 1000)));
 }
@@ -300,11 +315,16 @@ export function formatElapsed(since: number, now: number): string {
  */
 export function formatRelativeTime(since: number, now?: number): string {
   const n = now ?? Date.now();
-  if (typeof since !== 'number' || typeof n !== 'number' || !Number.isFinite(since) || !Number.isFinite(n)) {
-    return 'just now';
+  if (
+    typeof since !== "number" ||
+    typeof n !== "number" ||
+    !Number.isFinite(since) ||
+    !Number.isFinite(n)
+  ) {
+    return "just now";
   }
   const diffMs = Math.max(0, n - since);
-  if (diffMs < 1000) return 'just now';
+  if (diffMs < 1000) return "just now";
   return `${formatDuration(Math.round(diffMs / 1000))} ago`;
 }
 
@@ -318,7 +338,7 @@ export function formatRelativeTime(since: number, now?: number): string {
  * @returns ISO-8601 string, or '–' if the input is invalid
  */
 export function formatTimestamp(ts: number): string {
-  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
   return new Date(ts).toISOString();
 }
 
@@ -335,7 +355,7 @@ export function formatTimestamp(ts: number): string {
  * @returns Compact local time string, or '–' if the input is invalid
  */
 export function formatTimestampLocal(ts: number, now?: number): string {
-  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
   const date = new Date(ts);
   const ref = new Date(now ?? Date.now());
 
@@ -345,17 +365,30 @@ export function formatTimestampLocal(ts: number, now?: number): string {
     date.getDate() === ref.getDate();
 
   if (sameDay) {
-    const h = String(date.getHours()).padStart(2, '0');
-    const m = String(date.getMinutes()).padStart(2, '0');
-    const s = String(date.getSeconds()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, "0");
+    const m = String(date.getMinutes()).padStart(2, "0");
+    const s = String(date.getSeconds()).padStart(2, "0");
     return `${h}:${m}:${s}`;
   }
 
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTHS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const mon = MONTHS[date.getMonth()];
   const day = date.getDate();
-  const h = String(date.getHours()).padStart(2, '0');
-  const m = String(date.getMinutes()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
 
   // Include the year when the timestamp is from a different year than the reference,
   // so "Dec 31, 23:59" becomes "Dec 31 2025, 23:59" — avoids ambiguity in long uptimes.
@@ -379,12 +412,12 @@ export function formatTimestampLocal(ts: number, now?: number): string {
 export function formatTimestampWithAge(
   ts: number,
   now?: number,
-  style: 'ago' | 'since' = 'ago',
+  style: "ago" | "since" = "ago",
 ): string {
-  if (typeof ts !== 'number' || !Number.isFinite(ts)) return '–';
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return "–";
   const n = now ?? Date.now();
   const iso = formatTimestamp(ts);
-  if (style === 'since') {
+  if (style === "since") {
     return `${formatElapsed(ts, n)} (since ${iso})`;
   }
   return `${formatRelativeTime(ts, n)} (at ${iso})`;
@@ -533,7 +566,7 @@ export const ERROR_PREFIXES = [
 /** Build the error prefix regex once for performance. */
 export const ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
-  "i"
+  "i",
 );
 
 // Regex constants used in the iterative prefix-stripping loop inside cleanErrorString.
@@ -558,8 +591,11 @@ export function cleanErrorString(s: string): string {
       const obj = JSON.parse(s);
       if (obj && typeof obj === "object") {
         const msg =
-          obj.error?.message ?? (typeof obj.error === "string" ? obj.error : null) ??
-          obj.message ?? obj.detail ?? obj.reason;
+          obj.error?.message ??
+          (typeof obj.error === "string" ? obj.error : null) ??
+          obj.message ??
+          obj.detail ??
+          obj.reason;
         if (typeof msg === "string" && msg.trim()) return cleanErrorString(msg);
       }
     } catch {
@@ -582,7 +618,10 @@ export function cleanErrorString(s: string): string {
   // Strip leading ISO-8601 timestamps commonly found in log output.
   // e.g. "[2026-02-17T15:30:00Z] Error: ..." or "2026-02-17T15:30:00.123Z Error: ..."
   str = str
-    .replace(/^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i, "")
+    .replace(
+      /^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i,
+      "",
+    )
     .trim();
 
   // Strip leading file-path:line:col prefixes common in Node/Bun stack traces.
@@ -590,20 +629,29 @@ export function cleanErrorString(s: string): string {
   // Also handles Windows paths: "C:\foo\bar.js:42: Error: ..." → "Error: ..."
   // And file:// URLs: "file:///Users/foo/bar.js:42: Error: ..." → "Error: ..."
   str = str
-    .replace(/^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/, "")
+    .replace(
+      /^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/,
+      "",
+    )
     .trim();
 
   // Strip trailing " at <path>:<line>:<col>" suffixes from flattened stack traces.
   // e.g. "Cannot find module 'foo' at /app/index.js:10:5" → "Cannot find module 'foo'"
   str = str
-    .replace(/\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/, "")
+    .replace(
+      /\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/,
+      "",
+    )
     .trim();
 
   // Rust panics: extract the message from panic output.
   // Old format (pre-1.73): thread 'main' panicked at 'msg', file:line:col
   // New format (1.73+):    thread 'main' panicked at src/main.rs:42:5:\nmsg
   str = str
-    .replace(/^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i, "$1")
+    .replace(
+      /^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i,
+      "$1",
+    )
     .trim();
   // New Rust format: "thread '...' panicked at <path>:<line>:<col>:\n<message>"
   str = str
@@ -614,14 +662,20 @@ export function cleanErrorString(s: string): string {
   // e.g. "Killed: 9" → "Killed", "Segmentation fault: 11" → "Segmentation fault"
   // These are common on macOS/Linux when processes are killed by signals.
   str = str
-    .replace(/^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i, "$1")
+    .replace(
+      /^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i,
+      "$1",
+    )
     .trim();
 
   // Strip bracketed log-level prefixes common in structured loggers.
   // e.g. "[ERROR] connection refused" → "connection refused"
   // Also handles residual "ERROR] ..." left after ISO timestamp stripping.
   str = str
-    .replace(/^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i, "")
+    .replace(
+      /^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i,
+      "",
+    )
     .trim();
 
   // Iteratively strip error prefixes and POSIX errno codes.
@@ -638,20 +692,27 @@ export function cleanErrorString(s: string): string {
     str = str.replace(IN_PROMISE_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
-  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+  const lines = str
+    .split(/[\r\n]+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
   // UX Improvement: If we have multiple lines, scan for the most relevant error line.
   // This extracts "Error: Failed" from logs that might start with "info: starting..."
   if (lines.length > 1) {
     // If first line is a generic exit code, always look deeper
-    if (/^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])) {
+    if (
+      /^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])
+    ) {
       return cleanErrorString(lines[1]);
     }
-    
+
     // Check if any line (other than the first) looks like a strong error signal.
     // Prefer concrete failure lines over generic traceback headers.
-    const concreteErrorLine = lines.find(
-      (l) => /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(l)
+    const concreteErrorLine = lines.find((l) =>
+      /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(
+        l,
+      ),
     );
     if (concreteErrorLine && concreteErrorLine !== lines[0]) {
       return cleanErrorString(concreteErrorLine);
@@ -685,7 +746,8 @@ export function cleanErrorString(s: string): string {
  * @returns A truncated string suitable for the pixel display (max 140 chars).
  */
 export function summarizeToolResultMessage(msg: any): string {
-  if (typeof msg === "string" && msg.trim()) return truncate(cleanErrorString(msg));
+  if (typeof msg === "string" && msg.trim())
+    return truncate(cleanErrorString(msg));
 
   // Some tools legitimately return primitives (numbers/booleans/null) — treat them as displayable.
   // (Without this, we fall through to the generic "tool error".)
@@ -714,12 +776,12 @@ export function summarizeToolResultMessage(msg: any): string {
         typeof item === "string"
           ? item
           : typeof item?.text === "string"
-          ? item.text
-          : typeof item?.name === "string"
-          ? item.name
-          : typeof item?.title === "string"
-          ? item.title
-          : null
+            ? item.text
+            : typeof item?.name === "string"
+              ? item.name
+              : typeof item?.title === "string"
+                ? item.title
+                : null,
       )
       .filter(Boolean);
     if (texts.length > 0) return truncate(cleanErrorString(texts.join(", ")));
@@ -764,7 +826,9 @@ export function summarizeToolResultMessage(msg: any): string {
     msg?.stdout,
     msg?.data?.text,
     typeof msg?.data === "string" ? msg.data : undefined,
-    typeof msg?.data === "object" ? (msg?.data?.message ?? msg?.data?.error) : undefined,
+    typeof msg?.data === "object"
+      ? (msg?.data?.message ?? msg?.data?.error)
+      : undefined,
   ];
 
   let genericFallback: string | null = null;
@@ -794,7 +858,7 @@ export function summarizeToolResultMessage(msg: any): string {
       if (!v || typeof v !== "object") continue;
       try {
         const json = JSON.stringify(v, (_k, val) =>
-          typeof val === "bigint" ? String(val) : val
+          typeof val === "bigint" ? String(val) : val,
         );
         if (typeof json === "string" && json !== "{}") {
           return truncate(cleanErrorString(json));
@@ -1151,7 +1215,7 @@ export default function register(api: PluginApi) {
 
   if (typeof on !== "function") {
     api?.logger?.warn?.(
-      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`
+      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`,
     );
   } else {
     // Keep references to handlers for cleanup
@@ -1159,9 +1223,9 @@ export default function register(api: PluginApi) {
       // Clear timers to prevent flapping
       clearIdleTimer();
       clearErrorTimer();
-      
+
       const sessionKey = getSessionKey(event);
-      
+
       // Auto-heal: prevent stale agents from accumulating indefinitely
       if (activeAgents.size > 10) {
         activeAgents.clear();
@@ -1169,7 +1233,7 @@ export default function register(api: PluginApi) {
         agentLastToolTs.clear();
         delete state.currentTool;
       }
-      
+
       activeAgents.add(sessionKey);
       state.agentSessions = (state.agentSessions ?? 0) + 1;
 
@@ -1194,10 +1258,10 @@ export default function register(api: PluginApi) {
         typeof event?.tool === "string"
           ? event.tool
           : typeof event?.toolName === "string"
-          ? event.toolName
-          : typeof event?.name === "string"
-          ? event.name
-          : "";
+            ? event.toolName
+            : typeof event?.name === "string"
+              ? event.name
+              : "";
 
       const toolName = rawName || "tool";
       stack.push(toolName);
@@ -1228,18 +1292,23 @@ export default function register(api: PluginApi) {
       const infraError = event?.error;
       // Some Gateway event envelopes carry primitive results under `payload`.
       // After mergeEnvelope(), that primitive ends up at `event.payload`.
-      const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
-      
+      const msg =
+        event?.result ?? event?.output ?? event?.data ?? event?.payload;
+
       // Extract tool name with fallbacks, preserving order of preference
       const toolFromEvent = event?.tool ?? event?.toolName ?? event?.name;
-      const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
-      
+      const rawToolName =
+        typeof toolFromEvent === "string" ? toolFromEvent : "";
+
       // UX: Remove verbose prefixes for compact display
       // Truncate tool name if absurdly long to save space on the pixel display
       const toolName = sanitizeToolName(rawToolName).slice(0, 20);
 
       if (infraError) {
-        const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
+        const detail =
+          typeof infraError === "string"
+            ? infraError
+            : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
         return;
       }
@@ -1255,7 +1324,8 @@ export default function register(api: PluginApi) {
       const textSniffing =
         !isContentTool &&
         ((typeof msg === "string" && /^\s*error:/i.test(msg)) ||
-          (typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg)));
+          (typeof msg === "string" &&
+            /Command exited with code [1-9]\d*/.test(msg)));
 
       const isExplicitError =
         msg?.isError === true ||
@@ -1293,10 +1363,16 @@ export default function register(api: PluginApi) {
         err instanceof Error
           ? err.message
           : typeof err === "string"
-          ? err
-          : typeof err === "object" && err
-          ? err.message || err.text || err.detail || err.description || err.code || (typeof err.error === "string" ? err.error : "") || ""
-          : "";
+            ? err
+            : typeof err === "object" && err
+              ? err.message ||
+                err.text ||
+                err.detail ||
+                err.description ||
+                err.code ||
+                (typeof err.error === "string" ? err.error : "") ||
+                ""
+              : "";
 
       if (String(msg).trim()) {
         // UX Polish: strip common error prefixes for the tiny pixel display
@@ -1349,17 +1425,25 @@ export default function register(api: PluginApi) {
 
     // Wrappers for v2 events to ensure we handle both envelope (v2) and payload (internal) styles
     const handleAgentEvent = (e: any) => {
-      const payload = e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
+      const payload =
+        e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
       const p = mergeEnvelope(e, payload);
       if (p?.phase === "start") onAgentStart(p);
-      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error") onAgentEnd(p);
+      else if (
+        p?.phase === "end" ||
+        p?.phase === "result" ||
+        p?.phase === "error"
+      )
+        onAgentEnd(p);
     };
 
     const handleToolEvent = (e: any) => {
-      const payload = e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
+      const payload =
+        e && typeof e === "object" && "payload" in e ? (e as any).payload : e;
       const p = mergeEnvelope(e, payload);
       // Support both v1 (stream) and v2 (phase) event formats
-      if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call") onToolStart(p);
+      if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call")
+        onToolStart(p);
       else if (
         p?.phase === "end" ||
         p?.phase === "result" ||

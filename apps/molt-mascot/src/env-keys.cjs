@@ -10,20 +10,20 @@
 
 /** Env vars checked (in order) for the gateway WebSocket URL. */
 const GATEWAY_URL_KEYS = Object.freeze([
-  'MOLT_MASCOT_GATEWAY_URL',
-  'GATEWAY_URL',
-  'OPENCLAW_GATEWAY_URL',
-  'CLAWDBOT_GATEWAY_URL',
-  'gatewayUrl',
+  "MOLT_MASCOT_GATEWAY_URL",
+  "GATEWAY_URL",
+  "OPENCLAW_GATEWAY_URL",
+  "CLAWDBOT_GATEWAY_URL",
+  "gatewayUrl",
 ]);
 
 /** Env vars checked (in order) for the gateway auth token. */
 const GATEWAY_TOKEN_KEYS = Object.freeze([
-  'MOLT_MASCOT_GATEWAY_TOKEN',
-  'GATEWAY_TOKEN',
-  'OPENCLAW_GATEWAY_TOKEN',
-  'CLAWDBOT_GATEWAY_TOKEN',
-  'gatewayToken',
+  "MOLT_MASCOT_GATEWAY_TOKEN",
+  "GATEWAY_TOKEN",
+  "OPENCLAW_GATEWAY_TOKEN",
+  "CLAWDBOT_GATEWAY_TOKEN",
+  "gatewayToken",
 ]);
 
 /**
@@ -35,16 +35,16 @@ const GATEWAY_TOKEN_KEYS = Object.freeze([
  * @returns {string}
  */
 function resolveEnv(keys, env, fallback) {
-  if (fallback === undefined) fallback = '';
+  if (fallback === undefined) fallback = "";
   for (const key of keys) {
     const val = env[key];
-    if (val !== undefined && val !== '') return val;
+    if (val !== undefined && val !== "") return val;
   }
   return fallback;
 }
 
 /** Canonical GitHub repository URL (single source of truth for about panel, tray menu, context menu). */
-const REPO_URL = 'https://github.com/MightComeback/molt-mascot';
+const REPO_URL = "https://github.com/MightComeback/molt-mascot";
 
 /**
  * Like resolveEnv, but also returns the key that matched.
@@ -57,7 +57,7 @@ const REPO_URL = 'https://github.com/MightComeback/molt-mascot';
 function resolveEnvWithSource(keys, env) {
   for (const key of keys) {
     const val = env[key];
-    if (val !== undefined && val !== '') return { key, value: val };
+    if (val !== undefined && val !== "") return { key, value: val };
   }
   return null;
 }
@@ -75,13 +75,13 @@ function resolveEnvWithSource(keys, env) {
  */
 function parseEnvNumber(env, keys, fallback, opts) {
   const keyList = Array.isArray(keys) ? keys : [keys];
-  const raw = resolveEnv(keyList, env, '');
-  if (raw === '') return fallback;
+  const raw = resolveEnv(keyList, env, "");
+  if (raw === "") return fallback;
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   if (opts?.integer && !Number.isInteger(n)) return fallback;
-  if (typeof opts?.min === 'number' && n < opts.min) return fallback;
-  if (typeof opts?.max === 'number' && n > opts.max) return fallback;
+  if (typeof opts?.min === "number" && n < opts.min) return fallback;
+  if (typeof opts?.max === "number" && n > opts.max) return fallback;
   return n;
 }
 
@@ -104,12 +104,36 @@ function parseEnvNumber(env, keys, fallback, opts) {
  */
 function parseEnvBoolean(env, keys, fallback) {
   const keyList = Array.isArray(keys) ? keys : [keys];
-  const raw = resolveEnv(keyList, env, '');
-  if (raw === '') return fallback;
+  const raw = resolveEnv(keyList, env, "");
+  if (raw === "") return fallback;
   const lower = raw.trim().toLowerCase();
-  if (lower === 'true' || lower === '1' || lower === 't' || lower === 'yes' || lower === 'y' || lower === 'on') return true;
-  if (lower === 'false' || lower === '0' || lower === 'f' || lower === 'no' || lower === 'n' || lower === 'off') return false;
+  if (
+    lower === "true" ||
+    lower === "1" ||
+    lower === "t" ||
+    lower === "yes" ||
+    lower === "y" ||
+    lower === "on"
+  )
+    return true;
+  if (
+    lower === "false" ||
+    lower === "0" ||
+    lower === "f" ||
+    lower === "no" ||
+    lower === "n" ||
+    lower === "off"
+  )
+    return false;
   return fallback;
 }
 
-module.exports = { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnv, resolveEnvWithSource, parseEnvNumber, parseEnvBoolean, REPO_URL };
+module.exports = {
+  GATEWAY_URL_KEYS,
+  GATEWAY_TOKEN_KEYS,
+  resolveEnv,
+  resolveEnvWithSource,
+  parseEnvNumber,
+  parseEnvBoolean,
+  REPO_URL,
+};

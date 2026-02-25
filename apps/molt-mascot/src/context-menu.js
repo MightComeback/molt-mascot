@@ -45,56 +45,65 @@ export function show(items, { x, y }) {
   // restore it on dismiss (WAI-ARIA menu best practice — prevents focus loss).
   const previouslyFocused = document.activeElement;
 
-  const menu = document.createElement('div');
-  menu.id = 'molt-ctx';
-  menu.setAttribute('role', 'menu');
-  menu.setAttribute('aria-label', 'Mascot actions');
+  const menu = document.createElement("div");
+  menu.id = "molt-ctx";
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", "Mascot actions");
   // Position initially off-screen so we can measure actual dimensions
-  menu.style.left = '-9999px';
-  menu.style.top = '-9999px';
+  menu.style.left = "-9999px";
+  menu.style.top = "-9999px";
 
   for (const item of items) {
     if (item.separator) {
-      const sep = document.createElement('div');
-      sep.dataset.separator = '';
-      sep.setAttribute('role', 'separator');
+      const sep = document.createElement("div");
+      sep.dataset.separator = "";
+      sep.setAttribute("role", "separator");
       menu.appendChild(sep);
       continue;
     }
-    const row = document.createElement('div');
+    const row = document.createElement("div");
     // Use 'menuitemcheckbox' role for toggle items so screen readers
     // announce the checked/unchecked state correctly.
-    const isToggle = typeof item.checked === 'boolean';
-    row.setAttribute('role', isToggle ? 'menuitemcheckbox' : 'menuitem');
-    if (isToggle) row.setAttribute('aria-checked', String(item.checked));
+    const isToggle = typeof item.checked === "boolean";
+    row.setAttribute("role", isToggle ? "menuitemcheckbox" : "menuitem");
+    if (isToggle) row.setAttribute("aria-checked", String(item.checked));
     row.tabIndex = -1;
     if (item.disabled) {
-      row.setAttribute('aria-disabled', 'true');
-      row.dataset.disabled = '';
+      row.setAttribute("aria-disabled", "true");
+      row.dataset.disabled = "";
     }
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = (isToggle && item.checked ? '✓ ' : '') + (item.label || '');
+    const labelSpan = document.createElement("span");
+    labelSpan.textContent =
+      (isToggle && item.checked ? "✓ " : "") + (item.label || "");
     row.appendChild(labelSpan);
     if (item.hint) {
-      const hintSpan = document.createElement('span');
+      const hintSpan = document.createElement("span");
       hintSpan.textContent = item.hint;
-      hintSpan.className = 'ctx-hint';
+      hintSpan.className = "ctx-hint";
       // Expose keyboard shortcut to assistive technology
-      row.setAttribute('aria-keyshortcuts', item.hint);
+      row.setAttribute("aria-keyshortcuts", item.hint);
       row.appendChild(hintSpan);
     }
-    row.addEventListener('click', () => { if (item.disabled) return; cleanup(); item.action?.(); });
+    row.addEventListener("click", () => {
+      if (item.disabled) return;
+      cleanup();
+      item.action?.();
+    });
     menu.appendChild(row);
   }
 
   document.body.appendChild(menu);
 
   // Reposition using actual measured dimensions to prevent overflow
-  const menuRect = typeof menu.getBoundingClientRect === 'function'
-    ? menu.getBoundingClientRect()
-    : { width: 140, height: 120 };
+  const menuRect =
+    typeof menu.getBoundingClientRect === "function"
+      ? menu.getBoundingClientRect()
+      : { width: 140, height: 120 };
   const clampedX = Math.max(0, Math.min(x, window.innerWidth - menuRect.width));
-  const clampedY = Math.max(0, Math.min(y, window.innerHeight - menuRect.height));
+  const clampedY = Math.max(
+    0,
+    Math.min(y, window.innerHeight - menuRect.height),
+  );
   menu.style.left = `${clampedX}px`;
   menu.style.top = `${clampedY}px`;
 
@@ -104,20 +113,23 @@ export function show(items, { x, y }) {
 
   const interactiveIndices = menuItems
     .map((el, i) => ({ el, i }))
-    .filter(({ el }) => el.dataset.separator === undefined && el.dataset.disabled === undefined)
+    .filter(
+      ({ el }) =>
+        el.dataset.separator === undefined && el.dataset.disabled === undefined,
+    )
     .map(({ i }) => i);
 
   const setFocus = (idx) => {
     if (idx < 0 || idx >= menuItems.length) return;
     if (focusIdx >= 0 && focusIdx < menuItems.length) {
-      menuItems[focusIdx].classList.remove('ctx-focus');
+      menuItems[focusIdx].classList.remove("ctx-focus");
     }
     focusIdx = idx;
-    menuItems[focusIdx].classList.add('ctx-focus');
+    menuItems[focusIdx].classList.add("ctx-focus");
     // Move DOM focus so screen readers track the active item.
     menuItems[focusIdx].focus({ preventScroll: true });
     // Scroll the focused item into view when the menu overflows (small window sizes).
-    menuItems[focusIdx].scrollIntoView?.({ block: 'nearest' });
+    menuItems[focusIdx].scrollIntoView?.({ block: "nearest" });
   };
 
   const focusNext = () => {
@@ -145,13 +157,40 @@ export function show(items, { x, y }) {
   };
 
   const onKey = (ev) => {
-    if (ev.key === 'Escape') { cleanup(); return; }
-    if (ev.key === 'ArrowDown') { ev.preventDefault(); focusNext(); return; }
-    if (ev.key === 'ArrowUp') { ev.preventDefault(); focusPrev(); return; }
-    if (ev.key === 'Tab') { cleanup(); return; }
-    if (ev.key === 'Home') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[0]); return; }
-    if (ev.key === 'End') { ev.preventDefault(); if (interactiveIndices.length) setFocus(interactiveIndices[interactiveIndices.length - 1]); return; }
-    if ((ev.key === 'Enter' || ev.key === ' ') && focusIdx >= 0 && focusIdx < menuItems.length) {
+    if (ev.key === "Escape") {
+      cleanup();
+      return;
+    }
+    if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      focusNext();
+      return;
+    }
+    if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      focusPrev();
+      return;
+    }
+    if (ev.key === "Tab") {
+      cleanup();
+      return;
+    }
+    if (ev.key === "Home") {
+      ev.preventDefault();
+      if (interactiveIndices.length) setFocus(interactiveIndices[0]);
+      return;
+    }
+    if (ev.key === "End") {
+      ev.preventDefault();
+      if (interactiveIndices.length)
+        setFocus(interactiveIndices[interactiveIndices.length - 1]);
+      return;
+    }
+    if (
+      (ev.key === "Enter" || ev.key === " ") &&
+      focusIdx >= 0 &&
+      focusIdx < menuItems.length
+    ) {
       ev.preventDefault();
       menuItems[focusIdx].click();
       return;
@@ -162,10 +201,13 @@ export function show(items, { x, y }) {
       const curPos = interactiveIndices.indexOf(focusIdx);
       // Search from the item after the current focus, wrapping around
       for (let offset = 1; offset <= interactiveIndices.length; offset++) {
-        const candidate = interactiveIndices[(curPos + offset) % interactiveIndices.length];
-        const label = (menuItems[candidate].textContent || '').trim().toLowerCase();
+        const candidate =
+          interactiveIndices[(curPos + offset) % interactiveIndices.length];
+        const label = (menuItems[candidate].textContent || "")
+          .trim()
+          .toLowerCase();
         // Skip checkmark prefix (✓) for matching
-        const cleanLabel = label.replace(/^✓\s*/, '');
+        const cleanLabel = label.replace(/^✓\s*/, "");
         if (cleanLabel.startsWith(ch)) {
           setFocus(candidate);
           break;
@@ -176,15 +218,17 @@ export function show(items, { x, y }) {
 
   function cleanup() {
     menu.remove();
-    document.removeEventListener('click', onOutsideClick, true);
-    document.removeEventListener('keydown', onKey, true);
-    document.removeEventListener('wheel', onWheel, true);
-    window.removeEventListener('blur', cleanup);
+    document.removeEventListener("click", onOutsideClick, true);
+    document.removeEventListener("keydown", onKey, true);
+    document.removeEventListener("wheel", onWheel, true);
+    window.removeEventListener("blur", cleanup);
     activeCleanup = null;
     // Restore focus to the element that opened the menu (WAI-ARIA best practice).
     // Without this, focus is lost to <body> after dismiss, breaking keyboard flow.
-    if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-      try { previouslyFocused.focus({ preventScroll: true }); } catch {}
+    if (previouslyFocused && typeof previouslyFocused.focus === "function") {
+      try {
+        previouslyFocused.focus({ preventScroll: true });
+      } catch {}
     }
   }
 
@@ -195,24 +239,27 @@ export function show(items, { x, y }) {
   // to avoid orphaned listeners that reference a removed menu element.
   setTimeout(() => {
     if (activeCleanup !== cleanup) return;
-    document.addEventListener('click', onOutsideClick, true);
-    document.addEventListener('keydown', onKey, true);
-    document.addEventListener('wheel', onWheel, { capture: true, passive: true });
-    window.addEventListener('blur', cleanup);
+    document.addEventListener("click", onOutsideClick, true);
+    document.addEventListener("keydown", onKey, true);
+    document.addEventListener("wheel", onWheel, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("blur", cleanup);
   }, 0);
 
   // Hybrid mouse/keyboard navigation: when the mouse enters a menu item,
   // move the visual focus indicator to it so keyboard and pointer highlighting
   // never conflict (mirrors native OS context-menu behavior).
   for (const idx of interactiveIndices) {
-    menuItems[idx].addEventListener('mouseenter', () => setFocus(idx));
+    menuItems[idx].addEventListener("mouseenter", () => setFocus(idx));
   }
 
   // Clear focus highlight when the mouse leaves the menu entirely,
   // matching native OS context-menu behavior.
-  menu.addEventListener('mouseleave', () => {
+  menu.addEventListener("mouseleave", () => {
     if (focusIdx >= 0 && focusIdx < menuItems.length) {
-      menuItems[focusIdx].classList.remove('ctx-focus');
+      menuItems[focusIdx].classList.remove("ctx-focus");
     }
     focusIdx = -1;
   });
@@ -258,5 +305,5 @@ export function toJSON() {
  * @returns {string}
  */
 export function toString() {
-  return `ContextMenu<${isVisible() ? 'visible' : 'hidden'}>`;
+  return `ContextMenu<${isVisible() ? "visible" : "hidden"}>`;
 }

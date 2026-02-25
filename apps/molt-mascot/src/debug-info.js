@@ -72,8 +72,31 @@
  * @returns {string} Multi-line debug info
  */
 
-import { formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampWithAge, wsReadyStateLabel, formatBytes, formatCount, successRate, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, connectionUptimePercent, healthStatusEmoji, formatHealthSummary, formatActiveSummary, formatOpacity, isSleepingMode, formatProtocolRange, memoryPressure, formatMemorySummary } from './utils.js';
-import { formatAlignment } from './get-position.cjs';
+import {
+  formatDuration,
+  formatElapsed,
+  formatRelativeTime,
+  formatTimestamp,
+  formatTimestampWithAge,
+  wsReadyStateLabel,
+  formatBytes,
+  formatCount,
+  successRate,
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  connectionUptimePercent,
+  healthStatusEmoji,
+  formatHealthSummary,
+  formatActiveSummary,
+  formatOpacity,
+  isSleepingMode,
+  formatProtocolRange,
+  memoryPressure,
+  formatMemorySummary,
+} from "./utils.js";
+import { formatAlignment } from "./get-position.cjs";
 
 // Re-export formatElapsed so existing consumers of debug-info.js don't break.
 export { formatElapsed };
@@ -151,52 +174,77 @@ export function buildDebugInfo(params) {
   const now = nowOverride ?? Date.now();
 
   const lines = [];
-  const appVer = appVersion ? `v${appVersion}` : 'dev';
-  lines.push(`Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ''}`);
+  const appVer = appVersion ? `v${appVersion}` : "dev";
+  lines.push(
+    `Molt Mascot ${appVer}${pluginVersion ? ` (plugin v${pluginVersion})` : ""}`,
+  );
   lines.push(`Captured: ${formatTimestamp(now)}`);
   const modeDurationMs = Math.max(0, now - modeSince);
-  const isSleeping = isSleepingMode(currentMode, modeDurationMs, sleepThresholdS * 1000);
+  const isSleeping = isSleepingMode(
+    currentMode,
+    modeDurationMs,
+    sleepThresholdS * 1000,
+  );
   const effectiveMode = isSleeping ? `idle (sleeping)` : currentMode;
   lines.push(`Mode: ${effectiveMode}`);
   lines.push(`Mode duration: ${formatElapsed(modeSince, now)}`);
   if (connectedSince) {
-    lines.push(`Uptime: ${formatTimestampWithAge(connectedSince, now, 'since')}`);
+    lines.push(
+      `Uptime: ${formatTimestampWithAge(connectedSince, now, "since")}`,
+    );
     // Show first-ever connection time when the connection has flapped (reconnected at least once).
     // Helps diagnose "app running for 8h but current uptime is only 2m" scenarios.
-    if (typeof firstConnectedAt === 'number' && firstConnectedAt > 0 && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-      lines.push(`First connected: ${formatTimestampWithAge(firstConnectedAt, now)}`);
+    if (
+      typeof firstConnectedAt === "number" &&
+      firstConnectedAt > 0 &&
+      typeof sessionConnectCount === "number" &&
+      sessionConnectCount > 1
+    ) {
+      lines.push(
+        `First connected: ${formatTimestampWithAge(firstConnectedAt, now)}`,
+      );
     }
     lines.push(`Gateway: ${connectedUrl}`);
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
     // Show time since last WS message — helps diagnose stale connections before they trip the timeout.
-    if (typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+    if (typeof lastMessageAt === "number" && lastMessageAt > 0) {
       lines.push(`Last message: ${formatRelativeTime(lastMessageAt, now)}`);
     }
     // Show last disconnect even when connected — helps debug flaky connections
     if (lastDisconnectedAt) {
-      lines.push(`Last disconnect: ${formatTimestampWithAge(lastDisconnectedAt, now)}`);
+      lines.push(
+        `Last disconnect: ${formatTimestampWithAge(lastDisconnectedAt, now)}`,
+      );
     }
     // Show last close reason when connected but flappy (sessionConnectCount > 1)
     // to help diagnose why the previous disconnect happened without opening DevTools.
-    if (lastCloseDetail && typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
+    if (
+      lastCloseDetail &&
+      typeof sessionConnectCount === "number" &&
+      sessionConnectCount > 1
+    ) {
       lines.push(`Last close reason: ${lastCloseDetail}`);
     }
   } else {
     if (lastDisconnectedAt) {
-      lines.push(`Gateway: disconnected ${formatTimestampWithAge(lastDisconnectedAt, now)}`);
+      lines.push(
+        `Gateway: disconnected ${formatTimestampWithAge(lastDisconnectedAt, now)}`,
+      );
     } else {
       lines.push(`Gateway: disconnected`);
     }
     lines.push(`WebSocket: ${wsReadyStateLabel(wsReadyState)}`);
-    if (reconnectAttempt > 0) lines.push(`Reconnect attempt: ${reconnectAttempt}`);
+    if (reconnectAttempt > 0)
+      lines.push(`Reconnect attempt: ${reconnectAttempt}`);
     if (lastCloseDetail) lines.push(`Close reason: ${lastCloseDetail}`);
     if (savedUrl) lines.push(`Saved URL: ${savedUrl}`);
-    if (typeof targetUrl === 'string' && targetUrl) lines.push(`Target URL: ${targetUrl}`);
+    if (typeof targetUrl === "string" && targetUrl)
+      lines.push(`Target URL: ${targetUrl}`);
   }
-  if (typeof minProtocol === 'number' && typeof maxProtocol === 'number') {
+  if (typeof minProtocol === "number" && typeof maxProtocol === "number") {
     lines.push(`Protocol: ${formatProtocolRange(minProtocol, maxProtocol)}`);
   }
-  lines.push(`Plugin: ${hasPlugin ? 'active' : 'inactive'}`);
+  lines.push(`Plugin: ${hasPlugin ? "active" : "inactive"}`);
   if (hasPlugin) {
     if (pluginStateMethod) {
       const methodLine = pluginResetMethod
@@ -205,82 +253,145 @@ export function buildDebugInfo(params) {
       lines.push(methodLine);
     }
     if (pluginStartedAt) {
-      lines.push(`Plugin uptime: ${formatTimestampWithAge(pluginStartedAt, now, 'since')}`);
+      lines.push(
+        `Plugin uptime: ${formatTimestampWithAge(pluginStartedAt, now, "since")}`,
+      );
     }
   }
-  if (isPollingPaused) lines.push('Polling: paused');
-  else if (hasPlugin) lines.push('Polling: active');
-  if (typeof latencyMs === 'number' && latencyMs >= 0) {
+  if (isPollingPaused) lines.push("Polling: paused");
+  else if (hasPlugin) lines.push("Polling: active");
+  if (typeof latencyMs === "number" && latencyMs >= 0) {
     // Append connection quality label (excellent/good/fair/poor) for at-a-glance assessment,
     // matching the tray tooltip behavior. Use median from rolling stats when available (more
     // stable than instant latency); fall back to the current sample.
-    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
-    const qualitySuffix = quality ? ` ${connectionQualityEmoji(quality) || `[${quality}]`}` : '';
+    const quality = connectionQuality(
+      resolveQualitySource(latencyMs, latencyStats),
+    );
+    const qualitySuffix = quality
+      ? ` ${connectionQualityEmoji(quality) || `[${quality}]`}`
+      : "";
     lines.push(`Latency: ${formatLatency(latencyMs)}${qualitySuffix}`);
   }
-  if (latencyStats && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    const medianStr = typeof latencyStats.median === 'number' ? `, median ${latencyStats.median}ms` : '';
-    const p95Str = typeof latencyStats.p95 === 'number' ? `, p95 ${latencyStats.p95}ms` : '';
-    const p99Str = typeof latencyStats.p99 === 'number' ? `, p99 ${latencyStats.p99}ms` : '';
-    const jitterStr = typeof latencyStats.jitter === 'number' ? `, jitter ${formatLatency(latencyStats.jitter)}` : '';
-    const trendStr = typeof latencyTrend === 'string' && latencyTrend !== 'stable' ? `, ${latencyTrend}` : '';
-    lines.push(`Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${p99Str}${jitterStr}${trendStr} (${latencyStats.samples} samples)`);
+  if (
+    latencyStats &&
+    typeof latencyStats.samples === "number" &&
+    latencyStats.samples > 1
+  ) {
+    const medianStr =
+      typeof latencyStats.median === "number"
+        ? `, median ${latencyStats.median}ms`
+        : "";
+    const p95Str =
+      typeof latencyStats.p95 === "number" ? `, p95 ${latencyStats.p95}ms` : "";
+    const p99Str =
+      typeof latencyStats.p99 === "number" ? `, p99 ${latencyStats.p99}ms` : "";
+    const jitterStr =
+      typeof latencyStats.jitter === "number"
+        ? `, jitter ${formatLatency(latencyStats.jitter)}`
+        : "";
+    const trendStr =
+      typeof latencyTrend === "string" && latencyTrend !== "stable"
+        ? `, ${latencyTrend}`
+        : "";
+    lines.push(
+      `Latency stats: min ${latencyStats.min}ms, max ${latencyStats.max}ms, avg ${latencyStats.avg}ms${medianStr}${p95Str}${p99Str}${jitterStr}${trendStr} (${latencyStats.samples} samples)`,
+    );
   }
-  if (allTimeLatency && typeof allTimeLatency.min === 'number' && typeof allTimeLatency.max === 'number') {
+  if (
+    allTimeLatency &&
+    typeof allTimeLatency.min === "number" &&
+    typeof allTimeLatency.max === "number"
+  ) {
     // Show all-time extremes only when they differ from the rolling window —
     // the rolling stats already show current min/max, so repeating identical
     // values would be noise. All-time extremes matter for long sessions where
     // early spikes have been evicted from the ring buffer.
-    const showAllTime = !latencyStats
-      || allTimeLatency.min < latencyStats.min
-      || allTimeLatency.max > latencyStats.max;
+    const showAllTime =
+      !latencyStats ||
+      allTimeLatency.min < latencyStats.min ||
+      allTimeLatency.max > latencyStats.max;
     if (showAllTime) {
-      lines.push(`Latency all-time: min ${allTimeLatency.min}ms, max ${allTimeLatency.max}ms`);
+      lines.push(
+        `Latency all-time: min ${allTimeLatency.min}ms, max ${allTimeLatency.max}ms`,
+      );
     }
   }
   if (pluginToolCalls > 0) {
-    const rateSuffix = pluginToolErrors > 0
-      ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
-      : '';
-    lines.push(`Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`);
+    const rateSuffix =
+      pluginToolErrors > 0
+        ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
+        : "";
+    lines.push(
+      `Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`,
+    );
   }
-  if (typeof agentSessions === 'number' && agentSessions > 0) {
+  if (typeof agentSessions === "number" && agentSessions > 0) {
     lines.push(`Agent sessions: ${formatCount(agentSessions)}`);
   }
-  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+  if (
+    typeof activeAgents === "number" &&
+    typeof activeTools === "number" &&
+    (activeAgents > 0 || activeTools > 0)
+  ) {
     lines.push(`Active: ${formatActiveSummary(activeAgents, activeTools)}`);
   }
   if (currentTool) lines.push(`Current tool: ${currentTool}`);
   if (lastErrorMessage) lines.push(`Last error: ${lastErrorMessage}`);
   lines.push(`Alignment: ${formatAlignment(alignmentLabel)}`);
-  if (dragPosition && typeof dragPosition.x === 'number' && typeof dragPosition.y === 'number') {
-    lines.push(`Drag position: ${Math.round(dragPosition.x)}, ${Math.round(dragPosition.y)}`);
+  if (
+    dragPosition &&
+    typeof dragPosition.x === "number" &&
+    typeof dragPosition.y === "number"
+  ) {
+    lines.push(
+      `Drag position: ${Math.round(dragPosition.x)}, ${Math.round(dragPosition.y)}`,
+    );
   }
   lines.push(`Size: ${sizeLabel}, Opacity: ${formatOpacity(opacity)}`);
   lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
-  lines.push(`Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`);
+  lines.push(
+    `Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`,
+  );
   lines.push(`Reduced motion: ${reducedMotion}`);
-  const fpsLabel = frameIntervalMs === 0 ? '~60fps' : `~${Math.round(1000 / frameIntervalMs)}fps`;
-  const actualFpsLabel = typeof actualFps === 'number' ? `, actual ${actualFps}fps` : '';
-  const totalFramesLabel = typeof totalFrames === 'number' ? `, ${formatCount(totalFrames)} total` : '';
-  const worstDeltaLabel = typeof worstFrameDeltaMs === 'number' && worstFrameDeltaMs > 0 ? `, worst ${Math.round(worstFrameDeltaMs)}ms` : '';
-  lines.push(`Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${reducedMotion ? ' (reduced)' : ''}`);
-  if (spriteCache && typeof spriteCache.size === 'number') {
-    const hitRateStr = typeof spriteCache.hitRate === 'number' ? `, ${spriteCache.hitRate}% hit` : '';
+  const fpsLabel =
+    frameIntervalMs === 0
+      ? "~60fps"
+      : `~${Math.round(1000 / frameIntervalMs)}fps`;
+  const actualFpsLabel =
+    typeof actualFps === "number" ? `, actual ${actualFps}fps` : "";
+  const totalFramesLabel =
+    typeof totalFrames === "number"
+      ? `, ${formatCount(totalFrames)} total`
+      : "";
+  const worstDeltaLabel =
+    typeof worstFrameDeltaMs === "number" && worstFrameDeltaMs > 0
+      ? `, worst ${Math.round(worstFrameDeltaMs)}ms`
+      : "";
+  lines.push(
+    `Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${reducedMotion ? " (reduced)" : ""}`,
+  );
+  if (spriteCache && typeof spriteCache.size === "number") {
+    const hitRateStr =
+      typeof spriteCache.hitRate === "number"
+        ? `, ${spriteCache.hitRate}% hit`
+        : "";
     lines.push(`Sprite cache: ${spriteCache.size} entries${hitRateStr}`);
   }
-  const platformStr = [platform || 'unknown', arch].filter(Boolean).join(' ');
+  const platformStr = [platform || "unknown", arch].filter(Boolean).join(" ");
   lines.push(`Platform: ${platformStr}`);
   const dpr = devicePixelRatio ?? 1;
-  const canvasDims = (typeof canvasWidth === 'number' && typeof canvasHeight === 'number')
-    ? `, ${canvasWidth}×${canvasHeight}px`
-    : '';
-  lines.push(`Display scale: ${dpr}x (canvas scale: ${canvasScale}${canvasDims})`);
+  const canvasDims =
+    typeof canvasWidth === "number" && typeof canvasHeight === "number"
+      ? `, ${canvasWidth}×${canvasHeight}px`
+      : "";
+  lines.push(
+    `Display scale: ${dpr}x (canvas scale: ${canvasScale}${canvasDims})`,
+  );
   {
     const memorySummary = formatMemorySummary(memory, memoryPressure(memory));
     if (memorySummary) lines.push(`Memory: ${memorySummary}`);
   }
-  if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
+  if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     lines.push(`Process RSS: ${formatBytes(processMemoryRssBytes)}`);
   }
   const runtimeParts = [
@@ -289,36 +400,51 @@ export function buildDebugInfo(params) {
     versions?.node ? `Node ${versions.node}` : null,
     versions?.bun ? `Bun ${versions.bun}` : null,
   ].filter(Boolean);
-  if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(', ')}`);
-  if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
-    const startedSuffix = typeof processStartedAt === 'number' && processStartedAt > 0
-      ? ` (since ${formatTimestamp(processStartedAt)})`
-      : '';
-    lines.push(`Process uptime: ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`);
+  if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(", ")}`);
+  if (typeof processUptimeS === "number" && processUptimeS >= 0) {
+    const startedSuffix =
+      typeof processStartedAt === "number" && processStartedAt > 0
+        ? ` (since ${formatTimestamp(processStartedAt)})`
+        : "";
+    lines.push(
+      `Process uptime: ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`,
+    );
   }
-  if (typeof pid === 'number' && pid > 0) {
+  if (typeof pid === "number" && pid > 0) {
     lines.push(`PID: ${pid}`);
   }
-  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-    const attemptStr = typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount
-      ? `, ${sessionAttemptCount} attempts`
-      : '';
-    const rateStr = typeof connectionSuccessRate === 'number' && connectionSuccessRate < 100
-      ? `, ${connectionSuccessRate}% success`
-      : '';
-    lines.push(`Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr}${rateStr})`);
+  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
+    const attemptStr =
+      typeof sessionAttemptCount === "number" &&
+      sessionAttemptCount > sessionConnectCount
+        ? `, ${sessionAttemptCount} attempts`
+        : "";
+    const rateStr =
+      typeof connectionSuccessRate === "number" && connectionSuccessRate < 100
+        ? `, ${connectionSuccessRate}% success`
+        : "";
+    lines.push(
+      `Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr}${rateStr})`,
+    );
   }
   // Connection uptime percentage: how much of the process lifetime was spent connected.
   // Helps diagnose flaky connections at a glance (e.g. "connected 23% of the time" → fix your network).
-  const uptimePercent = connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now });
+  const uptimePercent = connectionUptimePercent({
+    processUptimeS,
+    firstConnectedAt,
+    connectedSince,
+    lastDisconnectedAt,
+    now,
+  });
   if (uptimePercent !== null) {
     lines.push(`Connection uptime: ~${uptimePercent}%`);
   }
-  if (typeof lastResetAt === 'number' && lastResetAt > 0) {
+  if (typeof lastResetAt === "number" && lastResetAt > 0) {
     lines.push(`Last reset: ${formatTimestampWithAge(lastResetAt, now)}`);
   }
-  if (typeof instanceId === 'string' && instanceId) lines.push(`Instance: ${instanceId}`);
-  if (typeof healthStatus === 'string' && healthStatus) {
+  if (typeof instanceId === "string" && instanceId)
+    lines.push(`Instance: ${instanceId}`);
+  if (typeof healthStatus === "string" && healthStatus) {
     const summary = formatHealthSummary(healthStatus, {
       isConnected: !!connectedSince,
       isPollingPaused,
@@ -329,7 +455,11 @@ export function buildDebugInfo(params) {
       now,
     });
     // formatHealthSummary returns null for "healthy" — show a plain line in that case.
-    lines.push(summary ? `Health: ${summary.text}` : `Health: ${healthStatusEmoji(healthStatus)} ${healthStatus}`);
+    lines.push(
+      summary
+        ? `Health: ${summary.text}`
+        : `Health: ${healthStatusEmoji(healthStatus)} ${healthStatus}`,
+    );
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }

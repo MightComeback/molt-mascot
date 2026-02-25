@@ -13,7 +13,7 @@ function parseCliArg(flag, argv) {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     // Support --flag=value syntax (standard CLI convention)
-    if (arg.startsWith(flag + '=')) return arg.slice(flag.length + 1);
+    if (arg.startsWith(flag + "=")) return arg.slice(flag.length + 1);
     // Support --flag value syntax (positional)
     if (arg === flag && i + 1 < args.length) return args[i + 1];
   }
@@ -49,12 +49,12 @@ function hasBoolFlag(flag, argv) {
  */
 function parseNumericArg(flag, fallback, opts) {
   const raw = parseCliArg(flag, opts?.argv);
-  if (raw === null || raw.trim() === '') return fallback;
+  if (raw === null || raw.trim() === "") return fallback;
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   if (opts?.integer && !Number.isInteger(n)) return fallback;
-  if (typeof opts?.min === 'number' && n < opts.min) return fallback;
-  if (typeof opts?.max === 'number' && n > opts.max) return fallback;
+  if (typeof opts?.min === "number" && n < opts.min) return fallback;
+  if (typeof opts?.max === "number" && n > opts.max) return fallback;
   return n;
 }
 
@@ -77,9 +77,10 @@ function parseStringArg(flag, fallback, opts) {
   const raw = parseCliArg(flag, opts?.argv);
   if (raw === null) return fallback;
   const trimmed = raw.trim();
-  const minLen = typeof opts?.minLength === 'number' ? opts.minLength : 1;
+  const minLen = typeof opts?.minLength === "number" ? opts.minLength : 1;
   if (trimmed.length < minLen) return fallback;
-  if (typeof opts?.maxLength === 'number' && trimmed.length > opts.maxLength) return fallback;
+  if (typeof opts?.maxLength === "number" && trimmed.length > opts.maxLength)
+    return fallback;
   if (opts?.allowed) {
     const caseSensitive = opts.caseSensitive === true;
     const needle = caseSensitive ? trimmed : trimmed.toLowerCase();
@@ -90,14 +91,19 @@ function parseStringArg(flag, fallback, opts) {
       } else {
         let found = false;
         for (const v of opts.allowed) {
-          if ((typeof v === 'string' ? v.toLowerCase() : v) === needle) { found = true; break; }
+          if ((typeof v === "string" ? v.toLowerCase() : v) === needle) {
+            found = true;
+            break;
+          }
         }
         if (!found) return fallback;
       }
     } else if (Array.isArray(opts.allowed)) {
       const match = caseSensitive
         ? opts.allowed.includes(needle)
-        : opts.allowed.some(v => typeof v === 'string' && v.toLowerCase() === needle);
+        : opts.allowed.some(
+            (v) => typeof v === "string" && v.toLowerCase() === needle,
+          );
       if (!match) return fallback;
     }
   }

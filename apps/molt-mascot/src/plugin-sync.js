@@ -11,8 +11,8 @@
  * @module plugin-sync
  */
 
-import { allowedAlignments, allowedSizes } from '@molt/mascot-plugin';
-import { isValidOpacity } from './opacity-presets.cjs';
+import { allowedAlignments, allowedSizes } from "@molt/mascot-plugin";
+import { isValidOpacity } from "./opacity-presets.cjs";
 
 // Pre-build Sets for O(1) lookup in the hot sync path.
 const _validAlignments = new Set(allowedAlignments);
@@ -45,22 +45,27 @@ const VALIDATORS = {
  * Exported for introspection (diagnostics, documentation, tooling).
  */
 export const SYNC_PROPS = [
-  ['clickThrough', 'boolean', 'onClickThrough'],
-  ['alignment',    'string',  'onAlignment'],
-  ['opacity',      'number',  'onOpacity'],
-  ['padding',      'number',  'onPadding'],
-  ['size',         'string',  'onSize'],
-  ['hideText',     'boolean', 'onHideText'],
-  ['reducedMotion','boolean', 'onReducedMotion'],
-  ['version',      'string',  'onVersion'],
-  ['toolCalls',    'number',  'onToolCalls'],
-  ['toolErrors',   'number',  'onToolErrors'],
-  ['startedAt',    'number',  'onStartedAt'],
-  ['agentSessions', 'number', 'onAgentSessions'],
-  ['activeAgents', 'number',  'onActiveAgents'],
-  ['activeTools',  'number',  'onActiveTools'],
-  ['currentTool',  'string',  'onCurrentTool', { allowEmpty: true, clearOnMissing: true }],
-  ['lastResetAt',  'number',  'onLastResetAt'],
+  ["clickThrough", "boolean", "onClickThrough"],
+  ["alignment", "string", "onAlignment"],
+  ["opacity", "number", "onOpacity"],
+  ["padding", "number", "onPadding"],
+  ["size", "string", "onSize"],
+  ["hideText", "boolean", "onHideText"],
+  ["reducedMotion", "boolean", "onReducedMotion"],
+  ["version", "string", "onVersion"],
+  ["toolCalls", "number", "onToolCalls"],
+  ["toolErrors", "number", "onToolErrors"],
+  ["startedAt", "number", "onStartedAt"],
+  ["agentSessions", "number", "onAgentSessions"],
+  ["activeAgents", "number", "onActiveAgents"],
+  ["activeTools", "number", "onActiveTools"],
+  [
+    "currentTool",
+    "string",
+    "onCurrentTool",
+    { allowEmpty: true, clearOnMissing: true },
+  ],
+  ["lastResetAt", "number", "onLastResetAt"],
 ];
 
 /**
@@ -122,7 +127,7 @@ export function createPluginSync(callbacks = {}) {
       if (val === undefined && opts?.clearOnMissing) {
         if (last[key] !== null && last[key] !== undefined) {
           last[key] = null;
-          callbacks[cbName]?.('');
+          callbacks[cbName]?.("");
           changed.push(key);
         }
         continue;
@@ -131,9 +136,9 @@ export function createPluginSync(callbacks = {}) {
       if (typeof val !== expectedType) continue;
       // String properties must be non-empty to count as a valid update,
       // unless allowEmpty is set (e.g. currentTool clears to '' when idle).
-      if (expectedType === 'string' && !val && !opts?.allowEmpty) continue;
+      if (expectedType === "string" && !val && !opts?.allowEmpty) continue;
       // NaN/Infinity guard: only finite numbers are valid state values.
-      if (expectedType === 'number' && !Number.isFinite(val)) continue;
+      if (expectedType === "number" && !Number.isFinite(val)) continue;
       // Domain-specific validation (e.g. opacity 0-1, padding >= 0).
       const validate = VALIDATORS[key];
       if (validate && !validate(val)) continue;
@@ -212,16 +217,26 @@ export function createPluginSync(callbacks = {}) {
    */
   function toString() {
     const active = activeCount();
-    if (active === 0) return 'PluginSync<empty>';
+    if (active === 0) return "PluginSync<empty>";
     const parts = [`${active}/${SYNC_PROPS.length} props`];
     // Include a few key values for at-a-glance diagnostics
     const current = getLast();
     if (current.version !== null) parts.push(`v${current.version}`);
-    if (current.clickThrough !== null) parts.push(`ghost=${current.clickThrough}`);
+    if (current.clickThrough !== null)
+      parts.push(`ghost=${current.clickThrough}`);
     if (current.alignment !== null) parts.push(current.alignment);
-    if (current.currentTool !== null && current.currentTool !== '') parts.push(`tool=${current.currentTool}`);
-    return `PluginSync<${parts.join(', ')}>`;
+    if (current.currentTool !== null && current.currentTool !== "")
+      parts.push(`tool=${current.currentTool}`);
+    return `PluginSync<${parts.join(", ")}>`;
   }
 
-  return { sync, reset, last: getLast, activeCount, getSnapshot, toJSON, toString };
+  return {
+    sync,
+    reset,
+    last: getLast,
+    activeCount,
+    getSnapshot,
+    toJSON,
+    toString,
+  };
 }

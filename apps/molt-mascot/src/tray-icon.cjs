@@ -5,35 +5,48 @@
  * producing an RGBA buffer suitable for Electron's nativeImage.createFromBuffer().
  */
 
-const { formatDuration, formatElapsed, formatCount, formatBytes, successRate, formatTimestampLocal } = require('@molt/mascot-plugin');
-const { formatLatency, formatQualitySummary, formatHealthSummary, formatActiveSummary, computeConnectionSuccessRate } = require('./format-latency.cjs');
-const { MODE_EMOJI } = require('./mode-emoji.cjs');
-const { formatAlignment } = require('./get-position.cjs');
+const {
+  formatDuration,
+  formatElapsed,
+  formatCount,
+  formatBytes,
+  successRate,
+  formatTimestampLocal,
+} = require("@molt/mascot-plugin");
+const {
+  formatLatency,
+  formatQualitySummary,
+  formatHealthSummary,
+  formatActiveSummary,
+  computeConnectionSuccessRate,
+} = require("./format-latency.cjs");
+const { MODE_EMOJI } = require("./mode-emoji.cjs");
+const { formatAlignment } = require("./get-position.cjs");
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
 //         h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
 const TRAY_SPRITE = [
-  '......kkkk......',
-  '.....krrrrk.....',
-  '....krhhhhrkk...',
-  '....krhwrhwrrk..',
-  '....krhbrhbrrk..',
-  '.....krhhrrkk...',
-  '......krrrkk....',
-  '....kkrrkrrkk...',
-  '...kcrk...kcrk..',
-  '..kcrk.....kcrk.',
-  '..kcr.......rck.',
-  '..kcrk.....kcrk.',
-  '...kcrk...kcrk..',
-  '....kkrrkrrkk...',
-  '......krrrkk....',
-  '.......kkk......',
+  "......kkkk......",
+  ".....krrrrk.....",
+  "....krhhhhrkk...",
+  "....krhwrhwrrk..",
+  "....krhbrhbrrk..",
+  ".....krhhrrkk...",
+  "......krrrkk....",
+  "....kkrrkrrkk...",
+  "...kcrk...kcrk..",
+  "..kcrk.....kcrk.",
+  "..kcr.......rck.",
+  "..kcrk.....kcrk.",
+  "...kcrk...kcrk..",
+  "....kkrrkrrkk...",
+  "......krrrkk....",
+  ".......kkk......",
 ];
 
 const TRAY_COLORS = {
-  '.': [0, 0, 0, 0],
+  ".": [0, 0, 0, 0],
   k: [0x4a, 0x0f, 0x14, 0xff],
   r: [0xe0, 0x43, 0x3a, 0xff],
   h: [0xff, 0x8b, 0x7f, 0xff],
@@ -46,14 +59,14 @@ const TRAY_COLORS = {
 // The dot is a 3×3 pixel indicator in the bottom-right corner of the tray icon,
 // giving at-a-glance status feedback (common macOS menu bar pattern).
 const STATUS_DOT_COLORS = {
-  idle:         [0x8e, 0x8e, 0x93, 0xff], // gray
-  thinking:     [0x0a, 0x84, 0xff, 0xff], // blue
-  tool:         [0x34, 0xc7, 0x59, 0xff], // green
-  error:        [0xff, 0x3b, 0x30, 0xff], // red
-  connecting:   [0xff, 0xd6, 0x0a, 0xff], // yellow
-  connected:    [0x34, 0xc7, 0x59, 0xff], // green
+  idle: [0x8e, 0x8e, 0x93, 0xff], // gray
+  thinking: [0x0a, 0x84, 0xff, 0xff], // blue
+  tool: [0x34, 0xc7, 0x59, 0xff], // green
+  error: [0xff, 0x3b, 0x30, 0xff], // red
+  connecting: [0xff, 0xd6, 0x0a, 0xff], // yellow
+  connected: [0x34, 0xc7, 0x59, 0xff], // green
   disconnected: [0xff, 0x3b, 0x30, 0xff], // red
-  sleeping:     [0x58, 0x56, 0xd6, 0xff], // indigo
+  sleeping: [0x58, 0x56, 0xd6, 0xff], // indigo
 };
 
 /**
@@ -70,8 +83,8 @@ function renderTraySprite(scale, opts) {
   const buf = Buffer.alloc(size * size * 4);
   for (let row = 0; row < 16; row++) {
     for (let col = 0; col < 16; col++) {
-      const ch = TRAY_SPRITE[row][col] || '.';
-      const [r, g, b, a] = TRAY_COLORS[ch] || TRAY_COLORS['.'];
+      const ch = TRAY_SPRITE[row][col] || ".";
+      const [r, g, b, a] = TRAY_COLORS[ch] || TRAY_COLORS["."];
       for (let dy = 0; dy < scale; dy++) {
         for (let dx = 0; dx < scale; dx++) {
           const off = ((row * scale + dy) * size + (col * scale + dx)) * 4;
@@ -99,7 +112,8 @@ function renderTraySprite(scale, opts) {
     const paintPixel = (spriteRow, spriteCol, color) => {
       for (let dy = 0; dy < scale; dy++) {
         for (let dx = 0; dx < scale; dx++) {
-          const off = ((spriteRow * scale + dy) * size + (spriteCol * scale + dx)) * 4;
+          const off =
+            ((spriteRow * scale + dy) * size + (spriteCol * scale + dx)) * 4;
           buf[off] = color[0];
           buf[off + 1] = color[1];
           buf[off + 2] = color[2];
@@ -113,7 +127,10 @@ function renderTraySprite(scale, opts) {
     //    We paint corners of the 3×3 as outline to complete the ring.
     for (let dr = 0; dr < dotSize; dr++) {
       for (let dc = 0; dc < dotSize; dc++) {
-        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) {
+        if (
+          (dr === 0 || dr === dotSize - 1) &&
+          (dc === 0 || dc === dotSize - 1)
+        ) {
           paintPixel(dotStartRow + dr, dotStartCol + dc, outlineColor);
         }
       }
@@ -132,7 +149,11 @@ function renderTraySprite(scale, opts) {
     // 2) Dot fill: the + shape (skip corners for rounded look)
     for (let dr = 0; dr < dotSize; dr++) {
       for (let dc = 0; dc < dotSize; dc++) {
-        if ((dr === 0 || dr === dotSize - 1) && (dc === 0 || dc === dotSize - 1)) continue;
+        if (
+          (dr === 0 || dr === dotSize - 1) &&
+          (dc === 0 || dc === dotSize - 1)
+        )
+          continue;
         paintPixel(dotStartRow + dr, dotStartCol + dc, dotColor);
       }
     }
@@ -185,96 +206,180 @@ function renderTraySprite(scale, opts) {
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, processStartedAt, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, reducedMotion = false, now: nowOverride } = params;
+  const {
+    appVersion,
+    mode,
+    clickThrough,
+    hideText,
+    alignment,
+    sizeLabel,
+    opacityPercent,
+    uptimeStr,
+    latencyMs,
+    currentTool,
+    lastErrorMessage,
+    modeDurationSec,
+    processUptimeS,
+    processMemoryRssBytes,
+    processStartedAt,
+    sessionConnectCount,
+    sessionAttemptCount,
+    toolCalls,
+    toolErrors,
+    lastCloseDetail,
+    reconnectAttempt,
+    targetUrl,
+    activeAgents,
+    activeTools,
+    agentSessions,
+    pluginVersion,
+    pluginStartedAt,
+    lastMessageAt,
+    latencyStats,
+    lastResetAt,
+    healthStatus,
+    connectionSuccessRate,
+    connectionUptimePct,
+    latencyTrend,
+    reducedMotion = false,
+    now: nowOverride,
+  } = params;
   const now = nowOverride ?? Date.now();
-  const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
+  const verLabel = pluginVersion
+    ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})`
+    : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
   const modeEmoji = MODE_EMOJI;
-  const modeLabel = mode || 'idle';
-  if (modeLabel !== 'idle') {
-    let modePart = `${modeEmoji[modeLabel] ?? '●'} ${modeLabel}`;
-    if (modeLabel === 'tool' && currentTool) modePart = `${modeEmoji.tool} ${currentTool}`;
-    if (modeLabel === 'error' && lastErrorMessage) modePart = `${modeEmoji.error} ${lastErrorMessage}`;
-    if (typeof modeDurationSec === 'number' && modeDurationSec > 0) modePart += ` (${formatDuration(modeDurationSec)})`;
+  const modeLabel = mode || "idle";
+  if (modeLabel !== "idle") {
+    let modePart = `${modeEmoji[modeLabel] ?? "●"} ${modeLabel}`;
+    if (modeLabel === "tool" && currentTool)
+      modePart = `${modeEmoji.tool} ${currentTool}`;
+    if (modeLabel === "error" && lastErrorMessage)
+      modePart = `${modeEmoji.error} ${lastErrorMessage}`;
+    if (typeof modeDurationSec === "number" && modeDurationSec > 0)
+      modePart += ` (${formatDuration(modeDurationSec)})`;
     parts.push(modePart);
   }
-  if (clickThrough) parts.push('👻 Ghost');
-  if (hideText) parts.push('🙈 Text hidden');
-  if (reducedMotion) parts.push('♿ Reduced motion');
+  if (clickThrough) parts.push("👻 Ghost");
+  if (hideText) parts.push("🙈 Text hidden");
+  if (reducedMotion) parts.push("♿ Reduced motion");
   parts.push(`📍 ${formatAlignment(alignment)}`);
-  parts.push(`📐 ${sizeLabel || 'medium'}`);
-  if (typeof opacityPercent === 'number' && opacityPercent < 100) parts.push(`🔅 ${opacityPercent}%`);
+  parts.push(`📐 ${sizeLabel || "medium"}`);
+  if (typeof opacityPercent === "number" && opacityPercent < 100)
+    parts.push(`🔅 ${opacityPercent}%`);
   if (uptimeStr) parts.push(`↑ ${uptimeStr}`);
-  if (typeof reconnectAttempt === 'number' && reconnectAttempt > 0 && !uptimeStr) parts.push(`retry #${reconnectAttempt}`);
-  if (typeof targetUrl === 'string' && targetUrl && !uptimeStr) parts.push(`→ ${targetUrl}`);
-  if (typeof lastCloseDetail === 'string' && lastCloseDetail) parts.push(`⚡ ${lastCloseDetail}`);
-  if (typeof latencyMs === 'number' && Number.isFinite(latencyMs) && latencyMs >= 0) {
+  if (
+    typeof reconnectAttempt === "number" &&
+    reconnectAttempt > 0 &&
+    !uptimeStr
+  )
+    parts.push(`retry #${reconnectAttempt}`);
+  if (typeof targetUrl === "string" && targetUrl && !uptimeStr)
+    parts.push(`→ ${targetUrl}`);
+  if (typeof lastCloseDetail === "string" && lastCloseDetail)
+    parts.push(`⚡ ${lastCloseDetail}`);
+  if (
+    typeof latencyMs === "number" &&
+    Number.isFinite(latencyMs) &&
+    latencyMs >= 0
+  ) {
     const { text: summaryText } = formatQualitySummary(latencyMs, latencyStats);
     let latencyPart = `⏱ ${summaryText}`;
     // Append extended stats (median, p95, p99) from rolling stats when available (>1 sample).
     // These supplement the compact summary with deeper diagnostics for the tray tooltip.
-    if (latencyStats && typeof latencyStats.median === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-      const showP95 = typeof latencyStats.p95 === 'number' && latencyStats.median > 0 && latencyStats.p95 > latencyStats.median * 2;
-      const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : '';
-      const showP99 = typeof latencyStats.p99 === 'number' && latencyStats.median > 0 && latencyStats.p99 > latencyStats.median * 3;
-      const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : '';
+    if (
+      latencyStats &&
+      typeof latencyStats.median === "number" &&
+      typeof latencyStats.samples === "number" &&
+      latencyStats.samples > 1
+    ) {
+      const showP95 =
+        typeof latencyStats.p95 === "number" &&
+        latencyStats.median > 0 &&
+        latencyStats.p95 > latencyStats.median * 2;
+      const p95Str = showP95 ? `, p95 ${formatLatency(latencyStats.p95)}` : "";
+      const showP99 =
+        typeof latencyStats.p99 === "number" &&
+        latencyStats.median > 0 &&
+        latencyStats.p99 > latencyStats.median * 3;
+      const p99Str = showP99 ? `, p99 ${formatLatency(latencyStats.p99)}` : "";
       latencyPart += ` (med ${formatLatency(latencyStats.median)}${p95Str}${p99Str})`;
     }
     // Append trend indicator when latency is actively rising or falling.
     // "stable" is omitted to avoid tooltip clutter; only actionable signals are shown.
-    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
-      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
+      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
     }
     parts.push(latencyPart);
   }
   // Show "last msg Xs ago" when the gap exceeds 5s — helps spot stale connections
   // before the stale-check timer (15s) triggers a reconnect. Below 5s the latency
   // line already conveys liveness, so we avoid tooltip clutter.
-  if (typeof lastMessageAt === 'number' && lastMessageAt > 0 && uptimeStr) {
+  if (typeof lastMessageAt === "number" && lastMessageAt > 0 && uptimeStr) {
     const gapMs = now - lastMessageAt;
     if (gapMs >= 5000) {
       parts.push(`📩 last msg ${formatElapsed(lastMessageAt, now)} ago`);
     }
   }
-  if (typeof toolCalls === 'number' && toolCalls > 0) {
-    const rate = (typeof toolErrors === 'number' && toolErrors > 0)
-      ? successRate(toolCalls, toolErrors)
-      : null;
-    const statsStr = rate !== null
-      ? `${formatCount(toolCalls)} calls, ${formatCount(toolErrors)} err (${rate}% ok)`
-      : `${formatCount(toolCalls)} calls`;
+  if (typeof toolCalls === "number" && toolCalls > 0) {
+    const rate =
+      typeof toolErrors === "number" && toolErrors > 0
+        ? successRate(toolCalls, toolErrors)
+        : null;
+    const statsStr =
+      rate !== null
+        ? `${formatCount(toolCalls)} calls, ${formatCount(toolErrors)} err (${rate}% ok)`
+        : `${formatCount(toolCalls)} calls`;
     parts.push(`🔨 ${statsStr}`);
   }
-  if (typeof activeAgents === 'number' && typeof activeTools === 'number' && (activeAgents > 0 || activeTools > 0)) {
+  if (
+    typeof activeAgents === "number" &&
+    typeof activeTools === "number" &&
+    (activeAgents > 0 || activeTools > 0)
+  ) {
     parts.push(`🤖 ${formatActiveSummary(activeAgents, activeTools)}`);
   }
-  if (typeof agentSessions === 'number' && agentSessions > 0) {
-    parts.push(`🧑‍💻 ${formatCount(agentSessions)} session${agentSessions !== 1 ? 's' : ''}`);
+  if (typeof agentSessions === "number" && agentSessions > 0) {
+    parts.push(
+      `🧑‍💻 ${formatCount(agentSessions)} session${agentSessions !== 1 ? "s" : ""}`,
+    );
   }
-  if (typeof pluginStartedAt === 'number' && pluginStartedAt > 0) {
+  if (typeof pluginStartedAt === "number" && pluginStartedAt > 0) {
     parts.push(`🔌 plugin up ${formatElapsed(pluginStartedAt, now)}`);
   }
-  if (typeof lastResetAt === 'number' && lastResetAt > 0) {
+  if (typeof lastResetAt === "number" && lastResetAt > 0) {
     parts.push(`🔄 reset ${formatElapsed(lastResetAt, now)} ago`);
   }
-  if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
-    const startedSuffix = typeof processStartedAt === 'number' && processStartedAt > 0
-      ? ` (since ${formatTimestampLocal(processStartedAt, now)})`
-      : '';
-    parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`);
+  if (typeof processUptimeS === "number" && processUptimeS >= 0) {
+    const startedSuffix =
+      typeof processStartedAt === "number" && processStartedAt > 0
+        ? ` (since ${formatTimestampLocal(processStartedAt, now)})`
+        : "";
+    parts.push(
+      `🕐 ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`,
+    );
   }
-  if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
+  if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     parts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
   }
-  if (typeof sessionConnectCount === 'number' && sessionConnectCount > 1) {
-    const attemptSuffix = (typeof sessionAttemptCount === 'number' && sessionAttemptCount > sessionConnectCount)
-      ? `, ${sessionAttemptCount - sessionConnectCount} failed`
-      : '';
-    parts.push(`↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? '' : 's'}${attemptSuffix}`);
+  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
+    const attemptSuffix =
+      typeof sessionAttemptCount === "number" &&
+      sessionAttemptCount > sessionConnectCount
+        ? `, ${sessionAttemptCount - sessionConnectCount} failed`
+        : "";
+    parts.push(
+      `↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? "" : "s"}${attemptSuffix}`,
+    );
   }
   // Surface connection uptime percentage when below 100% to highlight flappy connections.
   // At 100% (or null/unavailable) it's omitted to keep the tooltip clean.
-  if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
+  if (
+    typeof connectionUptimePct === "number" &&
+    connectionUptimePct >= 0 &&
+    connectionUptimePct < 100
+  ) {
     parts.push(`📶 ${connectionUptimePct}% connected`);
   }
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
@@ -285,9 +390,13 @@ function buildTrayTooltip(params) {
     // redundant computation when the caller already has it, e.g. from
     // GatewayClient.connectionSuccessRate). Fall back to inline computation
     // from sessionConnectCount/sessionAttemptCount for back-compat.
-    const resolvedSuccessRate = typeof connectionSuccessRate === 'number'
-      ? connectionSuccessRate
-      : computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount) ?? undefined;
+    const resolvedSuccessRate =
+      typeof connectionSuccessRate === "number"
+        ? connectionSuccessRate
+        : (computeConnectionSuccessRate(
+            sessionConnectCount,
+            sessionAttemptCount,
+          ) ?? undefined);
     const summary = formatHealthSummary(healthStatus, {
       isConnected: !!uptimeStr,
       isPollingPaused: false,
@@ -299,7 +408,13 @@ function buildTrayTooltip(params) {
     });
     if (summary) parts.push(summary.text);
   }
-  return parts.join(' · ');
+  return parts.join(" · ");
 }
 
-module.exports = { renderTraySprite, buildTrayTooltip, TRAY_SPRITE, TRAY_COLORS, STATUS_DOT_COLORS };
+module.exports = {
+  renderTraySprite,
+  buildTrayTooltip,
+  TRAY_SPRITE,
+  TRAY_COLORS,
+  STATUS_DOT_COLORS,
+};

@@ -6,8 +6,8 @@
  * unit-tested without a real DOM/canvas.
  */
 
-import { palette, lobsterIdle, overlay } from './sprites.js';
-import { isSleepingMode } from './utils.js';
+import { palette, lobsterIdle, overlay } from "./sprites.js";
+import { isSleepingMode } from "./utils.js";
 
 // Eye geometry extracted from the sprite grid (row/col/size in sprite pixels).
 export const EYE_LEFT_COL = 14;
@@ -90,7 +90,10 @@ export const _spriteCache = (() => {
   let nextSpriteId = 0;
   function spriteKey(sprite) {
     let id = idMap.get(sprite);
-    if (id === undefined) { id = nextSpriteId++; idMap.set(sprite, id); }
+    if (id === undefined) {
+      id = nextSpriteId++;
+      idMap.set(sprite, id);
+    }
     return id;
   }
 
@@ -106,7 +109,10 @@ export const _spriteCache = (() => {
     }
     const key = spriteKey(sprite);
     const entry = cache.get(key);
-    if (entry) { _hits++; return entry; }
+    if (entry) {
+      _hits++;
+      return entry;
+    }
 
     // Pre-render
     const w = sprite[0].length * scale;
@@ -114,9 +120,10 @@ export const _spriteCache = (() => {
     let offscreen;
     try {
       // Prefer OffscreenCanvas (no DOM attachment needed, better perf).
-      offscreen = typeof OffscreenCanvas !== 'undefined'
-        ? new OffscreenCanvas(w, h)
-        : document.createElement('canvas');
+      offscreen =
+        typeof OffscreenCanvas !== "undefined"
+          ? new OffscreenCanvas(w, h)
+          : document.createElement("canvas");
       if (!(offscreen instanceof OffscreenCanvas)) {
         offscreen.width = w;
         offscreen.height = h;
@@ -124,7 +131,7 @@ export const _spriteCache = (() => {
     } catch {
       return null; // Test environment without canvas support
     }
-    const offCtx = offscreen.getContext('2d');
+    const offCtx = offscreen.getContext("2d");
     if (!offCtx) return null;
 
     for (let py = 0; py < sprite.length; py += 1) {
@@ -142,10 +149,17 @@ export const _spriteCache = (() => {
   }
 
   /** Flush the cache (useful for tests). */
-  function clear() { cache.clear(); lastScale = -1; _hits = 0; _misses = 0; }
+  function clear() {
+    cache.clear();
+    lastScale = -1;
+    _hits = 0;
+    _misses = 0;
+  }
 
   /** Number of cached entries. */
-  function size() { return cache.size; }
+  function size() {
+    return cache.size;
+  }
 
   /**
    * Pre-render all known sprites (idle frames + every overlay frame) at the
@@ -159,10 +173,7 @@ export const _spriteCache = (() => {
     let count = 0;
     // Derive sprite list dynamically from lobsterIdle + all overlay entries
     // so new overlays are automatically warmed without manual enumeration.
-    const allSprites = [
-      ...lobsterIdle,
-      ...Object.values(overlay).flat(),
-    ];
+    const allSprites = [...lobsterIdle, ...Object.values(overlay).flat()];
     for (const sprite of allSprites) {
       if (get(sprite, scale) !== null) count++;
     }
@@ -221,8 +232,8 @@ export const _spriteCache = (() => {
    */
   function toString() {
     const rate = hitRate();
-    const rateSuffix = rate !== null ? `, ${rate}% hit` : '';
-    return `SpriteCache<${cache.size} entr${cache.size === 1 ? 'y' : 'ies'}, scale=${lastScale}${rateSuffix}>`;
+    const rateSuffix = rate !== null ? `, ${rate}% hit` : "";
+    return `SpriteCache<${cache.size} entr${cache.size === 1 ? "y" : "ies"}, scale=${lastScale}${rateSuffix}>`;
   }
 
   return { get, clear, size, warmAll, hitRate, getSnapshot, toJSON, toString };
@@ -244,7 +255,7 @@ export const BLINK_MAX_INTERVAL_MS = 6000;
  * @param {{ reducedMotion?: boolean, initialBlinkAt?: number }} [opts]
  */
 export function createBlinkState(opts = {}) {
-  let nextBlinkAt = opts.initialBlinkAt ?? (2000 + Math.random() * 4000);
+  let nextBlinkAt = opts.initialBlinkAt ?? 2000 + Math.random() * 4000;
   let blinkCount = 0;
 
   return {
@@ -255,14 +266,21 @@ export function createBlinkState(opts = {}) {
         if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
         // Schedule next blink 3-6s from now
         blinkCount++;
-        nextBlinkAt = t + BLINK_MIN_INTERVAL_MS + Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
+        nextBlinkAt =
+          t +
+          BLINK_MIN_INTERVAL_MS +
+          Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
       }
       return false;
     },
     /** Current next-blink timestamp (for testing). */
-    get nextBlinkAt() { return nextBlinkAt; },
+    get nextBlinkAt() {
+      return nextBlinkAt;
+    },
     /** Total blinks completed since creation (for diagnostics). */
-    get blinkCount() { return blinkCount; },
+    get blinkCount() {
+      return blinkCount;
+    },
     /**
      * Diagnostic snapshot for API consistency with fps-counter,
      * latency-tracker, and plugin-sync tracker modules.
@@ -299,11 +317,14 @@ export function createBlinkState(opts = {}) {
      * @returns {string}
      */
     toString(now) {
-      if (opts.reducedMotion) return 'BlinkState<paused>';
+      if (opts.reducedMotion) return "BlinkState<paused>";
       const t = now ?? Date.now();
       const untilNext = Math.max(0, nextBlinkAt - t);
-      const untilStr = untilNext < 1000 ? `${Math.round(untilNext)}ms` : `${(untilNext / 1000).toFixed(1)}s`;
-      return `BlinkState<${blinkCount} blink${blinkCount !== 1 ? 's' : ''}, next in ${untilStr}>`;
+      const untilStr =
+        untilNext < 1000
+          ? `${Math.round(untilNext)}ms`
+          : `${(untilNext / 1000).toFixed(1)}s`;
+      return `BlinkState<${blinkCount} blink${blinkCount !== 1 ? "s" : ""}, next in ${untilStr}>`;
     },
     /**
      * Reset blink state: clear the blink count and schedule the next blink
@@ -317,7 +338,10 @@ export function createBlinkState(opts = {}) {
     reset(now) {
       const t = now ?? Date.now();
       blinkCount = 0;
-      nextBlinkAt = t + BLINK_MIN_INTERVAL_MS + Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
+      nextBlinkAt =
+        t +
+        BLINK_MIN_INTERVAL_MS +
+        Math.random() * (BLINK_MAX_INTERVAL_MS - BLINK_MIN_INTERVAL_MS);
     },
   };
 }
@@ -328,12 +352,12 @@ export function createBlinkState(opts = {}) {
  * Exported for testing and external tooling.
  */
 export const OVERLAY_TIMING = {
-  thinking:     { sprites: overlay.thinking,     frameDurationMs: 600 },
-  tool:         { sprites: overlay.tool,          frameDurationMs: 700 },
-  error:        { sprites: overlay.error,         frameDurationMs: 600 },
-  sleep:        { sprites: overlay.sleep,        frameDurationMs: 800 },
-  connecting:   { sprites: overlay.connecting,   frameDurationMs: 500 },
-  connected:    { sprites: overlay.connected,    frameDurationMs: 300 },
+  thinking: { sprites: overlay.thinking, frameDurationMs: 600 },
+  tool: { sprites: overlay.tool, frameDurationMs: 700 },
+  error: { sprites: overlay.error, frameDurationMs: 600 },
+  sleep: { sprites: overlay.sleep, frameDurationMs: 800 },
+  connecting: { sprites: overlay.connecting, frameDurationMs: 500 },
+  connected: { sprites: overlay.connected, frameDurationMs: 300 },
   disconnected: { sprites: overlay.disconnected, frameDurationMs: 700 },
 };
 
@@ -368,19 +392,32 @@ export function drawLobster(ctx, params) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const frame = reducedMotion ? 0 : Math.floor(t / BOB_PERIOD_MS) % 2;
-  const bob = reducedMotion ? 0 : Math.sin(t / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX;
+  const bob = reducedMotion
+    ? 0
+    : Math.sin(t / BOB_PERIOD_MS) * BOB_AMPLITUDE_PX;
 
   // Subtle shadow (keeps it readable on transparent backgrounds)
   // Shadow reacts to bob: when lobster bobs up the shadow shrinks (farther from ground),
   // when it bobs down the shadow grows. Gives a subtle depth/grounding effect.
   const shadowCenterX = (spriteSize * s) / 2;
-  const shadowCenterY = (spriteSize * s) * SHADOW_CENTER_Y_RATIO;
+  const shadowCenterY = spriteSize * s * SHADOW_CENTER_Y_RATIO;
   const shadowScaleX = SHADOW_RX_FACTOR * s - bob * SHADOW_BOB_RX_FACTOR;
   const shadowScaleY = SHADOW_RY_FACTOR * s - bob * SHADOW_BOB_RY_FACTOR;
-  const shadowAlpha = Math.max(SHADOW_MIN_ALPHA, SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR);
+  const shadowAlpha = Math.max(
+    SHADOW_MIN_ALPHA,
+    SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
+  );
   ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(2)})`;
   ctx.beginPath();
-  ctx.ellipse(shadowCenterX, shadowCenterY, shadowScaleX, shadowScaleY, 0, 0, Math.PI * 2);
+  ctx.ellipse(
+    shadowCenterX,
+    shadowCenterY,
+    shadowScaleX,
+    shadowScaleY,
+    0,
+    0,
+    Math.PI * 2,
+  );
   ctx.fill();
 
   // Main sprite
@@ -399,15 +436,18 @@ export function drawLobster(ctx, params) {
   // Overlays (simple icons) — attached to bob; modes are mutually exclusive.
   // Resolved via the declarative OVERLAY_TIMING map for maintainability.
   const overlayOpts = { x: 0, y: bobY + OVERLAY_Y_OFFSET_PX, scale: s };
-  const effectiveMode = isSleepingMode(mode, idleDurationMs, sleepThresholdMs) ? 'sleep' : mode;
+  const effectiveMode = isSleepingMode(mode, idleDurationMs, sleepThresholdMs)
+    ? "sleep"
+    : mode;
   const timing = OVERLAY_TIMING[effectiveMode];
   if (timing) {
     const { sprites, frameDurationMs } = timing;
     // When reduced-motion is active, freeze overlays on the first frame
     // to respect the user's accessibility preference (parity with idle bob suppression).
-    const frameIdx = (frameDurationMs > 0 && !reducedMotion)
-      ? Math.floor(t / frameDurationMs) % sprites.length
-      : 0;
+    const frameIdx =
+      frameDurationMs > 0 && !reducedMotion
+        ? Math.floor(t / frameDurationMs) % sprites.length
+        : 0;
     drawSprite(ctx, sprites[frameIdx], overlayOpts);
   }
 }

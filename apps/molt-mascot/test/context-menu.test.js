@@ -19,24 +19,47 @@ function makeElement(tag) {
     _ownText: "",
     get textContent() {
       if (el._children.length === 0) return el._ownText;
-      return el._children.map((c) => c.textContent || '').join('');
+      return el._children.map((c) => c.textContent || "").join("");
     },
-    set textContent(v) { el._ownText = v; el._children = []; },
+    set textContent(v) {
+      el._ownText = v;
+      el._children = [];
+    },
     className: "",
     style: {},
     getBoundingClientRect() {
       // Approximate: 140×(children * 28) or fallback
       const itemCount = Math.max(1, el._children.length);
-      return { width: 140, height: itemCount * 28, top: 0, left: 0, right: 140, bottom: itemCount * 28 };
+      return {
+        width: 140,
+        height: itemCount * 28,
+        top: 0,
+        left: 0,
+        right: 140,
+        bottom: itemCount * 28,
+      };
     },
     classList: {
-      add(c) { el._classes.add(c); },
-      remove(c) { el._classes.delete(c); },
-      contains(c) { return el._classes.has(c); },
+      add(c) {
+        el._classes.add(c);
+      },
+      remove(c) {
+        el._classes.delete(c);
+      },
+      contains(c) {
+        return el._classes.has(c);
+      },
     },
-    setAttribute(k, v) { el._attrs[k] = v; },
-    getAttribute(k) { return el._attrs[k] ?? null; },
-    appendChild(child) { el._children.push(child); child._parent = el; },
+    setAttribute(k, v) {
+      el._attrs[k] = v;
+    },
+    getAttribute(k) {
+      return el._attrs[k] ?? null;
+    },
+    appendChild(child) {
+      el._children.push(child);
+      child._parent = el;
+    },
     remove() {
       if (el._parent) {
         el._parent._children = el._parent._children.filter((c) => c !== el);
@@ -63,7 +86,9 @@ function makeElement(tag) {
     click() {
       (el._listeners["click"] || []).forEach((fn) => fn({ target: el }));
     },
-    get children() { return el._children; },
+    get children() {
+      return el._children;
+    },
   };
   return el;
 }
@@ -93,7 +118,12 @@ function setupDom() {
 
   // Patch window minimally
   _origWindow = {};
-  for (const k of ["innerWidth", "innerHeight", "addEventListener", "removeEventListener"]) {
+  for (const k of [
+    "innerWidth",
+    "innerHeight",
+    "addEventListener",
+    "removeEventListener",
+  ]) {
     _origWindow[k] = globalThis[k];
   }
   globalThis.innerWidth = 800;
@@ -192,14 +222,23 @@ describe("context-menu", () => {
     ctxMenu.show([{ label: "Second" }], { x: 0, y: 0 });
     // Only the second menu should remain
     expect(document.body._children.length).toBe(1);
-    expect(document.body._children[0]._children[0]._children[0].textContent).toBe("Second");
+    expect(
+      document.body._children[0]._children[0]._children[0].textContent,
+    ).toBe("Second");
   });
 
   it("clicking a menu item calls its action and removes the menu", () => {
     let called = false;
     const menu = ctxMenu.show(
-      [{ label: "Do it", action: () => { called = true; } }],
-      { x: 0, y: 0 }
+      [
+        {
+          label: "Do it",
+          action: () => {
+            called = true;
+          },
+        },
+      ],
+      { x: 0, y: 0 },
     );
     // Click the menu item (first child)
     menu._children[0].click();
@@ -210,7 +249,7 @@ describe("context-menu", () => {
   it("renders hint text when provided", () => {
     const menu = ctxMenu.show(
       [{ label: "Ghost", hint: "⌘⇧M", action: () => {} }],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     const row = menu._children[0];
     // row has label span + hint span
@@ -227,14 +266,15 @@ describe("context-menu", () => {
         { label: "Beta", action: () => {} },
         { label: "Gamma", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     // Wait for deferred listener registration
     await new Promise((r) => setTimeout(r, 5));
 
     // Arrow down twice to move focus to Gamma
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     dispatch("ArrowDown"); // Beta (skips separator, wraps from Alpha→Beta)
     dispatch("ArrowDown"); // Gamma
 
@@ -251,12 +291,13 @@ describe("context-menu", () => {
         { label: "Beta", action: () => {} },
         { label: "Gamma", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
 
     // Press End — should jump to last interactive item (Gamma)
     dispatch("End");
@@ -278,13 +319,21 @@ describe("context-menu", () => {
   it("Enter key activates focused item", async () => {
     let activated = false;
     ctxMenu.show(
-      [{ label: "Go", action: () => { activated = true; } }],
-      { x: 0, y: 0 }
+      [
+        {
+          label: "Go",
+          action: () => {
+            activated = true;
+          },
+        },
+      ],
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // First item is auto-focused on show
     dispatch("Enter");
     expect(activated).toBe(true);
@@ -294,13 +343,21 @@ describe("context-menu", () => {
   it("Space key activates focused item (WAI-ARIA menu pattern)", async () => {
     let activated = false;
     ctxMenu.show(
-      [{ label: "Go", action: () => { activated = true; } }],
-      { x: 0, y: 0 }
+      [
+        {
+          label: "Go",
+          action: () => {
+            activated = true;
+          },
+        },
+      ],
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     dispatch(" ");
     expect(activated).toBe(true);
     expect(document.body._children.length).toBe(0);
@@ -313,12 +370,13 @@ describe("context-menu", () => {
         { label: "Second", action: () => {} },
         { label: "Third", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // Auto-focused on First; ArrowUp should wrap to Third
     dispatch("ArrowUp");
     expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
@@ -334,7 +392,7 @@ describe("context-menu", () => {
         { label: "Beta", action: () => {} },
         { label: "Gamma", action: () => {} },
       ],
-      { x: 500, y: 500 }
+      { x: 500, y: 500 },
     );
     const left = parseInt(menu.style.left);
     const top = parseInt(menu.style.top);
@@ -370,7 +428,10 @@ describe("context-menu", () => {
   });
 
   it("scroll wheel inside menu does not dismiss it", async () => {
-    const menu = ctxMenu.show([{ label: "X", action: () => {} }], { x: 0, y: 0 });
+    const menu = ctxMenu.show([{ label: "X", action: () => {} }], {
+      x: 0,
+      y: 0,
+    });
     await new Promise((r) => setTimeout(r, 5));
     expect(document.body._children.length).toBe(1);
 
@@ -388,12 +449,13 @@ describe("context-menu", () => {
         { label: "Beta", action: () => {} },
         { label: "Gamma", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // Auto-focused on Alpha; press "g" to jump to Gamma
     dispatch("g");
     expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
@@ -406,12 +468,13 @@ describe("context-menu", () => {
         { label: "Ghost Mode", checked: true, action: () => {} },
         { label: "Beta", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // Press "g" to jump to "✓ Ghost Mode"
     dispatch("g");
     expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
@@ -424,12 +487,13 @@ describe("context-menu", () => {
         { label: "Another", action: () => {} },
         { label: "Beta", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // Auto-focused on Alpha (index 0); press "a" to jump to Another (index 1)
     dispatch("a");
     expect(menu._children[1]._classes.has("ctx-focus")).toBe(true);
@@ -445,7 +509,7 @@ describe("context-menu", () => {
         { label: "Second", action: () => {} },
         { label: "Third", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
@@ -464,15 +528,22 @@ describe("context-menu", () => {
     const menu = ctxMenu.show(
       [
         { label: "Alpha", action: () => {} },
-        { label: "Disabled", disabled: true, action: () => { _called = true; } },
+        {
+          label: "Disabled",
+          disabled: true,
+          action: () => {
+            _called = true;
+          },
+        },
         { label: "Gamma", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
     const keyHandlers = document._listeners["keydown"] || [];
-    const dispatch = (key) => keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
+    const dispatch = (key) =>
+      keyHandlers.forEach((fn) => fn({ key, preventDefault() {} }));
     // ArrowDown from Alpha should skip Disabled and land on Gamma
     dispatch("ArrowDown");
     expect(menu._children[2]._classes.has("ctx-focus")).toBe(true);
@@ -482,8 +553,16 @@ describe("context-menu", () => {
   it("clicking a disabled item does not call action or dismiss menu", () => {
     let called = false;
     const menu = ctxMenu.show(
-      [{ label: "No", disabled: true, action: () => { called = true; } }],
-      { x: 0, y: 0 }
+      [
+        {
+          label: "No",
+          disabled: true,
+          action: () => {
+            called = true;
+          },
+        },
+      ],
+      { x: 0, y: 0 },
     );
     menu._children[0].click();
     expect(called).toBe(false);
@@ -496,7 +575,7 @@ describe("context-menu", () => {
         { label: "First", action: () => {} },
         { label: "Second", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     await new Promise((r) => setTimeout(r, 5));
 
@@ -516,7 +595,7 @@ describe("context-menu", () => {
         { label: "Enabled", action: () => {} },
         { label: "Disabled", disabled: true, action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     expect(menu._children[0]._attrs["aria-disabled"]).toBeUndefined();
     expect(menu._children[1]._attrs["aria-disabled"]).toBe("true");
@@ -529,7 +608,7 @@ describe("context-menu", () => {
         { label: "Hide Text", checked: false, action: () => {} },
         { label: "Normal Item", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     // checked=true → menuitemcheckbox with aria-checked="true" and ✓ prefix
     expect(menu._children[0]._attrs["role"]).toBe("menuitemcheckbox");
@@ -550,7 +629,7 @@ describe("context-menu", () => {
         { label: "With Hint", hint: "⌘⇧M", action: () => {} },
         { label: "No Hint", action: () => {} },
       ],
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     );
     expect(menu._children[0]._attrs["aria-keyshortcuts"]).toBe("⌘⇧M");
     expect(menu._children[1]._attrs["aria-keyshortcuts"]).toBeUndefined();
@@ -580,10 +659,13 @@ describe("context-menu", () => {
   });
 
   it("keyboard navigation scrolls focused item into view", async () => {
-    const menu = ctxMenu.show([
-      { label: "Alpha", action: () => {} },
-      { label: "Beta", action: () => {} },
-    ], { x: 10, y: 10 });
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+      ],
+      { x: 10, y: 10 },
+    );
     await new Promise((r) => setTimeout(r, 5));
 
     // Auto-focus on first item should trigger scrollIntoView
@@ -601,7 +683,10 @@ describe("context-menu", () => {
     // Simulate a focused element before opening the menu
     const button = makeElement("button");
     button._focused = false;
-    button.focus = (opts) => { button._focused = true; button._focusOpts = opts; };
+    button.focus = (opts) => {
+      button._focused = true;
+      button._focusOpts = opts;
+    };
     document.body.appendChild(button);
     // Set activeElement to the button
     document.activeElement = button;
@@ -620,7 +705,9 @@ describe("context-menu", () => {
   it("restores focus after Escape key dismisses menu", async () => {
     const trigger = makeElement("canvas");
     trigger._focused = false;
-    trigger.focus = () => { trigger._focused = true; };
+    trigger.focus = () => {
+      trigger._focused = true;
+    };
     document.body.appendChild(trigger);
     document.activeElement = trigger;
 
@@ -637,14 +724,16 @@ describe("context-menu", () => {
   it("restores focus after clicking a menu item", () => {
     const trigger = makeElement("span");
     trigger._focused = false;
-    trigger.focus = () => { trigger._focused = true; };
+    trigger.focus = () => {
+      trigger._focused = true;
+    };
     document.body.appendChild(trigger);
     document.activeElement = trigger;
 
-    const menu = ctxMenu.show(
-      [{ label: "Do it", action: () => {} }],
-      { x: 0, y: 0 }
-    );
+    const menu = ctxMenu.show([{ label: "Do it", action: () => {} }], {
+      x: 0,
+      y: 0,
+    });
     menu._children[0].click();
     expect(trigger._focused).toBe(true);
 
@@ -652,10 +741,13 @@ describe("context-menu", () => {
   });
 
   it("keyboard navigation moves DOM focus to the active item", async () => {
-    const menu = ctxMenu.show([
-      { label: "Alpha", action: () => {} },
-      { label: "Beta", action: () => {} },
-    ], { x: 10, y: 10 });
+    const menu = ctxMenu.show(
+      [
+        { label: "Alpha", action: () => {} },
+        { label: "Beta", action: () => {} },
+      ],
+      { x: 10, y: 10 },
+    );
     await new Promise((r) => setTimeout(r, 5));
 
     // Auto-focus should have called .focus() on the first item

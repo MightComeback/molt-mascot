@@ -3,7 +3,7 @@
  * Delegated to the plugin package (single source of truth) so the Electron
  * main process, renderer, and plugin never drift.
  */
-const { allowedAlignments } = require('@molt/mascot-plugin');
+const { allowedAlignments } = require("@molt/mascot-plugin");
 const VALID_ALIGNMENTS = Object.freeze([...allowedAlignments]);
 
 /**
@@ -18,7 +18,7 @@ const _VALID_ALIGNMENTS_SET = new Set(VALID_ALIGNMENTS);
  * @returns {boolean}
  */
 function isValidAlignment(value) {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== "string") return false;
   return _VALID_ALIGNMENTS_SET.has(value.trim().toLowerCase());
 }
 
@@ -28,11 +28,15 @@ function isValidAlignment(value) {
  */
 function getPosition(display, width, height, alignOverride, paddingOverride) {
   const basePadding = 24;
-  const padding = (Number.isFinite(paddingOverride) && paddingOverride >= 0) ? paddingOverride : basePadding;
+  const padding =
+    Number.isFinite(paddingOverride) && paddingOverride >= 0
+      ? paddingOverride
+      : basePadding;
 
-  const rawAlign = (typeof alignOverride === 'string' && alignOverride.trim())
-    ? alignOverride
-    : 'bottom-right';
+  const rawAlign =
+    typeof alignOverride === "string" && alignOverride.trim()
+      ? alignOverride
+      : "bottom-right";
   const align = rawAlign.toLowerCase();
   const { x, y, width: dw, height: dh } = display.workArea;
 
@@ -40,25 +44,43 @@ function getPosition(display, width, height, alignOverride, paddingOverride) {
   // on non-Retina displays and trigger Electron console warnings.
   let px, py;
   switch (align) {
-    case 'bottom-left':
-      px = x + padding; py = y + dh - height - padding; break;
-    case 'top-right':
-      px = x + dw - width - padding; py = y + padding; break;
-    case 'top-left':
-      px = x + padding; py = y + padding; break;
-    case 'center':
-      px = x + (dw - width) / 2; py = y + (dh - height) / 2; break;
-    case 'center-left':
-      px = x + padding; py = y + (dh - height) / 2; break;
-    case 'center-right':
-      px = x + dw - width - padding; py = y + (dh - height) / 2; break;
-    case 'top-center':
-      px = x + (dw - width) / 2; py = y + padding; break;
-    case 'bottom-center':
-      px = x + (dw - width) / 2; py = y + dh - height - padding; break;
-    case 'bottom-right':
+    case "bottom-left":
+      px = x + padding;
+      py = y + dh - height - padding;
+      break;
+    case "top-right":
+      px = x + dw - width - padding;
+      py = y + padding;
+      break;
+    case "top-left":
+      px = x + padding;
+      py = y + padding;
+      break;
+    case "center":
+      px = x + (dw - width) / 2;
+      py = y + (dh - height) / 2;
+      break;
+    case "center-left":
+      px = x + padding;
+      py = y + (dh - height) / 2;
+      break;
+    case "center-right":
+      px = x + dw - width - padding;
+      py = y + (dh - height) / 2;
+      break;
+    case "top-center":
+      px = x + (dw - width) / 2;
+      py = y + padding;
+      break;
+    case "bottom-center":
+      px = x + (dw - width) / 2;
+      py = y + dh - height - padding;
+      break;
+    case "bottom-right":
     default:
-      px = x + dw - width - padding; py = y + dh - height - padding; break;
+      px = x + dw - width - padding;
+      py = y + dh - height - padding;
+      break;
   }
   // Clamp to work area so the window never ends up off-screen
   // (e.g. when padding is larger than the display or window exceeds display size).
@@ -84,7 +106,9 @@ function clampToWorkArea(pos, size, workArea) {
   return {
     x: Math.round(cx),
     y: Math.round(cy),
-    changed: Math.round(cx) !== Math.round(pos.x) || Math.round(cy) !== Math.round(pos.y),
+    changed:
+      Math.round(cx) !== Math.round(pos.x) ||
+      Math.round(cy) !== Math.round(pos.y),
   };
 }
 
@@ -94,7 +118,7 @@ function clampToWorkArea(pos, size, workArea) {
  * @returns {boolean}
  */
 function isValidPadding(value) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
 /**
@@ -106,8 +130,14 @@ function isValidPadding(value) {
  * @returns {number} Next index (wraps around)
  */
 function nextAlignmentIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : VALID_ALIGNMENTS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return 0;
+  const n =
+    typeof count === "number" && count > 0 ? count : VALID_ALIGNMENTS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return 0;
   return (currentIndex + 1) % n;
 }
 
@@ -120,8 +150,14 @@ function nextAlignmentIndex(currentIndex, count) {
  * @returns {number} Previous index (wraps around)
  */
 function prevAlignmentIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : VALID_ALIGNMENTS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return n - 1;
+  const n =
+    typeof count === "number" && count > 0 ? count : VALID_ALIGNMENTS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return n - 1;
   return (currentIndex - 1 + n) % n;
 }
 
@@ -133,7 +169,7 @@ function prevAlignmentIndex(currentIndex, count) {
  * @returns {number} Index in VALID_ALIGNMENTS, or -1 if not found
  */
 function findAlignmentIndex(alignment) {
-  if (typeof alignment !== 'string') return -1;
+  if (typeof alignment !== "string") return -1;
   const normalized = alignment.trim().toLowerCase();
   return VALID_ALIGNMENTS.indexOf(normalized);
 }
@@ -144,15 +180,15 @@ function findAlignmentIndex(alignment) {
  * and debug info without parsing the alignment string.
  */
 const ALIGNMENT_ARROWS = Object.freeze({
-  'top-left':      '↖',
-  'top-center':    '↑',
-  'top-right':     '↗',
-  'center-left':   '←',
-  'center':        '·',
-  'center-right':  '→',
-  'bottom-left':   '↙',
-  'bottom-center': '↓',
-  'bottom-right':  '↘',
+  "top-left": "↖",
+  "top-center": "↑",
+  "top-right": "↗",
+  "center-left": "←",
+  center: "·",
+  "center-right": "→",
+  "bottom-left": "↙",
+  "bottom-center": "↓",
+  "bottom-right": "↘",
 });
 
 /**
@@ -163,8 +199,8 @@ const ALIGNMENT_ARROWS = Object.freeze({
  * @returns {string} Arrow emoji
  */
 function alignmentArrow(alignment) {
-  if (typeof alignment !== 'string') return '·';
-  return ALIGNMENT_ARROWS[alignment.trim().toLowerCase()] || '·';
+  if (typeof alignment !== "string") return "·";
+  return ALIGNMENT_ARROWS[alignment.trim().toLowerCase()] || "·";
 }
 
 /**
@@ -175,8 +211,23 @@ function alignmentArrow(alignment) {
  * @returns {string} Formatted string with arrow prefix
  */
 function formatAlignment(alignment) {
-  const label = (typeof alignment === 'string' && alignment.trim()) ? alignment.trim().toLowerCase() : 'bottom-right';
+  const label =
+    typeof alignment === "string" && alignment.trim()
+      ? alignment.trim().toLowerCase()
+      : "bottom-right";
   return `${alignmentArrow(label)} ${label}`;
 }
 
-module.exports = { getPosition, clampToWorkArea, VALID_ALIGNMENTS, isValidAlignment, isValidPadding, nextAlignmentIndex, prevAlignmentIndex, findAlignmentIndex, ALIGNMENT_ARROWS, alignmentArrow, formatAlignment };
+module.exports = {
+  getPosition,
+  clampToWorkArea,
+  VALID_ALIGNMENTS,
+  isValidAlignment,
+  isValidPadding,
+  nextAlignmentIndex,
+  prevAlignmentIndex,
+  findAlignmentIndex,
+  ALIGNMENT_ARROWS,
+  alignmentArrow,
+  formatAlignment,
+};

@@ -43,7 +43,7 @@
  * @returns {number|null}
  */
 function nonNegNum(v) {
-  if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return null;
+  if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return null;
   return v;
 }
 
@@ -64,7 +64,7 @@ function nonNegInt(v) {
  * @returns {number|null}
  */
 function posEpoch(v) {
-  if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) return null;
+  if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) return null;
   return v;
 }
 
@@ -73,14 +73,19 @@ function posEpoch(v) {
  * @param {*} v
  * @returns {"healthy"|"degraded"|"unhealthy"|null}
  */
-const { isValidMode } = require('./mode-emoji.cjs');
-const { VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend } = require('./format-latency.cjs');
+const { isValidMode } = require("./mode-emoji.cjs");
+const {
+  VALID_HEALTH_STATUSES,
+  isValidHealth,
+  VALID_LATENCY_TRENDS,
+  isValidLatencyTrend,
+} = require("./format-latency.cjs");
 
 // Re-export for back-compat (consumers may import VALID_HEALTH from here).
 const VALID_HEALTH = VALID_HEALTH_STATUSES;
 
 function validHealthStatus(v) {
-  if (typeof v !== 'string') return null;
+  if (typeof v !== "string") return null;
   return isValidHealth(v) ? v : null;
 }
 
@@ -91,7 +96,7 @@ function validHealthStatus(v) {
  * @returns {"rising"|"falling"|"stable"|null}
  */
 function validLatencyTrend(v) {
-  if (typeof v !== 'string') return null;
+  if (typeof v !== "string") return null;
   return isValidLatencyTrend(v) ? v : null;
 }
 
@@ -102,7 +107,7 @@ function validLatencyTrend(v) {
  * @returns {string|null}
  */
 function validMode(v) {
-  if (typeof v !== 'string') return null;
+  if (typeof v !== "string") return null;
   return isValidMode(v) ? v : null;
 }
 
@@ -112,7 +117,7 @@ function validMode(v) {
  * @returns {string|null}
  */
 function nonEmptyStr(v) {
-  if (typeof v !== 'string' || !v) return null;
+  if (typeof v !== "string" || !v) return null;
   return v;
 }
 
@@ -125,12 +130,23 @@ function nonEmptyStr(v) {
  * @returns {object|null}
  */
 function validateLatencyStats(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  if (typeof raw.samples !== 'number' || !Number.isFinite(raw.samples) || raw.samples < 1 || !Number.isInteger(raw.samples)) return null;
+  if (!raw || typeof raw !== "object") return null;
+  if (
+    typeof raw.samples !== "number" ||
+    !Number.isFinite(raw.samples) ||
+    raw.samples < 1 ||
+    !Number.isInteger(raw.samples)
+  )
+    return null;
   // Validate core numeric fields: must be finite and non-negative when present.
-  for (const key of ['min', 'max', 'avg', 'median', 'p95', 'p99', 'jitter']) {
+  for (const key of ["min", "max", "avg", "median", "p95", "p99", "jitter"]) {
     if (key in raw) {
-      if (typeof raw[key] !== 'number' || !Number.isFinite(raw[key]) || raw[key] < 0) return null;
+      if (
+        typeof raw[key] !== "number" ||
+        !Number.isFinite(raw[key]) ||
+        raw[key] < 0
+      )
+        return null;
     }
   }
   return raw;
@@ -147,7 +163,7 @@ function validateLatencyStats(raw) {
  * @returns {ParsedModeUpdate}
  */
 function parseModeUpdate(raw) {
-  const update = (raw && typeof raw === 'object') ? raw : {};
+  const update = raw && typeof raw === "object" ? raw : {};
 
   return {
     mode: validMode(update.mode),
@@ -195,7 +211,7 @@ function parseModeUpdate(raw) {
  * @returns {string} e.g. "ModeUpdate<thinking, 42ms, tool=exec, 🟢 healthy>"
  */
 function formatModeUpdate(parsed) {
-  if (!parsed || typeof parsed !== 'object') return 'ModeUpdate<invalid>';
+  if (!parsed || typeof parsed !== "object") return "ModeUpdate<invalid>";
 
   const parts = [];
 
@@ -204,48 +220,74 @@ function formatModeUpdate(parsed) {
     let latencyPart = `${Math.round(parsed.latencyMs)}ms`;
     // Append median and p95 from rolling stats when available for richer diagnostics.
     // Single-sample latency can be noisy; median/p95 give a fuller picture at a glance.
-    if (parsed.latencyStats && typeof parsed.latencyStats.median === 'number') {
+    if (parsed.latencyStats && typeof parsed.latencyStats.median === "number") {
       latencyPart += ` (med=${Math.round(parsed.latencyStats.median)}`;
-      if (typeof parsed.latencyStats.p95 === 'number') {
+      if (typeof parsed.latencyStats.p95 === "number") {
         latencyPart += `, p95=${Math.round(parsed.latencyStats.p95)}`;
       }
-      latencyPart += ')';
+      latencyPart += ")";
     }
     parts.push(latencyPart);
   }
   if (parsed.tool) parts.push(`tool=${parsed.tool}`);
   if (parsed.errorMessage) parts.push(`err="${parsed.errorMessage}"`);
-  if (parsed.activeAgents !== null && parsed.activeAgents > 0) parts.push(`agents=${parsed.activeAgents}`);
-  if (parsed.activeTools !== null && parsed.activeTools > 0) parts.push(`tools=${parsed.activeTools}`);
-  if (parsed.agentSessions !== null && parsed.agentSessions > 0) parts.push(`sessions=${parsed.agentSessions}`);
+  if (parsed.activeAgents !== null && parsed.activeAgents > 0)
+    parts.push(`agents=${parsed.activeAgents}`);
+  if (parsed.activeTools !== null && parsed.activeTools > 0)
+    parts.push(`tools=${parsed.activeTools}`);
+  if (parsed.agentSessions !== null && parsed.agentSessions > 0)
+    parts.push(`sessions=${parsed.agentSessions}`);
   if (parsed.toolCalls !== null && parsed.toolCalls > 0) {
-    const errStr = (parsed.toolErrors !== null && parsed.toolErrors > 0) ? `/${parsed.toolErrors}err` : '';
+    const errStr =
+      parsed.toolErrors !== null && parsed.toolErrors > 0
+        ? `/${parsed.toolErrors}err`
+        : "";
     parts.push(`${parsed.toolCalls}calls${errStr}`);
   }
-  if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0) parts.push(`retry #${parsed.reconnectAttempt}`);
+  if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0)
+    parts.push(`retry #${parsed.reconnectAttempt}`);
   if (parsed.sessionConnectCount !== null && parsed.sessionConnectCount > 1) {
-    const failedStr = (parsed.sessionAttemptCount !== null && parsed.sessionAttemptCount > parsed.sessionConnectCount)
-      ? `, ${parsed.sessionAttemptCount - parsed.sessionConnectCount} failed`
-      : '';
+    const failedStr =
+      parsed.sessionAttemptCount !== null &&
+      parsed.sessionAttemptCount > parsed.sessionConnectCount
+        ? `, ${parsed.sessionAttemptCount - parsed.sessionConnectCount} failed`
+        : "";
     parts.push(`↻${parsed.sessionConnectCount - 1}${failedStr}`);
   }
   if (parsed.closeDetail) parts.push(`close="${parsed.closeDetail}"`);
   if (parsed.targetUrl) parts.push(`→ ${parsed.targetUrl}`);
-  if (parsed.connectionSuccessRate !== null && parsed.connectionSuccessRate < 100) parts.push(`${parsed.connectionSuccessRate}% ok`);
-  if (parsed.healthStatus && parsed.healthStatus !== 'healthy') {
-    const emoji = parsed.healthStatus === 'degraded' ? '⚠️' : '🔴';
+  if (
+    parsed.connectionSuccessRate !== null &&
+    parsed.connectionSuccessRate < 100
+  )
+    parts.push(`${parsed.connectionSuccessRate}% ok`);
+  if (parsed.healthStatus && parsed.healthStatus !== "healthy") {
+    const emoji = parsed.healthStatus === "degraded" ? "⚠️" : "🔴";
     parts.push(`${emoji} ${parsed.healthStatus}`);
   }
-  if (parsed.latencyTrend && parsed.latencyTrend !== 'stable') {
-    parts.push(parsed.latencyTrend === 'rising' ? '↑' : '↓');
+  if (parsed.latencyTrend && parsed.latencyTrend !== "stable") {
+    parts.push(parsed.latencyTrend === "rising" ? "↑" : "↓");
   }
   if (parsed.connectionUptimePct !== null && parsed.connectionUptimePct < 100) {
     parts.push(`📶 ${parsed.connectionUptimePct}%`);
   }
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
 
-  if (parts.length === 0) return 'ModeUpdate<empty>';
-  return `ModeUpdate<${parts.join(', ')}>`;
+  if (parts.length === 0) return "ModeUpdate<empty>";
+  return `ModeUpdate<${parts.join(", ")}>`;
 }
 
-module.exports = { parseModeUpdate, formatModeUpdate, nonNegNum, nonNegInt, posEpoch, nonEmptyStr, validMode, validHealthStatus, validLatencyTrend, validateLatencyStats, VALID_HEALTH, VALID_LATENCY_TRENDS };
+module.exports = {
+  parseModeUpdate,
+  formatModeUpdate,
+  nonNegNum,
+  nonNegInt,
+  posEpoch,
+  nonEmptyStr,
+  validMode,
+  validHealthStatus,
+  validLatencyTrend,
+  validateLatencyStats,
+  VALID_HEALTH,
+  VALID_LATENCY_TRENDS,
+};

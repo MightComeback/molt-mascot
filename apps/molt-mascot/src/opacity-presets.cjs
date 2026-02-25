@@ -21,8 +21,14 @@ const DEFAULT_OPACITY_INDEX = 0;
  * @returns {number} Next index (wraps around)
  */
 function nextOpacityIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : OPACITY_PRESETS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return 0;
+  const n =
+    typeof count === "number" && count > 0 ? count : OPACITY_PRESETS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return 0;
   return (currentIndex + 1) % n;
 }
 
@@ -35,8 +41,14 @@ function nextOpacityIndex(currentIndex, count) {
  * @returns {number} Previous index (wraps around)
  */
 function prevOpacityIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : OPACITY_PRESETS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return n - 1;
+  const n =
+    typeof count === "number" && count > 0 ? count : OPACITY_PRESETS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return n - 1;
   return (currentIndex - 1 + n) % n;
 }
 
@@ -48,7 +60,8 @@ function prevOpacityIndex(currentIndex, count) {
  * @returns {number} Matching preset index, or DEFAULT_OPACITY_INDEX
  */
 function findOpacityIndex(opacity) {
-  if (typeof opacity !== 'number' || !Number.isFinite(opacity)) return DEFAULT_OPACITY_INDEX;
+  if (typeof opacity !== "number" || !Number.isFinite(opacity))
+    return DEFAULT_OPACITY_INDEX;
   const idx = OPACITY_PRESETS.indexOf(opacity);
   if (idx >= 0) return idx;
   // Find closest preset (handles floating point rounding, e.g. 0.8000000001)
@@ -72,7 +85,7 @@ function findOpacityIndex(opacity) {
  * @returns {string} Formatted percentage (e.g. "80%")
  */
 function formatOpacity(opacity) {
-  if (typeof opacity !== 'number' || !Number.isFinite(opacity)) return '100%';
+  if (typeof opacity !== "number" || !Number.isFinite(opacity)) return "100%";
   return `${Math.round(opacity * 100)}%`;
 }
 
@@ -95,7 +108,7 @@ const _PRESET_SET = new Set(OPACITY_PRESETS);
  * @returns {boolean} true if the value is one of the OPACITY_PRESETS
  */
 function isPresetOpacity(value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return false;
+  if (typeof value !== "number" || !Number.isFinite(value)) return false;
   return _PRESET_SET.has(value);
 }
 
@@ -115,7 +128,7 @@ function stepOpacity(current, direction, opts = {}) {
   const step = opts.step ?? 0.1;
   const min = opts.min ?? 0.1;
   const max = opts.max ?? 1.0;
-  if (typeof current !== 'number' || !Number.isFinite(current)) current = max;
+  if (typeof current !== "number" || !Number.isFinite(current)) current = max;
   const raw = current + (direction > 0 ? step : direction < 0 ? -step : 0);
   // Round to avoid floating-point drift, then clamp.
   const precision = Math.round(1 / step);
@@ -134,7 +147,12 @@ function stepOpacity(current, direction, opts = {}) {
  * @returns {boolean}
  */
 function isValidOpacity(value) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 1
+  );
 }
 
 module.exports = {

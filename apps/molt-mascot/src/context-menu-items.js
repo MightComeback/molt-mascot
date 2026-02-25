@@ -7,9 +7,26 @@
  * item list can now be unit-tested without a DOM or Electron environment.
  */
 
-import { capitalize, truncate, formatDuration, formatElapsed, formatCount, successRate, MODE_EMOJI, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, healthStatusEmoji, formatActiveSummary, formatOpacity, formatBytes, isSleepingMode } from './utils.js';
-import { formatSizeWithDims } from './size-presets.cjs';
-import { formatAlignment } from './get-position.cjs';
+import {
+  capitalize,
+  truncate,
+  formatDuration,
+  formatElapsed,
+  formatCount,
+  successRate,
+  MODE_EMOJI,
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  healthStatusEmoji,
+  formatActiveSummary,
+  formatOpacity,
+  formatBytes,
+  isSleepingMode,
+} from "./utils.js";
+import { formatSizeWithDims } from "./size-presets.cjs";
+import { formatAlignment } from "./get-position.cjs";
 
 /**
  * @typedef {Object} MenuItemDescriptor
@@ -59,12 +76,12 @@ export function buildContextMenuItems(state) {
   const {
     currentMode,
     modeSince,
-    currentTool = '',
-    lastErrorMessage = '',
+    currentTool = "",
+    lastErrorMessage = "",
     isClickThrough = false,
     isTextHidden = false,
     alignment = null,
-    sizeLabel = 'medium',
+    sizeLabel = "medium",
     opacity = 1,
     connectedSince = null,
     reconnectAttempt = 0,
@@ -89,22 +106,32 @@ export function buildContextMenuItems(state) {
     now: nowOverride,
   } = state;
 
-  const modKey = isMac ? '⌘' : 'Ctrl+';
-  const shiftKey = isMac ? '⇧' : 'Shift+';
-  const altKey = isMac ? '⌥' : 'Alt+';
+  const modKey = isMac ? "⌘" : "Ctrl+";
+  const shiftKey = isMac ? "⇧" : "Shift+";
+  const altKey = isMac ? "⌥" : "Alt+";
   const now = nowOverride ?? Date.now();
 
   // Build status summary line
   const modeDur = Math.max(0, Math.round((now - modeSince) / 1000));
-  const isSleeping = isSleepingMode(currentMode, modeDur * 1000, sleepThresholdS * 1000);
-  const emojiKey = isSleeping ? 'sleeping' : currentMode;
-  const emoji = MODE_EMOJI[emojiKey] ? `${MODE_EMOJI[emojiKey]} ` : '';
-  let modeLabel = isSleeping ? `${emoji}Sleeping` : `${emoji}${capitalize(currentMode)}`;
-  if (currentMode === 'tool' && currentTool) modeLabel = `${MODE_EMOJI.tool} ${truncate(currentTool, 20)}`;
-  if (currentMode === 'error' && lastErrorMessage) modeLabel = `${MODE_EMOJI.error} ${truncate(lastErrorMessage, 28)}`;
+  const isSleeping = isSleepingMode(
+    currentMode,
+    modeDur * 1000,
+    sleepThresholdS * 1000,
+  );
+  const emojiKey = isSleeping ? "sleeping" : currentMode;
+  const emoji = MODE_EMOJI[emojiKey] ? `${MODE_EMOJI[emojiKey]} ` : "";
+  let modeLabel = isSleeping
+    ? `${emoji}Sleeping`
+    : `${emoji}${capitalize(currentMode)}`;
+  if (currentMode === "tool" && currentTool)
+    modeLabel = `${MODE_EMOJI.tool} ${truncate(currentTool, 20)}`;
+  if (currentMode === "error" && lastErrorMessage)
+    modeLabel = `${MODE_EMOJI.error} ${truncate(lastErrorMessage, 28)}`;
 
   const verLabel = appVersion
-    ? (pluginVersion ? `v${appVersion} (p${pluginVersion}) · ${modeLabel}` : `v${appVersion} · ${modeLabel}`)
+    ? pluginVersion
+      ? `v${appVersion} (p${pluginVersion}) · ${modeLabel}`
+      : `v${appVersion} · ${modeLabel}`
     : modeLabel;
   const statusParts = [verLabel];
   if (modeDur > 0) statusParts[0] += ` (${formatDuration(modeDur)})`;
@@ -118,67 +145,120 @@ export function buildContextMenuItems(state) {
     statusParts.push(`retry #${reconnectAttempt}`);
   }
   if (pluginToolCalls > 0) {
-    const statsStr = pluginToolErrors > 0
-      ? `${formatCount(pluginToolCalls)} calls, ${formatCount(pluginToolErrors)} err (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
-      : `${formatCount(pluginToolCalls)} calls`;
+    const statsStr =
+      pluginToolErrors > 0
+        ? `${formatCount(pluginToolCalls)} calls, ${formatCount(pluginToolErrors)} err (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
+        : `${formatCount(pluginToolCalls)} calls`;
     statusParts.push(statsStr);
   }
   if (pluginActiveAgents > 0 || pluginActiveTools > 0) {
-    statusParts.push(formatActiveSummary(pluginActiveAgents, pluginActiveTools));
+    statusParts.push(
+      formatActiveSummary(pluginActiveAgents, pluginActiveTools),
+    );
   }
-  if (typeof latencyMs === 'number' && latencyMs >= 0) {
+  if (typeof latencyMs === "number" && latencyMs >= 0) {
     // Append connection quality emoji (🟢🟡🟠🔴) for at-a-glance assessment,
     // matching the tray tooltip and debug info behavior. Use median from rolling
     // stats when available (more stable than instant latency); fall back to current sample.
-    const quality = connectionQuality(resolveQualitySource(latencyMs, latencyStats));
-    const qualityEmoji = quality ? connectionQualityEmoji(quality) : '';
-    let latencyPart = qualityEmoji ? `${formatLatency(latencyMs)} ${qualityEmoji}` : formatLatency(latencyMs);
+    const quality = connectionQuality(
+      resolveQualitySource(latencyMs, latencyStats),
+    );
+    const qualityEmoji = quality ? connectionQualityEmoji(quality) : "";
+    let latencyPart = qualityEmoji
+      ? `${formatLatency(latencyMs)} ${qualityEmoji}`
+      : formatLatency(latencyMs);
     // Append trend indicator when latency is actively rising or falling.
     // "stable" is omitted to avoid status line clutter; only actionable signals are shown.
     // Parity with pill-label and tray tooltip trend indicators.
-    if (typeof latencyTrend === 'string' && latencyTrend !== 'stable') {
-      latencyPart += latencyTrend === 'rising' ? ' ↑' : ' ↓';
+    if (typeof latencyTrend === "string" && latencyTrend !== "stable") {
+      latencyPart += latencyTrend === "rising" ? " ↑" : " ↓";
     }
     statusParts.push(latencyPart);
   }
-  if (healthStatus === 'degraded' || healthStatus === 'unhealthy') {
+  if (healthStatus === "degraded" || healthStatus === "unhealthy") {
     statusParts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
   }
-  if (typeof connectionUptimePct === 'number' && connectionUptimePct >= 0 && connectionUptimePct < 100) {
+  if (
+    typeof connectionUptimePct === "number" &&
+    connectionUptimePct >= 0 &&
+    connectionUptimePct < 100
+  ) {
     statusParts.push(`📶 ${connectionUptimePct}%`);
   }
-  if (typeof processUptimeS === 'number' && processUptimeS >= 60) {
+  if (typeof processUptimeS === "number" && processUptimeS >= 60) {
     statusParts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
   }
-  if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
+  if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     statusParts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
   }
 
-  const statusLine = statusParts.join(' · ');
+  const statusLine = statusParts.join(" · ");
 
   const items = [
-    { id: 'status', label: statusLine, disabled: true },
-    { id: 'sep-1', separator: true },
-    { id: 'ghost', label: 'Ghost Mode', hint: `${modKey}${shiftKey}M`, checked: isClickThrough },
-    { id: 'hide-text', label: 'Hide Text', hint: `${modKey}${shiftKey}H`, checked: isTextHidden },
-    { id: 'reset', label: 'Reset State', hint: `${modKey}${shiftKey}R` },
-    { id: 'alignment', label: `Cycle Alignment (${formatAlignment(alignment)})`, hint: `${modKey}${shiftKey}A` },
-    { id: 'snap', label: 'Snap to Position', hint: `${modKey}${shiftKey}S`, disabled: !hasDragPosition },
-    { id: 'size', label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`, hint: `${modKey}${shiftKey}Z` },
-    { id: 'opacity', label: `Opacity (${formatOpacity(opacity)})`, hint: `${modKey}${shiftKey}O` },
-    { id: 'reduced-motion', label: 'Reduced Motion', hint: `${modKey}${shiftKey}N`, checked: reducedMotion },
-    { id: 'copy-status', label: 'Copy Status', hint: `${modKey}${shiftKey}P` },
-    { id: 'copy-debug', label: 'Copy Debug Info', hint: `${modKey}${shiftKey}I` },
-    ...(connectedSince || state.targetUrl ? [{ id: 'copy-gateway-url', label: 'Copy Gateway URL' }] : []),
-    { id: 'reconnect', label: connectedSince ? 'Force Reconnect' : 'Reconnect Now', hint: `${modKey}${shiftKey}C` },
-    { id: 'change-gateway', label: 'Change Gateway…' },
-    { id: 'reset-prefs', label: 'Reset Preferences…' },
-    { id: 'hide', label: 'Hide Mascot', hint: `${modKey}${shiftKey}V` },
-    { id: 'sep-2', separator: true },
-    { id: 'about', label: 'About Molt Mascot' },
-    { id: 'github', label: 'Open on GitHub…' },
-    { id: 'devtools', label: 'DevTools', hint: `${modKey}${shiftKey}D` },
-    { id: 'quit', label: 'Quit', hint: `${modKey}${altKey}Q` },
+    { id: "status", label: statusLine, disabled: true },
+    { id: "sep-1", separator: true },
+    {
+      id: "ghost",
+      label: "Ghost Mode",
+      hint: `${modKey}${shiftKey}M`,
+      checked: isClickThrough,
+    },
+    {
+      id: "hide-text",
+      label: "Hide Text",
+      hint: `${modKey}${shiftKey}H`,
+      checked: isTextHidden,
+    },
+    { id: "reset", label: "Reset State", hint: `${modKey}${shiftKey}R` },
+    {
+      id: "alignment",
+      label: `Cycle Alignment (${formatAlignment(alignment)})`,
+      hint: `${modKey}${shiftKey}A`,
+    },
+    {
+      id: "snap",
+      label: "Snap to Position",
+      hint: `${modKey}${shiftKey}S`,
+      disabled: !hasDragPosition,
+    },
+    {
+      id: "size",
+      label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`,
+      hint: `${modKey}${shiftKey}Z`,
+    },
+    {
+      id: "opacity",
+      label: `Opacity (${formatOpacity(opacity)})`,
+      hint: `${modKey}${shiftKey}O`,
+    },
+    {
+      id: "reduced-motion",
+      label: "Reduced Motion",
+      hint: `${modKey}${shiftKey}N`,
+      checked: reducedMotion,
+    },
+    { id: "copy-status", label: "Copy Status", hint: `${modKey}${shiftKey}P` },
+    {
+      id: "copy-debug",
+      label: "Copy Debug Info",
+      hint: `${modKey}${shiftKey}I`,
+    },
+    ...(connectedSince || state.targetUrl
+      ? [{ id: "copy-gateway-url", label: "Copy Gateway URL" }]
+      : []),
+    {
+      id: "reconnect",
+      label: connectedSince ? "Force Reconnect" : "Reconnect Now",
+      hint: `${modKey}${shiftKey}C`,
+    },
+    { id: "change-gateway", label: "Change Gateway…" },
+    { id: "reset-prefs", label: "Reset Preferences…" },
+    { id: "hide", label: "Hide Mascot", hint: `${modKey}${shiftKey}V` },
+    { id: "sep-2", separator: true },
+    { id: "about", label: "About Molt Mascot" },
+    { id: "github", label: "Open on GitHub…" },
+    { id: "devtools", label: "DevTools", hint: `${modKey}${shiftKey}D` },
+    { id: "quit", label: "Quit", hint: `${modKey}${altKey}Q` },
   ];
 
   return { statusLine, items };

@@ -30,8 +30,8 @@
     "test:coverage": "bun test --coverage packages/molt-mascot-plugin/test apps/molt-mascot/test",
     "typecheck": "bun run --cwd packages/molt-mascot-plugin typecheck",
     "lint": "oxlint .",
-    "format": "bun x biome check --apply .",
-    "format:check": "bun x biome check .",
+    "format": "bun x @biomejs/biome check --write .",
+    "format:check": "bun x @biomejs/biome check .",
     "check": "bun run lint && bun run format:check && bun run typecheck && bun run test",
     "setup:hooks": "cp tools/git-hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo '✅ Git hooks installed.'"
   },

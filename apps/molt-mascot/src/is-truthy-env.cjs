@@ -3,13 +3,20 @@
  * Handles strings, booleans, numbers, and null/undefined.
  */
 function isTruthyEnv(v) {
-  if (typeof v !== 'string') {
-    if (typeof v === 'number') return Number.isFinite(v) && v > 0;
-    if (typeof v === 'boolean') return v;
+  if (typeof v !== "string") {
+    if (typeof v === "number") return Number.isFinite(v) && v > 0;
+    if (typeof v === "boolean") return v;
     return false;
   }
   const s = v.trim().toLowerCase();
-  return s === '1' || s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === 'on';
+  return (
+    s === "1" ||
+    s === "true" ||
+    s === "t" ||
+    s === "yes" ||
+    s === "y" ||
+    s === "on"
+  );
 }
 
 /**
@@ -21,13 +28,20 @@ function isTruthyEnv(v) {
  * @returns {boolean} true if the value is explicitly falsy
  */
 function isFalsyEnv(v) {
-  if (typeof v !== 'string') {
-    if (typeof v === 'number') return v === 0;
-    if (typeof v === 'boolean') return !v;
+  if (typeof v !== "string") {
+    if (typeof v === "number") return v === 0;
+    if (typeof v === "boolean") return !v;
     return false;
   }
   const s = v.trim().toLowerCase();
-  return s === '0' || s === 'false' || s === 'f' || s === 'no' || s === 'n' || s === 'off';
+  return (
+    s === "0" ||
+    s === "false" ||
+    s === "f" ||
+    s === "no" ||
+    s === "n" ||
+    s === "off"
+  );
 }
 
 /**
@@ -46,19 +60,35 @@ function isFalsyEnv(v) {
  * @returns {boolean|undefined} true/false if explicitly set, undefined if absent/ambiguous
  */
 function parseBooleanEnv(v) {
-  if (v === undefined || v === null || v === '') return undefined;
-  if (typeof v === 'boolean') return v;
-  if (typeof v === 'number') {
+  if (v === undefined || v === null || v === "") return undefined;
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") {
     if (!Number.isFinite(v)) return undefined;
     if (v > 0) return true;
     if (v === 0) return false;
     return undefined;
   }
-  if (typeof v !== 'string') return undefined;
+  if (typeof v !== "string") return undefined;
   const s = v.trim().toLowerCase();
-  if (s === '') return undefined;
-  if (s === '1' || s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === 'on') return true;
-  if (s === '0' || s === 'false' || s === 'f' || s === 'no' || s === 'n' || s === 'off') return false;
+  if (s === "") return undefined;
+  if (
+    s === "1" ||
+    s === "true" ||
+    s === "t" ||
+    s === "yes" ||
+    s === "y" ||
+    s === "on"
+  )
+    return true;
+  if (
+    s === "0" ||
+    s === "false" ||
+    s === "f" ||
+    s === "no" ||
+    s === "n" ||
+    s === "off"
+  )
+    return false;
   return undefined;
 }
 

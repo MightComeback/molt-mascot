@@ -1,21 +1,21 @@
-import { describe, it, expect } from 'bun:test';
-import { resolveStatusConfig, formatStatusText } from '../src/status-cli.cjs';
-import { formatProtocolRange } from '../src/format-latency.cjs';
-import * as sizePresets from '../src/size-presets.cjs';
-import { hasBoolFlag } from '../src/parse-cli-arg.cjs';
+import { describe, it, expect } from "bun:test";
+import { resolveStatusConfig, formatStatusText } from "../src/status-cli.cjs";
+import { formatProtocolRange } from "../src/format-latency.cjs";
+import * as sizePresets from "../src/size-presets.cjs";
+import { hasBoolFlag } from "../src/parse-cli-arg.cjs";
 
 const OPACITY_CYCLE = [1.0, 0.8, 0.6, 0.4, 0.2];
 
 function makeParams(overrides = {}) {
   return {
-    appVersion: '0.2.0',
+    appVersion: "0.2.0",
     prefs: {},
     env: {},
     argv: [],
     pid: 12345,
-    platform: 'darwin',
-    arch: 'arm64',
-    versions: { electron: '30.0.0', node: '20.0.0', chrome: '120.0.0' },
+    platform: "darwin",
+    arch: "arm64",
+    versions: { electron: "30.0.0", node: "20.0.0", chrome: "120.0.0" },
     prefsPath: null,
     sizePresets,
     opacityCycle: OPACITY_CYCLE,
@@ -24,11 +24,11 @@ function makeParams(overrides = {}) {
   };
 }
 
-describe('resolveStatusConfig', () => {
-  it('returns defaults with empty env and prefs', () => {
+describe("resolveStatusConfig", () => {
+  it("returns defaults with empty env and prefs", () => {
     const status = resolveStatusConfig(makeParams());
-    expect(status.config.alignment).toBe('bottom-right');
-    expect(status.config.size).toBe('medium');
+    expect(status.config.alignment).toBe("bottom-right");
+    expect(status.config.size).toBe("medium");
     expect(status.config.opacity).toBe(1.0);
     expect(status.config.padding).toBe(24);
     expect(status.config.clickThrough).toBe(false);
@@ -51,35 +51,37 @@ describe('resolveStatusConfig', () => {
     expect(status.preferences).toBeNull();
   });
 
-  it('env vars override defaults', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: {
-        MOLT_MASCOT_ALIGN: 'top-left',
-        MOLT_MASCOT_SIZE: 'large',
-        MOLT_MASCOT_OPACITY: '0.5',
-        MOLT_MASCOT_PADDING: '10',
-        MOLT_MASCOT_GATEWAY_URL: 'ws://localhost:1234',
-        MOLT_MASCOT_GATEWAY_TOKEN: 'secret',
-        MOLT_MASCOT_CLICK_THROUGH: '1',
-        MOLT_MASCOT_HIDE_TEXT: 'true',
-        MOLT_MASCOT_REDUCED_MOTION: 'yes',
-        MOLT_MASCOT_SLEEP_THRESHOLD_S: '60',
-        MOLT_MASCOT_IDLE_DELAY_MS: '500',
-        MOLT_MASCOT_ERROR_HOLD_MS: '3000',
-        MOLT_MASCOT_MIN_PROTOCOL: '1',
-        MOLT_MASCOT_MAX_PROTOCOL: '5',
-        MOLT_MASCOT_RECONNECT_BASE_MS: '500',
-        MOLT_MASCOT_RECONNECT_MAX_MS: '10000',
-        MOLT_MASCOT_STALE_CONNECTION_MS: '8000',
-        MOLT_MASCOT_STALE_CHECK_INTERVAL_MS: '2000',
-        MOLT_MASCOT_POLL_INTERVAL_MS: '500',
-      },
-    }));
-    expect(status.config.alignment).toBe('top-left');
-    expect(status.config.size).toBe('large');
+  it("env vars override defaults", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: {
+          MOLT_MASCOT_ALIGN: "top-left",
+          MOLT_MASCOT_SIZE: "large",
+          MOLT_MASCOT_OPACITY: "0.5",
+          MOLT_MASCOT_PADDING: "10",
+          MOLT_MASCOT_GATEWAY_URL: "ws://localhost:1234",
+          MOLT_MASCOT_GATEWAY_TOKEN: "secret",
+          MOLT_MASCOT_CLICK_THROUGH: "1",
+          MOLT_MASCOT_HIDE_TEXT: "true",
+          MOLT_MASCOT_REDUCED_MOTION: "yes",
+          MOLT_MASCOT_SLEEP_THRESHOLD_S: "60",
+          MOLT_MASCOT_IDLE_DELAY_MS: "500",
+          MOLT_MASCOT_ERROR_HOLD_MS: "3000",
+          MOLT_MASCOT_MIN_PROTOCOL: "1",
+          MOLT_MASCOT_MAX_PROTOCOL: "5",
+          MOLT_MASCOT_RECONNECT_BASE_MS: "500",
+          MOLT_MASCOT_RECONNECT_MAX_MS: "10000",
+          MOLT_MASCOT_STALE_CONNECTION_MS: "8000",
+          MOLT_MASCOT_STALE_CHECK_INTERVAL_MS: "2000",
+          MOLT_MASCOT_POLL_INTERVAL_MS: "500",
+        },
+      }),
+    );
+    expect(status.config.alignment).toBe("top-left");
+    expect(status.config.size).toBe("large");
     expect(status.config.opacity).toBe(0.5);
     expect(status.config.padding).toBe(10);
-    expect(status.config.gatewayUrl).toBe('ws://localhost:1234');
+    expect(status.config.gatewayUrl).toBe("ws://localhost:1234");
     expect(status.config.gatewayToken).toBe(true);
     expect(status.config.clickThrough).toBe(true);
     expect(status.config.hideText).toBe(true);
@@ -96,56 +98,78 @@ describe('resolveStatusConfig', () => {
     expect(status.config.maxProtocol).toBe(5);
   });
 
-  it('saved prefs override defaults but not env', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: { alignment: 'center', sizeIndex: 3, opacityIndex: 2, padding: 50, clickThrough: true },
-      prefsPath: '/tmp/prefs.json',
-    }));
-    expect(status.config.alignment).toBe('center');
-    expect(status.config.size).toBe('large');
+  it("saved prefs override defaults but not env", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: {
+          alignment: "center",
+          sizeIndex: 3,
+          opacityIndex: 2,
+          padding: 50,
+          clickThrough: true,
+        },
+        prefsPath: "/tmp/prefs.json",
+      }),
+    );
+    expect(status.config.alignment).toBe("center");
+    expect(status.config.size).toBe("large");
     expect(status.config.opacity).toBe(OPACITY_CYCLE[2]);
     expect(status.config.padding).toBe(50);
     expect(status.config.clickThrough).toBe(true);
-    expect(status.preferences).toEqual({ alignment: 'center', sizeIndex: 3, opacityIndex: 2, padding: 50, clickThrough: true });
+    expect(status.preferences).toEqual({
+      alignment: "center",
+      sizeIndex: 3,
+      opacityIndex: 2,
+      padding: 50,
+      clickThrough: true,
+    });
   });
 
-  it('prefs.size string label overrides sizeIndex', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: { size: 'tiny', sizeIndex: 3 },
-      prefsPath: '/tmp/p.json',
-    }));
-    expect(status.config.size).toBe('tiny');
+  it("prefs.size string label overrides sizeIndex", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: { size: "tiny", sizeIndex: 3 },
+        prefsPath: "/tmp/p.json",
+      }),
+    );
+    expect(status.config.size).toBe("tiny");
   });
 
-  it('prefs.size is preferred over sizeIndex (matching electron-main resolution)', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: { size: 'xlarge' },
-      prefsPath: '/tmp/p.json',
-    }));
-    expect(status.config.size).toBe('xlarge');
+  it("prefs.size is preferred over sizeIndex (matching electron-main resolution)", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: { size: "xlarge" },
+        prefsPath: "/tmp/p.json",
+      }),
+    );
+    expect(status.config.size).toBe("xlarge");
   });
 
-  it('invalid prefs.size falls back to sizeIndex', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: { size: 'bogus', sizeIndex: 0 },
-      prefsPath: '/tmp/p.json',
-    }));
+  it("invalid prefs.size falls back to sizeIndex", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: { size: "bogus", sizeIndex: 0 },
+        prefsPath: "/tmp/p.json",
+      }),
+    );
     expect(status.config.size).toBe(sizePresets.SIZE_PRESETS[0].label);
   });
 
-  it('saved timing prefs override defaults when env is not set', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: {
-        sleepThresholdS: 60,
-        idleDelayMs: 400,
-        errorHoldMs: 2000,
-        pollIntervalMs: 2000,
-        reconnectBaseMs: 500,
-        reconnectMaxMs: 10000,
-        staleConnectionMs: 8000,
-        staleCheckIntervalMs: 3000,
-      },
-    }));
+  it("saved timing prefs override defaults when env is not set", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: {
+          sleepThresholdS: 60,
+          idleDelayMs: 400,
+          errorHoldMs: 2000,
+          pollIntervalMs: 2000,
+          reconnectBaseMs: 500,
+          reconnectMaxMs: 10000,
+          staleConnectionMs: 8000,
+          staleCheckIntervalMs: 3000,
+        },
+      }),
+    );
     expect(status.timing.sleepThresholdS).toBe(60);
     expect(status.timing.idleDelayMs).toBe(400);
     expect(status.timing.errorHoldMs).toBe(2000);
@@ -156,373 +180,465 @@ describe('resolveStatusConfig', () => {
     expect(status.timing.staleCheckIntervalMs).toBe(3000);
   });
 
-  it('env timing values take priority over saved timing prefs', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_POLL_INTERVAL_MS: '3000' },
-      prefs: { pollIntervalMs: 500 },
-    }));
+  it("env timing values take priority over saved timing prefs", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_POLL_INTERVAL_MS: "3000" },
+        prefs: { pollIntervalMs: 500 },
+      }),
+    );
     expect(status.timing.pollIntervalMs).toBe(3000);
   });
 
-  it('invalid saved timing prefs fall back to defaults', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: {
-        pollIntervalMs: 50,        // below min of 100
-        reconnectBaseMs: -1,       // below min of 0 ... wait, -1 < 0
-        staleConnectionMs: 'fast', // wrong type
-      },
-    }));
-    expect(status.timing.pollIntervalMs).toBe(1000);  // default
-    expect(status.timing.reconnectBaseMs).toBe(1500);  // default
+  it("invalid saved timing prefs fall back to defaults", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: {
+          pollIntervalMs: 50, // below min of 100
+          reconnectBaseMs: -1, // below min of 0 ... wait, -1 < 0
+          staleConnectionMs: "fast", // wrong type
+        },
+      }),
+    );
+    expect(status.timing.pollIntervalMs).toBe(1000); // default
+    expect(status.timing.reconnectBaseMs).toBe(1500); // default
     expect(status.timing.staleConnectionMs).toBe(15000); // default (wrong type ignored)
   });
 
-  it('env beats prefs for alignment', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_ALIGN: 'top-right' },
-      prefs: { alignment: 'center' },
-    }));
-    expect(status.config.alignment).toBe('top-right');
+  it("env beats prefs for alignment", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_ALIGN: "top-right" },
+        prefs: { alignment: "center" },
+      }),
+    );
+    expect(status.config.alignment).toBe("top-right");
   });
 
-  it('custom width/height env overrides size preset dimensions', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_WIDTH: '300', MOLT_MASCOT_HEIGHT: '250' },
-    }));
+  it("custom width/height env overrides size preset dimensions", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_WIDTH: "300", MOLT_MASCOT_HEIGHT: "250" },
+      }),
+    );
     expect(status.config.width).toBe(300);
     expect(status.config.height).toBe(250);
   });
 
-  it('--start-hidden flag sets startHidden', () => {
-    const status = resolveStatusConfig(makeParams({ argv: ['--start-hidden'] }));
+  it("--start-hidden flag sets startHidden", () => {
+    const status = resolveStatusConfig(
+      makeParams({ argv: ["--start-hidden"] }),
+    );
     expect(status.config.startHidden).toBe(true);
   });
 
-  it('MOLT_MASCOT_START_HIDDEN env sets startHidden', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_START_HIDDEN: '1' } }));
+  it("MOLT_MASCOT_START_HIDDEN env sets startHidden", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_START_HIDDEN: "1" } }),
+    );
     expect(status.config.startHidden).toBe(true);
   });
 
-  it('--debug flag sets debug', () => {
-    const status = resolveStatusConfig(makeParams({ argv: ['--debug'] }));
+  it("--debug flag sets debug", () => {
+    const status = resolveStatusConfig(makeParams({ argv: ["--debug"] }));
     expect(status.config.debug).toBe(true);
   });
 
-  it('MOLT_MASCOT_DEBUG env sets debug', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_DEBUG: '1' } }));
+  it("MOLT_MASCOT_DEBUG env sets debug", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_DEBUG: "1" } }),
+    );
     expect(status.config.debug).toBe(true);
   });
 
-  it('debug defaults to false', () => {
+  it("debug defaults to false", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.config.debug).toBe(false);
   });
 
-  it('--disable-gpu flag sets disableGpu', () => {
-    const status = resolveStatusConfig(makeParams({ argv: ['--disable-gpu'] }));
+  it("--disable-gpu flag sets disableGpu", () => {
+    const status = resolveStatusConfig(makeParams({ argv: ["--disable-gpu"] }));
     expect(status.config.disableGpu).toBe(true);
   });
 
-  it('MOLT_MASCOT_DISABLE_GPU env sets disableGpu', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_DISABLE_GPU: 'true' } }));
+  it("MOLT_MASCOT_DISABLE_GPU env sets disableGpu", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_DISABLE_GPU: "true" } }),
+    );
     expect(status.config.disableGpu).toBe(true);
   });
 
-  it('--no-tray flag sets noTray', () => {
-    const status = resolveStatusConfig(makeParams({ argv: ['--no-tray'] }));
+  it("--no-tray flag sets noTray", () => {
+    const status = resolveStatusConfig(makeParams({ argv: ["--no-tray"] }));
     expect(status.config.noTray).toBe(true);
   });
 
-  it('--no-shortcuts flag sets noShortcuts', () => {
-    const status = resolveStatusConfig(makeParams({ argv: ['--no-shortcuts'] }));
+  it("--no-shortcuts flag sets noShortcuts", () => {
+    const status = resolveStatusConfig(
+      makeParams({ argv: ["--no-shortcuts"] }),
+    );
     expect(status.config.noShortcuts).toBe(true);
   });
 
-  it('includes runtime info', () => {
+  it("includes runtime info", () => {
     const status = resolveStatusConfig(makeParams());
-    expect(status.version).toBe('0.2.0');
+    expect(status.version).toBe("0.2.0");
     expect(status.pid).toBe(12345);
-    expect(status.platform).toBe('darwin');
-    expect(status.arch).toBe('arm64');
-    expect(status.electron).toBe('30.0.0');
-    expect(status.node).toBe('20.0.0');
-    expect(status.chrome).toBe('120.0.0');
+    expect(status.platform).toBe("darwin");
+    expect(status.arch).toBe("arm64");
+    expect(status.electron).toBe("30.0.0");
+    expect(status.node).toBe("20.0.0");
+    expect(status.chrome).toBe("120.0.0");
     expect(status.bun).toBeNull();
   });
 
-  it('includes bun version when provided', () => {
-    const status = resolveStatusConfig(makeParams({
-      versions: { electron: '30.0.0', node: '20.0.0', chrome: '120.0.0', bun: '1.2.0' },
-    }));
-    expect(status.bun).toBe('1.2.0');
+  it("includes bun version when provided", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        versions: {
+          electron: "30.0.0",
+          node: "20.0.0",
+          chrome: "120.0.0",
+          bun: "1.2.0",
+        },
+      }),
+    );
+    expect(status.bun).toBe("1.2.0");
   });
 
-  it('GATEWAY_URL fallback works', () => {
-    const status = resolveStatusConfig(makeParams({ env: { GATEWAY_URL: 'ws://fallback:999' } }));
-    expect(status.config.gatewayUrl).toBe('ws://fallback:999');
+  it("GATEWAY_URL fallback works", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { GATEWAY_URL: "ws://fallback:999" } }),
+    );
+    expect(status.config.gatewayUrl).toBe("ws://fallback:999");
   });
 
-  it('CLAWDBOT_GATEWAY_URL fallback works', () => {
-    const status = resolveStatusConfig(makeParams({ env: { CLAWDBOT_GATEWAY_URL: 'ws://clawd:456' } }));
-    expect(status.config.gatewayUrl).toBe('ws://clawd:456');
+  it("CLAWDBOT_GATEWAY_URL fallback works", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { CLAWDBOT_GATEWAY_URL: "ws://clawd:456" } }),
+    );
+    expect(status.config.gatewayUrl).toBe("ws://clawd:456");
   });
 
-  it('gatewayUrl (camelCase) fallback works', () => {
-    const status = resolveStatusConfig(makeParams({ env: { gatewayUrl: 'ws://camel:789' } }));
-    expect(status.config.gatewayUrl).toBe('ws://camel:789');
+  it("gatewayUrl (camelCase) fallback works", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { gatewayUrl: "ws://camel:789" } }),
+    );
+    expect(status.config.gatewayUrl).toBe("ws://camel:789");
   });
 
-  it('CLAWDBOT_GATEWAY_TOKEN fallback sets gatewayToken', () => {
-    const status = resolveStatusConfig(makeParams({ env: { CLAWDBOT_GATEWAY_TOKEN: 'tok' } }));
+  it("CLAWDBOT_GATEWAY_TOKEN fallback sets gatewayToken", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { CLAWDBOT_GATEWAY_TOKEN: "tok" } }),
+    );
     expect(status.config.gatewayToken).toBe(true);
   });
 
-  it('gatewayToken (camelCase) fallback sets gatewayToken', () => {
-    const status = resolveStatusConfig(makeParams({ env: { gatewayToken: 'tok' } }));
+  it("gatewayToken (camelCase) fallback sets gatewayToken", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { gatewayToken: "tok" } }),
+    );
     expect(status.config.gatewayToken).toBe(true);
   });
 
-  it('OPENCLAW_GATEWAY_URL fallback works', () => {
-    const status = resolveStatusConfig(makeParams({ env: { OPENCLAW_GATEWAY_URL: 'ws://openclaw:555' } }));
-    expect(status.config.gatewayUrl).toBe('ws://openclaw:555');
+  it("OPENCLAW_GATEWAY_URL fallback works", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { OPENCLAW_GATEWAY_URL: "ws://openclaw:555" } }),
+    );
+    expect(status.config.gatewayUrl).toBe("ws://openclaw:555");
   });
 
-  it('OPENCLAW_GATEWAY_TOKEN fallback sets gatewayToken', () => {
-    const status = resolveStatusConfig(makeParams({ env: { OPENCLAW_GATEWAY_TOKEN: 'tok' } }));
+  it("OPENCLAW_GATEWAY_TOKEN fallback sets gatewayToken", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { OPENCLAW_GATEWAY_TOKEN: "tok" } }),
+    );
     expect(status.config.gatewayToken).toBe(true);
   });
 
-  it('MOLT_MASCOT_GATEWAY_URL takes priority over OPENCLAW_GATEWAY_URL', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_GATEWAY_URL: 'ws://molt:111', OPENCLAW_GATEWAY_URL: 'ws://openclaw:222' },
-    }));
-    expect(status.config.gatewayUrl).toBe('ws://molt:111');
+  it("MOLT_MASCOT_GATEWAY_URL takes priority over OPENCLAW_GATEWAY_URL", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: {
+          MOLT_MASCOT_GATEWAY_URL: "ws://molt:111",
+          OPENCLAW_GATEWAY_URL: "ws://openclaw:222",
+        },
+      }),
+    );
+    expect(status.config.gatewayUrl).toBe("ws://molt:111");
   });
 
-  it('noTray defaults to false', () => {
+  it("noTray defaults to false", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.config.noTray).toBe(false);
   });
 
-  it('MOLT_MASCOT_NO_TRAY env sets noTray', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_NO_TRAY: '1' } }));
+  it("MOLT_MASCOT_NO_TRAY env sets noTray", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_NO_TRAY: "1" } }),
+    );
     expect(status.config.noTray).toBe(true);
   });
 
-  it('noShortcuts defaults to false', () => {
+  it("noShortcuts defaults to false", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.config.noShortcuts).toBe(false);
   });
 
-  it('MOLT_MASCOT_NO_SHORTCUTS env sets noShortcuts', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_NO_SHORTCUTS: '1' } }));
+  it("MOLT_MASCOT_NO_SHORTCUTS env sets noShortcuts", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_NO_SHORTCUTS: "1" } }),
+    );
     expect(status.config.noShortcuts).toBe(true);
   });
 
-  it('reducedMotion falls back to prefs when env is not set', () => {
-    const status = resolveStatusConfig(makeParams({ prefs: { reducedMotion: true } }));
+  it("reducedMotion falls back to prefs when env is not set", () => {
+    const status = resolveStatusConfig(
+      makeParams({ prefs: { reducedMotion: true } }),
+    );
     expect(status.config.reducedMotion).toBe(true);
   });
 
-  it('reducedMotion env overrides prefs', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_REDUCED_MOTION: '0' },
-      prefs: { reducedMotion: true },
-    }));
+  it("reducedMotion env overrides prefs", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_REDUCED_MOTION: "0" },
+        prefs: { reducedMotion: true },
+      }),
+    );
     expect(status.config.reducedMotion).toBe(false);
   });
 
-  it('envOverrides is empty when no env vars are set', () => {
+  it("envOverrides is empty when no env vars are set", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.envOverrides).toEqual([]);
   });
 
-  it('envOverrides lists active env vars with their affected config', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_ALIGN: 'top-left', MOLT_MASCOT_DEBUG: '1' },
-    }));
-    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_ALIGN', affects: 'alignment' });
-    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_DEBUG', affects: 'debug' });
+  it("envOverrides lists active env vars with their affected config", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_ALIGN: "top-left", MOLT_MASCOT_DEBUG: "1" },
+      }),
+    );
+    expect(status.envOverrides).toContainEqual({
+      key: "MOLT_MASCOT_ALIGN",
+      affects: "alignment",
+    });
+    expect(status.envOverrides).toContainEqual({
+      key: "MOLT_MASCOT_DEBUG",
+      affects: "debug",
+    });
   });
 
-  it('envOverrides includes MOLT_MASCOT_CAPTURE_DIR when set', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/screenshots' },
-    }));
-    expect(status.envOverrides).toContainEqual({ key: 'MOLT_MASCOT_CAPTURE_DIR', affects: 'captureDir' });
+  it("envOverrides includes MOLT_MASCOT_CAPTURE_DIR when set", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_CAPTURE_DIR: "/tmp/screenshots" },
+      }),
+    );
+    expect(status.envOverrides).toContainEqual({
+      key: "MOLT_MASCOT_CAPTURE_DIR",
+      affects: "captureDir",
+    });
   });
 
-  it('captureDir defaults to null', () => {
+  it("captureDir defaults to null", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.config.captureDir).toBeNull();
   });
 
-  it('captureDir is resolved from MOLT_MASCOT_CAPTURE_DIR', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/caps' } }));
-    expect(status.config.captureDir).toBe('/tmp/caps');
+  it("captureDir is resolved from MOLT_MASCOT_CAPTURE_DIR", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: "/tmp/caps" } }),
+    );
+    expect(status.config.captureDir).toBe("/tmp/caps");
   });
 
-  it('envOverrides ignores empty string env vars', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_ALIGN: '', MOLT_MASCOT_SIZE: 'large' },
-    }));
-    const keys = status.envOverrides.map(o => o.key);
-    expect(keys).not.toContain('MOLT_MASCOT_ALIGN');
-    expect(keys).toContain('MOLT_MASCOT_SIZE');
+  it("envOverrides ignores empty string env vars", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_ALIGN: "", MOLT_MASCOT_SIZE: "large" },
+      }),
+    );
+    const keys = status.envOverrides.map((o) => o.key);
+    expect(keys).not.toContain("MOLT_MASCOT_ALIGN");
+    expect(keys).toContain("MOLT_MASCOT_SIZE");
   });
 });
 
-describe('formatStatusText', () => {
-  it('produces a readable string with all sections', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_GATEWAY_URL: 'ws://test:123' },
-    }));
+describe("formatStatusText", () => {
+  it("produces a readable string with all sections", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_GATEWAY_URL: "ws://test:123" },
+      }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Molt Mascot v0.2.0');
-    expect(text).toContain('ws://test:123');
-    expect(text).toContain('bottom-right');
-    expect(text).toContain('medium');
-    expect(text).toContain('100%');
-    expect(text).toContain('24px');
-    expect(text).toContain('Start hidden:   false');
-    expect(text).toContain('Debug:          false');
-    expect(text).toContain('Disable GPU:    false');
-    expect(text).toContain('Reconnect base:       1500ms');
-    expect(text).toContain('Reconnect max:        30000ms');
-    expect(text).toContain('Stale connection:     15000ms');
-    expect(text).toContain('Stale check interval: 5000ms');
-    expect(text).toContain('Runtime:');
-    expect(text).toContain('PID:       12345');
-    expect(text).toContain('Platform:  darwin arm64');
+    expect(text).toContain("Molt Mascot v0.2.0");
+    expect(text).toContain("ws://test:123");
+    expect(text).toContain("bottom-right");
+    expect(text).toContain("medium");
+    expect(text).toContain("100%");
+    expect(text).toContain("24px");
+    expect(text).toContain("Start hidden:   false");
+    expect(text).toContain("Debug:          false");
+    expect(text).toContain("Disable GPU:    false");
+    expect(text).toContain("Reconnect base:       1500ms");
+    expect(text).toContain("Reconnect max:        30000ms");
+    expect(text).toContain("Stale connection:     15000ms");
+    expect(text).toContain("Stale check interval: 5000ms");
+    expect(text).toContain("Runtime:");
+    expect(text).toContain("PID:       12345");
+    expect(text).toContain("Platform:  darwin arm64");
   });
 
-  it('shows saved preferences when present', () => {
-    const status = resolveStatusConfig(makeParams({
-      prefs: { alignment: 'center' },
-      prefsPath: '/tmp/p.json',
-    }));
+  it("shows saved preferences when present", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        prefs: { alignment: "center" },
+        prefsPath: "/tmp/p.json",
+      }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Saved preferences:');
+    expect(text).toContain("Saved preferences:");
     expect(text).toContain('alignment: "center"');
   });
 
-  it('shows (none) for preferences file when null', () => {
+  it("shows (none) for preferences file when null", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).toContain('Preferences file: (none)');
+    expect(text).toContain("Preferences file: (none)");
   });
 
-  it('shows (not set) for gateway when null', () => {
+  it("shows (not set) for gateway when null", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).toContain('Gateway URL:    (not set)');
-    expect(text).toContain('Gateway token:  (not set)');
+    expect(text).toContain("Gateway URL:    (not set)");
+    expect(text).toContain("Gateway token:  (not set)");
   });
 
-  it('shows active env overrides section when env vars are set', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: {
-        MOLT_MASCOT_ALIGN: 'top-left',
-        MOLT_MASCOT_OPACITY: '0.5',
-        MOLT_MASCOT_GATEWAY_URL: 'ws://test:123',
-      },
-    }));
+  it("shows active env overrides section when env vars are set", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: {
+          MOLT_MASCOT_ALIGN: "top-left",
+          MOLT_MASCOT_OPACITY: "0.5",
+          MOLT_MASCOT_GATEWAY_URL: "ws://test:123",
+        },
+      }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Active env overrides:');
-    expect(text).toContain('MOLT_MASCOT_ALIGN → alignment');
-    expect(text).toContain('MOLT_MASCOT_OPACITY → opacity');
-    expect(text).toContain('MOLT_MASCOT_GATEWAY_URL → gatewayUrl');
+    expect(text).toContain("Active env overrides:");
+    expect(text).toContain("MOLT_MASCOT_ALIGN → alignment");
+    expect(text).toContain("MOLT_MASCOT_OPACITY → opacity");
+    expect(text).toContain("MOLT_MASCOT_GATEWAY_URL → gatewayUrl");
   });
 
-  it('recognizes legacy MOLT_MASCOT_HIDETEXT alias', () => {
-    const status = resolveStatusConfig(makeParams({
-      env: { MOLT_MASCOT_HIDETEXT: '1' },
-    }));
+  it("recognizes legacy MOLT_MASCOT_HIDETEXT alias", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_HIDETEXT: "1" },
+      }),
+    );
     expect(status.config.hideText).toBe(true);
     const text = formatStatusText(status);
-    expect(text).toContain('MOLT_MASCOT_HIDETEXT → hideText');
+    expect(text).toContain("MOLT_MASCOT_HIDETEXT → hideText");
   });
 
-  it('shows bun version when available', () => {
-    const status = resolveStatusConfig(makeParams({
-      versions: { electron: '30.0.0', node: '20.0.0', chrome: '120.0.0', bun: '1.2.0' },
-    }));
+  it("shows bun version when available", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        versions: {
+          electron: "30.0.0",
+          node: "20.0.0",
+          chrome: "120.0.0",
+          bun: "1.2.0",
+        },
+      }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Bun:       1.2.0');
+    expect(text).toContain("Bun:       1.2.0");
   });
 
-  it('omits bun line when not available', () => {
+  it("omits bun line when not available", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).not.toContain('Bun:');
+    expect(text).not.toContain("Bun:");
   });
 
-  it('omits env overrides section when no env vars are set', () => {
+  it("omits env overrides section when no env vars are set", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).not.toContain('Active env overrides:');
+    expect(text).not.toContain("Active env overrides:");
   });
 
-  it('shows uptime when provided', () => {
+  it("shows uptime when provided", () => {
     const status = resolveStatusConfig(makeParams({ uptimeSeconds: 3661 }));
     expect(status.uptime).toBe(3661);
     const text = formatStatusText(status);
-    expect(text).toContain('Uptime:    1h 1m');
+    expect(text).toContain("Uptime:    1h 1m");
   });
 
-  it('shows uptime with start time when startedAt is provided', () => {
+  it("shows uptime with start time when startedAt is provided", () => {
     // 2026-02-23T12:00:00.000Z
     const startedAt = 1771934400000;
-    const status = resolveStatusConfig(makeParams({ uptimeSeconds: 3661, startedAt }));
+    const status = resolveStatusConfig(
+      makeParams({ uptimeSeconds: 3661, startedAt }),
+    );
     expect(status.startedAt).toBe(startedAt);
     const text = formatStatusText(status);
-    expect(text).toContain('Uptime:    1h 1m (since ');
+    expect(text).toContain("Uptime:    1h 1m (since ");
   });
 
-  it('omits uptime line when not provided', () => {
+  it("omits uptime line when not provided", () => {
     const status = resolveStatusConfig(makeParams());
     expect(status.uptime).toBeNull();
     const text = formatStatusText(status);
-    expect(text).not.toContain('Uptime:');
+    expect(text).not.toContain("Uptime:");
   });
 
-  it('shows capture dir when set', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: '/tmp/caps' } }));
+  it("shows capture dir when set", () => {
+    const status = resolveStatusConfig(
+      makeParams({ env: { MOLT_MASCOT_CAPTURE_DIR: "/tmp/caps" } }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Capture dir:    /tmp/caps');
+    expect(text).toContain("Capture dir:    /tmp/caps");
   });
 
-  it('omits capture dir when not set', () => {
+  it("omits capture dir when not set", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).not.toContain('Capture dir');
+    expect(text).not.toContain("Capture dir");
   });
 
-  it('shows protocol as compact range', () => {
+  it("shows protocol as compact range", () => {
     const status = resolveStatusConfig(makeParams());
     const text = formatStatusText(status);
-    expect(text).toContain('Protocol:       v2–v3');
-    expect(text).not.toContain('Min protocol');
-    expect(text).not.toContain('Max protocol');
+    expect(text).toContain("Protocol:       v2–v3");
+    expect(text).not.toContain("Min protocol");
+    expect(text).not.toContain("Max protocol");
   });
 
-  it('shows single protocol version when min equals max', () => {
-    const status = resolveStatusConfig(makeParams({ env: { MOLT_MASCOT_MIN_PROTOCOL: '3', MOLT_MASCOT_MAX_PROTOCOL: '3' } }));
+  it("shows single protocol version when min equals max", () => {
+    const status = resolveStatusConfig(
+      makeParams({
+        env: { MOLT_MASCOT_MIN_PROTOCOL: "3", MOLT_MASCOT_MAX_PROTOCOL: "3" },
+      }),
+    );
     const text = formatStatusText(status);
-    expect(text).toContain('Protocol:       v3');
+    expect(text).toContain("Protocol:       v3");
   });
 });
 
-describe('formatProtocolRange', () => {
-  it('shows single version when min === max', () => {
-    expect(formatProtocolRange(2, 2)).toBe('v2');
+describe("formatProtocolRange", () => {
+  it("shows single version when min === max", () => {
+    expect(formatProtocolRange(2, 2)).toBe("v2");
   });
 
-  it('shows range when min !== max', () => {
-    expect(formatProtocolRange(2, 3)).toBe('v2–v3');
+  it("shows range when min !== max", () => {
+    expect(formatProtocolRange(2, 3)).toBe("v2–v3");
   });
 
-  it('handles wide ranges', () => {
-    expect(formatProtocolRange(1, 5)).toBe('v1–v5');
+  it("handles wide ranges", () => {
+    expect(formatProtocolRange(1, 5)).toBe("v1–v5");
   });
 });

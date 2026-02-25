@@ -12,8 +12,8 @@
  * @returns {string}
  */
 function formatLatency(ms) {
-  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return '–';
-  if (ms < 1) return '< 1ms';
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return "–";
+  if (ms < 1) return "< 1ms";
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
@@ -50,11 +50,11 @@ const QUALITY_THRESHOLDS = Object.freeze({
  * @returns {string|null} Quality label, or null if latency is invalid/unavailable
  */
 function connectionQuality(ms) {
-  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) return null;
-  if (ms < QUALITY_THRESHOLDS.EXCELLENT_MAX_MS) return 'excellent';
-  if (ms < QUALITY_THRESHOLDS.GOOD_MAX_MS) return 'good';
-  if (ms < QUALITY_THRESHOLDS.FAIR_MAX_MS) return 'fair';
-  return 'poor';
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms < 0) return null;
+  if (ms < QUALITY_THRESHOLDS.EXCELLENT_MAX_MS) return "excellent";
+  if (ms < QUALITY_THRESHOLDS.GOOD_MAX_MS) return "good";
+  if (ms < QUALITY_THRESHOLDS.FAIR_MAX_MS) return "fair";
+  return "poor";
 }
 
 /**
@@ -66,11 +66,16 @@ function connectionQuality(ms) {
  */
 function connectionQualityEmoji(quality) {
   switch (quality) {
-    case 'excellent': return '🟢';
-    case 'good':      return '🟡';
-    case 'fair':      return '🟠';
-    case 'poor':      return '🔴';
-    default:          return '⚪';
+    case "excellent":
+      return "🟢";
+    case "good":
+      return "🟡";
+    case "fair":
+      return "🟠";
+    case "poor":
+      return "🔴";
+    default:
+      return "⚪";
   }
 }
 
@@ -87,12 +92,18 @@ function connectionQualityEmoji(quality) {
  * @returns {number|null} Best available latency value, or null if neither is usable
  */
 function resolveQualitySource(instantMs, stats) {
-  const hasStats = stats
-    && typeof stats.median === 'number'
-    && typeof stats.samples === 'number'
-    && stats.samples > 1;
+  const hasStats =
+    stats &&
+    typeof stats.median === "number" &&
+    typeof stats.samples === "number" &&
+    stats.samples > 1;
   if (hasStats) return stats.median;
-  if (typeof instantMs === 'number' && Number.isFinite(instantMs) && instantMs >= 0) return instantMs;
+  if (
+    typeof instantMs === "number" &&
+    Number.isFinite(instantMs) &&
+    instantMs >= 0
+  )
+    return instantMs;
   return null;
 }
 
@@ -124,7 +135,12 @@ function formatQualitySummary(ms, stats, opts) {
   }
 
   // Append jitter when it exceeds threshold fraction of median
-  if (stats && typeof stats.jitter === 'number' && typeof stats.median === 'number' && stats.median > 0) {
+  if (
+    stats &&
+    typeof stats.jitter === "number" &&
+    typeof stats.median === "number" &&
+    stats.median > 0
+  ) {
     if (stats.jitter > stats.median * jitterThreshold) {
       text += `, jitter ${formatLatency(stats.jitter)}`;
     }
@@ -165,10 +181,14 @@ const HEALTH_THRESHOLDS = Object.freeze({
  */
 function healthStatusEmoji(status) {
   switch (status) {
-    case 'healthy':   return '🟢';
-    case 'degraded':  return '⚠️';
-    case 'unhealthy': return '🔴';
-    default:          return '⚪';
+    case "healthy":
+      return "🟢";
+    case "degraded":
+      return "⚠️";
+    case "unhealthy":
+      return "🔴";
+    default:
+      return "⚪";
   }
 }
 
@@ -182,35 +202,67 @@ function healthStatusEmoji(status) {
  * @param {object} params - Same parameters as computeHealthStatus
  * @returns {string[]} Array of reason strings (e.g. ["stale connection: 15s", "high jitter: 250ms"])
  */
-function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
+function computeHealthReasons({
+  isConnected,
+  isPollingPaused,
+  lastMessageAt,
+  latencyMs,
+  latencyStats,
+  connectionSuccessRate,
+  now: nowOverride,
+} = {}) {
   const reasons = [];
   if (!isConnected) {
-    reasons.push('disconnected');
+    reasons.push("disconnected");
     return reasons;
   }
   const now = nowOverride ?? Date.now();
 
-  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+  if (
+    !isPollingPaused &&
+    typeof lastMessageAt === "number" &&
+    lastMessageAt > 0
+  ) {
     const staleMs = now - lastMessageAt;
     const staleSec = Math.round(staleMs / 1000);
-    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) reasons.push(`stale connection: ${staleSec}s (dead)`);
-    else if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) reasons.push(`stale connection: ${staleSec}s`);
+    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS)
+      reasons.push(`stale connection: ${staleSec}s (dead)`);
+    else if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS)
+      reasons.push(`stale connection: ${staleSec}s`);
   }
 
   const source = resolveQualitySource(latencyMs, latencyStats);
   if (source !== null) {
-    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) reasons.push(`extreme latency: ${formatLatency(source)}`);
-    else if (connectionQuality(source) === 'poor') reasons.push(`poor latency: ${formatLatency(source)}`);
+    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS)
+      reasons.push(`extreme latency: ${formatLatency(source)}`);
+    else if (connectionQuality(source) === "poor")
+      reasons.push(`poor latency: ${formatLatency(source)}`);
   }
 
-  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)}`);
-    else if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) {
-      reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)} (${Math.round(latencyStats.jitter / latencyStats.median * 100)}% of median)`);
+  if (
+    latencyStats &&
+    typeof latencyStats.jitter === "number" &&
+    typeof latencyStats.samples === "number" &&
+    latencyStats.samples > 1
+  ) {
+    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS)
+      reasons.push(`high jitter: ${formatLatency(latencyStats.jitter)}`);
+    else if (
+      typeof latencyStats.median === "number" &&
+      latencyStats.median > 0 &&
+      latencyStats.jitter >
+        latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO
+    ) {
+      reasons.push(
+        `high jitter: ${formatLatency(latencyStats.jitter)} (${Math.round((latencyStats.jitter / latencyStats.median) * 100)}% of median)`,
+      );
     }
   }
 
-  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) {
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT
+  ) {
     reasons.push(`low success rate: ${connectionSuccessRate}%`);
   }
 
@@ -221,7 +273,11 @@ function computeHealthReasons({ isConnected, isPollingPaused, lastMessageAt, lat
  * Canonical set of valid health status strings.
  * Single source of truth — consumed by parse-mode-update.cjs, utils.js, etc.
  */
-const VALID_HEALTH_STATUSES = Object.freeze(['healthy', 'degraded', 'unhealthy']);
+const VALID_HEALTH_STATUSES = Object.freeze([
+  "healthy",
+  "degraded",
+  "unhealthy",
+]);
 
 /**
  * Internal Set for O(1) health status validation lookups.
@@ -236,7 +292,7 @@ const _VALID_HEALTH_SET = new Set(VALID_HEALTH_STATUSES);
  * @returns {boolean}
  */
 function isValidHealth(value) {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== "string") return false;
   return _VALID_HEALTH_SET.has(value);
 }
 
@@ -255,35 +311,63 @@ function isValidHealth(value) {
  * @param {number} [params.now]
  * @returns {"healthy"|"degraded"|"unhealthy"}
  */
-function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, latencyMs, latencyStats, connectionSuccessRate, now: nowOverride } = {}) {
-  if (!isConnected) return 'unhealthy';
+function computeHealthStatus({
+  isConnected,
+  isPollingPaused,
+  lastMessageAt,
+  latencyMs,
+  latencyStats,
+  connectionSuccessRate,
+  now: nowOverride,
+} = {}) {
+  if (!isConnected) return "unhealthy";
   const now = nowOverride ?? Date.now();
 
   // Stale connection check (no messages while polling is active).
-  if (!isPollingPaused && typeof lastMessageAt === 'number' && lastMessageAt > 0) {
+  if (
+    !isPollingPaused &&
+    typeof lastMessageAt === "number" &&
+    lastMessageAt > 0
+  ) {
     const staleMs = now - lastMessageAt;
-    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) return 'unhealthy';
-    if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) return 'degraded';
+    if (staleMs > HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS) return "unhealthy";
+    if (staleMs > HEALTH_THRESHOLDS.STALE_DEGRADED_MS) return "degraded";
   }
 
   // Latency quality check.
   const source = resolveQualitySource(latencyMs, latencyStats);
   if (source !== null) {
-    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) return 'unhealthy';
+    if (source > HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS) return "unhealthy";
     const quality = connectionQuality(source);
-    if (quality === 'poor') return 'degraded';
+    if (quality === "poor") return "degraded";
   }
 
   // Jitter check: high jitter indicates an unstable connection even when median latency looks fine.
-  if (latencyStats && typeof latencyStats.jitter === 'number' && typeof latencyStats.samples === 'number' && latencyStats.samples > 1) {
-    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS) return 'degraded';
-    if (typeof latencyStats.median === 'number' && latencyStats.median > 0 && latencyStats.jitter > latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO) return 'degraded';
+  if (
+    latencyStats &&
+    typeof latencyStats.jitter === "number" &&
+    typeof latencyStats.samples === "number" &&
+    latencyStats.samples > 1
+  ) {
+    if (latencyStats.jitter > HEALTH_THRESHOLDS.JITTER_DEGRADED_MS)
+      return "degraded";
+    if (
+      typeof latencyStats.median === "number" &&
+      latencyStats.median > 0 &&
+      latencyStats.jitter >
+        latencyStats.median * HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO
+    )
+      return "degraded";
   }
 
   // Connection success rate check
-  if (typeof connectionSuccessRate === 'number' && connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT) return 'degraded';
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate < HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT
+  )
+    return "degraded";
 
-  return 'healthy';
+  return "healthy";
 }
 
 /**
@@ -298,10 +382,10 @@ function computeHealthStatus({ isConnected, isPollingPaused, lastMessageAt, late
  * @returns {{ text: string, emoji: string, reasons: string[] }|null}
  */
 function formatHealthSummary(healthStatus, reasonParams) {
-  if (!healthStatus || healthStatus === 'healthy') return null;
+  if (!healthStatus || healthStatus === "healthy") return null;
   const emoji = healthStatusEmoji(healthStatus);
   const reasons = computeHealthReasons(reasonParams || {});
-  const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join('; ')})` : '';
+  const reasonsSuffix = reasons.length > 0 ? ` (${reasons.join("; ")})` : "";
   return {
     text: `${emoji} ${healthStatus}${reasonsSuffix}`,
     emoji,
@@ -319,8 +403,8 @@ function formatHealthSummary(healthStatus, reasonParams) {
  * @returns {string} e.g. "2 agents, 1 tool" or "1 agent, 3 tools"
  */
 function formatActiveSummary(agents, tools) {
-  const agentStr = `${agents} agent${agents !== 1 ? 's' : ''}`;
-  const toolStr = `${tools} tool${tools !== 1 ? 's' : ''}`;
+  const agentStr = `${agents} agent${agents !== 1 ? "s" : ""}`;
+  const toolStr = `${tools} tool${tools !== 1 ? "s" : ""}`;
   // Omit the zero-count part for a cleaner display when only agents or only tools are active.
   // Callers already guard against (0, 0), but handle it gracefully anyway.
   if (agents > 0 && tools <= 0) return agentStr;
@@ -352,8 +436,13 @@ function formatProtocolRange(min, max) {
  * @returns {number|null} Integer percentage (0-100), or null if no attempts
  */
 function computeConnectionSuccessRate(connects, attempts) {
-  if (typeof attempts !== 'number' || !Number.isFinite(attempts) || attempts <= 0) return null;
-  if (typeof connects !== 'number' || !Number.isFinite(connects)) return null;
+  if (
+    typeof attempts !== "number" ||
+    !Number.isFinite(attempts) ||
+    attempts <= 0
+  )
+    return null;
+  if (typeof connects !== "number" || !Number.isFinite(connects)) return null;
   const clamped = Math.max(0, Math.min(connects, attempts));
   return Math.round((clamped / attempts) * 100);
 }
@@ -374,17 +463,34 @@ function computeConnectionSuccessRate(connects, attempts) {
  * @param {number} params.now - Current timestamp in epoch ms
  * @returns {number|null} Integer percentage (0-100), or null if not computable
  */
-function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSince, lastDisconnectedAt, now }) {
-  if (typeof processUptimeS !== 'number' || processUptimeS <= 0) return null;
-  if (typeof firstConnectedAt !== 'number' || firstConnectedAt <= 0) return null;
-  if (typeof now !== 'number' || !Number.isFinite(now)) return null;
+function connectionUptimePercent({
+  processUptimeS,
+  firstConnectedAt,
+  connectedSince,
+  lastDisconnectedAt,
+  now,
+}) {
+  if (typeof processUptimeS !== "number" || processUptimeS <= 0) return null;
+  if (typeof firstConnectedAt !== "number" || firstConnectedAt <= 0)
+    return null;
+  if (typeof now !== "number" || !Number.isFinite(now)) return null;
 
   const timeSinceFirstConnect = now - firstConnectedAt;
   // Clock skew guard: if firstConnectedAt is in the future, we can't compute a meaningful percentage.
   if (timeSinceFirstConnect < 0) return null;
-  const currentDisconnectGap = connectedSince ? 0 : (lastDisconnectedAt ? now - lastDisconnectedAt : 0);
-  const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
-  return Math.min(100, Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100));
+  const currentDisconnectGap = connectedSince
+    ? 0
+    : lastDisconnectedAt
+      ? now - lastDisconnectedAt
+      : 0;
+  const approxConnectedMs = Math.max(
+    0,
+    timeSinceFirstConnect - currentDisconnectGap,
+  );
+  return Math.min(
+    100,
+    Math.round((approxConnectedMs / (processUptimeS * 1000)) * 100),
+  );
 }
 
 /**
@@ -392,7 +498,7 @@ function connectionUptimePercent({ processUptimeS, firstConnectedAt, connectedSi
  * Single source of truth — consumed by parse-mode-update.cjs, utils.js, etc.
  * Mirrors VALID_HEALTH_STATUSES for consistency.
  */
-const VALID_LATENCY_TRENDS = Object.freeze(['rising', 'falling', 'stable']);
+const VALID_LATENCY_TRENDS = Object.freeze(["rising", "falling", "stable"]);
 
 /**
  * Internal Set for O(1) latency trend validation lookups.
@@ -407,8 +513,28 @@ const _VALID_TREND_SET = new Set(VALID_LATENCY_TRENDS);
  * @returns {boolean}
  */
 function isValidLatencyTrend(value) {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== "string") return false;
   return _VALID_TREND_SET.has(value);
 }
 
-module.exports = { formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, QUALITY_THRESHOLDS, HEALTH_THRESHOLDS, healthStatusEmoji, computeHealthReasons, computeHealthStatus, VALID_HEALTH_STATUSES, isValidHealth, VALID_LATENCY_TRENDS, isValidLatencyTrend, formatHealthSummary, formatActiveSummary, formatProtocolRange, computeConnectionSuccessRate, connectionUptimePercent };
+module.exports = {
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  formatQualitySummary,
+  QUALITY_THRESHOLDS,
+  HEALTH_THRESHOLDS,
+  healthStatusEmoji,
+  computeHealthReasons,
+  computeHealthStatus,
+  VALID_HEALTH_STATUSES,
+  isValidHealth,
+  VALID_LATENCY_TRENDS,
+  isValidLatencyTrend,
+  formatHealthSummary,
+  formatActiveSummary,
+  formatProtocolRange,
+  computeConnectionSuccessRate,
+  connectionUptimePercent,
+};

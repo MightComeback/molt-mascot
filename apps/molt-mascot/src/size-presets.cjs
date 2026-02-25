@@ -7,11 +7,11 @@
  */
 
 const SIZE_PRESETS = Object.freeze([
-  Object.freeze({ label: 'tiny',   width: 120, height: 100 }),
-  Object.freeze({ label: 'small',  width: 160, height: 140 }),
-  Object.freeze({ label: 'medium', width: 240, height: 200 }),
-  Object.freeze({ label: 'large',  width: 360, height: 300 }),
-  Object.freeze({ label: 'xlarge', width: 480, height: 400 }),
+  Object.freeze({ label: "tiny", width: 120, height: 100 }),
+  Object.freeze({ label: "small", width: 160, height: 140 }),
+  Object.freeze({ label: "medium", width: 240, height: 200 }),
+  Object.freeze({ label: "large", width: 360, height: 300 }),
+  Object.freeze({ label: "xlarge", width: 480, height: 400 }),
 ]);
 
 /** Default size preset index (medium). */
@@ -25,9 +25,9 @@ const DEFAULT_SIZE_INDEX = 2;
  * @returns {{ label: string, width: number, height: number } | null}
  */
 function findSizePreset(label) {
-  if (typeof label !== 'string' || !label.trim()) return null;
+  if (typeof label !== "string" || !label.trim()) return null;
   const normalized = label.trim().toLowerCase();
-  return SIZE_PRESETS.find(p => p.label === normalized) || null;
+  return SIZE_PRESETS.find((p) => p.label === normalized) || null;
 }
 
 /**
@@ -50,7 +50,7 @@ function resolveSizePreset(label) {
  * Flat array of valid size label strings (lowercase).
  * Mirrors VALID_ALIGNMENTS in get-position.cjs for consistent validation patterns.
  */
-const VALID_SIZES = Object.freeze(SIZE_PRESETS.map(p => p.label));
+const VALID_SIZES = Object.freeze(SIZE_PRESETS.map((p) => p.label));
 
 /**
  * Internal Set for O(1) size validation lookups.
@@ -63,7 +63,7 @@ const _VALID_SIZES_SET = new Set(VALID_SIZES);
  * @returns {boolean}
  */
 function isValidSize(value) {
-  if (typeof value !== 'string') return false;
+  if (typeof value !== "string") return false;
   return _VALID_SIZES_SET.has(value.trim().toLowerCase());
 }
 
@@ -76,8 +76,14 @@ function isValidSize(value) {
  * @returns {number} Next index (wraps around)
  */
 function nextSizeIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : SIZE_PRESETS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return 0;
+  const n =
+    typeof count === "number" && count > 0 ? count : SIZE_PRESETS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return 0;
   return (currentIndex + 1) % n;
 }
 
@@ -91,8 +97,14 @@ function nextSizeIndex(currentIndex, count) {
  * @returns {number} Previous index (wraps around)
  */
 function prevSizeIndex(currentIndex, count) {
-  const n = typeof count === 'number' && count > 0 ? count : SIZE_PRESETS.length;
-  if (typeof currentIndex !== 'number' || currentIndex < 0 || !Number.isInteger(currentIndex)) return n - 1;
+  const n =
+    typeof count === "number" && count > 0 ? count : SIZE_PRESETS.length;
+  if (
+    typeof currentIndex !== "number" ||
+    currentIndex < 0 ||
+    !Number.isInteger(currentIndex)
+  )
+    return n - 1;
   return (currentIndex - 1 + n) % n;
 }
 
@@ -119,9 +131,9 @@ function formatSizeLabel(label, width, height) {
  * @returns {number} Index in SIZE_PRESETS, or -1 if not found
  */
 function findSizeIndex(label) {
-  if (typeof label !== 'string') return -1;
+  if (typeof label !== "string") return -1;
   const normalized = label.trim().toLowerCase();
-  return SIZE_PRESETS.findIndex(p => p.label === normalized);
+  return SIZE_PRESETS.findIndex((p) => p.label === normalized);
 }
 
 /**
@@ -138,7 +150,19 @@ function findSizeIndex(label) {
 function formatSizeWithDims(label) {
   const preset = findSizePreset(label);
   if (preset) return `${preset.label} ${preset.width}×${preset.height}`;
-  return label || 'medium';
+  return label || "medium";
 }
 
-module.exports = { SIZE_PRESETS, DEFAULT_SIZE_INDEX, findSizePreset, findSizeIndex, resolveSizePreset, VALID_SIZES, isValidSize, nextSizeIndex, prevSizeIndex, formatSizeLabel, formatSizeWithDims };
+module.exports = {
+  SIZE_PRESETS,
+  DEFAULT_SIZE_INDEX,
+  findSizePreset,
+  findSizeIndex,
+  resolveSizePreset,
+  VALID_SIZES,
+  isValidSize,
+  nextSizeIndex,
+  prevSizeIndex,
+  formatSizeLabel,
+  formatSizeWithDims,
+};

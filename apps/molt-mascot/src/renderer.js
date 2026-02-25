@@ -1,22 +1,49 @@
-import { coerceDelayMs, truncate, cleanErrorString, isMissingMethodResponse, isTruthyEnv, getFrameIntervalMs as _getFrameIntervalMs, getReconnectDelayMs, buildTooltip, normalizeWsUrl, validateWsUrl, formatCloseDetail, isRecoverableCloseCode, computeHealthStatus, computeConnectionSuccessRate, connectionUptimePercent, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS, REPO_URL, MODE, MODE_DESCRIPTIONS, formatOpacity, stepOpacity } from './utils.js';
-import * as ctxMenu from './context-menu.js';
-import { buildContextMenuItems } from './context-menu-items.js';
-import { buildPillLabel } from './pill-label.js';
-import { buildDebugInfo as _buildDebugInfo } from './debug-info.js';
-import { createFpsCounter } from './fps-counter.js';
-import { createLatencyTracker } from './latency-tracker.js';
-import { drawLobster as _drawLobster, createBlinkState, _spriteCache } from './draw.js';
-import { createPluginSync } from './plugin-sync.js';
+import {
+  coerceDelayMs,
+  truncate,
+  cleanErrorString,
+  isMissingMethodResponse,
+  isTruthyEnv,
+  getFrameIntervalMs as _getFrameIntervalMs,
+  getReconnectDelayMs,
+  buildTooltip,
+  normalizeWsUrl,
+  validateWsUrl,
+  formatCloseDetail,
+  isRecoverableCloseCode,
+  computeHealthStatus,
+  computeConnectionSuccessRate,
+  connectionUptimePercent,
+  PLUGIN_STATE_METHODS,
+  PLUGIN_RESET_METHODS,
+  REPO_URL,
+  MODE,
+  MODE_DESCRIPTIONS,
+  formatOpacity,
+  stepOpacity,
+} from "./utils.js";
+import * as ctxMenu from "./context-menu.js";
+import { buildContextMenuItems } from "./context-menu-items.js";
+import { buildPillLabel } from "./pill-label.js";
+import { buildDebugInfo as _buildDebugInfo } from "./debug-info.js";
+import { createFpsCounter } from "./fps-counter.js";
+import { createLatencyTracker } from "./latency-tracker.js";
+import {
+  drawLobster as _drawLobster,
+  createBlinkState,
+  _spriteCache,
+} from "./draw.js";
+import { createPluginSync } from "./plugin-sync.js";
 
-const pill = document.getElementById('pill');
-const setup = document.getElementById('setup');
-const urlInput = document.getElementById('url');
-const tokenInput = document.getElementById('token');
-const captureDir = (window.moltMascot?.env?.captureDir || '').trim();
+const pill = document.getElementById("pill");
+const setup = document.getElementById("setup");
+const urlInput = document.getElementById("url");
+const tokenInput = document.getElementById("token");
+const captureDir = (window.moltMascot?.env?.captureDir || "").trim();
 const isCapture = Boolean(captureDir);
 
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
 // Dynamic canvas scaling: adjust pixel scale based on container size so the lobster
 // fills the window proportionally across small/medium/large presets.
@@ -25,12 +52,15 @@ const SPRITE_SIZE = 32;
 let currentScale = 3; // default for 240×200 (medium)
 
 function recalcCanvasScale() {
-  const wrap = document.getElementById('wrap');
+  const wrap = document.getElementById("wrap");
   if (!wrap) return;
   // Reserve ~20% for the HUD pill and padding
   const availW = wrap.clientWidth * 0.9;
   const availH = wrap.clientHeight * 0.8;
-  const maxScale = Math.max(2, Math.floor(Math.min(availW / SPRITE_SIZE, availH / SPRITE_SIZE)));
+  const maxScale = Math.max(
+    2,
+    Math.floor(Math.min(availW / SPRITE_SIZE, availH / SPRITE_SIZE)),
+  );
   if (maxScale !== currentScale) {
     currentScale = maxScale;
     canvas.width = SPRITE_SIZE * currentScale;
@@ -48,11 +78,15 @@ _spriteCache.warmAll(currentScale);
 let _resizeTimer = null;
 function _debouncedRecalcScale() {
   if (_resizeTimer) clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(() => { _resizeTimer = null; recalcCanvasScale(); _spriteCache.warmAll(currentScale); }, 50);
+  _resizeTimer = setTimeout(() => {
+    _resizeTimer = null;
+    recalcCanvasScale();
+    _spriteCache.warmAll(currentScale);
+  }, 50);
 }
-window.addEventListener('resize', _debouncedRecalcScale);
+window.addEventListener("resize", _debouncedRecalcScale);
 
-const STORAGE_KEY = 'moltMascot:gateway';
+const STORAGE_KEY = "moltMascot:gateway";
 
 // Stable instance ID across reconnects so the gateway can track this client
 // as a single session rather than treating each reconnect as a new client.
@@ -66,7 +100,8 @@ const DEFAULT_ERROR_HOLD_MS = 5000;
 const DEFAULT_SLEEP_THRESHOLD_S = 120;
 const SLEEP_THRESHOLD_S = (() => {
   const raw = window.moltMascot?.env?.sleepThresholdS;
-  if (raw === '' || raw === null || raw === undefined) return DEFAULT_SLEEP_THRESHOLD_S;
+  if (raw === "" || raw === null || raw === undefined)
+    return DEFAULT_SLEEP_THRESHOLD_S;
   const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n : DEFAULT_SLEEP_THRESHOLD_S;
 })();
@@ -75,8 +110,14 @@ const SLEEP_THRESHOLD_MS = SLEEP_THRESHOLD_S * 1000;
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.
 let isClickThrough = false;
 
-const idleDelayMs = coerceDelayMs(window.moltMascot?.env?.idleDelayMs, DEFAULT_IDLE_DELAY_MS);
-const errorHoldMs = coerceDelayMs(window.moltMascot?.env?.errorHoldMs, DEFAULT_ERROR_HOLD_MS);
+const idleDelayMs = coerceDelayMs(
+  window.moltMascot?.env?.idleDelayMs,
+  DEFAULT_IDLE_DELAY_MS,
+);
+const errorHoldMs = coerceDelayMs(
+  window.moltMascot?.env?.errorHoldMs,
+  DEFAULT_ERROR_HOLD_MS,
+);
 
 // UX Polish: Hide HUD text if requested (e.g. strict pixel-only mode)
 // Note: env values may be boolean/number (not always strings), so don't call .trim() here.
@@ -87,7 +128,7 @@ let isTextHidden = isTruthyEnv(hideTextEnv);
 // If the user requested hidden text, we respect it—UNLESS we are in error mode.
 // We force the HUD visible during errors so the user can see what went wrong.
 function updateHudVisibility() {
-  const hud = document.getElementById('hud');
+  const hud = document.getElementById("hud");
   if (!hud) return;
   // If in error mode, force visibility. Otherwise, respect the preference.
   hud.hidden = isTextHidden && currentMode !== Mode.error;
@@ -97,7 +138,7 @@ function updateHudVisibility() {
 
 function loadCfg() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || null;
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || null;
   } catch {
     return null;
   }
@@ -116,12 +157,15 @@ function showSetup(prefill) {
   if (isCapture) return;
   setup.hidden = false;
   // Re-enable form controls in case they were disabled during a connection attempt
-  const saveBtnEl = document.getElementById('save');
-  if (saveBtnEl) { saveBtnEl.disabled = false; saveBtnEl.textContent = 'Save + connect'; }
+  const saveBtnEl = document.getElementById("save");
+  if (saveBtnEl) {
+    saveBtnEl.disabled = false;
+    saveBtnEl.textContent = "Save + connect";
+  }
   urlInput.disabled = false;
   tokenInput.disabled = false;
   // Only show Cancel button when there's a saved config to fall back to
-  const cancelBtn = document.getElementById('cancel');
+  const cancelBtn = document.getElementById("cancel");
   if (cancelBtn) cancelBtn.hidden = !loadCfg()?.url;
   // Ensure we can click the form!
   if (window.moltMascot?.setClickThrough) {
@@ -131,14 +175,14 @@ function showSetup(prefill) {
   // claim ghost mode is active while the setup form is visible.
   isClickThrough = false;
   syncPill();
-  urlInput.value = prefill?.url || 'ws://127.0.0.1:18789';
-  tokenInput.value = prefill?.token || '';
+  urlInput.value = prefill?.url || "ws://127.0.0.1:18789";
+  tokenInput.value = prefill?.token || "";
   // Programmatically focus the URL input since the HTML autofocus attribute
   // only fires on initial page load, not when the form is dynamically shown.
   // Use requestAnimationFrame to ensure the DOM is ready and focus is reliable.
   requestAnimationFrame(() => urlInput.focus());
   // Show version in setup form so users can identify their build
-  const versionEl = document.getElementById('setup-version');
+  const versionEl = document.getElementById("setup-version");
   if (versionEl && window.moltMascot?.version) {
     versionEl.textContent = `v${window.moltMascot.version}`;
   }
@@ -148,16 +192,19 @@ function showSetup(prefill) {
 // MOLT_MASCOT_REDUCED_MOTION env var overrides the system preference (useful for
 // CI/headless, embedded deployments, or accessibility without changing OS settings).
 const _envReducedMotion = isTruthyEnv(window.moltMascot?.env?.reducedMotion);
-const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 let reducedMotion = _envReducedMotion || (motionQuery?.matches ?? false);
 // Sync the CSS class so pill animations respect the app-level toggle,
 // not just the OS @media (prefers-reduced-motion) query.
 function _syncReducedMotionClass() {
-  document.documentElement.classList.toggle('reduce-motion', reducedMotion);
+  document.documentElement.classList.toggle("reduce-motion", reducedMotion);
 }
 _syncReducedMotionClass();
-const _onMotionChange = (e) => { reducedMotion = _envReducedMotion || e.matches; _syncReducedMotionClass(); };
-motionQuery?.addEventListener?.('change', _onMotionChange);
+const _onMotionChange = (e) => {
+  reducedMotion = _envReducedMotion || e.matches;
+  _syncReducedMotionClass();
+};
+motionQuery?.addEventListener?.("change", _onMotionChange);
 
 // Blink state (delegated to extracted module for testability)
 const _blinkState = createBlinkState();
@@ -184,18 +231,18 @@ const Mode = MODE;
 let currentMode = Mode.idle;
 // Apply initial state now that Mode/currentMode exist
 updateHudVisibility();
-let currentTool = '';
+let currentTool = "";
 let modeSince = Date.now();
 let idleTimer = null;
 let errorHoldTimer = null;
-let lastErrorMessage = '';
+let lastErrorMessage = "";
 const envClickThrough = window.moltMascot?.env?.clickThrough;
 isClickThrough = isTruthyEnv(envClickThrough);
 
 // Track alignment from IPC (keyboard shortcut cycling) — separate from plugin sync.
 let lastPluginAlignment = null;
-let currentSizeLabel = 'medium';
-let pluginVersion = '';
+let currentSizeLabel = "medium";
+let pluginVersion = "";
 let pluginToolCalls = 0;
 let pluginToolErrors = 0;
 let pluginStartedAt = null;
@@ -248,16 +295,33 @@ const _pluginSync = createPluginSync({
   onReducedMotion(v) {
     reducedMotion = v || (motionQuery?.matches ?? false);
     _syncReducedMotionClass();
-    if (window.moltMascot?.setReducedMotion) window.moltMascot.setReducedMotion(v);
+    if (window.moltMascot?.setReducedMotion)
+      window.moltMascot.setReducedMotion(v);
   },
-  onVersion(v) { pluginVersion = v; },
-  onToolCalls(v) { pluginToolCalls = v; },
-  onToolErrors(v) { pluginToolErrors = v; },
-  onStartedAt(v) { pluginStartedAt = v; },
-  onAgentSessions(v) { pluginAgentSessions = v; },
-  onActiveAgents(v) { pluginActiveAgents = v; },
-  onActiveTools(v) { pluginActiveTools = v; },
-  onLastResetAt(v) { pluginLastResetAt = v; },
+  onVersion(v) {
+    pluginVersion = v;
+  },
+  onToolCalls(v) {
+    pluginToolCalls = v;
+  },
+  onToolErrors(v) {
+    pluginToolErrors = v;
+  },
+  onStartedAt(v) {
+    pluginStartedAt = v;
+  },
+  onAgentSessions(v) {
+    pluginAgentSessions = v;
+  },
+  onActiveAgents(v) {
+    pluginActiveAgents = v;
+  },
+  onActiveTools(v) {
+    pluginActiveTools = v;
+  },
+  onLastResetAt(v) {
+    pluginLastResetAt = v;
+  },
   onCurrentTool(v) {
     if (v !== currentTool) {
       currentTool = v;
@@ -273,19 +337,22 @@ const _pluginSync = createPluginSync({
  */
 function currentHealthStatus() {
   return computeHealthStatus({
-    isConnected: typeof connectedSince === 'number' && connectedSince >= 0,
+    isConnected: typeof connectedSince === "number" && connectedSince >= 0,
     isPollingPaused: document.hidden,
     lastMessageAt: lastMessageAt || null,
     latencyMs,
     latencyStats: getLatencyStats(),
-    connectionSuccessRate: computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount),
+    connectionSuccessRate: computeConnectionSuccessRate(
+      sessionConnectCount,
+      sessionAttemptCount,
+    ),
   });
 }
 
 // Track the last mode reported to the main process (including 'sleeping') to avoid
 // redundant IPC and to enable sleeping-state tray icon dot.
-let _lastReportedMode = 'idle';
-let _lastReportedTool = '';
+let _lastReportedMode = "idle";
+let _lastReportedTool = "";
 // Timestamp of last tray state IPC to ensure periodic refresh of stats
 // (latency, toolCalls, sessionConnectCount, etc.) even when mode/tool are unchanged.
 let _lastTrayIpcAt = 0;
@@ -299,7 +366,7 @@ let copiedUntil = 0;
  * This prevents the 1-second pill refresh from immediately overwriting the feedback.
  */
 function showCopiedFeedback() {
-  showTransientFeedback('Copied ✓', 700);
+  showTransientFeedback("Copied ✓", 700);
 }
 
 /**
@@ -345,22 +412,23 @@ function syncPill() {
 
   const { label, cssClass, effectiveMode, ariaLive } = pillResult;
 
-  if (pill.getAttribute('aria-live') !== ariaLive) {
-    pill.setAttribute('aria-live', ariaLive);
+  if (pill.getAttribute("aria-live") !== ariaLive) {
+    pill.setAttribute("aria-live", ariaLive);
   }
 
   pill.textContent = label;
   pill.className = cssClass;
 
   // Expose effective mode on <body> so external CSS/automation can target state.
-  if (document.body.dataset.mode !== effectiveMode) document.body.dataset.mode = effectiveMode;
+  if (document.body.dataset.mode !== effectiveMode)
+    document.body.dataset.mode = effectiveMode;
 
   // Update canvas aria-label and aria-description for screen readers (use display mode, not raw mode).
   // MODE_DESCRIPTIONS provides a human-readable explanation of each mode (e.g. "Processing a response").
-  canvas.setAttribute('aria-label', `Molt Mascot lobster — ${effectiveMode}`);
+  canvas.setAttribute("aria-label", `Molt Mascot lobster — ${effectiveMode}`);
   const modeDesc = MODE_DESCRIPTIONS[effectiveMode];
   if (modeDesc) {
-    canvas.setAttribute('aria-description', modeDesc);
+    canvas.setAttribute("aria-description", modeDesc);
   }
 
   const duration = Math.max(0, Math.round((Date.now() - modeSince) / 1000));
@@ -389,7 +457,7 @@ function syncPill() {
     latencyStats: getLatencyStats(),
     activeAgents: pluginActiveAgents,
     activeTools: pluginActiveTools,
-    targetUrl: !connectedSince ? (loadCfg()?.url || undefined) : undefined,
+    targetUrl: !connectedSince ? loadCfg()?.url || undefined : undefined,
     lastResetAt: pluginLastResetAt,
     healthStatus: _healthStatus,
     connectionUptimePct: connectionUptimePercent({
@@ -408,9 +476,10 @@ function syncPill() {
   // Notify main process of the effective display mode (including 'sleeping')
   // so the tray icon status dot and tooltip reflect the visual state.
   // effectiveMode is already computed by buildPillLabel above.
-  const effectiveTool = currentTool || '';
+  const effectiveTool = currentTool || "";
   const now = Date.now();
-  const modeOrToolChanged = effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool;
+  const modeOrToolChanged =
+    effectiveMode !== _lastReportedMode || effectiveTool !== _lastReportedTool;
   // Periodically refresh tray stats (latency, toolCalls, sessionConnectCount, etc.)
   // even when mode/tool are unchanged, so the tray tooltip stays accurate.
   const periodicRefresh = now - _lastTrayIpcAt >= _TRAY_IPC_INTERVAL_MS;
@@ -418,30 +487,35 @@ function syncPill() {
     _lastReportedMode = effectiveMode;
     _lastReportedTool = effectiveTool;
     _lastTrayIpcAt = now;
-    if (window.moltMascot?.updateMode) window.moltMascot.updateMode({
-      mode: effectiveMode,
-      latency: latencyMs,
-      tool: effectiveTool || null,
-      errorMessage: currentMode === Mode.error ? lastErrorMessage || null : null,
-      toolCalls: pluginToolCalls || 0,
-      toolErrors: pluginToolErrors || 0,
-      closeDetail: lastCloseDetail || null,
-      reconnectAttempt: reconnectAttempt || 0,
-      targetUrl: connectedUrl || loadCfg()?.url || null,
-      activeAgents: pluginActiveAgents || 0,
-      activeTools: pluginActiveTools || 0,
-      agentSessions: pluginAgentSessions || 0,
-      pluginVersion: pluginVersion || null,
-      sessionConnectCount,
-      sessionAttemptCount,
-      lastMessageAt: lastMessageAt || null,
-      latencyStats: getLatencyStats(),
-      pluginStartedAt: pluginStartedAt || null,
-      lastResetAt: pluginLastResetAt || null,
-      healthStatus: _healthStatus,
-      connectionSuccessRate: computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount),
-      latencyTrend: _latencyTracker.trend(),
-    });
+    if (window.moltMascot?.updateMode)
+      window.moltMascot.updateMode({
+        mode: effectiveMode,
+        latency: latencyMs,
+        tool: effectiveTool || null,
+        errorMessage:
+          currentMode === Mode.error ? lastErrorMessage || null : null,
+        toolCalls: pluginToolCalls || 0,
+        toolErrors: pluginToolErrors || 0,
+        closeDetail: lastCloseDetail || null,
+        reconnectAttempt: reconnectAttempt || 0,
+        targetUrl: connectedUrl || loadCfg()?.url || null,
+        activeAgents: pluginActiveAgents || 0,
+        activeTools: pluginActiveTools || 0,
+        agentSessions: pluginAgentSessions || 0,
+        pluginVersion: pluginVersion || null,
+        sessionConnectCount,
+        sessionAttemptCount,
+        lastMessageAt: lastMessageAt || null,
+        latencyStats: getLatencyStats(),
+        pluginStartedAt: pluginStartedAt || null,
+        lastResetAt: pluginLastResetAt || null,
+        healthStatus: _healthStatus,
+        connectionSuccessRate: computeConnectionSuccessRate(
+          sessionConnectCount,
+          sessionAttemptCount,
+        ),
+        latencyTrend: _latencyTracker.trend(),
+      });
   }
 }
 
@@ -455,10 +529,10 @@ function setMode(mode) {
     errorHoldTimer = null;
   }
 
-  if (mode !== Mode.error) lastErrorMessage = '';
+  if (mode !== Mode.error) lastErrorMessage = "";
   // Clear stale tool name when leaving tool mode so it doesn't linger
   // if the plugin connection drops and native events take over.
-  if (mode !== Mode.tool) currentTool = '';
+  if (mode !== Mode.tool) currentTool = "";
   syncPill();
 }
 
@@ -467,7 +541,7 @@ function setMode(mode) {
  * Centralizes the repeated error-hold-then-idle pattern used by agent lifecycle,
  * WebSocket errors, and global uncaught error handlers.
  */
-function showError(rawMessage, fallback = 'error') {
+function showError(rawMessage, fallback = "error") {
   const newMessage = truncate(cleanErrorString(rawMessage || fallback), 48);
   if (currentMode === Mode.error) {
     // Already in error mode — setMode would early-return, so manually update
@@ -478,11 +552,11 @@ function showError(rawMessage, fallback = 'error') {
     // to avoid distracting visual noise.
     if (newMessage !== lastErrorMessage) {
       // Force CSS animation restart by briefly removing the class
-      pill.classList.remove('pill--error');
+      pill.classList.remove("pill--error");
       // Reading offsetWidth forces a reflow so the browser registers the class removal
       // before re-adding it — necessary for animation restart.
       void pill.offsetWidth;
-      pill.classList.add('pill--error');
+      pill.classList.add("pill--error");
     }
     lastErrorMessage = newMessage;
     syncPill();
@@ -538,7 +612,8 @@ window.__moltMascotGetState = () => ({
   firstConnectedAt,
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   hasDragPosition,
-  isSleeping: currentMode === Mode.idle && (Date.now() - modeSince) > SLEEP_THRESHOLD_MS,
+  isSleeping:
+    currentMode === Mode.idle && Date.now() - modeSince > SLEEP_THRESHOLD_MS,
   latencyMs,
   latencyStats: getLatencyStats(),
   latencyTrend: _latencyTracker.trend(),
@@ -547,13 +622,13 @@ window.__moltMascotGetState = () => ({
   reducedMotion,
   lastMessageAt: lastMessageAt || null,
   healthStatus: currentHealthStatus(),
-  pillText: pill.textContent || '',
-  pillClass: pill.className || '',
+  pillText: pill.textContent || "",
+  pillClass: pill.className || "",
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
 window.__moltMascotSetModeSince = (t) => {
-  if (typeof t === 'number' && Number.isFinite(t)) modeSince = t;
+  if (typeof t === "number" && Number.isFinite(t)) modeSince = t;
 };
 
 function scheduleIdle(delayMs = idleDelayMs) {
@@ -567,24 +642,39 @@ let ws = null;
 let reqId = 0;
 let reconnectAttempt = 0;
 let reconnectCountdownTimer = null;
-let reconnectTimer = null;    // setTimeout id for the reconnect attempt itself
-let connectedSince = null;   // Date.now() when gateway handshake succeeded
-let connectedUrl = '';        // URL of the current gateway connection
+let reconnectTimer = null; // setTimeout id for the reconnect attempt itself
+let connectedSince = null; // Date.now() when gateway handshake succeeded
+let connectedUrl = ""; // URL of the current gateway connection
 let lastDisconnectedAt = null; // Date.now() when the last disconnect occurred
-let lastCloseDetail = '';      // Close reason/code from the last WebSocket disconnect
-let sessionConnectCount = 0;   // Total successful handshakes since app launch (diagnoses flappy connections)
-let firstConnectedAt = null;   // Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
-let sessionAttemptCount = 0;   // Total connection attempts since app launch (including failures)
-const RECONNECT_BASE_MS = coerceDelayMs(window.moltMascot?.env?.reconnectBaseMs, 1500);
-const RECONNECT_MAX_MS = coerceDelayMs(window.moltMascot?.env?.reconnectMaxMs, 30000);
+let lastCloseDetail = ""; // Close reason/code from the last WebSocket disconnect
+let sessionConnectCount = 0; // Total successful handshakes since app launch (diagnoses flappy connections)
+let firstConnectedAt = null; // Timestamp of the very first successful handshake (helps diagnose "running for Xh but connected only Ym ago")
+let sessionAttemptCount = 0; // Total connection attempts since app launch (including failures)
+const RECONNECT_BASE_MS = coerceDelayMs(
+  window.moltMascot?.env?.reconnectBaseMs,
+  1500,
+);
+const RECONNECT_MAX_MS = coerceDelayMs(
+  window.moltMascot?.env?.reconnectMaxMs,
+  30000,
+);
 
 // Application-level connection health check.
 // If no WS message is received within this window, assume the connection is
 // stale (zombie TCP) and force a reconnect. The 1s plugin poller ensures
 // at least one message per second on a healthy connection, so 15s is generous.
-const STALE_CONNECTION_MS = coerceDelayMs(window.moltMascot?.env?.staleConnectionMs, 15000);
-const STALE_CHECK_INTERVAL_MS = coerceDelayMs(window.moltMascot?.env?.staleCheckIntervalMs, 5000);
-const POLL_INTERVAL_MS = coerceDelayMs(window.moltMascot?.env?.pollIntervalMs, 1000);
+const STALE_CONNECTION_MS = coerceDelayMs(
+  window.moltMascot?.env?.staleConnectionMs,
+  15000,
+);
+const STALE_CHECK_INTERVAL_MS = coerceDelayMs(
+  window.moltMascot?.env?.staleCheckIntervalMs,
+  5000,
+);
+const POLL_INTERVAL_MS = coerceDelayMs(
+  window.moltMascot?.env?.pollIntervalMs,
+  1000,
+);
 let lastMessageAt = 0;
 let staleCheckTimer = null;
 
@@ -602,8 +692,8 @@ function resetConnectionState() {
   latencyMs = null;
   _latencyTracker.reset();
   connectedSince = null;
-  connectedUrl = '';
-  lastCloseDetail = '';
+  connectedUrl = "";
+  lastCloseDetail = "";
   _pluginSync.reset();
   stopStaleCheck();
   if (pollInterval) {
@@ -623,9 +713,11 @@ function startStaleCheck() {
     if (document.hidden) return;
     if (Date.now() - lastMessageAt > STALE_CONNECTION_MS) {
       // eslint-disable-next-line no-console
-      console.warn('molt-mascot: connection stale, forcing reconnect');
-      showError('connection stale');
-      try { ws.close(); } catch {}
+      console.warn("molt-mascot: connection stale, forcing reconnect");
+      showError("connection stale");
+      try {
+        ws.close();
+      } catch {}
     }
   }, STALE_CHECK_INTERVAL_MS);
 }
@@ -665,7 +757,7 @@ let pluginStateSentAt = 0;
 let latencyMs = null;
 let pollInterval = null;
 
-function sendPluginStateReq(prefix = 'p') {
+function sendPluginStateReq(prefix = "p") {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
   // If we fire a new request on every event, we can easily stomp our own request id
   // and end up ignoring responses (because only the latest id is honored).
@@ -680,7 +772,14 @@ function sendPluginStateReq(prefix = 'p') {
   pluginStateLastSentAt = now;
   pluginStateSentAt = now;
   try {
-    ws.send(JSON.stringify({ type: 'req', id, method: pluginStateMethod, params: {} }));
+    ws.send(
+      JSON.stringify({
+        type: "req",
+        id,
+        method: pluginStateMethod,
+        params: {},
+      }),
+    );
   } catch {
     // Socket closed between readyState check and send — clear pending flag
     // so the next poll can retry instead of permanently stalling.
@@ -699,7 +798,7 @@ function startPluginPoller() {
     // when the window becomes visible again, and the visibilitychange handler
     // triggers an immediate refresh so the UI catches up instantly.
     if (document.hidden) return;
-    sendPluginStateReq('p');
+    sendPluginStateReq("p");
   }, POLL_INTERVAL_MS);
 }
 
@@ -713,8 +812,8 @@ function connect(cfg) {
   setup.hidden = true;
   currentMode = Mode.connecting;
   modeSince = Date.now();
-  pill.textContent = 'connecting…';
-  pill.className = 'pill--connecting';
+  pill.textContent = "connecting…";
+  pill.className = "pill--connecting";
 
   // Clear any stale reconnect timers from a previous connection cycle.
   if (reconnectCountdownTimer) {
@@ -728,7 +827,9 @@ function connect(cfg) {
 
   if (ws) {
     ws.onclose = null;
-    try { ws.close(); } catch {}
+    try {
+      ws.close();
+    } catch {}
     ws = null;
   }
 
@@ -737,20 +838,20 @@ function connect(cfg) {
   } catch (err) {
     // Invalid URL (e.g. empty string, missing protocol) throws synchronously.
     // Surface the error instead of crashing the renderer.
-    showError(err?.message || 'Invalid WebSocket URL');
+    showError(err?.message || "Invalid WebSocket URL");
     showSetup(cfg);
     return;
   }
 
-  ws.addEventListener('open', () => {
+  ws.addEventListener("open", () => {
     // NOTE: Don't reset reconnectAttempt here — only after hello-ok.
     // A successful TCP/WS handshake doesn't mean auth passed; resetting
     // backoff prematurely causes tight reconnect loops on auth failures.
-    connectReqId = nextId('c');
+    connectReqId = nextId("c");
     const connectFrame = {
-      type: 'req',
+      type: "req",
       id: connectReqId,
-      method: 'connect',
+      method: "connect",
       params: {
         // Default to a safe negotiation range so the mascot works across Gateway versions.
         // (Protocol 3 is preferred, but older Gateways might only speak 2.)
@@ -765,16 +866,16 @@ function connect(cfg) {
           return Number.isFinite(v) && v > 0 ? v : 3;
         })(),
         client: {
-          id: 'molt-mascot-desktop',
-          displayName: 'Molt Mascot',
-          version: window.moltMascot?.version || 'dev',
+          id: "molt-mascot-desktop",
+          displayName: "Molt Mascot",
+          version: window.moltMascot?.version || "dev",
           platform: window.moltMascot?.platform || navigator.userAgent,
-          arch: window.moltMascot?.arch || '',
-          mode: 'gui',
+          arch: window.moltMascot?.arch || "",
+          mode: "gui",
           instanceId: INSTANCE_ID,
         },
-        role: 'operator',
-        scopes: ['operator.read'],
+        role: "operator",
+        scopes: ["operator.read"],
         auth: cfg.token ? { token: cfg.token } : undefined,
       },
     };
@@ -783,11 +884,11 @@ function connect(cfg) {
     } catch (err) {
       // Socket may have transitioned to CLOSING/CLOSED between the 'open' event
       // and the send call. Surface the error instead of crashing the renderer.
-      showError(err?.message || 'Failed to send connect frame');
+      showError(err?.message || "Failed to send connect frame");
     }
   });
 
-  ws.addEventListener('message', (ev) => {
+  ws.addEventListener("message", (ev) => {
     lastMessageAt = Date.now();
     let msg;
     try {
@@ -802,22 +903,22 @@ function connect(cfg) {
 
     // If we have a plugin, any event is a hint to poll state immediately
     // so the UI feels snappy (instead of waiting for the 1s poller).
-    if (hasPlugin && msg.type === 'event') {
-      sendPluginStateReq('p');
+    if (hasPlugin && msg.type === "event") {
+      sendPluginStateReq("p");
     }
 
-    if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
+    if (msg.type === "res" && msg.payload?.type === "hello-ok") {
       reconnectAttempt = 0; // Reset backoff only after successful auth handshake
       sessionConnectCount += 1;
       connectedSince = Date.now();
       if (firstConnectedAt === null) firstConnectedAt = connectedSince;
-      lastCloseDetail = '';
-      connectedUrl = cfg.url || '';
+      lastCloseDetail = "";
+      connectedUrl = cfg.url || "";
       startStaleCheck();
       // Brief "Connected ✓" flash with sparkle animation so the user sees
       // the handshake succeeded before settling into idle mode.
-      pill.textContent = 'Connected ✓';
-      pill.className = 'pill--connected';
+      pill.textContent = "Connected ✓";
+      pill.className = "pill--connected";
       currentMode = Mode.connected;
       modeSince = Date.now();
       // Transition to idle after the celebration
@@ -835,17 +936,24 @@ function connect(cfg) {
       pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
       pluginResetReqId = null;
 
-      sendPluginStateReq('s');
+      sendPluginStateReq("s");
 
       return;
     }
 
     // Handle connect handshake failure (auth denied, protocol mismatch, etc.)
     // Without this, a rejected connect leaves the pill stuck on "connecting…" forever.
-    if (msg.type === 'res' && msg.id && msg.id === connectReqId && !msg.payload?.type?.startsWith('hello')) {
+    if (
+      msg.type === "res" &&
+      msg.id &&
+      msg.id === connectReqId &&
+      !msg.payload?.type?.startsWith("hello")
+    ) {
       const err = msg.payload?.error || msg.error;
-      const detail = typeof err === 'string' ? err
-        : err?.message || err?.code || 'connection rejected';
+      const detail =
+        typeof err === "string"
+          ? err
+          : err?.message || err?.code || "connection rejected";
       lastErrorMessage = truncate(cleanErrorString(String(detail)), 48);
       setMode(Mode.error);
       pill.textContent = lastErrorMessage;
@@ -855,7 +963,9 @@ function connect(cfg) {
       // triggers a reconnect that hides the form and retries with the same
       // bad credentials — an infinite loop of failed auth attempts.
       ws.onclose = null;
-      try { ws.close(); } catch {}
+      try {
+        ws.close();
+      } catch {}
       ws = null;
       resetConnectionState();
       // Show setup so the user can fix credentials.
@@ -867,14 +977,14 @@ function connect(cfg) {
 
     // Any response to the plugin state request clears the in-flight flag,
     // otherwise a single error frame can permanently stall polling.
-    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId) {
+    if (msg.type === "res" && msg.id && msg.id === pluginStateReqId) {
       pluginStatePending = false;
     }
 
     // Plugin state response (only honor the response to *our* request).
     // This avoids accidentally treating unrelated "res" frames as mascot state.
     if (
-      msg.type === 'res' &&
+      msg.type === "res" &&
       msg.id &&
       msg.id === pluginStateReqId &&
       msg.ok &&
@@ -895,12 +1005,16 @@ function connect(cfg) {
       _pluginSync.sync(msg.payload.state);
 
       const nextErr = msg.payload?.state?.lastError?.message;
-      if (nextMode === Mode.error && typeof nextErr === 'string' && nextErr.trim()) {
+      if (
+        nextMode === Mode.error &&
+        typeof nextErr === "string" &&
+        nextErr.trim()
+      ) {
         lastErrorMessage = nextErr.trim();
       }
       // Don't let a plugin idle state cut short the connection celebration sparkle.
       // Active states (thinking/tool/error) override immediately.
-      if (currentMode === Mode.connected && nextMode === 'idle') {
+      if (currentMode === Mode.connected && nextMode === "idle") {
         // Let the 2s timer handle the transition naturally.
       } else {
         setMode(nextMode);
@@ -911,26 +1025,43 @@ function connect(cfg) {
     }
 
     // If the current plugin method isn't installed (older plugin), fall back through aliases.
-    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId && isMissingMethodResponse(msg)) {
+    if (
+      msg.type === "res" &&
+      msg.id &&
+      msg.id === pluginStateReqId &&
+      isMissingMethodResponse(msg)
+    ) {
       pluginStatePending = false;
       if (pluginStateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
         pluginStateMethodIndex += 1;
         pluginStateMethod = PLUGIN_STATE_METHODS[pluginStateMethodIndex];
         pluginStateLastSentAt = 0;
-        sendPluginStateReq('s');
+        sendPluginStateReq("s");
         return;
       }
     }
 
     // If the current plugin reset method isn't installed (older plugin), fall back through aliases.
-    if (msg.type === 'res' && msg.id && msg.id === pluginResetReqId && isMissingMethodResponse(msg)) {
+    if (
+      msg.type === "res" &&
+      msg.id &&
+      msg.id === pluginResetReqId &&
+      isMissingMethodResponse(msg)
+    ) {
       if (pluginResetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
         pluginResetMethodIndex += 1;
         pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
-        const id = nextId('reset');
+        const id = nextId("reset");
         pluginResetReqId = id;
         try {
-          ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+          ws.send(
+            JSON.stringify({
+              type: "req",
+              id,
+              method: pluginResetMethod,
+              params: {},
+            }),
+          );
         } catch {
           // Socket closed between readyState check and send — best-effort.
         }
@@ -940,23 +1071,25 @@ function connect(cfg) {
 
     // If we got *any* response to our plugin-state request but it didn't match the
     // success path above (e.g., method missing, auth failure), don't deadlock the poller.
-    if (msg.type === 'res' && msg.id && msg.id === pluginStateReqId) {
+    if (msg.type === "res" && msg.id && msg.id === pluginStateReqId) {
       pluginStatePending = false;
     }
 
     // Native agent stream mapping (no plugin required).
-    if (!hasPlugin && msg.type === 'event' && msg.event === 'agent') {
+    if (!hasPlugin && msg.type === "event" && msg.event === "agent") {
       const p = msg.payload;
       const stream = p?.stream;
-      if (stream === 'lifecycle') {
-        if (p?.phase === 'start') setMode(Mode.thinking);
-        if (p?.phase === 'end') scheduleIdle(idleDelayMs);
-        if (p?.phase === 'error') {
-          const raw = p?.error?.message || (typeof p?.error === 'string' ? p.error : 'agent error');
-          showError(raw, 'agent error');
+      if (stream === "lifecycle") {
+        if (p?.phase === "start") setMode(Mode.thinking);
+        if (p?.phase === "end") scheduleIdle(idleDelayMs);
+        if (p?.phase === "error") {
+          const raw =
+            p?.error?.message ||
+            (typeof p?.error === "string" ? p.error : "agent error");
+          showError(raw, "agent error");
         }
       }
-      if (stream === 'tool') {
+      if (stream === "tool") {
         // Heuristic: any tool activity => tool
         setMode(Mode.tool);
         // bounce back to thinking unless lifecycle ends.
@@ -987,7 +1120,7 @@ function connect(cfg) {
     // auto-reconnect — they'll fail the same way every time. Show setup instead
     // so the user can fix credentials or the gateway URL.
     if (!isRecoverableCloseCode(ev?.code)) {
-      showError(lastCloseDetail || 'connection rejected');
+      showError(lastCloseDetail || "connection rejected");
       showSetup(cfg);
       return;
     }
@@ -997,9 +1130,12 @@ function connect(cfg) {
 
     // Live countdown so the user sees progress instead of a static message
     const updateCountdown = () => {
-      const remaining = Math.max(0, Math.ceil((reconnectAt - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.ceil((reconnectAt - Date.now()) / 1000),
+      );
       pill.textContent = `reconnecting in ${remaining}s…`;
-      pill.className = 'pill--disconnected';
+      pill.className = "pill--disconnected";
     };
     updateCountdown();
     reconnectCountdownTimer = setInterval(updateCountdown, 1000);
@@ -1010,8 +1146,8 @@ function connect(cfg) {
         clearInterval(reconnectCountdownTimer);
         reconnectCountdownTimer = null;
       }
-      pill.textContent = 'connecting…';
-      pill.className = 'pill--connecting';
+      pill.textContent = "connecting…";
+      pill.className = "pill--connecting";
       // Re-read config to pickup changes or use current env
       const fresh = loadCfg();
       // If we have a valid config, retry. Otherwise, show setup.
@@ -1020,20 +1156,19 @@ function connect(cfg) {
     }, delay);
   };
 
-  ws.addEventListener('error', () => {
+  ws.addEventListener("error", () => {
     // Only show a generic message if we don't already have a more specific error
     // (e.g. auth failure from the connect handshake). The 'error' event fires
     // before 'close', so blindly overwriting loses useful context.
     // If we're already in error mode with a specific message, don't reset the
     // timer and duration counter — that causes a visual "jump" for no reason.
     if (currentMode === Mode.error && lastErrorMessage) return;
-    showError(lastErrorMessage || 'WebSocket error');
+    showError(lastErrorMessage || "WebSocket error");
   });
 }
 
-
 // Clear validation error as user types (prevents sticky custom validity)
-urlInput.addEventListener('input', () => urlInput.setCustomValidity(''));
+urlInput.addEventListener("input", () => urlInput.setCustomValidity(""));
 
 // Dismiss setup form and reconnect with saved config (shared by ESC key and Cancel button).
 function dismissSetup() {
@@ -1046,19 +1181,19 @@ function dismissSetup() {
 }
 
 // ESC dismisses the setup form if we have a saved config (reconnect with existing creds)
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !setup.hidden) dismissSetup();
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !setup.hidden) dismissSetup();
 });
 
 // Cancel button dismisses the setup form (visible alternative to ESC)
-const cancelBtn = document.getElementById('cancel');
+const cancelBtn = document.getElementById("cancel");
 if (cancelBtn) {
-  cancelBtn.addEventListener('click', dismissSetup);
+  cancelBtn.addEventListener("click", dismissSetup);
 }
 
-const saveBtn = document.getElementById('save');
+const saveBtn = document.getElementById("save");
 
-setup.addEventListener('submit', (e) => {
+setup.addEventListener("submit", (e) => {
   e.preventDefault();
   let url = normalizeWsUrl(urlInput.value);
 
@@ -1071,13 +1206,13 @@ setup.addEventListener('submit', (e) => {
     urlInput.reportValidity();
     return;
   }
-  urlInput.setCustomValidity('');
+  urlInput.setCustomValidity("");
 
   // Disable form controls while connecting to prevent double-submits
   // and provide visual feedback that the connection attempt is in progress.
   if (saveBtn) {
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Connecting…';
+    saveBtn.textContent = "Connecting…";
   }
   urlInput.disabled = true;
   tokenInput.disabled = true;
@@ -1096,14 +1231,21 @@ const ipcUnsubs = [];
  */
 function resetState() {
   setMode(Mode.idle);
-  showTransientFeedback('Reset ✓', 700);
+  showTransientFeedback("Reset ✓", 700);
   if (hasPlugin && ws && ws.readyState === WebSocket.OPEN) {
     pluginResetMethodIndex = 0;
     pluginResetMethod = PLUGIN_RESET_METHODS[pluginResetMethodIndex];
-    const id = nextId('reset');
+    const id = nextId("reset");
     pluginResetReqId = id;
     try {
-      ws.send(JSON.stringify({ type: 'req', id, method: pluginResetMethod, params: {} }));
+      ws.send(
+        JSON.stringify({
+          type: "req",
+          id,
+          method: pluginResetMethod,
+          params: {},
+        }),
+      );
     } catch {
       // Socket closed between readyState check and send — best-effort.
     }
@@ -1111,62 +1253,78 @@ function resetState() {
     // waiting for the next 1s poll cycle (same pattern as visibility resume).
     pluginStatePending = false;
     pluginStateLastSentAt = 0;
-    sendPluginStateReq('r');
+    sendPluginStateReq("r");
   }
 }
 
 if (window.moltMascot?.onReset) {
-  ipcUnsubs.push(window.moltMascot.onReset(() => {
-    resetState();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onReset(() => {
+      resetState();
+    }),
+  );
 }
 
 if (window.moltMascot?.onClickThrough) {
-  ipcUnsubs.push(window.moltMascot.onClickThrough((enabled) => {
-    isClickThrough = Boolean(enabled);
-    syncPill();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onClickThrough((enabled) => {
+      isClickThrough = Boolean(enabled);
+      syncPill();
+    }),
+  );
 }
 
 if (window.moltMascot?.onHideText) {
-  ipcUnsubs.push(window.moltMascot.onHideText((hidden) => {
-    isTextHidden = hidden;
-    updateHudVisibility();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onHideText((hidden) => {
+      isTextHidden = hidden;
+      updateHudVisibility();
+    }),
+  );
 }
 
 if (window.moltMascot?.onReducedMotion) {
-  ipcUnsubs.push(window.moltMascot.onReducedMotion((enabled) => {
-    reducedMotion = enabled || (motionQuery?.matches ?? false);
-    _syncReducedMotionClass();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onReducedMotion((enabled) => {
+      reducedMotion = enabled || (motionQuery?.matches ?? false);
+      _syncReducedMotionClass();
+    }),
+  );
 }
 
 if (window.moltMascot?.onAlignment) {
-  ipcUnsubs.push(window.moltMascot.onAlignment((alignment) => {
-    lastPluginAlignment = alignment;
-    syncPill();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onAlignment((alignment) => {
+      lastPluginAlignment = alignment;
+      syncPill();
+    }),
+  );
 }
 
 if (window.moltMascot?.onSize) {
-  ipcUnsubs.push(window.moltMascot.onSize((size) => {
-    currentSizeLabel = size;
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onSize((size) => {
+      currentSizeLabel = size;
+    }),
+  );
 }
 
 let hasDragPosition = false;
 if (window.moltMascot?.onDragPosition) {
-  ipcUnsubs.push(window.moltMascot.onDragPosition((dragged) => {
-    hasDragPosition = Boolean(dragged);
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onDragPosition((dragged) => {
+      hasDragPosition = Boolean(dragged);
+    }),
+  );
 }
 
 let currentOpacity = 1.0;
 if (window.moltMascot?.onOpacity) {
-  ipcUnsubs.push(window.moltMascot.onOpacity((opacity) => {
-    currentOpacity = opacity;
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onOpacity((opacity) => {
+      currentOpacity = opacity;
+    }),
+  );
 }
 
 /**
@@ -1185,7 +1343,9 @@ function forceReconnectNow() {
   }
   if (ws) {
     ws.onclose = null;
-    try { ws.close(); } catch {}
+    try {
+      ws.close();
+    } catch {}
     ws = null;
   }
   // Record disconnect timestamp before resetting (onclose is nulled above,
@@ -1195,51 +1355,58 @@ function forceReconnectNow() {
   resetConnectionState();
   const cfg = loadCfg();
   if (cfg?.url) connect(cfg);
-  else showSetup({ url: 'ws://127.0.0.1:18789', token: '' });
+  else showSetup({ url: "ws://127.0.0.1:18789", token: "" });
 }
 
 if (window.moltMascot?.onForceReconnect) {
-  ipcUnsubs.push(window.moltMascot.onForceReconnect(() => {
-    forceReconnectNow();
-  }));
+  ipcUnsubs.push(
+    window.moltMascot.onForceReconnect(() => {
+      forceReconnectNow();
+    }),
+  );
 
   if (window.moltMascot.onCopied) {
-    ipcUnsubs.push(window.moltMascot.onCopied(() => {
-      showCopiedFeedback();
-    }));
+    ipcUnsubs.push(
+      window.moltMascot.onCopied(() => {
+        showCopiedFeedback();
+      }),
+    );
   }
 }
 
 // Double-click pill to copy current status text to clipboard
-pill.addEventListener('dblclick', () => {
-  const text = pill.textContent || '';
-  if (!text || text === 'Initializing...') return;
-  navigator.clipboard.writeText(text).then(() => {
-    showCopiedFeedback();
-  }).catch(() => {});
+pill.addEventListener("dblclick", () => {
+  const text = pill.textContent || "";
+  if (!text || text === "Initializing...") return;
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      showCopiedFeedback();
+    })
+    .catch(() => {});
 });
 
 // Middle-click the pill to toggle hide-text mode.
 // Completes the pill interaction trio: double-click=copy, middle-click=toggle text, right-click=menu.
-pill.addEventListener('mousedown', (e) => {
+pill.addEventListener("mousedown", (e) => {
   if (e.button !== 1) return; // 1 = middle button
   e.preventDefault();
   if (window.moltMascot?.setHideText) {
     isTextHidden = !isTextHidden;
     window.moltMascot.setHideText(isTextHidden);
     updateHudVisibility();
-    showTransientFeedback(isTextHidden ? 'Text hidden' : 'Text shown');
+    showTransientFeedback(isTextHidden ? "Text hidden" : "Text shown");
   }
 });
 
 // Double-click lobster sprite to toggle ghost mode (most common toggle action).
 // This complements the pill double-click (copy) with a sprite-specific shortcut,
 // since users instinctively interact with the lobster rather than the tiny pill.
-canvas.addEventListener('dblclick', () => {
+canvas.addEventListener("dblclick", () => {
   if (window.moltMascot?.setClickThrough) {
     isClickThrough = !isClickThrough;
     window.moltMascot.setClickThrough(isClickThrough);
-    showTransientFeedback(isClickThrough ? '👻 Ghost on' : '👻 Ghost off');
+    showTransientFeedback(isClickThrough ? "👻 Ghost on" : "👻 Ghost off");
     syncPill();
   }
 });
@@ -1247,47 +1414,58 @@ canvas.addEventListener('dblclick', () => {
 // Mouse wheel on the lobster sprite adjusts opacity in 10% steps.
 // Complements the keyboard shortcut (⌘⇧O) with a more tactile, discoverable
 // interaction — scrolling over the mascot to fade it in/out feels natural.
-canvas.addEventListener('wheel', (e) => {
-  if (!window.moltMascot?.setOpacity) return;
-  e.preventDefault();
-  // deltaY > 0 = scroll down = decrease opacity; deltaY < 0 = scroll up = increase
-  const next = stepOpacity(currentOpacity, e.deltaY > 0 ? -1 : 1);
-  if (next === currentOpacity) return;
-  currentOpacity = next;
-  window.moltMascot.setOpacity(currentOpacity);
-  // Brief visual feedback in the pill so the user sees the current opacity level
-  // while scrolling (the tooltip updates too, but it's not always visible).
-  showTransientFeedback(`Opacity ${formatOpacity(currentOpacity)}`);
-  syncPill();
-}, { passive: false });
+canvas.addEventListener(
+  "wheel",
+  (e) => {
+    if (!window.moltMascot?.setOpacity) return;
+    e.preventDefault();
+    // deltaY > 0 = scroll down = decrease opacity; deltaY < 0 = scroll up = increase
+    const next = stepOpacity(currentOpacity, e.deltaY > 0 ? -1 : 1);
+    if (next === currentOpacity) return;
+    currentOpacity = next;
+    window.moltMascot.setOpacity(currentOpacity);
+    // Brief visual feedback in the pill so the user sees the current opacity level
+    // while scrolling (the tooltip updates too, but it's not always visible).
+    showTransientFeedback(`Opacity ${formatOpacity(currentOpacity)}`);
+    syncPill();
+  },
+  { passive: false },
+);
 
 // Middle-click on the lobster sprite to force reconnect.
 // Complements double-click (ghost mode) and scroll wheel (opacity) with another
 // common desktop-widget interaction — middle-click to refresh/reconnect.
-canvas.addEventListener('mousedown', (e) => {
+canvas.addEventListener("mousedown", (e) => {
   if (e.button !== 1) return; // 1 = middle button
   e.preventDefault();
   forceReconnectNow();
-  showTransientFeedback('Reconnecting…', 700, 'pill--connecting');
+  showTransientFeedback("Reconnecting…", 700, "pill--connecting");
 });
 
 // Keyboard accessibility on the pill: Enter/Space and Shift+F10/ContextMenu
 // all open the context menu. Combined into a single listener to avoid duplicate
 // event subscriptions on the same element.
-pill.addEventListener('keydown', (e) => {
-  const isActivate = e.key === 'Enter' || e.key === ' ';
-  const isContextKey = (e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu';
+pill.addEventListener("keydown", (e) => {
+  const isActivate = e.key === "Enter" || e.key === " ";
+  const isContextKey =
+    (e.key === "F10" && e.shiftKey) || e.key === "ContextMenu";
   if (!isActivate && !isContextKey) return;
   e.preventDefault();
   const rect = pill.getBoundingClientRect();
   if (isActivate) {
-    pill.dispatchEvent(new MouseEvent('contextmenu', {
-      bubbles: true,
-      clientX: rect.left,
-      clientY: rect.bottom + 4,
-    }));
+    pill.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        clientX: rect.left,
+        clientY: rect.bottom + 4,
+      }),
+    );
   } else {
-    showContextMenu({ clientX: rect.left + rect.width / 2, clientY: rect.bottom + 4, preventDefault() {} });
+    showContextMenu({
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.bottom + 4,
+      preventDefault() {},
+    });
   }
 });
 
@@ -1338,11 +1516,17 @@ function buildDebugInfo() {
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
     processUptimeS: window.moltMascot?.processUptimeS?.(),
-    processStartedAt: (() => { const u = window.moltMascot?.processUptimeS?.(); return typeof u === 'number' ? Date.now() - u * 1000 : null; })(),
+    processStartedAt: (() => {
+      const u = window.moltMascot?.processUptimeS?.();
+      return typeof u === "number" ? Date.now() - u * 1000 : null;
+    })(),
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     sessionConnectCount,
     sessionAttemptCount,
-    connectionSuccessRate: computeConnectionSuccessRate(sessionConnectCount, sessionAttemptCount),
+    connectionSuccessRate: computeConnectionSuccessRate(
+      sessionConnectCount,
+      sessionAttemptCount,
+    ),
     isPollingPaused: document.hidden,
     latencyMs,
     agentSessions: pluginAgentSessions,
@@ -1357,7 +1541,13 @@ function buildDebugInfo() {
     pid: window.moltMascot?.pid,
     healthStatus: currentHealthStatus(),
     spriteCache: _spriteCache.getSnapshot(),
-    allTimeLatency: _latencyTracker.allTimeMin() !== null ? { min: _latencyTracker.allTimeMin(), max: _latencyTracker.allTimeMax() } : null,
+    allTimeLatency:
+      _latencyTracker.allTimeMin() !== null
+        ? {
+            min: _latencyTracker.allTimeMin(),
+            max: _latencyTracker.allTimeMax(),
+          }
+        : null,
   });
 }
 
@@ -1370,7 +1560,9 @@ window.__moltMascotBuildDebugInfo = buildDebugInfo;
 function showContextMenu(e) {
   e.preventDefault();
 
-  const isMac = navigator.platform?.startsWith('Mac') || navigator.userAgent?.includes('Mac');
+  const isMac =
+    navigator.platform?.startsWith("Mac") ||
+    navigator.userAgent?.includes("Mac");
 
   // Use the extracted pure-function builder (single source of truth for labels/layout)
   const { items: descriptors } = buildContextMenuItems({
@@ -1414,25 +1606,95 @@ function showContextMenu(e) {
 
   // Map descriptor IDs to action callbacks
   const actions = {
-    ghost: () => { if (window.moltMascot?.setClickThrough) { isClickThrough = !isClickThrough; window.moltMascot.setClickThrough(isClickThrough); syncPill(); } },
-    'hide-text': () => { if (window.moltMascot?.setHideText) { isTextHidden = !isTextHidden; window.moltMascot.setHideText(isTextHidden); updateHudVisibility(); } },
+    ghost: () => {
+      if (window.moltMascot?.setClickThrough) {
+        isClickThrough = !isClickThrough;
+        window.moltMascot.setClickThrough(isClickThrough);
+        syncPill();
+      }
+    },
+    "hide-text": () => {
+      if (window.moltMascot?.setHideText) {
+        isTextHidden = !isTextHidden;
+        window.moltMascot.setHideText(isTextHidden);
+        updateHudVisibility();
+      }
+    },
     reset: resetState,
-    alignment: () => { if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment(); },
-    snap: () => { if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition(); },
-    size: () => { if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize(); },
-    opacity: () => { if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity(); },
-    'reduced-motion': () => { if (window.moltMascot?.setReducedMotion) { reducedMotion = !reducedMotion; _syncReducedMotionClass(); window.moltMascot.setReducedMotion(reducedMotion); showTransientFeedback(reducedMotion ? 'Motion reduced' : 'Motion enabled'); } },
-    'copy-status': () => { const text = pill.textContent || ''; if (text) navigator.clipboard.writeText(text).then(() => showCopiedFeedback()).catch(() => {}); },
-    'copy-debug': () => { if (window.moltMascot?.copyDebugInfo) { window.moltMascot.copyDebugInfo(); showCopiedFeedback(); } else { navigator.clipboard.writeText(buildDebugInfo()).then(() => showCopiedFeedback()).catch(() => {}); } },
-    'copy-gateway-url': () => { const url = connectedUrl || loadCfg()?.url || ''; if (url) navigator.clipboard.writeText(url).then(() => showCopiedFeedback()).catch(() => {}); },
+    alignment: () => {
+      if (window.moltMascot?.cycleAlignment) window.moltMascot.cycleAlignment();
+    },
+    snap: () => {
+      if (window.moltMascot?.snapToPosition) window.moltMascot.snapToPosition();
+    },
+    size: () => {
+      if (window.moltMascot?.cycleSize) window.moltMascot.cycleSize();
+    },
+    opacity: () => {
+      if (window.moltMascot?.cycleOpacity) window.moltMascot.cycleOpacity();
+    },
+    "reduced-motion": () => {
+      if (window.moltMascot?.setReducedMotion) {
+        reducedMotion = !reducedMotion;
+        _syncReducedMotionClass();
+        window.moltMascot.setReducedMotion(reducedMotion);
+        showTransientFeedback(
+          reducedMotion ? "Motion reduced" : "Motion enabled",
+        );
+      }
+    },
+    "copy-status": () => {
+      const text = pill.textContent || "";
+      if (text)
+        navigator.clipboard
+          .writeText(text)
+          .then(() => showCopiedFeedback())
+          .catch(() => {});
+    },
+    "copy-debug": () => {
+      if (window.moltMascot?.copyDebugInfo) {
+        window.moltMascot.copyDebugInfo();
+        showCopiedFeedback();
+      } else {
+        navigator.clipboard
+          .writeText(buildDebugInfo())
+          .then(() => showCopiedFeedback())
+          .catch(() => {});
+      }
+    },
+    "copy-gateway-url": () => {
+      const url = connectedUrl || loadCfg()?.url || "";
+      if (url)
+        navigator.clipboard
+          .writeText(url)
+          .then(() => showCopiedFeedback())
+          .catch(() => {});
+    },
     reconnect: forceReconnectNow,
-    'change-gateway': () => { const cfg = loadCfg(); showSetup(cfg || { url: 'ws://127.0.0.1:18789', token: '' }); },
-    'reset-prefs': () => { if (window.moltMascot?.resetPrefs) window.moltMascot.resetPrefs(); },
-    hide: () => { if (window.moltMascot?.hide) window.moltMascot.hide(); },
-    about: () => { if (window.moltMascot?.showAbout) window.moltMascot.showAbout(); },
-    github: () => { if (window.moltMascot?.openExternal) window.moltMascot.openExternal(REPO_URL); },
-    devtools: () => { if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools(); },
-    quit: () => { if (window.moltMascot?.quit) window.moltMascot.quit(); else window.close(); },
+    "change-gateway": () => {
+      const cfg = loadCfg();
+      showSetup(cfg || { url: "ws://127.0.0.1:18789", token: "" });
+    },
+    "reset-prefs": () => {
+      if (window.moltMascot?.resetPrefs) window.moltMascot.resetPrefs();
+    },
+    hide: () => {
+      if (window.moltMascot?.hide) window.moltMascot.hide();
+    },
+    about: () => {
+      if (window.moltMascot?.showAbout) window.moltMascot.showAbout();
+    },
+    github: () => {
+      if (window.moltMascot?.openExternal)
+        window.moltMascot.openExternal(REPO_URL);
+    },
+    devtools: () => {
+      if (window.moltMascot?.toggleDevTools) window.moltMascot.toggleDevTools();
+    },
+    quit: () => {
+      if (window.moltMascot?.quit) window.moltMascot.quit();
+      else window.close();
+    },
   };
 
   // Convert descriptors to context-menu items with action callbacks
@@ -1450,15 +1712,16 @@ function showContextMenu(e) {
   ctxMenu.show(menuItems, { x: e.clientX, y: e.clientY });
 }
 
-pill.addEventListener('contextmenu', showContextMenu);
-canvas.addEventListener('contextmenu', showContextMenu);
+pill.addEventListener("contextmenu", showContextMenu);
+canvas.addEventListener("contextmenu", showContextMenu);
 
 // Keyboard accessibility on the canvas: Enter/Space opens context menu,
 // matching the double-click → ghost toggle is too destructive for accidental
 // key presses, so we open the context menu instead (consistent with pill behavior).
-canvas.addEventListener('keydown', (e) => {
-  const isActivate = e.key === 'Enter' || e.key === ' ';
-  const isContextKey = (e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu';
+canvas.addEventListener("keydown", (e) => {
+  const isActivate = e.key === "Enter" || e.key === " ";
+  const isContextKey =
+    (e.key === "F10" && e.shiftKey) || e.key === "ContextMenu";
   if (!isActivate && !isContextKey) return;
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
@@ -1472,11 +1735,11 @@ canvas.addEventListener('keydown', (e) => {
 // boot
 if (isCapture) {
   setup.hidden = true;
-  pill.textContent = 'demo';
+  pill.textContent = "demo";
 } else {
   const cfg = loadCfg();
-  const envUrl = normalizeWsUrl(window.moltMascot?.env?.gatewayUrl || '');
-  const envToken = (window.moltMascot?.env?.gatewayToken || '').trim();
+  const envUrl = normalizeWsUrl(window.moltMascot?.env?.gatewayUrl || "");
+  const envToken = (window.moltMascot?.env?.gatewayToken || "").trim();
 
   // If environment provides credentials at runtime, they take precedence.
   // Update storage to match so we stay in sync.
@@ -1494,14 +1757,17 @@ if (isCapture) {
 
 // Global error handlers: surface uncaught errors in the pill so they're visible
 // instead of silently dying in the console.
-window.addEventListener('error', (ev) => {
-  showError(ev.message, 'Uncaught error');
+window.addEventListener("error", (ev) => {
+  showError(ev.message, "Uncaught error");
 });
 
-window.addEventListener('unhandledrejection', (ev) => {
+window.addEventListener("unhandledrejection", (ev) => {
   const raw = ev.reason;
-  const msg = typeof raw === 'string' ? raw : (raw?.message || 'Unhandled promise rejection');
-  showError(msg, 'Unhandled promise rejection');
+  const msg =
+    typeof raw === "string"
+      ? raw
+      : raw?.message || "Unhandled promise rejection";
+  showError(msg, "Unhandled promise rejection");
 });
 
 let lastPillSec = -1;
@@ -1522,8 +1788,14 @@ window.__moltMascotActualFps = () => _fpsCounter.fps();
 // Accepts an optional `now` timestamp to avoid redundant Date.now() calls
 // in the hot render loop (the caller already has a timestamp from rAF or Date.now()).
 function getFrameIntervalMs(now) {
-  const idleDur = currentMode === Mode.idle ? (now || Date.now()) - modeSince : 0;
-  return _getFrameIntervalMs(currentMode, idleDur, SLEEP_THRESHOLD_MS, reducedMotion);
+  const idleDur =
+    currentMode === Mode.idle ? (now || Date.now()) - modeSince : 0;
+  return _getFrameIntervalMs(
+    currentMode,
+    idleDur,
+    SLEEP_THRESHOLD_MS,
+    reducedMotion,
+  );
 }
 
 function frame(t) {
@@ -1578,7 +1850,7 @@ function stopAnimation() {
 // Pause animation when the window is hidden/minimized to save CPU.
 // requestAnimationFrame already throttles in background tabs in most browsers,
 // but Electron BrowserWindows may not honor that—explicit control is safer.
-document.addEventListener('visibilitychange', () => {
+document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     stopAnimation();
     // Dismiss any open context menu when the window is hidden (e.g. via ⌘⇧V toggle)
@@ -1607,12 +1879,12 @@ document.addEventListener('visibilitychange', () => {
     // *during* hidden state, but there's a race on the first tick after visibility
     // resumes where document.hidden is already false but no message has arrived yet.
     lastMessageAt = Date.now();
-    if (hasPlugin) sendPluginStateReq('v');
+    if (hasPlugin) sendPluginStateReq("v");
   }
 });
 
 // Cleanup on page unload (prevents leaked intervals/sockets during hot-reload or navigation)
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   // Dismiss any open context menu to remove its DOM and event listeners cleanly.
   ctxMenu.dismiss();
   stopAnimation();
@@ -1643,17 +1915,24 @@ window.addEventListener('beforeunload', () => {
   }
   if (ws) {
     ws.onclose = null;
-    try { ws.close(); } catch {}
+    try {
+      ws.close();
+    } catch {}
     ws = null;
   }
   // Remove media-query listener to avoid leaks during hot-reload
-  motionQuery?.removeEventListener?.('change', _onMotionChange);
+  motionQuery?.removeEventListener?.("change", _onMotionChange);
   // Remove resize listener and cancel debounced timer to prevent leaked handlers
-  window.removeEventListener('resize', _debouncedRecalcScale);
-  if (_resizeTimer) { clearTimeout(_resizeTimer); _resizeTimer = null; }
+  window.removeEventListener("resize", _debouncedRecalcScale);
+  if (_resizeTimer) {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = null;
+  }
   // Unsubscribe IPC listeners to prevent leaked handlers during hot-reload
   for (const unsub of ipcUnsubs) {
-    try { unsub?.(); } catch {}
+    try {
+      unsub?.();
+    } catch {}
   }
   ipcUnsubs.length = 0;
 });

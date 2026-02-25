@@ -6,8 +6,23 @@
  * stale-connection detection, protocol negotiation, and plugin state polling.
  */
 
-import { isMissingMethodResponse, getReconnectDelayMs, normalizeWsUrl, formatCloseDetail, isRecoverableCloseCode, formatLatency, connectionQuality, connectionQualityEmoji, resolveQualitySource, formatQualitySummary, computeHealthStatus, computeHealthReasons, PLUGIN_STATE_METHODS, PLUGIN_RESET_METHODS } from './utils.js';
-import { createLatencyTracker } from './latency-tracker.js';
+import {
+  isMissingMethodResponse,
+  getReconnectDelayMs,
+  normalizeWsUrl,
+  formatCloseDetail,
+  isRecoverableCloseCode,
+  formatLatency,
+  connectionQuality,
+  connectionQualityEmoji,
+  resolveQualitySource,
+  formatQualitySummary,
+  computeHealthStatus,
+  computeHealthReasons,
+  PLUGIN_STATE_METHODS,
+  PLUGIN_RESET_METHODS,
+} from "./utils.js";
+import { createLatencyTracker } from "./latency-tracker.js";
 
 // Re-export so existing consumers of gateway-client.js don't break.
 export { normalizeWsUrl };
@@ -40,9 +55,9 @@ export class GatewayClient {
     this._pollIntervalMs = opts.pollIntervalMs ?? 1000;
     this._minProtocol = opts.minProtocol ?? 2;
     this._maxProtocol = opts.maxProtocol ?? 3;
-    this._clientVersion = opts.clientVersion ?? 'dev';
-    this._clientPlatform = opts.clientPlatform ?? '';
-    this._clientArch = opts.clientArch ?? '';
+    this._clientVersion = opts.clientVersion ?? "dev";
+    this._clientPlatform = opts.clientPlatform ?? "";
+    this._clientArch = opts.clientArch ?? "";
 
     /** @type {WebSocket|null} */
     this._ws = null;
@@ -53,9 +68,9 @@ export class GatewayClient {
 
     /** @type {number|null} */
     this.connectedSince = null;
-    this.connectedUrl = '';
+    this.connectedUrl = "";
     /** The URL currently being connected/reconnected to (persists across disconnects). */
-    this.targetUrl = '';
+    this.targetUrl = "";
     /** @type {number|null} Timestamp of last disconnect (for tooltip "disconnected X ago") */
     this.lastDisconnectedAt = null;
     /** @type {number|null} WebSocket close code from the last disconnect */
@@ -158,8 +173,10 @@ export class GatewayClient {
       // a false positive reconnect.
       if (this._pollingPaused) return;
       if (Date.now() - this._lastMessageAt > this._staleConnectionMs) {
-        this.onError?.('connection stale');
-        try { this._ws.close(); } catch {}
+        this.onError?.("connection stale");
+        try {
+          this._ws.close();
+        } catch {}
       }
     }, this._staleCheckIntervalMs);
   }
@@ -171,7 +188,7 @@ export class GatewayClient {
     }
   }
 
-  _sendPluginStateReq(prefix = 'p') {
+  _sendPluginStateReq(prefix = "p") {
     if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
     const now = Date.now();
     if (this._pluginStatePending) return;
@@ -183,11 +200,14 @@ export class GatewayClient {
     this._pluginStateLastSentAt = now;
     this._pluginStateSentAt = now;
     try {
-      this._ws.send(JSON.stringify({
-        type: 'req', id,
-        method: PLUGIN_STATE_METHODS[this._pluginStateMethodIndex],
-        params: {},
-      }));
+      this._ws.send(
+        JSON.stringify({
+          type: "req",
+          id,
+          method: PLUGIN_STATE_METHODS[this._pluginStateMethodIndex],
+          params: {},
+        }),
+      );
     } catch {
       // Socket closed between readyState check and send — clear pending flag
       // so the next poll can retry instead of permanently stalling.
@@ -203,7 +223,7 @@ export class GatewayClient {
       // Skip polling when paused (e.g. window hidden/minimized) to avoid
       // unnecessary WebSocket traffic. The consumer resumes via resumePolling().
       if (this._pollingPaused) return;
-      this._sendPluginStateReq('p');
+      this._sendPluginStateReq("p");
     }, this._pollIntervalMs);
   }
 
@@ -222,7 +242,7 @@ export class GatewayClient {
   connect(cfg) {
     if (this._destroyed) return;
     this.sessionAttemptCount++;
-    this.onConnectionStateChange?.('connecting');
+    this.onConnectionStateChange?.("connecting");
 
     if (this._reconnectCountdownTimer) {
       clearInterval(this._reconnectCountdownTimer);
@@ -235,7 +255,9 @@ export class GatewayClient {
 
     if (this._ws) {
       this._ws.onclose = null;
-      try { this._ws.close(); } catch {}
+      try {
+        this._ws.close();
+      } catch {}
       this._ws = null;
     }
 
@@ -243,7 +265,7 @@ export class GatewayClient {
     const url = normalizeWsUrl(cfg.url);
     // Persist the target URL so consumers can display it even when disconnected
     // (e.g. debug info "Saved URL:" or tray tooltip) without re-reading config.
-    this.targetUrl = url || '';
+    this.targetUrl = url || "";
 
     let ws;
     try {
@@ -251,32 +273,32 @@ export class GatewayClient {
     } catch (err) {
       // Invalid URL (empty string, missing protocol, etc.) throws synchronously.
       // Surface the error via callback instead of crashing the consumer.
-      this.onError?.(err?.message || 'Invalid WebSocket URL');
-      this.onHandshakeFailure?.(err?.message || 'Invalid WebSocket URL');
+      this.onError?.(err?.message || "Invalid WebSocket URL");
+      this.onHandshakeFailure?.(err?.message || "Invalid WebSocket URL");
       return;
     }
     this._ws = ws;
 
-    ws.addEventListener('open', () => {
-      this._connectReqId = this._nextId('c');
+    ws.addEventListener("open", () => {
+      this._connectReqId = this._nextId("c");
       const connectFrame = {
-        type: 'req',
+        type: "req",
         id: this._connectReqId,
-        method: 'connect',
+        method: "connect",
         params: {
           minProtocol: this._minProtocol,
           maxProtocol: this._maxProtocol,
           client: {
-            id: 'molt-mascot-desktop',
-            displayName: 'Molt Mascot',
+            id: "molt-mascot-desktop",
+            displayName: "Molt Mascot",
             version: this._clientVersion,
             platform: this._clientPlatform,
             arch: this._clientArch,
-            mode: 'gui',
+            mode: "gui",
             instanceId: this._instanceId,
           },
-          role: 'operator',
-          scopes: ['operator.read'],
+          role: "operator",
+          scopes: ["operator.read"],
           auth: cfg.token ? { token: cfg.token } : undefined,
         },
       };
@@ -287,31 +309,38 @@ export class GatewayClient {
         // and the send call. Surface the error and close so the onclose handler
         // triggers a reconnect (previously the socket would dangle until stale
         // detection kicked in after ~15s).
-        this.onError?.(err?.message || 'Failed to send connect frame');
-        try { ws.close(); } catch {}
+        this.onError?.(err?.message || "Failed to send connect frame");
+        try {
+          ws.close();
+        } catch {}
       }
     });
 
-    ws.addEventListener('message', (ev) => {
+    ws.addEventListener("message", (ev) => {
       this._lastMessageAt = Date.now();
       let msg;
-      try { msg = JSON.parse(String(ev.data)); } catch { return; }
+      try {
+        msg = JSON.parse(String(ev.data));
+      } catch {
+        return;
+      }
 
       // Forward raw message for consumers that want it
       this.onMessage?.(msg);
 
       // Snappy plugin state refresh on any event
-      if (this.hasPlugin && msg.type === 'event') {
-        this._sendPluginStateReq('p');
+      if (this.hasPlugin && msg.type === "event") {
+        this._sendPluginStateReq("p");
       }
 
       // Handshake success
-      if (msg.type === 'res' && msg.payload?.type === 'hello-ok') {
+      if (msg.type === "res" && msg.payload?.type === "hello-ok") {
         this._reconnectAttempt = 0;
         this.sessionConnectCount += 1;
         this.connectedSince = Date.now();
-        if (this.firstConnectedAt === null) this.firstConnectedAt = this.connectedSince;
-        this.connectedUrl = url || '';
+        if (this.firstConnectedAt === null)
+          this.firstConnectedAt = this.connectedSince;
+        this.connectedUrl = url || "";
         this._startStaleCheck();
 
         // Reset plugin method probing
@@ -322,16 +351,23 @@ export class GatewayClient {
         this._pluginResetReqId = null;
 
         this.onHandshakeSuccess?.();
-        this._sendPluginStateReq('s');
+        this._sendPluginStateReq("s");
         return;
       }
 
       // Handshake failure — detach onclose before closing so the reconnect-on-close
       // handler doesn't fire and start an infinite retry loop with bad credentials.
-      if (msg.type === 'res' && msg.id && msg.id === this._connectReqId && !msg.payload?.type?.startsWith('hello')) {
+      if (
+        msg.type === "res" &&
+        msg.id &&
+        msg.id === this._connectReqId &&
+        !msg.payload?.type?.startsWith("hello")
+      ) {
         const err = msg.payload?.error || msg.error;
-        const detail = typeof err === 'string' ? err
-          : err?.message || err?.code || 'connection rejected';
+        const detail =
+          typeof err === "string"
+            ? err
+            : err?.message || err?.code || "connection rejected";
         // Prevent reconnect loop: _cleanup nulls onclose before closing the socket.
         this._cleanup();
         this.onHandshakeFailure?.(String(detail));
@@ -339,15 +375,18 @@ export class GatewayClient {
       }
 
       // Clear in-flight flag for any plugin state response
-      if (msg.type === 'res' && msg.id && msg.id === this._pluginStateReqId) {
+      if (msg.type === "res" && msg.id && msg.id === this._pluginStateReqId) {
         this._pluginStatePending = false;
       }
 
       // Plugin state success
       if (
-        msg.type === 'res' &&
-        msg.id && msg.id === this._pluginStateReqId &&
-        msg.ok && msg.payload?.ok && msg.payload?.state?.mode
+        msg.type === "res" &&
+        msg.id &&
+        msg.id === this._pluginStateReqId &&
+        msg.ok &&
+        msg.payload?.ok &&
+        msg.payload?.state?.mode
       ) {
         this.hasPlugin = true;
         this._startPluginPoller();
@@ -361,24 +400,41 @@ export class GatewayClient {
       }
 
       // Plugin state method fallback
-      if (msg.type === 'res' && msg.id && msg.id === this._pluginStateReqId && this._isMissingMethod(msg)) {
+      if (
+        msg.type === "res" &&
+        msg.id &&
+        msg.id === this._pluginStateReqId &&
+        this._isMissingMethod(msg)
+      ) {
         this._pluginStatePending = false;
         if (this._pluginStateMethodIndex < PLUGIN_STATE_METHODS.length - 1) {
           this._pluginStateMethodIndex += 1;
           this._pluginStateLastSentAt = 0;
-          this._sendPluginStateReq('s');
+          this._sendPluginStateReq("s");
           return;
         }
       }
 
       // Plugin reset method fallback
-      if (msg.type === 'res' && msg.id && msg.id === this._pluginResetReqId && this._isMissingMethod(msg)) {
+      if (
+        msg.type === "res" &&
+        msg.id &&
+        msg.id === this._pluginResetReqId &&
+        this._isMissingMethod(msg)
+      ) {
         if (this._pluginResetMethodIndex < PLUGIN_RESET_METHODS.length - 1) {
           this._pluginResetMethodIndex += 1;
-          const id = this._nextId('reset');
+          const id = this._nextId("reset");
           this._pluginResetReqId = id;
           try {
-            ws.send(JSON.stringify({ type: 'req', id, method: PLUGIN_RESET_METHODS[this._pluginResetMethodIndex], params: {} }));
+            ws.send(
+              JSON.stringify({
+                type: "req",
+                id,
+                method: PLUGIN_RESET_METHODS[this._pluginResetMethodIndex],
+                params: {},
+              }),
+            );
           } catch {
             // Socket closed between readyState check and send — best-effort.
           }
@@ -387,7 +443,7 @@ export class GatewayClient {
       }
 
       // Native agent events (no plugin)
-      if (!this.hasPlugin && msg.type === 'event' && msg.event === 'agent') {
+      if (!this.hasPlugin && msg.type === "event" && msg.event === "agent") {
         this.onAgentEvent?.(msg.payload);
       }
     });
@@ -399,22 +455,29 @@ export class GatewayClient {
       this._pluginStateLastSentAt = 0;
       this.lastDisconnectedAt = Date.now();
       this.lastCloseCode = ev?.code ?? null;
-      this.lastCloseReason = (ev?.reason || '').trim() || null;
+      this.lastCloseReason = (ev?.reason || "").trim() || null;
       this.connectedSince = null;
-      this.connectedUrl = '';
+      this.connectedUrl = "";
       this.latencyMs = null;
       this._pluginStateSentAt = 0;
       this._stopStaleCheck();
 
       this.onPluginStateReset?.();
-      this.onDisconnect?.({ code: ev?.code, reason: this.lastCloseReason || undefined });
+      this.onDisconnect?.({
+        code: ev?.code,
+        reason: this.lastCloseReason || undefined,
+      });
 
       // Stop auto-reconnect on fatal close codes (auth failed, protocol error,
       // forbidden, etc.) — retrying with the same bad credentials is pointless.
       if (!isRecoverableCloseCode(ev?.code)) {
         const detail = formatCloseDetail(ev?.code, this.lastCloseReason);
-        this.onConnectionStateChange?.('disconnected', detail || 'fatal close');
-        this.onFatalClose?.({ code: ev?.code, reason: this.lastCloseReason || undefined, detail: detail || undefined });
+        this.onConnectionStateChange?.("disconnected", detail || "fatal close");
+        this.onFatalClose?.({
+          code: ev?.code,
+          reason: this.lastCloseReason || undefined,
+          detail: detail || undefined,
+        });
         return;
       }
 
@@ -422,7 +485,10 @@ export class GatewayClient {
       const reconnectAt = Date.now() + delay;
 
       const updateCountdown = () => {
-        const remaining = Math.max(0, Math.ceil((reconnectAt - Date.now()) / 1000));
+        const remaining = Math.max(
+          0,
+          Math.ceil((reconnectAt - Date.now()) / 1000),
+        );
         this.onReconnectCountdown?.(remaining);
       };
       updateCountdown();
@@ -433,13 +499,13 @@ export class GatewayClient {
           clearInterval(this._reconnectCountdownTimer);
           this._reconnectCountdownTimer = null;
         }
-        this.onConnectionStateChange?.('connecting');
+        this.onConnectionStateChange?.("connecting");
         this.connect(cfg);
       }, delay);
     };
 
-    ws.addEventListener('error', () => {
-      this.onError?.('WebSocket error');
+    ws.addEventListener("error", () => {
+      this.onError?.("WebSocket error");
     });
   }
 
@@ -470,7 +536,7 @@ export class GatewayClient {
     // and an ancient _lastMessageAt on the next tick, triggering a spurious reconnect.
     this._lastMessageAt = Date.now();
     // Immediate refresh so the UI doesn't show stale data for up to 1s
-    if (this.hasPlugin) this._sendPluginStateReq('v');
+    if (this.hasPlugin) this._sendPluginStateReq("v");
   }
 
   /**
@@ -484,7 +550,7 @@ export class GatewayClient {
   refreshPluginState() {
     this._pluginStatePending = false;
     this._pluginStateLastSentAt = 0;
-    this._sendPluginStateReq('r');
+    this._sendPluginStateReq("r");
   }
 
   /**
@@ -493,14 +559,17 @@ export class GatewayClient {
   sendPluginReset() {
     if (!this._ws || this._ws.readyState !== WebSocket.OPEN) return;
     this._pluginResetMethodIndex = 0;
-    const id = this._nextId('reset');
+    const id = this._nextId("reset");
     this._pluginResetReqId = id;
     try {
-      this._ws.send(JSON.stringify({
-        type: 'req', id,
-        method: PLUGIN_RESET_METHODS[0],
-        params: {},
-      }));
+      this._ws.send(
+        JSON.stringify({
+          type: "req",
+          id,
+          method: PLUGIN_RESET_METHODS[0],
+          params: {},
+        }),
+      );
     } catch {
       // Socket closed between readyState check and send — best-effort.
     }
@@ -530,11 +599,13 @@ export class GatewayClient {
     }
     if (this._ws) {
       this._ws.onclose = null;
-      try { this._ws.close(); } catch {}
+      try {
+        this._ws.close();
+      } catch {}
       this._ws = null;
     }
     this.connectedSince = null;
-    this.connectedUrl = '';
+    this.connectedUrl = "";
     // Intentionally do NOT clear targetUrl here — it persists across
     // reconnects so consumers can show which URL is being retried.
     this.hasPlugin = false;
@@ -567,9 +638,11 @@ export class GatewayClient {
 
   /** Whether the client has an active, authenticated gateway connection. */
   get isConnected() {
-    return this._ws !== null &&
+    return (
+      this._ws !== null &&
       this._ws.readyState === WebSocket.OPEN &&
-      this.connectedSince !== null;
+      this.connectedSince !== null
+    );
   }
 
   /** Current reconnect attempt count (for tooltip display). */
@@ -579,12 +652,16 @@ export class GatewayClient {
 
   /** The plugin state method name that last succeeded (null if not yet resolved). */
   get pluginStateMethod() {
-    return this.hasPlugin ? PLUGIN_STATE_METHODS[this._pluginStateMethodIndex] : null;
+    return this.hasPlugin
+      ? PLUGIN_STATE_METHODS[this._pluginStateMethodIndex]
+      : null;
   }
 
   /** The plugin reset method name currently in use (follows state method resolution). */
   get pluginResetMethod() {
-    return this.hasPlugin ? PLUGIN_RESET_METHODS[this._pluginResetMethodIndex] : null;
+    return this.hasPlugin
+      ? PLUGIN_RESET_METHODS[this._pluginResetMethodIndex]
+      : null;
   }
 
   /** Raw WebSocket readyState (0-3) or null if no socket exists. */
@@ -711,7 +788,9 @@ export class GatewayClient {
    */
   get connectionSuccessRate() {
     if (this.sessionAttemptCount <= 0) return null;
-    return Math.round((this.sessionConnectCount / this.sessionAttemptCount) * 100);
+    return Math.round(
+      (this.sessionConnectCount / this.sessionAttemptCount) * 100,
+    );
   }
 
   /**
@@ -746,7 +825,7 @@ export class GatewayClient {
    * @returns {"healthy"|"degraded"|"unhealthy"}
    */
   get healthStatus() {
-    if (this._destroyed) return 'unhealthy';
+    if (this._destroyed) return "unhealthy";
     return computeHealthStatus({
       isConnected: this.isConnected,
       isPollingPaused: this._pollingPaused,
@@ -795,15 +874,21 @@ export class GatewayClient {
   connectionUptimePercent(processUptimeMs) {
     if (this.firstConnectedAt === null) return null;
     const now = Date.now();
-    const totalMs = typeof processUptimeMs === 'number' && processUptimeMs > 0
-      ? processUptimeMs
-      : now - this.firstConnectedAt;
+    const totalMs =
+      typeof processUptimeMs === "number" && processUptimeMs > 0
+        ? processUptimeMs
+        : now - this.firstConnectedAt;
     if (totalMs <= 0) return null;
     const currentDisconnectGap = this.connectedSince
       ? 0
-      : (this.lastDisconnectedAt ? now - this.lastDisconnectedAt : 0);
+      : this.lastDisconnectedAt
+        ? now - this.lastDisconnectedAt
+        : 0;
     const timeSinceFirstConnect = now - this.firstConnectedAt;
-    const approxConnectedMs = Math.max(0, timeSinceFirstConnect - currentDisconnectGap);
+    const approxConnectedMs = Math.max(
+      0,
+      timeSinceFirstConnect - currentDisconnectGap,
+    );
     return Math.min(100, Math.round((approxConnectedMs / totalMs) * 100));
   }
 
@@ -882,36 +967,40 @@ export class GatewayClient {
   toString() {
     const parts = [];
     if (this._destroyed) {
-      parts.push('destroyed');
+      parts.push("destroyed");
     } else if (this.isConnected) {
       const uptime = this.uptimeSeconds;
-      parts.push(`connected ${uptime !== null ? `${uptime}s` : ''}`);
+      parts.push(`connected ${uptime !== null ? `${uptime}s` : ""}`);
       if (this.connectedUrl) parts.push(this.connectedUrl);
       parts.push(`plugin=${this.hasPlugin}`);
       const uptimePct = this.connectionUptimePercent();
-      if (uptimePct !== null && uptimePct < 100) parts.push(`uptime ${uptimePct}%`);
+      if (uptimePct !== null && uptimePct < 100)
+        parts.push(`uptime ${uptimePct}%`);
       if (this.latencyMs !== null) {
         const source = resolveQualitySource(this.latencyMs, this.latencyStats);
         const quality = connectionQuality(source ?? this.latencyMs);
-        const emoji = quality ? ` ${connectionQualityEmoji(quality)}` : '';
+        const emoji = quality ? ` ${connectionQualityEmoji(quality)}` : "";
         parts.push(`${formatLatency(source ?? this.latencyMs)}${emoji}`);
       }
       const health = this.healthStatus;
-      if (health === 'degraded' || health === 'unhealthy') {
-        const emoji = health === 'degraded' ? '⚠️' : '🔴';
+      if (health === "degraded" || health === "unhealthy") {
+        const emoji = health === "degraded" ? "⚠️" : "🔴";
         const reasons = this.healthReasons;
-        const reasonsSuffix = reasons.length > 0 ? `: ${reasons.join('; ')}` : '';
+        const reasonsSuffix =
+          reasons.length > 0 ? `: ${reasons.join("; ")}` : "";
         parts.push(`${emoji} ${health}${reasonsSuffix}`);
       }
     } else {
-      parts.push('disconnected');
+      parts.push("disconnected");
       if (this.targetUrl) parts.push(this.targetUrl);
-      if (this._reconnectAttempt > 0) parts.push(`retry #${this._reconnectAttempt}`);
+      if (this._reconnectAttempt > 0)
+        parts.push(`retry #${this._reconnectAttempt}`);
       const detail = this.lastCloseDetail;
       if (detail) parts.push(detail);
-      if (this.sessionConnectCount > 1) parts.push(`↻${this.sessionConnectCount - 1}`);
+      if (this.sessionConnectCount > 1)
+        parts.push(`↻${this.sessionConnectCount - 1}`);
     }
-    return `GatewayClient<${parts.join(', ')}>`;
+    return `GatewayClient<${parts.join(", ")}>`;
   }
 
   /**
