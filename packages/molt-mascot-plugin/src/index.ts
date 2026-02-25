@@ -125,6 +125,24 @@ export function isValidMode(value: unknown): value is Mode {
 /** @internal O(1) lookup set for isValidMode(). */
 const _validModesSet: ReadonlySet<Mode> = new Set(allowedModes);
 
+/**
+ * Coerce a value to a valid Mode string.
+ * Accepts strings (case-insensitive) and returns the canonical lowercase mode.
+ * Returns fallback for invalid/non-string values.
+ * Parity with coerceSize, coerceAlignment, coerceOpacity, coercePadding.
+ *
+ * @param v - Value to coerce
+ * @param fallback - Default mode if coercion fails
+ * @returns Valid Mode string
+ */
+export function coerceMode(v: unknown, fallback: Mode): Mode {
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if ((allowedModes as string[]).includes(lower)) return lower as Mode;
+  }
+  return fallback;
+}
+
 export const allowedAlignments: NonNullable<PluginConfig["alignment"]>[] = [
   "top-left",
   "top-right",

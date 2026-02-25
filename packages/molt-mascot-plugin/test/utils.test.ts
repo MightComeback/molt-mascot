@@ -12,6 +12,7 @@ import register, {
   formatRelativeTime,
   formatTimestampLocal,
   formatTimestampWithAge,
+  coerceMode,
   coerceSize,
   coerceAlignment,
   coerceOpacity,
@@ -1670,6 +1671,25 @@ describe("utils", () => {
     );
     expect(payload?.state?.mode).toBe("idle");
     expect(payload?.state?.currentTool).toBeUndefined();
+  });
+
+  it("coerceMode returns valid modes and falls back for invalid values", () => {
+    expect(coerceMode("idle", "thinking")).toBe("idle");
+    expect(coerceMode("thinking", "idle")).toBe("thinking");
+    expect(coerceMode("tool", "idle")).toBe("tool");
+    expect(coerceMode("error", "idle")).toBe("error");
+    expect(coerceMode("unknown", "idle")).toBe("idle");
+    expect(coerceMode(42, "idle")).toBe("idle");
+    expect(coerceMode(undefined, "error")).toBe("error");
+    expect(coerceMode(null, "thinking")).toBe("thinking");
+    // Case-insensitive + trimming
+    expect(coerceMode("IDLE", "error")).toBe("idle");
+    expect(coerceMode("Thinking", "idle")).toBe("thinking");
+    expect(coerceMode("  tool  ", "idle")).toBe("tool");
+    expect(coerceMode("  ERROR  ", "idle")).toBe("error");
+    // Empty/whitespace
+    expect(coerceMode("", "idle")).toBe("idle");
+    expect(coerceMode("   ", "idle")).toBe("idle");
   });
 
   it("coerceSize returns valid sizes and falls back for invalid values", () => {
