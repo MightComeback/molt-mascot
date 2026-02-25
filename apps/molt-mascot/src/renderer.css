@@ -3,6 +3,12 @@
  * Extracted from index.html to enable strict CSP (style-src 'self' instead of 'unsafe-inline').
  */
 
+/* Text selection (matches dark UI palette instead of jarring default blue) */
+::selection {
+  background: rgba(10, 132, 255, 0.4);
+  color: white;
+}
+
 /* Reset & base */
 html,
 body {
