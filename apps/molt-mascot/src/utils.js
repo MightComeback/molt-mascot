@@ -69,6 +69,7 @@ import {
   computeConnectionSuccessRate as _computeConnectionSuccessRate,
   connectionUptimePercent as _connectionUptimePercent,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -88,6 +89,7 @@ export {
   formatActiveSummary,
   formatProtocolRange,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 };
 export { formatAlignment };
 
@@ -411,8 +413,11 @@ export function buildTooltip(params) {
   if (typeof lastResetAt === "number" && lastResetAt > 0) {
     tip += ` · reset ${formatElapsed(lastResetAt, now)} ago`;
   }
-  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
-    tip += ` · reconnected ${sessionConnectCount - 1}×`;
+  {
+    const reconnectStr = formatReconnectCount(sessionConnectCount);
+    if (reconnectStr) {
+      tip += ` · reconnected ${sessionConnectCount - 1}×`;
+    }
   }
   // Surface connection success rate when below 100% — indicates failed connection
   // attempts (parity with context menu and tray tooltip reliability diagnostics).

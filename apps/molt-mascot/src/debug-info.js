@@ -94,6 +94,7 @@ import {
   formatOpacity,
   isSleepingMode,
   formatProtocolRange,
+  formatReconnectCount,
   memoryPressure,
   formatMemorySummary,
 } from "./utils.js";
@@ -407,19 +408,22 @@ export function buildDebugInfo(params) {
   if (typeof pid === "number" && pid > 0) {
     lines.push(`PID: ${pid}`);
   }
-  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
-    const attemptStr =
-      typeof sessionAttemptCount === "number" &&
-      sessionAttemptCount > sessionConnectCount
-        ? `, ${sessionAttemptCount} attempts`
-        : "";
-    const rateStr =
-      typeof connectionSuccessRate === "number" && connectionSuccessRate < 100
-        ? `, ${connectionSuccessRate}% success`
-        : "";
-    lines.push(
-      `Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr}${rateStr})`,
-    );
+  {
+    const reconnectStr = formatReconnectCount(sessionConnectCount);
+    if (reconnectStr) {
+      const attemptStr =
+        typeof sessionAttemptCount === "number" &&
+        sessionAttemptCount > sessionConnectCount
+          ? `, ${sessionAttemptCount} attempts`
+          : "";
+      const rateStr =
+        typeof connectionSuccessRate === "number" && connectionSuccessRate < 100
+          ? `, ${connectionSuccessRate}% success`
+          : "";
+      lines.push(
+        `Session connects: ${sessionConnectCount} (reconnected ${sessionConnectCount - 1}×${attemptStr}${rateStr})`,
+      );
+    }
   }
   // Connection uptime percentage: how much of the process lifetime was spent connected.
   // Helps diagnose flaky connections at a glance (e.g. "connected 23% of the time" → fix your network).

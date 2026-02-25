@@ -80,6 +80,7 @@ const {
   VALID_LATENCY_TRENDS,
   isValidLatencyTrend,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 } = require("./format-latency.cjs");
 
 // Re-export for back-compat (consumers may import VALID_HEALTH from here).
@@ -247,13 +248,16 @@ function formatModeUpdate(parsed) {
   }
   if (parsed.reconnectAttempt !== null && parsed.reconnectAttempt > 0)
     parts.push(`retry #${parsed.reconnectAttempt}`);
-  if (parsed.sessionConnectCount !== null && parsed.sessionConnectCount > 1) {
-    const failedStr =
-      parsed.sessionAttemptCount !== null &&
-      parsed.sessionAttemptCount > parsed.sessionConnectCount
-        ? `, ${parsed.sessionAttemptCount - parsed.sessionConnectCount} failed`
-        : "";
-    parts.push(`↻${parsed.sessionConnectCount - 1}${failedStr}`);
+  {
+    const reconnectStr = formatReconnectCount(parsed.sessionConnectCount);
+    if (reconnectStr) {
+      const failedStr =
+        parsed.sessionAttemptCount !== null &&
+        parsed.sessionAttemptCount > parsed.sessionConnectCount
+          ? `, ${parsed.sessionAttemptCount - parsed.sessionConnectCount} failed`
+          : "";
+      parts.push(`${reconnectStr}${failedStr}`);
+    }
   }
   if (parsed.closeDetail) parts.push(`close="${parsed.closeDetail}"`);
   if (parsed.targetUrl) parts.push(`→ ${parsed.targetUrl}`);

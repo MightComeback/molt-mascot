@@ -551,6 +551,26 @@ function formatLatencyWithQuality(ms, stats) {
   return `${latencyStr} ${connectionQualityEmoji(quality)}`;
 }
 
+/**
+ * Format a reconnect count as a compact "↻N" string.
+ * Returns "" when sessionConnectCount indicates no reconnections (≤1).
+ *
+ * DRYs up the repeated `↻${sessionConnectCount - 1}` pattern used across
+ * context-menu-items, debug-info, tray-icon, gateway-client, and parse-mode-update.
+ *
+ * @param {number|null|undefined} sessionConnectCount - Total successful handshakes since app launch
+ * @returns {string} e.g. "↻3" or "" (empty when no reconnections)
+ */
+function formatReconnectCount(sessionConnectCount) {
+  if (
+    typeof sessionConnectCount !== "number" ||
+    !Number.isFinite(sessionConnectCount) ||
+    sessionConnectCount <= 1
+  )
+    return "";
+  return `↻${sessionConnectCount - 1}`;
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -573,4 +593,5 @@ module.exports = {
   computeConnectionSuccessRate,
   connectionUptimePercent,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 };

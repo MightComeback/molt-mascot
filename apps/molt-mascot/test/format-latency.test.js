@@ -21,6 +21,7 @@ import {
   computeConnectionSuccessRate,
   connectionUptimePercent,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 } from "../src/format-latency.cjs";
 
 describe("formatLatency (canonical source)", () => {
@@ -897,5 +898,30 @@ describe("formatLatencyWithQuality", () => {
     expect(formatLatencyWithQuality(42)).toBe("42ms 🟢");
     expect(formatLatencyWithQuality(42, null)).toBe("42ms 🟢");
     expect(formatLatencyWithQuality(42, undefined)).toBe("42ms 🟢");
+  });
+});
+
+describe("formatReconnectCount", () => {
+  it('returns "↻N" for sessionConnectCount > 1', () => {
+    expect(formatReconnectCount(2)).toBe("↻1");
+    expect(formatReconnectCount(5)).toBe("↻4");
+    expect(formatReconnectCount(100)).toBe("↻99");
+  });
+
+  it("returns empty string when no reconnections", () => {
+    expect(formatReconnectCount(0)).toBe("");
+    expect(formatReconnectCount(1)).toBe("");
+  });
+
+  it("returns empty string for null/undefined/non-number", () => {
+    expect(formatReconnectCount(null)).toBe("");
+    expect(formatReconnectCount(undefined)).toBe("");
+    expect(formatReconnectCount("3")).toBe("");
+    expect(formatReconnectCount(NaN)).toBe("");
+    expect(formatReconnectCount(Infinity)).toBe("");
+  });
+
+  it("returns empty string for negative values", () => {
+    expect(formatReconnectCount(-1)).toBe("");
   });
 });

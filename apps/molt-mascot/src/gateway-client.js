@@ -21,6 +21,7 @@ import {
   computeHealthReasons,
   PLUGIN_STATE_METHODS,
   PLUGIN_RESET_METHODS,
+  formatReconnectCount,
 } from "./utils.js";
 import { createLatencyTracker } from "./latency-tracker.js";
 
@@ -997,8 +998,8 @@ export class GatewayClient {
         parts.push(`retry #${this._reconnectAttempt}`);
       const detail = this.lastCloseDetail;
       if (detail) parts.push(detail);
-      if (this.sessionConnectCount > 1)
-        parts.push(`↻${this.sessionConnectCount - 1}`);
+      const reconnectStr = formatReconnectCount(this.sessionConnectCount);
+      if (reconnectStr) parts.push(reconnectStr);
     }
     return `GatewayClient<${parts.join(", ")}>`;
   }

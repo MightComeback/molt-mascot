@@ -21,6 +21,7 @@ const {
   formatActiveSummary,
   computeConnectionSuccessRate,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 } = require("./format-latency.cjs");
 const { MODE_EMOJI } = require("./mode-emoji.cjs");
 const { formatAlignment } = require("./get-position.cjs");
@@ -384,15 +385,19 @@ function buildTrayTooltip(params) {
   if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     parts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
   }
-  if (typeof sessionConnectCount === "number" && sessionConnectCount > 1) {
-    const attemptSuffix =
-      typeof sessionAttemptCount === "number" &&
-      sessionAttemptCount > sessionConnectCount
-        ? `, ${sessionAttemptCount - sessionConnectCount} failed`
-        : "";
-    parts.push(
-      `↻${sessionConnectCount - 1} reconnect${sessionConnectCount - 1 === 1 ? "" : "s"}${attemptSuffix}`,
-    );
+  {
+    const reconnectStr = formatReconnectCount(sessionConnectCount);
+    if (reconnectStr) {
+      const attemptSuffix =
+        typeof sessionAttemptCount === "number" &&
+        sessionAttemptCount > sessionConnectCount
+          ? `, ${sessionAttemptCount - sessionConnectCount} failed`
+          : "";
+      const reconnects = sessionConnectCount - 1;
+      parts.push(
+        `${reconnectStr} reconnect${reconnects === 1 ? "" : "s"}${attemptSuffix}`,
+      );
+    }
   }
   // Surface connection uptime percentage when below 100% to highlight flappy connections.
   // At 100% (or null/unavailable) it's omitted to keep the tooltip clean.

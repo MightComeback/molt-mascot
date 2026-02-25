@@ -25,6 +25,7 @@ import {
   formatBytes,
   isSleepingMode,
   formatLatencyTrendArrow,
+  formatReconnectCount,
 } from "./utils.js";
 import { formatSizeWithDims } from "./size-presets.cjs";
 import { formatAlignment } from "./get-position.cjs";
@@ -143,7 +144,8 @@ export function buildContextMenuItems(state) {
 
   if (connectedSince) {
     let uptimeStr = `↑ ${formatElapsed(connectedSince, now)}`;
-    if (sessionConnectCount > 1) uptimeStr += ` ↻${sessionConnectCount - 1}`;
+    const reconnectStr = formatReconnectCount(sessionConnectCount);
+    if (reconnectStr) uptimeStr += ` ${reconnectStr}`;
     statusParts.push(uptimeStr);
   }
   if (!connectedSince && reconnectAttempt > 0) {
