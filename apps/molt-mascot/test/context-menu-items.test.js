@@ -353,6 +353,30 @@ describe("buildContextMenuItems", () => {
     expect(result.statusLine).not.toContain("📶");
   });
 
+  it("shows connection success rate when below 100%", () => {
+    const result = buildContextMenuItems({
+      ...BASE_STATE,
+      connectionSuccessRate: 75,
+    });
+    expect(result.statusLine).toContain("75% ok");
+  });
+
+  it("omits connection success rate at 100%", () => {
+    const result = buildContextMenuItems({
+      ...BASE_STATE,
+      connectionSuccessRate: 100,
+    });
+    expect(result.statusLine).not.toContain("% ok");
+  });
+
+  it("omits connection success rate when null", () => {
+    const result = buildContextMenuItems({
+      ...BASE_STATE,
+      connectionSuccessRate: null,
+    });
+    expect(result.statusLine).not.toContain("% ok");
+  });
+
   it("every non-separator item has an id", () => {
     const result = buildContextMenuItems(BASE_STATE);
     for (const item of result.items) {

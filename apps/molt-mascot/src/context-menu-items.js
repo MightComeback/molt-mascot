@@ -69,6 +69,7 @@ import { formatAlignment } from "./get-position.cjs";
  * @param {{ min: number, max: number, avg: number, median?: number, p95?: number, p99?: number, jitter?: number, samples: number }|null} [state.latencyStats] - Rolling latency statistics (used with latencyMs for connection quality emoji)
  * @param {string} [state.pluginVersion] - Plugin version string (shown alongside app version for diagnostics parity with tray tooltip)
  * @param {boolean} [state.reducedMotion=false] - Whether reduced-motion mode is active (accessibility toggle)
+ * @param {number|null} [state.connectionSuccessRate] - Connection success rate as integer percentage (0-100); shown when <100% for reliability diagnostics (parity with tray tooltip and debug info)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -103,6 +104,7 @@ export function buildContextMenuItems(state) {
     latencyStats = null,
     pluginVersion,
     reducedMotion = false,
+    connectionSuccessRate = null,
     now: nowOverride,
   } = state;
 
@@ -184,6 +186,15 @@ export function buildContextMenuItems(state) {
     connectionUptimePct < 100
   ) {
     statusParts.push(`📶 ${connectionUptimePct}%`);
+  }
+  // Surface connection success rate when below 100% — indicates failed connection
+  // attempts (parity with tray tooltip and debug info reliability diagnostics).
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate >= 0 &&
+    connectionSuccessRate < 100
+  ) {
+    statusParts.push(`${connectionSuccessRate}% ok`);
   }
   if (typeof processUptimeS === "number" && processUptimeS >= 60) {
     statusParts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
