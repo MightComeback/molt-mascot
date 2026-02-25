@@ -23,6 +23,8 @@ import register, {
   isValidMode,
   isValidAlignment,
   isValidSize,
+  isValidOpacity,
+  isValidPadding,
   successRate,
   sanitizeToolName,
   CONTENT_TOOLS,
@@ -2243,5 +2245,56 @@ describe("isValidSize", () => {
     expect(isValidSize(undefined)).toBe(false);
     expect(isValidSize(42)).toBe(false);
     expect(isValidSize(true)).toBe(false);
+  });
+});
+
+describe("isValidOpacity", () => {
+  it("returns true for valid opacity values", () => {
+    expect(isValidOpacity(0)).toBe(true);
+    expect(isValidOpacity(0.5)).toBe(true);
+    expect(isValidOpacity(1)).toBe(true);
+    expect(isValidOpacity(0.01)).toBe(true);
+    expect(isValidOpacity(0.99)).toBe(true);
+  });
+
+  it("returns false for out-of-range numbers", () => {
+    expect(isValidOpacity(-0.1)).toBe(false);
+    expect(isValidOpacity(1.1)).toBe(false);
+    expect(isValidOpacity(-1)).toBe(false);
+    expect(isValidOpacity(2)).toBe(false);
+  });
+
+  it("returns false for non-finite and non-number values", () => {
+    expect(isValidOpacity(NaN)).toBe(false);
+    expect(isValidOpacity(Infinity)).toBe(false);
+    expect(isValidOpacity(-Infinity)).toBe(false);
+    expect(isValidOpacity(null)).toBe(false);
+    expect(isValidOpacity(undefined)).toBe(false);
+    expect(isValidOpacity("0.5")).toBe(false);
+    expect(isValidOpacity(true)).toBe(false);
+  });
+});
+
+describe("isValidPadding", () => {
+  it("returns true for valid padding values", () => {
+    expect(isValidPadding(0)).toBe(true);
+    expect(isValidPadding(24)).toBe(true);
+    expect(isValidPadding(100)).toBe(true);
+    expect(isValidPadding(0.5)).toBe(true);
+  });
+
+  it("returns false for negative numbers", () => {
+    expect(isValidPadding(-1)).toBe(false);
+    expect(isValidPadding(-0.01)).toBe(false);
+  });
+
+  it("returns false for non-finite and non-number values", () => {
+    expect(isValidPadding(NaN)).toBe(false);
+    expect(isValidPadding(Infinity)).toBe(false);
+    expect(isValidPadding(-Infinity)).toBe(false);
+    expect(isValidPadding(null)).toBe(false);
+    expect(isValidPadding(undefined)).toBe(false);
+    expect(isValidPadding("24")).toBe(false);
+    expect(isValidPadding(true)).toBe(false);
   });
 });

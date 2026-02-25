@@ -206,6 +206,23 @@ export function coerceOpacity(v: unknown, fallback: number): number {
 }
 
 /**
+ * Check whether a value is a valid opacity (finite number in [0, 1]).
+ * Parity with isValidMode, isValidAlignment, isValidSize for
+ * consistent PluginConfig field validation.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a finite number between 0 and 1 inclusive
+ */
+export function isValidOpacity(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= 1
+  );
+}
+
+/**
  * Coerce a value to a valid padding (>= 0).
  * Accepts numbers and numeric strings. Returns fallback for invalid/negative values.
  */
@@ -213,6 +230,18 @@ export function coercePadding(v: unknown, fallback: number): number {
   const n = coerceNumber(v, NaN);
   if (Number.isFinite(n) && n >= 0) return n;
   return fallback;
+}
+
+/**
+ * Check whether a value is a valid padding (finite non-negative number).
+ * Parity with isValidOpacity, isValidMode, isValidAlignment, isValidSize
+ * for consistent PluginConfig field validation.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a finite non-negative number
+ */
+export function isValidPadding(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
 /**
