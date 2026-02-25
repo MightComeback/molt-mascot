@@ -48,8 +48,29 @@ const loadPrefs = _prefs.load;
 const savePrefs = _prefs.save;
 
 // CLI flags: --version prints version and exits (standard UX pattern).
+// Supports --json for machine-readable output (e.g. `molt-mascot --version --json`).
 if (process.argv.includes("--version") || process.argv.includes("-v")) {
-  process.stdout.write(`molt-mascot ${APP_VERSION}\n`);
+  if (process.argv.includes("--json")) {
+    const pluginPkg = require("@molt/mascot-plugin/package.json");
+    process.stdout.write(
+      JSON.stringify(
+        {
+          name: "molt-mascot",
+          version: APP_VERSION,
+          pluginVersion: pluginPkg.version,
+          electron: process.versions.electron,
+          chrome: process.versions.chrome,
+          node: process.versions.node,
+          platform: process.platform,
+          arch: process.arch,
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+  } else {
+    process.stdout.write(`molt-mascot ${APP_VERSION}\n`);
+  }
   process.exit(0);
 }
 
@@ -548,7 +569,7 @@ Usage:
   molt-mascot [options]
 
 Options:
-  -v, --version          Print version and exit
+  -v, --version          Print version and exit (add --json for structured output)
   -h, --help             Print this help and exit
   --gateway <url>        Gateway WebSocket URL (overrides env)
   --token <token>        Gateway auth token (overrides env)
