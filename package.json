@@ -33,7 +33,9 @@
     "format": "bun x @biomejs/biome check --write .",
     "format:check": "bun x @biomejs/biome check .",
     "check": "bun run lint && bun run format:check && bun run typecheck && bun run test",
-    "setup:hooks": "cp tools/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && cp tools/git-hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo '✅ Git hooks installed (pre-commit + pre-push).'"
+    "clean": "rm -rf packages/molt-mascot-plugin/dist apps/molt-mascot/dist && echo '✅ Build artifacts removed.'",
+    "setup:hooks": "cp tools/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && cp tools/git-hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo '✅ Git hooks installed (pre-commit + pre-push).'",
+    "postinstall": "[ -d .git ] && bun run setup:hooks || true"
   },
   "repository": {
     "type": "git",
