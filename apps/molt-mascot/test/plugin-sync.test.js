@@ -11,6 +11,7 @@ describe('createPluginSync', () => {
       onPadding: (v) => { calls.padding = v; },
       onSize: (v) => { calls.size = v; },
       onHideText: (v) => { calls.hideText = v; },
+      onReducedMotion: (v) => { calls.reducedMotion = v; },
       onVersion: (v) => { calls.version = v; },
       onToolCalls: (v) => { calls.toolCalls = v; },
       onToolErrors: (v) => { calls.toolErrors = v; },
@@ -29,6 +30,7 @@ describe('createPluginSync', () => {
       padding: 16,
       size: 'large',
       hideText: false,
+      reducedMotion: true,
       version: '1.0.0',
       toolCalls: 5,
       toolErrors: 1,
@@ -46,6 +48,7 @@ describe('createPluginSync', () => {
     expect(calls.padding).toBe(16);
     expect(calls.size).toBe('large');
     expect(calls.hideText).toBe(false);
+    expect(calls.reducedMotion).toBe(true);
     expect(calls.version).toBe('1.0.0');
     expect(calls.toolCalls).toBe(5);
     expect(calls.toolErrors).toBe(1);
@@ -56,7 +59,7 @@ describe('createPluginSync', () => {
     expect(calls.currentTool).toBe('web_fetch');
     expect(calls.lastResetAt).toBe(1700000050000);
     expect(changed).toEqual([
-      'clickThrough', 'alignment', 'opacity', 'padding', 'size', 'hideText',
+      'clickThrough', 'alignment', 'opacity', 'padding', 'size', 'hideText', 'reducedMotion',
       'version', 'toolCalls', 'toolErrors', 'startedAt',
       'agentSessions', 'activeAgents', 'activeTools', 'currentTool', 'lastResetAt',
     ]);

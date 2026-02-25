@@ -24,6 +24,7 @@ export type PluginConfig = {
     | "center";
   clickThrough?: boolean;
   hideText?: boolean;
+  reducedMotion?: boolean;
   padding?: number;
   opacity?: number;
   size?: Size;
@@ -36,6 +37,7 @@ export type State = {
   alignment?: PluginConfig["alignment"];
   clickThrough?: boolean;
   hideText?: boolean;
+  reducedMotion?: boolean;
   padding?: number;
   opacity?: number;
   size?: Size;
@@ -924,6 +926,7 @@ export default function register(api: PluginApi) {
   const alignment = coerceAlignment(cfg.alignment, "bottom-right");
   const clickThrough = coerceBoolean(cfg.clickThrough, false);
   const hideText = coerceBoolean(cfg.hideText, false);
+  const reducedMotion = coerceBoolean(cfg.reducedMotion, false);
 
   const padding = coercePadding(cfg.padding, 24);
   const opacity = coerceOpacity(cfg.opacity, 1);
@@ -938,6 +941,7 @@ export default function register(api: PluginApi) {
     alignment,
     clickThrough,
     hideText,
+    reducedMotion,
     padding,
     opacity,
     size,

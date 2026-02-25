@@ -46,6 +46,11 @@
         "default": false,
         "description": "Hide the text status pill (pixel-only mode)"
       },
+      "reducedMotion": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable animations (bobbing, blinking, pill pulse) for accessibility"
+      },
       "padding": {
         "type": "number",
         "default": 24,

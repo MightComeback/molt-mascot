@@ -255,6 +255,7 @@ Supported keys:
 - `alignment` (string): same values as `MOLT_MASCOT_ALIGN`
 - `clickThrough` (boolean): enable click-through mode
 - `hideText` (boolean): hide status text (pixel-only mode)
+- `reducedMotion` (boolean): disable animations (bobbing, blinking, pill pulse) for accessibility
 - `idleDelayMs` (number): idle timeout (default 800)
 - `errorHoldMs` (number): error display duration (default 5000)
 - `opacity` (number): window opacity (0.0 - 1.0)

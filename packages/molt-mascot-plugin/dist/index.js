@@ -43,6 +43,7 @@ __export(index_exports, {
   formatTimestampLocal: () => formatTimestampLocal,
   formatTimestampWithAge: () => formatTimestampWithAge,
   id: () => id,
+  sanitizeToolName: () => sanitizeToolName,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
   truncate: () => truncate,
@@ -86,6 +87,10 @@ var package_default = {
     typecheck: "tsc --noEmit",
     lint: "oxlint .",
     prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`
+  },
+  engines: {
+    bun: ">=1.1.0",
+    node: ">=20.0.0"
   },
   keywords: [
     "clawdbot",
@@ -189,7 +194,8 @@ function truncate(str, limit = 140) {
 }
 function formatCount(n) {
   if (!Number.isFinite(n) || n < 0) return "0";
-  if (n < 1e3) return `${Math.round(n)}`;
+  const rounded = Math.round(n);
+  if (rounded < 1e3) return `${rounded}`;
   const units = ["K", "M", "B", "T"];
   let value = n;
   for (const unit of units) {
@@ -265,6 +271,9 @@ function formatTimestampLocal(ts, now) {
   const day = date.getDate();
   const h = String(date.getHours()).padStart(2, "0");
   const m = String(date.getMinutes()).padStart(2, "0");
+  if (date.getFullYear() !== ref.getFullYear()) {
+    return `${mon} ${day} ${date.getFullYear()}, ${h}:${m}`;
+  }
   return `${mon} ${day}, ${h}:${m}`;
 }
 function formatTimestampWithAge(ts, now, style = "ago") {
@@ -557,6 +566,9 @@ function summarizeToolResultMessage(msg) {
   }
   return "tool error";
 }
+function sanitizeToolName(raw) {
+  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
+}
 var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   "read",
   "write",
@@ -631,6 +643,7 @@ function register(api) {
   const alignment = coerceAlignment(cfg.alignment, "bottom-right");
   const clickThrough = coerceBoolean(cfg.clickThrough, false);
   const hideText = coerceBoolean(cfg.hideText, false);
+  const reducedMotion = coerceBoolean(cfg.reducedMotion, false);
   const padding = coercePadding(cfg.padding, 24);
   const opacity = coerceOpacity(cfg.opacity, 1);
   const size = coerceSize(cfg.size, "medium");
@@ -641,6 +654,7 @@ function register(api) {
     alignment,
     clickThrough,
     hideText,
+    reducedMotion,
     padding,
     opacity,
     size,
@@ -680,7 +694,7 @@ function register(api) {
       }
     }
     if (found) {
-      state.currentTool = found.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
+      state.currentTool = sanitizeToolName(found);
     } else {
       delete state.currentTool;
     }
@@ -815,7 +829,7 @@ function register(api) {
       agentToolStacks.set(key, stack);
       agentLastToolTs.set(key, Date.now());
       state.toolCalls = (state.toolCalls ?? 0) + 1;
-      state.currentTool = toolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
+      state.currentTool = sanitizeToolName(toolName);
       syncModeFromCounters();
     };
     const onToolEnd = async (event) => {
@@ -830,7 +844,7 @@ function register(api) {
       const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
       const toolFromEvent = event?.tool ?? event?.toolName ?? event?.name;
       const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
-      const toolName = rawToolName.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "").slice(0, 20);
+      const toolName = sanitizeToolName(rawToolName).slice(0, 20);
       if (infraError) {
         const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
@@ -971,6 +985,7 @@ function register(api) {
   formatTimestampLocal,
   formatTimestampWithAge,
   id,
+  sanitizeToolName,
   successRate,
   summarizeToolResultMessage,
   truncate,

@@ -245,6 +245,11 @@ const _pluginSync = createPluginSync({
     updateHudVisibility();
     if (window.moltMascot?.setHideText) window.moltMascot.setHideText(v);
   },
+  onReducedMotion(v) {
+    reducedMotion = v || (motionQuery?.matches ?? false);
+    _syncReducedMotionClass();
+    if (window.moltMascot?.setReducedMotion) window.moltMascot.setReducedMotion(v);
+  },
   onVersion(v) { pluginVersion = v; },
   onToolCalls(v) { pluginToolCalls = v; },
   onToolErrors(v) { pluginToolErrors = v; },

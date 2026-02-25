@@ -51,6 +51,7 @@ export const SYNC_PROPS = [
   ['padding',      'number',  'onPadding'],
   ['size',         'string',  'onSize'],
   ['hideText',     'boolean', 'onHideText'],
+  ['reducedMotion','boolean', 'onReducedMotion'],
   ['version',      'string',  'onVersion'],
   ['toolCalls',    'number',  'onToolCalls'],
   ['toolErrors',   'number',  'onToolErrors'],
@@ -85,6 +86,7 @@ function emptyCache() {
  * @param {function} [callbacks.onPadding]      - Called with (number) when padding changes.
  * @param {function} [callbacks.onSize]         - Called with (string) when size changes.
  * @param {function} [callbacks.onHideText]     - Called with (boolean) when hideText changes.
+ * @param {function} [callbacks.onReducedMotion] - Called with (boolean) when reducedMotion changes.
  * @param {function} [callbacks.onVersion]      - Called with (string) when version changes.
  * @param {function} [callbacks.onToolCalls]    - Called with (number) when toolCalls changes.
  * @param {function} [callbacks.onToolErrors]   - Called with (number) when toolErrors changes.

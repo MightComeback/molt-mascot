@@ -8,6 +8,7 @@ type PluginConfig = {
     alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
     clickThrough?: boolean;
     hideText?: boolean;
+    reducedMotion?: boolean;
     padding?: number;
     opacity?: number;
     size?: Size;
@@ -22,6 +23,7 @@ type State = {
     alignment?: PluginConfig["alignment"];
     clickThrough?: boolean;
     hideText?: boolean;
+    reducedMotion?: boolean;
     padding?: number;
     opacity?: number;
     size?: Size;
@@ -205,6 +207,15 @@ declare function cleanErrorString(s: string): string;
  */
 declare function summarizeToolResultMessage(msg: any): string;
 /**
+ * Strip common tool-name prefixes added by LLM function-calling wrappers.
+ * e.g. "default_api:exec" → "exec", "functions.read" → "read",
+ * "multi_tool_use.parallel" → "parallel".
+ *
+ * Centralizes the repeated 3-replace chain used in onToolStart, recalcCurrentTool,
+ * and onToolEnd to avoid drift and make the stripping logic testable.
+ */
+declare function sanitizeToolName(raw: string): string;
+/**
  * Tools that return raw content (like 'read') can contain "error:" in the text
  * without actually failing. For these tools we disable text-sniffing for errors
  * and rely on explicit failure signals (status/exitCode/success/isError).
@@ -219,4 +230,4 @@ declare const CONTENT_TOOLS: ReadonlySet<string>;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedSizes, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
