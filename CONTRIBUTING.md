@@ -193,5 +193,8 @@ bun test packages/molt-mascot-plugin  # plugin tests only
 ## Commit Convention
 
 - Signed commits (`git commit -S`) required.
-- Prefix: `feat(scope):`, `fix(scope):`, `docs:`, `test:`, `refactor:`.
+- Format: `type(scope): description` (scope is optional).
+- Validated by `commit-msg` hook. Accepted types:
+  `feat` `fix` `refactor` `test` `docs` `dx` `perf` `ci` `build` `chore` `style` `harden`
+- Breaking changes: append `!` before the colon (e.g. `feat(tray)!: remove legacy tooltip`).
 - Keep commits atomic — one logical change per commit.
