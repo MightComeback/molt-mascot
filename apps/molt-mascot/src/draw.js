@@ -351,6 +351,36 @@ export function createBlinkState(opts = {}) {
  * Static overlays use a single-element array with frameDurationMs=0.
  * Exported for testing and external tooling.
  */
+/**
+ * Canonical list of modes that have overlay animations.
+ * Derived from OVERLAY_TIMING keys — single source of truth for runtime validation.
+ * Mirrors VALID_MODES, VALID_HEALTH_STATUSES, VALID_WS_READY_STATES, etc.
+ */
+export const VALID_OVERLAY_MODES = Object.freeze([
+  "thinking",
+  "tool",
+  "error",
+  "sleep",
+  "connecting",
+  "connected",
+  "disconnected",
+]);
+
+/** @internal O(1) lookup set for isValidOverlayMode(). */
+const _validOverlayModesSet = new Set(VALID_OVERLAY_MODES);
+
+/**
+ * Check whether a string is a recognized overlay mode (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidMode, isValidHealth,
+ * isValidWsReadyState, isValidMemoryPressureLevel, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidOverlayMode(value) {
+  return typeof value === "string" && _validOverlayModesSet.has(value);
+}
+
 export const OVERLAY_TIMING = {
   thinking: { sprites: overlay.thinking, frameDurationMs: 600 },
   tool: { sprites: overlay.tool, frameDurationMs: 700 },

@@ -24,6 +24,8 @@ import {
   BLINK_DURATION_MS,
   BLINK_MIN_INTERVAL_MS,
   BLINK_MAX_INTERVAL_MS,
+  VALID_OVERLAY_MODES,
+  isValidOverlayMode,
 } from "../src/draw.js";
 
 // Minimal canvas context mock that records draw calls
@@ -690,6 +692,40 @@ describe("OVERLAY_TIMING", () => {
     ]) {
       expect(OVERLAY_TIMING[mode].frameDurationMs).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("VALID_OVERLAY_MODES", () => {
+  it("matches OVERLAY_TIMING keys", () => {
+    const timingKeys = Object.keys(OVERLAY_TIMING).sort();
+    const validModes = [...VALID_OVERLAY_MODES].sort();
+    expect(validModes).toEqual(timingKeys);
+  });
+
+  it("is a frozen array", () => {
+    expect(Object.isFrozen(VALID_OVERLAY_MODES)).toBe(true);
+  });
+});
+
+describe("isValidOverlayMode", () => {
+  it("accepts all valid overlay modes", () => {
+    for (const mode of VALID_OVERLAY_MODES) {
+      expect(isValidOverlayMode(mode)).toBe(true);
+    }
+  });
+
+  it("rejects non-overlay modes", () => {
+    expect(isValidOverlayMode("idle")).toBe(false);
+    expect(isValidOverlayMode("sleeping")).toBe(false);
+    expect(isValidOverlayMode("")).toBe(false);
+    expect(isValidOverlayMode("THINKING")).toBe(false);
+  });
+
+  it("rejects non-string values", () => {
+    expect(isValidOverlayMode(null)).toBe(false);
+    expect(isValidOverlayMode(undefined)).toBe(false);
+    expect(isValidOverlayMode(42)).toBe(false);
+    expect(isValidOverlayMode(true)).toBe(false);
   });
 });
 
