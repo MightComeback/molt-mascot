@@ -8,7 +8,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { isValidAlignment } = require("./get-position.cjs");
+const { isValidAlignment, isValidPadding } = require("./get-position.cjs");
 const { isValidSize } = require("./size-presets.cjs");
 const { isValidOpacity } = require("./opacity-presets.cjs");
 
@@ -346,7 +346,7 @@ const PREF_SCHEMA = {
   padding: {
     type: "number",
     default: 24,
-    validate: (v) => Number.isFinite(v) && v >= 0,
+    validate: isValidPadding,
     description: "Edge padding in pixels when snapped to an alignment",
   },
   opacity: {
