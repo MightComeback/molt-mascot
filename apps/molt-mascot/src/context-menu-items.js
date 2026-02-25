@@ -71,6 +71,7 @@ import { formatAlignment } from "./get-position.cjs";
  * @param {string} [state.pluginVersion] - Plugin version string (shown alongside app version for diagnostics parity with tray tooltip)
  * @param {boolean} [state.reducedMotion=false] - Whether reduced-motion mode is active (accessibility toggle)
  * @param {number|null} [state.connectionSuccessRate] - Connection success rate as integer percentage (0-100); shown when <100% for reliability diagnostics (parity with tray tooltip and debug info)
+ * @param {string|null} [state.targetUrl] - Gateway URL being connected/reconnected to (used to conditionally show "Copy Gateway URL" menu item when disconnected)
  * @param {number} [state.now] - Current timestamp (defaults to Date.now(); pass for testability)
  * @returns {{ statusLine: string, items: MenuItemDescriptor[] }}
  */
@@ -106,6 +107,7 @@ export function buildContextMenuItems(state) {
     pluginVersion,
     reducedMotion = false,
     connectionSuccessRate = null,
+    targetUrl = null,
     now: nowOverride,
   } = state;
 
@@ -250,7 +252,7 @@ export function buildContextMenuItems(state) {
       label: "Copy Debug Info",
       hint: `${modKey}${shiftKey}I`,
     },
-    ...(connectedSince || state.targetUrl
+    ...(connectedSince || targetUrl
       ? [{ id: "copy-gateway-url", label: "Copy Gateway URL" }]
       : []),
     {
