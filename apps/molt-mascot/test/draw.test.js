@@ -702,6 +702,25 @@ describe("eye constants", () => {
     expect(EYE_ROW).toBeLessThan(32);
     expect(EYE_SIZE).toBeGreaterThan(0);
   });
+
+  it("align with eye pixels (w/b) in the sprite data", async () => {
+    // Dynamically import sprites to validate eye constants match actual sprite pixel data.
+    // The blink effect paints over these pixels with body red, so they must be eye pixels
+    // (white 'w' or pupil 'b'), not highlight 'h' or body 'r'.
+    const { lobsterIdle } = await import("../src/sprites.js");
+    const eyeChars = new Set(["w", "b"]);
+    for (const frame of lobsterIdle) {
+      for (let dy = 0; dy < EYE_SIZE; dy++) {
+        for (let dx = 0; dx < EYE_SIZE; dx++) {
+          const row = EYE_ROW + dy;
+          const leftCol = EYE_LEFT_COL + dx;
+          const rightCol = EYE_RIGHT_COL + dx;
+          expect(eyeChars.has(frame[row][leftCol])).toBe(true);
+          expect(eyeChars.has(frame[row][rightCol])).toBe(true);
+        }
+      }
+    }
+  });
 });
 
 describe("shadow constants", () => {

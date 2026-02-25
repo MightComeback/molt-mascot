@@ -10,8 +10,8 @@ import { palette, lobsterIdle, overlay } from "./sprites.js";
 import { isSleepingMode } from "./utils.js";
 
 // Eye geometry extracted from the sprite grid (row/col/size in sprite pixels).
-export const EYE_LEFT_COL = 14;
-export const EYE_RIGHT_COL = 18;
+export const EYE_LEFT_COL = 12;
+export const EYE_RIGHT_COL = 16;
 export const EYE_ROW = 8;
 export const EYE_SIZE = 2; // 2×2 sprite pixels per eye
 
