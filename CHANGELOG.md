@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Explicitly set `nodeIntegration: false` in BrowserWindow webPreferences for defense-in-depth (was already the Electron default, now explicit for auditability)
+- Hoisted `capitalize` utility to shared `@molt/mascot-plugin` package (single source of truth; previously duplicated in renderer utils)
+- Renderer uses preloaded `processStartedAt` from preload bridge instead of recomputing from `process.uptime()` (eliminates drift between main/renderer clocks)
+- Pill tooltip alignment now uses directional arrow indicators (parity with tray tooltip, context menu, and debug info — e.g. "↘ bottom-right")
+
+### Fixed
+- Biome formatter now excludes `dist/` directories — prevents formatting build artifacts and fixes utils formatting inconsistencies
 
 ### Added
 - `--version --json` CLI flag combination — outputs structured version info (app, plugin, Electron, Chrome, Node, platform, arch) as JSON for scripting and CI pipelines
