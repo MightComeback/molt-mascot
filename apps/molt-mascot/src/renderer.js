@@ -1516,10 +1516,7 @@ function buildDebugInfo() {
     memory: performance?.memory,
     versions: window.moltMascot?.versions,
     processUptimeS: window.moltMascot?.processUptimeS?.(),
-    processStartedAt: (() => {
-      const u = window.moltMascot?.processUptimeS?.();
-      return typeof u === "number" ? Date.now() - u * 1000 : null;
-    })(),
+    processStartedAt: window.moltMascot?.processStartedAt ?? null,
     processMemoryRssBytes: window.moltMascot?.processMemoryRssBytes?.(),
     sessionConnectCount,
     sessionAttemptCount,
