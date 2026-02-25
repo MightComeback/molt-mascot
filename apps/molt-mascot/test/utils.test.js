@@ -1576,6 +1576,15 @@ describe("RECOVERABLE_CLOSE_CODES", () => {
       expect(isRecoverableCloseCode(code)).toBe(true);
     }
   });
+
+  it("every recoverable code has a human-readable label in WS_CLOSE_CODE_LABELS", () => {
+    for (const code of RECOVERABLE_CLOSE_CODES) {
+      const label = WS_CLOSE_CODE_LABELS[code];
+      expect(label).toBeDefined();
+      expect(typeof label).toBe("string");
+      expect(label.length).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe("connectionUptimePercent", () => {
