@@ -25,7 +25,8 @@ const { formatAlignment } = require("./get-position.cjs");
 
 // 16×16 pixel-art lobster matching the mascot sprite style.
 // Legend: . = transparent, k = outline #4a0f14, r = body #e0433a,
-//         h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014
+//         h = highlight #ff8b7f, w = eye white #f8f7ff, b = pupil #101014,
+//         c = claw accent #ff6b35
 const TRAY_SPRITE = Object.freeze([
   "......kkkk......",
   ".....krrrrk.....",
