@@ -122,6 +122,21 @@ function stepOpacity(current, direction, opts = {}) {
   return Math.min(max, Math.max(min, Math.round(raw * precision) / precision));
 }
 
+/**
+ * Check whether a value is a valid opacity (finite number in [0, 1]).
+ * Centralizes the repeated `Number.isFinite(v) && v >= 0 && v <= 1` check
+ * used in prefs validation, plugin-sync, and status-cli.
+ *
+ * Mirrors isValidAlignment, isValidSize, isValidMode, isValidHealth,
+ * and isValidLatencyTrend for a consistent validation API.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidOpacity(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
 module.exports = {
   OPACITY_PRESETS,
   DEFAULT_OPACITY_INDEX,
@@ -130,5 +145,6 @@ module.exports = {
   findOpacityIndex,
   formatOpacity,
   isPresetOpacity,
+  isValidOpacity,
   stepOpacity,
 };

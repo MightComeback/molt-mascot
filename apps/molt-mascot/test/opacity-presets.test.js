@@ -7,6 +7,7 @@ const {
   findOpacityIndex,
   formatOpacity,
   isPresetOpacity,
+  isValidOpacity,
   stepOpacity,
 } = require('../src/opacity-presets.cjs');
 
@@ -230,6 +231,37 @@ describe('opacity-presets', () => {
     it('handles invalid current value', () => {
       expect(stepOpacity(NaN, -1)).toBe(0.9);
       expect(stepOpacity(undefined, 1)).toBe(1.0);
+    });
+  });
+
+  describe('isValidOpacity', () => {
+    it('accepts valid opacity values', () => {
+      expect(isValidOpacity(0)).toBe(true);
+      expect(isValidOpacity(0.5)).toBe(true);
+      expect(isValidOpacity(1)).toBe(true);
+      expect(isValidOpacity(0.001)).toBe(true);
+      expect(isValidOpacity(0.999)).toBe(true);
+    });
+
+    it('rejects out-of-range numbers', () => {
+      expect(isValidOpacity(-0.1)).toBe(false);
+      expect(isValidOpacity(1.1)).toBe(false);
+      expect(isValidOpacity(2)).toBe(false);
+      expect(isValidOpacity(-1)).toBe(false);
+    });
+
+    it('rejects non-finite numbers', () => {
+      expect(isValidOpacity(NaN)).toBe(false);
+      expect(isValidOpacity(Infinity)).toBe(false);
+      expect(isValidOpacity(-Infinity)).toBe(false);
+    });
+
+    it('rejects non-number types', () => {
+      expect(isValidOpacity('0.5')).toBe(false);
+      expect(isValidOpacity(null)).toBe(false);
+      expect(isValidOpacity(undefined)).toBe(false);
+      expect(isValidOpacity(true)).toBe(false);
+      expect(isValidOpacity({})).toBe(false);
     });
   });
 });

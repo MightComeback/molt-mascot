@@ -1,6 +1,6 @@
 const { GATEWAY_URL_KEYS, GATEWAY_TOKEN_KEYS, resolveEnvWithSource, parseEnvNumber, parseEnvBoolean } = require('./env-keys.cjs');
 const { formatDuration, formatTimestampLocal } = require('@molt/mascot-plugin');
-const { formatOpacity } = require('./opacity-presets.cjs');
+const { formatOpacity, isValidOpacity } = require('./opacity-presets.cjs');
 const { formatProtocolRange } = require('./format-latency.cjs');
 
 /**
@@ -60,7 +60,7 @@ function resolveStatusConfig({
     const envVal = parseEnvNumber(env, 'MOLT_MASCOT_OPACITY', -1, { min: 0, max: 1 });
     if (envVal >= 0) return envVal;
     // Prefer raw opacity value (preserves arbitrary scroll-wheel values).
-    if (typeof prefs.opacity === 'number' && Number.isFinite(prefs.opacity) && prefs.opacity >= 0 && prefs.opacity <= 1) {
+    if (isValidOpacity(prefs.opacity)) {
       return prefs.opacity;
     }
     // Fall back to preset index for backward compatibility.

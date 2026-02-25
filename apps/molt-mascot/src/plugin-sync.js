@@ -12,6 +12,7 @@
  */
 
 import { allowedAlignments, allowedSizes } from '@molt/mascot-plugin';
+import { isValidOpacity } from './opacity-presets.cjs';
 
 // Pre-build Sets for O(1) lookup in the hot sync path.
 const _validAlignments = new Set(allowedAlignments);
@@ -27,7 +28,7 @@ const _validSizes = new Set(allowedSizes);
 const VALIDATORS = {
   alignment: (v) => _validAlignments.has(v),
   size: (v) => _validSizes.has(v),
-  opacity: (v) => v >= 0 && v <= 1,
+  opacity: isValidOpacity,
   padding: (v) => v >= 0,
   toolCalls: (v) => v >= 0 && Number.isInteger(v),
   toolErrors: (v) => v >= 0 && Number.isInteger(v),

@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { isValidAlignment } = require('./get-position.cjs');
 const { isValidSize } = require('./size-presets.cjs');
+const { isValidOpacity } = require('./opacity-presets.cjs');
 
 /**
  * Create a preferences manager.
@@ -294,7 +295,7 @@ const PREF_SCHEMA = {
   size:         { type: 'string', default: 'medium', validate: (v) => isValidSize(v), description: 'Window size preset label (tiny, small, medium, large, xlarge)' },
   opacityIndex: { type: 'number', default: null, validate: (v) => Number.isInteger(v) && v >= 0, description: 'Numeric index into OPACITY_PRESETS (legacy; prefer "opacity")' },
   padding:      { type: 'number', default: 24, validate: (v) => Number.isFinite(v) && v >= 0, description: 'Edge padding in pixels when snapped to an alignment' },
-  opacity:      { type: 'number', default: 1.0, validate: (v) => Number.isFinite(v) && v >= 0 && v <= 1, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
+  opacity:      { type: 'number', default: 1.0, validate: isValidOpacity, description: 'Window opacity (0.0 = transparent, 1.0 = opaque)' },
   clickThrough: { type: 'boolean', default: false, description: 'Ghost mode — clicks pass through the mascot window' },
   hideText:     { type: 'boolean', default: false, description: 'Hide the HUD pill text overlay' },
   gatewayUrl:   { type: 'string', default: '', validate: (v) => v === '' || /^wss?:\/\/.+/.test(v), description: 'Gateway WebSocket URL (ws:// or wss://)' },
