@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Renderer uses preloaded `processStartedAt` from preload bridge instead of recomputing from `process.uptime()` (eliminates drift between main/renderer clocks)
 - Pill tooltip alignment now uses directional arrow indicators (parity with tray tooltip, context menu, and debug info — e.g. "↘ bottom-right")
 
+### Documentation
+- Added missing connection timing CLI flags to README (`--poll-interval`, `--reconnect-base`, `--reconnect-max`, `--stale-connection`, `--stale-check-interval`) — flags were implemented in `--help` and shell completions but absent from the README CLI reference
+
 ### Fixed
 - Biome formatter now excludes `dist/` directories — prevents formatting build artifacts and fixes utils formatting inconsistencies
 

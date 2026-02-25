@@ -189,6 +189,11 @@ Options:
   --idle-delay <ms>      Delay before returning to idle after activity (default: 800)
   --error-hold <ms>      How long to show error state before reverting (default: 5000)
   --reduced-motion       Disable animations (bob, blink); overrides OS preference
+  --poll-interval <ms>   Plugin state poll interval (default: 1000, min: 100)
+  --reconnect-base <ms>  Initial reconnect delay (default: 1500)
+  --reconnect-max <ms>   Max reconnect delay / backoff cap (default: 30000)
+  --stale-connection <ms>  Stale connection timeout (default: 15000)
+  --stale-check-interval <ms>  Stale check interval (default: 5000)
   --status               Print resolved config summary and exit
   --start-hidden         Launch hidden (tray-only); toggle with Cmd/Ctrl+Shift+V
   --no-tray              Disable system tray icon (useful on Linux DEs without tray support)
