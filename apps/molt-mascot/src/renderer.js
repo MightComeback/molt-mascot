@@ -28,6 +28,7 @@ import { buildPillLabel, PILL_MAX_ERROR_LEN } from "./pill-label.js";
 import { buildDebugInfo as _buildDebugInfo } from "./debug-info.js";
 import { createFpsCounter } from "./fps-counter.js";
 import { createLatencyTracker } from "./latency-tracker.js";
+import { PLUGIN_STATE_THROTTLE_MS } from "./gateway-client.js";
 import {
   drawLobster as _drawLobster,
   createBlinkState,
@@ -784,7 +785,7 @@ function sendPluginStateReq(prefix = "p") {
   // Keep at most one in flight at a time, and also rate-limit a little.
   const now = Date.now();
   if (pluginStatePending) return;
-  if (now - pluginStateLastSentAt < 150) return;
+  if (now - pluginStateLastSentAt < PLUGIN_STATE_THROTTLE_MS) return;
 
   const id = nextId(prefix);
   pluginStateReqId = id;
