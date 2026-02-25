@@ -44,5 +44,5 @@ Out of scope:
 - **Context isolation** is enforced (`contextIsolation: true`); the renderer has no direct access to Node.js APIs.
 - **Content Security Policy** restricts scripts to `'self'` and connections to `ws:`/`wss:` only.
 - **IPC whitelist** — only explicitly bridged methods are exposed via `contextBridge`.
-- **URL validation** — `open-external` IPC only allows `https://` URLs to prevent shell injection.
+- **URL validation** — `open-external` IPC only allows `https://` URLs to prevent shell injection. WebSocket URLs reject embedded credentials (`ws://user:pass@host`) to prevent token leakage in logs and tooltips.
 - **No remote content** — the app loads only local HTML/JS; no third-party resources.

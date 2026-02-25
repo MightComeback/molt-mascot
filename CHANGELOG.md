@@ -6,11 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Connection success rate in context menu status line — shown when below 100% for reliability diagnostics (parity with tray tooltip and debug info)
+- Multi-character type-ahead keyboard navigation in context menu — typing "fo" jumps to "Force Reconnect" past other items (matches native OS menu behavior with 500ms reset timeout)
+- Windows High Contrast Mode support for pill, context menu, and setup form — ensures visibility when OS forces high-contrast colors
+
 ### Changed
 - Plain `--version` output now includes plugin version, Electron version, and platform/arch (e.g. `molt-mascot 1.0.0 · plugin 1.0.0 · Electron 30.0.0 · darwin arm64`) — previously only showed `molt-mascot VERSION`; structured `--version --json` was already comprehensive
+- Extracted `computeShadowParams` from `drawLobster` as a pure testable function for shadow ellipse geometry
 
 ### Fixed
 - Exposed `copyStatus` IPC bridge in preload — `molt-mascot:copy-status` was handled in electron-main (global shortcut ⌘⇧P, tray menu) but unreachable from renderer context menu; now uses main-process clipboard API (parity with `copyDebugInfo`)
+- Corrected eye blink coordinates to match actual sprite eye pixel positions
+- Context menu `transform-origin` now based on clamped position for correct animation direction when opening near screen edges
+
+### Performance
+- Added `will-change` CSS hints to animated pill states for GPU compositing
 
 ### Security
 - Added explicit `img-src 'self'` CSP directive — previously fell back to `default-src 'self'` implicitly; now explicit for auditability (parity with `font-src`, `media-src`, `worker-src` directives)
