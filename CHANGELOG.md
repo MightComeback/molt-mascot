@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Plain `--version` output now includes plugin version, Electron version, and platform/arch (e.g. `molt-mascot 1.0.0 · plugin 1.0.0 · Electron 30.0.0 · darwin arm64`) — previously only showed `molt-mascot VERSION`; structured `--version --json` was already comprehensive
+
 ### Fixed
 - Exposed `copyStatus` IPC bridge in preload — `molt-mascot:copy-status` was handled in electron-main (global shortcut ⌘⇧P, tray menu) but unreachable from renderer context menu; now uses main-process clipboard API (parity with `copyDebugInfo`)
 
