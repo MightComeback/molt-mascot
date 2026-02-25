@@ -2052,6 +2052,10 @@ describe("utils", () => {
     expect(sanitizeToolName("default_api:functions.web_search")).toBe(
       "web_search",
     );
+    // MCP server actions prefix
+    expect(sanitizeToolName("actions.run_query")).toBe("run_query");
+    // Anthropic computer use prefix
+    expect(sanitizeToolName("computer.screenshot")).toBe("screenshot");
     // No prefix — pass through unchanged
     expect(sanitizeToolName("exec")).toBe("exec");
     expect(sanitizeToolName("web_search")).toBe("web_search");
