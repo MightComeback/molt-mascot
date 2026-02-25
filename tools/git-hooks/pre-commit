@@ -1,0 +1,10 @@
+#!/bin/sh
+# Pre-commit hook: runs format check on staged files before committing.
+# Catches formatting issues early — cheaper than finding them at push time.
+# Install with: bun run setup:hooks
+
+set -e
+
+echo "🦞 Pre-commit: format check..."
+bun x @biomejs/biome check --no-errors-on-unmatched --staged .
+echo "✅ Format OK."
