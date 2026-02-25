@@ -1352,6 +1352,7 @@ function buildDebugInfo() {
     pid: window.moltMascot?.pid,
     healthStatus: currentHealthStatus(),
     spriteCache: _spriteCache.getSnapshot(),
+    allTimeLatency: _latencyTracker.allTimeMin() !== null ? { min: _latencyTracker.allTimeMin(), max: _latencyTracker.allTimeMax() } : null,
   });
 }
 
