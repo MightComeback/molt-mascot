@@ -1,3 +1,76 @@
+/**
+ * Formatting & display utilities.
+ *
+ * Extracted from the barrel index to keep the module focused and testable.
+ * All functions are pure (no side-effects, no imports beyond stdlib).
+ */
+/**
+ * Clamp a number within an inclusive range.
+ * Returns `min` for non-finite inputs.
+ */
+declare function clamp(value: number, min: number, max: number): number;
+/**
+ * Compute a success-rate percentage from total calls and error count.
+ * Returns null if totalCalls is 0 (avoids division by zero).
+ */
+declare function successRate(totalCalls: number, errorCount: number): number | null;
+/**
+ * Format a percentage value as a compact string with a "%" suffix.
+ * Returns "–" for null/undefined/non-finite inputs.
+ */
+declare function formatPercent(value: number | null | undefined): string;
+/**
+ * Truncate a string to a given character limit (unicode-safe).
+ * Collapses whitespace and tries to break at word boundaries.
+ */
+declare function truncate(str: string, limit?: number): string;
+/**
+ * Format a large count into a compact human-readable string.
+ * e.g. 0 → "0", 999 → "999", 1000 → "1.0K", 1500 → "1.5K", 1000000 → "1.0M"
+ */
+declare function formatCount(n: number): string;
+/**
+ * Format a byte count into a compact human-readable string with appropriate unit.
+ * Uses binary units (1 KB = 1024 bytes).
+ */
+declare function formatBytes(bytes: number): string;
+/**
+ * Format a duration in seconds into a compact human-readable string.
+ * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
+ */
+declare function formatDuration(seconds: number): string;
+/**
+ * Format the elapsed time since a past timestamp as a human-readable duration.
+ */
+declare function formatElapsed(since: number, now: number): string;
+/**
+ * Format a past timestamp as a human-readable relative time string.
+ * e.g. "just now", "5m ago", "2h ago"
+ */
+declare function formatRelativeTime(since: number, now?: number): string;
+/**
+ * Format an epoch-ms timestamp as an ISO-8601 string.
+ * Returns '–' if the input is invalid.
+ */
+declare function formatTimestamp(ts: number): string;
+/**
+ * Format an epoch-ms timestamp as a compact local time string.
+ * "HH:MM:SS" for today, "Mon DD, HH:MM" otherwise.
+ */
+declare function formatTimestampLocal(ts: number, now?: number): string;
+/**
+ * Format a timestamp with both relative age and absolute time.
+ */
+declare function formatTimestampWithAge(ts: number, now?: number, style?: "ago" | "since"): string;
+/**
+ * Capitalize the first character of a string.
+ */
+declare function capitalize(str: string): string;
+/**
+ * Simple English pluralization: append "s" (or a custom suffix) when count ≠ 1.
+ */
+declare function pluralize(count: number, singular: string, plural?: string): string;
+
 declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
@@ -85,6 +158,17 @@ declare const allowedModes: Mode[];
  * @returns true if the value is a valid Mode string
  */
 declare function isValidMode(value: unknown): value is Mode;
+/**
+ * Coerce a value to a valid Mode string.
+ * Accepts strings (case-insensitive) and returns the canonical lowercase mode.
+ * Returns fallback for invalid/non-string values.
+ * Parity with coerceSize, coerceAlignment, coerceOpacity, coercePadding.
+ *
+ * @param v - Value to coerce
+ * @param fallback - Default mode if coercion fails
+ * @returns Valid Mode string
+ */
+declare function coerceMode(v: unknown, fallback: Mode): Mode;
 declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
 /**
  * Check whether a value is a recognized alignment string (case-sensitive).
@@ -111,115 +195,48 @@ declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig[
  */
 declare function coerceOpacity(v: unknown, fallback: number): number;
 /**
+ * Check whether a value is a valid opacity (finite number in [0, 1]).
+ * Parity with isValidMode, isValidAlignment, isValidSize for
+ * consistent PluginConfig field validation.
+ *
+ * @param value - Value to check
+ * @returns true if the value is a finite number between 0 and 1 inclusive
+ */
+declare function isValidOpacity(value: unknown): value is number;
+/**
  * Coerce a value to a valid padding (>= 0).
  * Accepts numbers and numeric strings. Returns fallback for invalid/negative values.
  */
 declare function coercePadding(v: unknown, fallback: number): number;
 /**
- * Clamp a number to a [min, max] range.
- * Returns min if value is below min, max if above max, otherwise value.
- * Non-finite inputs (NaN, ±Infinity) return min as a safe fallback.
+ * Check whether a value is a valid padding (finite non-negative number).
+ * Parity with isValidOpacity, isValidMode, isValidAlignment, isValidSize
+ * for consistent PluginConfig field validation.
  *
- * Centralizes the repeated `Math.max(min, Math.min(value, max))` pattern
- * used across opacity clamping, padding bounds, position clamping, etc.
+ * @param value - Value to check
+ * @returns true if the value is a finite non-negative number
+ */
+declare function isValidPadding(value: unknown): value is number;
+/**
+ * Mask sensitive query parameters and userinfo credentials in a URL string for safe display.
+ * Replaces values of known sensitive params (token, key, secret, etc.)
+ * with "***" while preserving the URL structure for debugging.
+ * Also masks userinfo credentials (e.g. `ws://user:pass@host` → `ws://***:***@host`).
  *
- * @param value - The number to clamp
- * @param min - Lower bound (inclusive)
- * @param max - Upper bound (inclusive)
- * @returns Clamped value
- */
-declare function clamp(value: number, min: number, max: number): number;
-/**
- * Compute a success-rate percentage from total calls and error count.
- * Returns null if totalCalls is 0 (avoids division by zero).
+ * Non-URL strings and URLs without sensitive parts are returned as-is.
+ * Malformed URLs are returned unchanged (best-effort, no throws).
  *
- * @param totalCalls - Total number of calls
- * @param errorCount - Number of errors
- * @returns Integer percentage (0-100), or null if no calls
- */
-declare function successRate(totalCalls: number, errorCount: number): number | null;
-declare function truncate(str: string, limit?: number): string;
-/**
- * Format a large count into a compact human-readable string.
- * e.g. 0 → "0", 999 → "999", 1000 → "1.0K", 1500 → "1.5K", 1000000 → "1.0M"
- * Uses decimal (SI) units. Values below 1000 are returned as plain integers.
- * Useful for tool call/error counts in tooltips when the mascot runs for extended periods.
- */
-declare function formatCount(n: number): string;
-/**
- * Format a byte count into a compact human-readable string with appropriate unit.
- * e.g. 0 → "0 B", 1023 → "1023 B", 1536 → "1.5 KB", 1048576 → "1.0 MB"
- * Uses binary units (1 KB = 1024 bytes) consistent with OS conventions.
- */
-declare function formatBytes(bytes: number): string;
-/**
- * Format a duration in seconds into a compact human-readable string.
- * e.g. 45 → "45s", 90 → "1m 30s", 3661 → "1h 1m", 90000 → "1d 1h"
- * Exported so the Electron renderer can reuse the same implementation (single source of truth).
- */
-declare function formatDuration(seconds: number): string;
-/**
- * Format the elapsed time since a past timestamp as a human-readable duration.
- * Centralizes the repeated `formatDuration(Math.max(0, Math.round((now - ts) / 1000)))` pattern
- * used across tooltip builders, debug info, and tray icon code.
+ * @example
+ * maskSensitiveUrl("ws://host?token=abc123&mode=v2")
+ * // → "ws://host?token=***&mode=v2"
  *
- * @param since - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch)
- * @returns Formatted duration string (e.g. "5m 30s")
- */
-declare function formatElapsed(since: number, now: number): string;
-/**
- * Format a past timestamp as a human-readable relative time string.
- * Consolidates the repeated `formatElapsed(ts, now) + " ago"` pattern
- * and adds a "just now" threshold for sub-second durations.
+ * maskSensitiveUrl("ws://admin:s3cret@host/path")
+ * // → "ws://***:***@host/path"
  *
- * @param since - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
- * @returns Relative time string (e.g. "just now", "5m ago", "2h ago")
+ * @param url - The URL string to mask
+ * @returns URL with sensitive parameter values and userinfo replaced by "***"
  */
-declare function formatRelativeTime(since: number, now?: number): string;
-/**
- * Format an epoch-ms timestamp as an ISO-8601 string.
- * Centralizes the repeated `new Date(ts).toISOString()` pattern used across
- * debug-info, tray tooltip, and diagnostics — with input validation so callers
- * don't need to guard against invalid/missing timestamps.
- *
- * @param ts - Epoch milliseconds
- * @returns ISO-8601 string, or '–' if the input is invalid
- */
-declare function formatTimestamp(ts: number): string;
-/**
- * Format an epoch-ms timestamp as a compact local time string.
- * Produces "HH:MM:SS" when the timestamp is today, or "Mon DD, HH:MM" otherwise.
- * Uses the system locale/timezone so debug output is immediately readable
- * without mental UTC conversion.
- *
- * Falls back to ISO-8601 if Intl is unavailable (e.g. stripped runtimes).
- *
- * @param ts - Epoch milliseconds
- * @param now - Current timestamp for "today" detection (defaults to Date.now())
- * @returns Compact local time string, or '–' if the input is invalid
- */
-declare function formatTimestampLocal(ts: number, now?: number): string;
-/**
- * Format a timestamp with both relative age and absolute time.
- * Consolidates the repeated `formatRelativeTime(ts, now) + " (at " + formatTimestamp(ts) + ")"`
- * and `formatElapsed(ts, now) + " (since " + formatTimestamp(ts) + ")"` patterns
- * used 5+ times across debug-info, tray tooltip, and diagnostics.
- *
- * @param ts - Past timestamp in milliseconds (epoch)
- * @param now - Current timestamp in milliseconds (epoch), defaults to Date.now()
- * @param style - 'ago' for "5m ago (at ...)" or 'since' for "5m (since ...)"
- * @returns Formatted string, or '–' if the input is invalid
- */
-declare function formatTimestampWithAge(ts: number, now?: number, style?: "ago" | "since"): string;
-/**
- * Capitalize the first character of a string.
- * Hoisted from the Electron renderer (apps/molt-mascot/src/utils.js) to the
- * shared plugin package so both the renderer and plugin can import from a
- * single source of truth — same pattern as truncate, formatDuration, etc.
- */
-declare function capitalize(str: string): string;
+declare function maskSensitiveUrl(url: string): string;
 /**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
@@ -281,4 +298,4 @@ declare function isContentTool(value: unknown): value is string;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidSize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatPercent, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };

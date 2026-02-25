@@ -25,6 +25,7 @@ import {
   formatTimestampLocal,
   formatTimestampWithAge,
   capitalize,
+  pluralize,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -39,6 +40,7 @@ export {
   formatTimestampLocal,
   formatTimestampWithAge,
   capitalize,
+  pluralize,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
@@ -370,7 +372,7 @@ export function buildTooltip(params) {
     tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
   }
   if (typeof agentSessions === "number" && agentSessions > 0) {
-    tip += ` · ${formatCount(agentSessions)} session${agentSessions !== 1 ? "s" : ""}`;
+    tip += ` · ${formatCount(agentSessions)} ${pluralize(agentSessions, "session")}`;
   }
   if (typeof latencyMs === "number" && latencyMs >= 0) {
     let latencyPart = formatQualitySummary(latencyMs, latencyStats, {

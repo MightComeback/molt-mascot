@@ -12,6 +12,7 @@ const {
   formatBytes,
   successRate,
   formatTimestampLocal,
+  pluralize,
 } = require("@molt/mascot-plugin");
 const {
   formatLatency,
@@ -365,7 +366,7 @@ function buildTrayTooltip(params) {
   }
   if (typeof agentSessions === "number" && agentSessions > 0) {
     parts.push(
-      `🧑‍💻 ${formatCount(agentSessions)} session${agentSessions !== 1 ? "s" : ""}`,
+      `🧑‍💻 ${formatCount(agentSessions)} ${pluralize(agentSessions, "session")}`,
     );
   }
   if (typeof pluginStartedAt === "number" && pluginStartedAt > 0) {

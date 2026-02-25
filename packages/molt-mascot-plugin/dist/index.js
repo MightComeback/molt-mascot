@@ -31,6 +31,7 @@ __export(index_exports, {
   cleanErrorString: () => cleanErrorString,
   coerceAlignment: () => coerceAlignment,
   coerceBoolean: () => coerceBoolean,
+  coerceMode: () => coerceMode,
   coerceNumber: () => coerceNumber,
   coerceOpacity: () => coerceOpacity,
   coercePadding: () => coercePadding,
@@ -40,6 +41,7 @@ __export(index_exports, {
   formatCount: () => formatCount,
   formatDuration: () => formatDuration,
   formatElapsed: () => formatElapsed,
+  formatPercent: () => formatPercent,
   formatRelativeTime: () => formatRelativeTime,
   formatTimestamp: () => formatTimestamp,
   formatTimestampLocal: () => formatTimestampLocal,
@@ -48,7 +50,11 @@ __export(index_exports, {
   isContentTool: () => isContentTool,
   isValidAlignment: () => isValidAlignment,
   isValidMode: () => isValidMode,
+  isValidOpacity: () => isValidOpacity,
+  isValidPadding: () => isValidPadding,
   isValidSize: () => isValidSize,
+  maskSensitiveUrl: () => maskSensitiveUrl,
+  pluralize: () => pluralize,
   sanitizeToolName: () => sanitizeToolName,
   successRate: () => successRate,
   summarizeToolResultMessage: () => summarizeToolResultMessage,
@@ -119,83 +125,7 @@ var package_default = {
   }
 };
 
-// src/index.ts
-var id = package_default.name;
-var version = package_default.version;
-function coerceNumber(v, fallback) {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string" && v.trim().length > 0) {
-    const n = Number(v);
-    if (Number.isFinite(n)) return n;
-  }
-  return fallback;
-}
-function coerceBoolean(v, fallback) {
-  if (typeof v === "boolean") return v;
-  if (typeof v === "number") return v !== 0;
-  if (typeof v === "string") {
-    const s = v.trim().toLowerCase();
-    if (s === "true" || s === "1" || s === "yes" || s === "on") return true;
-    if (s === "false" || s === "0" || s === "no" || s === "off") return false;
-  }
-  return fallback;
-}
-var allowedModes = ["idle", "thinking", "tool", "error"];
-function isValidMode(value) {
-  return typeof value === "string" && _validModesSet.has(value);
-}
-var _validModesSet = new Set(allowedModes);
-var allowedAlignments = [
-  "top-left",
-  "top-right",
-  "bottom-left",
-  "bottom-right",
-  "top-center",
-  "bottom-center",
-  "center-left",
-  "center-right",
-  "center"
-];
-var _validAlignmentsSet = new Set(allowedAlignments);
-function isValidAlignment(value) {
-  return typeof value === "string" && _validAlignmentsSet.has(value);
-}
-var allowedSizes = [
-  "tiny",
-  "small",
-  "medium",
-  "large",
-  "xlarge"
-];
-var _validSizesSet = new Set(allowedSizes);
-function isValidSize(value) {
-  return typeof value === "string" && _validSizesSet.has(value);
-}
-function coerceSize(v, fallback) {
-  if (typeof v === "string") {
-    const lower = v.trim().toLowerCase();
-    if (allowedSizes.includes(lower)) return lower;
-  }
-  return fallback;
-}
-function coerceAlignment(v, fallback) {
-  if (typeof v === "string") {
-    const lower = v.trim().toLowerCase();
-    if (allowedAlignments.includes(lower))
-      return lower;
-  }
-  return fallback;
-}
-function coerceOpacity(v, fallback) {
-  const n = coerceNumber(v, NaN);
-  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
-  return fallback;
-}
-function coercePadding(v, fallback) {
-  const n = coerceNumber(v, NaN);
-  if (Number.isFinite(n) && n >= 0) return n;
-  return fallback;
-}
+// src/format.ts
 function clamp(value, min, max) {
   if (!Number.isFinite(value)) return min;
   return Math.max(min, Math.min(value, max));
@@ -204,6 +134,11 @@ function successRate(totalCalls, errorCount) {
   if (!totalCalls || totalCalls <= 0) return null;
   const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
   return Math.round((totalCalls - errors) / totalCalls * 100);
+}
+function formatPercent(value) {
+  if (value == null || typeof value !== "number" || !Number.isFinite(value))
+    return "\u2013";
+  return `${Math.round(value)}%`;
 }
 function truncate(str, limit = 140) {
   if (limit <= 0) return "";
@@ -328,6 +263,144 @@ function capitalize(str) {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+function pluralize(count, singular, plural) {
+  return count === 1 ? singular : plural ?? singular + "s";
+}
+
+// src/index.ts
+var id = package_default.name;
+var version = package_default.version;
+function coerceNumber(v, fallback) {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim().length > 0) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return fallback;
+}
+function coerceBoolean(v, fallback) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string") {
+    const s = v.trim().toLowerCase();
+    if (s === "true" || s === "1" || s === "yes" || s === "on") return true;
+    if (s === "false" || s === "0" || s === "no" || s === "off") return false;
+  }
+  return fallback;
+}
+var allowedModes = ["idle", "thinking", "tool", "error"];
+function isValidMode(value) {
+  return typeof value === "string" && _validModesSet.has(value);
+}
+var _validModesSet = new Set(allowedModes);
+function coerceMode(v, fallback) {
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if (allowedModes.includes(lower)) return lower;
+  }
+  return fallback;
+}
+var allowedAlignments = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+  "top-center",
+  "bottom-center",
+  "center-left",
+  "center-right",
+  "center"
+];
+var _validAlignmentsSet = new Set(allowedAlignments);
+function isValidAlignment(value) {
+  return typeof value === "string" && _validAlignmentsSet.has(value);
+}
+var allowedSizes = [
+  "tiny",
+  "small",
+  "medium",
+  "large",
+  "xlarge"
+];
+var _validSizesSet = new Set(allowedSizes);
+function isValidSize(value) {
+  return typeof value === "string" && _validSizesSet.has(value);
+}
+function coerceSize(v, fallback) {
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if (allowedSizes.includes(lower)) return lower;
+  }
+  return fallback;
+}
+function coerceAlignment(v, fallback) {
+  if (typeof v === "string") {
+    const lower = v.trim().toLowerCase();
+    if (allowedAlignments.includes(lower))
+      return lower;
+  }
+  return fallback;
+}
+function coerceOpacity(v, fallback) {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return fallback;
+}
+function isValidOpacity(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+function coercePadding(v, fallback) {
+  const n = coerceNumber(v, NaN);
+  if (Number.isFinite(n) && n >= 0) return n;
+  return fallback;
+}
+function isValidPadding(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+var SENSITIVE_PARAMS = /* @__PURE__ */ new Set([
+  "token",
+  "key",
+  "apikey",
+  "api_key",
+  "secret",
+  "password",
+  "passwd",
+  "auth",
+  "authorization",
+  "access_token",
+  "bearer",
+  "credential",
+  "credentials"
+]);
+function maskSensitiveUrl(url) {
+  if (!url) return url;
+  try {
+    let result = url;
+    result = result.replace(
+      /^(\w+:\/\/)([^@/?#]+)@/,
+      (_match, scheme, _userinfo) => {
+        if (_userinfo.includes(":")) {
+          return `${scheme}***:***@`;
+        }
+        return `${scheme}***@`;
+      }
+    );
+    if (result.includes("?")) {
+      result = result.replace(
+        /([?&])([^=&]+)=([^&]*)/g,
+        (_match, prefix, name, _value) => {
+          if (SENSITIVE_PARAMS.has(name.toLowerCase())) {
+            return `${prefix}${name}=***`;
+          }
+          return _match;
+        }
+      );
+    }
+    return result;
+  } catch {
+    return url;
+  }
+}
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
   // All specific *Error entries are redundant with this pattern and have been removed.
@@ -356,6 +429,9 @@ var ERROR_PREFIXES = [
   "KeyboardInterrupt",
   "SystemExit",
   "GeneratorExit",
+  // Swift/Rust runtime assertions (not matched by *Error pattern)
+  "Precondition failed",
+  "Assertion failed",
   // Java/JVM "Caused by:" chained exception prefix
   "Caused by",
   // Environment/Tool colon-prefixes
@@ -631,7 +707,7 @@ function summarizeToolResultMessage(msg) {
   return "tool error";
 }
 function sanitizeToolName(raw) {
-  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
+  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "").replace(/^actions\./, "").replace(/^computer\./, "");
 }
 var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   "read",
@@ -1042,6 +1118,7 @@ function register(api) {
   cleanErrorString,
   coerceAlignment,
   coerceBoolean,
+  coerceMode,
   coerceNumber,
   coerceOpacity,
   coercePadding,
@@ -1050,6 +1127,7 @@ function register(api) {
   formatCount,
   formatDuration,
   formatElapsed,
+  formatPercent,
   formatRelativeTime,
   formatTimestamp,
   formatTimestampLocal,
@@ -1058,7 +1136,11 @@ function register(api) {
   isContentTool,
   isValidAlignment,
   isValidMode,
+  isValidOpacity,
+  isValidPadding,
   isValidSize,
+  maskSensitiveUrl,
+  pluralize,
   sanitizeToolName,
   successRate,
   summarizeToolResultMessage,
