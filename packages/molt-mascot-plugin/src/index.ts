@@ -424,6 +424,17 @@ export function formatTimestampWithAge(
 }
 
 /**
+ * Capitalize the first character of a string.
+ * Hoisted from the Electron renderer (apps/molt-mascot/src/utils.js) to the
+ * shared plugin package so both the renderer and plugin can import from a
+ * single source of truth — same pattern as truncate, formatDuration, etc.
+ */
+export function capitalize(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
  * Common error prefixes to strip for cleaner display.
  * Organized by category for maintainability.
  * Exported so the Electron renderer can reuse the same list (single source of truth).

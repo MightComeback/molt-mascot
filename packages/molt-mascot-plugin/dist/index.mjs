@@ -4,19 +4,18 @@ var package_default = {
   version: "0.2.0",
   description: "OpenClaw plugin for Molt Mascot (pixel mascot)",
   publishConfig: {
-    access: "public",
+    access: "public"
   },
   author: "Ivan Kuznetsov <kuznetsovivan496@gmail.com>",
   license: "MIT",
-  homepage:
-    "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
+  homepage: "https://github.com/MightComeback/molt-mascot/tree/main/packages/molt-mascot-plugin#readme",
   repository: {
     type: "git",
     url: "https://github.com/MightComeback/molt-mascot.git",
-    directory: "packages/molt-mascot-plugin",
+    directory: "packages/molt-mascot-plugin"
   },
   bugs: {
-    url: "https://github.com/MightComeback/molt-mascot/issues",
+    url: "https://github.com/MightComeback/molt-mascot/issues"
   },
   main: "dist/index.js",
   module: "dist/index.mjs",
@@ -25,21 +24,20 @@ var package_default = {
     ".": {
       types: "./dist/index.d.ts",
       import: "./dist/index.mjs",
-      require: "./dist/index.js",
-    },
+      require: "./dist/index.js"
+    }
   },
   scripts: {
-    build:
-      "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
+    build: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
     dev: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --watch",
     test: "bun test",
     typecheck: "tsc --noEmit",
     lint: "oxlint .",
-    prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`,
+    prepack: `node -e "try{require('fs').chmodSync('clawdbot.plugin.json',0o644)}catch(e){}" && bun run build`
   },
   engines: {
     bun: ">=1.1.0",
-    node: ">=20.0.0",
+    node: ">=20.0.0"
   },
   keywords: [
     "clawdbot",
@@ -48,13 +46,18 @@ var package_default = {
     "mascot",
     "pixel-art",
     "ai",
-    "agent",
+    "agent"
   ],
-  files: ["dist", "clawdbot.plugin.json", "README.md", "LICENSE"],
+  files: [
+    "dist",
+    "clawdbot.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
   devDependencies: {
     tsup: "^8.0.0",
-    typescript: "^5.0.0",
-  },
+    typescript: "^5.0.0"
+  }
 };
 
 // src/index.ts
@@ -87,9 +90,15 @@ var allowedAlignments = [
   "bottom-center",
   "center-left",
   "center-right",
-  "center",
+  "center"
 ];
-var allowedSizes = ["tiny", "small", "medium", "large", "xlarge"];
+var allowedSizes = [
+  "tiny",
+  "small",
+  "medium",
+  "large",
+  "xlarge"
+];
 function coerceSize(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
@@ -100,7 +109,8 @@ function coerceSize(v, fallback) {
 function coerceAlignment(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if (allowedAlignments.includes(lower)) return lower;
+    if (allowedAlignments.includes(lower))
+      return lower;
   }
   return fallback;
 }
@@ -121,7 +131,7 @@ function clamp(value, min, max) {
 function successRate(totalCalls, errorCount) {
   if (!totalCalls || totalCalls <= 0) return null;
   const errors = Math.max(0, Math.min(errorCount || 0, totalCalls));
-  return Math.round(((totalCalls - errors) / totalCalls) * 100);
+  return Math.round((totalCalls - errors) / totalCalls * 100);
 }
 function truncate(str, limit = 140) {
   if (limit <= 0) return "";
@@ -181,24 +191,14 @@ function formatDuration(seconds) {
   return remD > 0 ? `${w}w ${remD}d` : `${w}w`;
 }
 function formatElapsed(since, now) {
-  if (
-    typeof since !== "number" ||
-    typeof now !== "number" ||
-    !Number.isFinite(since) ||
-    !Number.isFinite(now)
-  ) {
+  if (typeof since !== "number" || typeof now !== "number" || !Number.isFinite(since) || !Number.isFinite(now)) {
     return "0s";
   }
   return formatDuration(Math.max(0, Math.round((now - since) / 1e3)));
 }
 function formatRelativeTime(since, now) {
   const n = now ?? Date.now();
-  if (
-    typeof since !== "number" ||
-    typeof n !== "number" ||
-    !Number.isFinite(since) ||
-    !Number.isFinite(n)
-  ) {
+  if (typeof since !== "number" || typeof n !== "number" || !Number.isFinite(since) || !Number.isFinite(n)) {
     return "just now";
   }
   const diffMs = Math.max(0, n - since);
@@ -213,10 +213,7 @@ function formatTimestampLocal(ts, now) {
   if (typeof ts !== "number" || !Number.isFinite(ts)) return "\u2013";
   const date = new Date(ts);
   const ref = new Date(now ?? Date.now());
-  const sameDay =
-    date.getFullYear() === ref.getFullYear() &&
-    date.getMonth() === ref.getMonth() &&
-    date.getDate() === ref.getDate();
+  const sameDay = date.getFullYear() === ref.getFullYear() && date.getMonth() === ref.getMonth() && date.getDate() === ref.getDate();
   if (sameDay) {
     const h2 = String(date.getHours()).padStart(2, "0");
     const m2 = String(date.getMinutes()).padStart(2, "0");
@@ -235,7 +232,7 @@ function formatTimestampLocal(ts, now) {
     "Sep",
     "Oct",
     "Nov",
-    "Dec",
+    "Dec"
   ];
   const mon = MONTHS[date.getMonth()];
   const day = date.getDate();
@@ -254,6 +251,10 @@ function formatTimestampWithAge(ts, now, style = "ago") {
     return `${formatElapsed(ts, n)} (since ${iso})`;
   }
   return `${formatRelativeTime(ts, n)} (at ${iso})`;
+}
+function capitalize(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 var ERROR_PREFIXES = [
   // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
@@ -387,11 +388,11 @@ var ERROR_PREFIXES = [
   "workerd:",
   // OpenClaw specific
   "cron:",
-  "nodes:",
+  "nodes:"
 ];
 var ERROR_PREFIX_REGEX = new RegExp(
   `^(?:${ERROR_PREFIXES.join("|")})(\\s*:\\s*|\\s+)`,
-  "i",
+  "i"
 );
 var ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
 var NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
@@ -403,59 +404,38 @@ function cleanErrorString(s) {
     try {
       const obj = JSON.parse(s);
       if (obj && typeof obj === "object") {
-        const msg =
-          obj.error?.message ??
-          (typeof obj.error === "string" ? obj.error : null) ??
-          obj.message ??
-          obj.detail ??
-          obj.reason;
+        const msg = obj.error?.message ?? (typeof obj.error === "string" ? obj.error : null) ?? obj.message ?? obj.detail ?? obj.reason;
         if (typeof msg === "string" && msg.trim()) return cleanErrorString(msg);
       }
-    } catch {}
+    } catch {
+    }
   }
-  let str = s
-    .replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "")
-    .replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "")
-    .trim();
-  str = str
-    .replace(
-      /^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i,
-      "",
-    )
-    .trim();
-  str = str
-    .replace(
-      /^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/,
-      "",
-    )
-    .trim();
-  str = str
-    .replace(
-      /\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/,
-      "",
-    )
-    .trim();
-  str = str
-    .replace(
-      /^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i,
-      "$1",
-    )
-    .trim();
-  str = str
-    .replace(/^thread\s+'[^']*'\s+panicked\s+at\s+\S+:\d+(?::\d+)?:\s*/i, "")
-    .trim();
-  str = str
-    .replace(
-      /^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i,
-      "$1",
-    )
-    .trim();
-  str = str
-    .replace(
-      /^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i,
-      "",
-    )
-    .trim();
+  let str = s.replace(/(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~]/g, "").replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").trim();
+  str = str.replace(
+    /^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?\]?\s*[-:]?\s*/i,
+    ""
+  ).trim();
+  str = str.replace(
+    /^(?:file:\/\/)?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+):\d+(?::\d+)?[:\s]+/,
+    ""
+  ).trim();
+  str = str.replace(
+    /\s+at\s+(?:[\w.<>[\]]+\s+)?\(?(?:\/[\w./-]+|[A-Z]:\\[\w.\\-]+|file:\/\/[\w./-]+):\d+(?::\d+)?\)?$/,
+    ""
+  ).trim();
+  str = str.replace(
+    /^thread\s+'[^']*'\s+panicked\s+at\s+'([^']+)'(?:,\s*\S+:\d+(?::\d+)?)?$/i,
+    "$1"
+  ).trim();
+  str = str.replace(/^thread\s+'[^']*'\s+panicked\s+at\s+\S+:\d+(?::\d+)?:\s*/i, "").trim();
+  str = str.replace(
+    /^(Killed|Segmentation fault|Abort trap|Bus error|Illegal instruction|Floating point exception|Hangup|Alarm clock|Terminated|Broken pipe|User defined signal [12]):\s*\d+$/i,
+    "$1"
+  ).trim();
+  str = str.replace(
+    /^\[?(ERROR|WARN(?:ING)?|INFO|DEBUG|TRACE|FATAL|PANIC|CRIT(?:ICAL)?)\]\s*:?\s*/i,
+    ""
+  ).trim();
   let prev = "";
   while (str !== prev) {
     prev = str;
@@ -465,20 +445,15 @@ function cleanErrorString(s) {
     str = str.replace(GO_RUNTIME_REGEX, "").trim();
     str = str.replace(IN_PROMISE_REGEX, "").trim();
   }
-  const lines = str
-    .split(/[\r\n]+/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
-    if (
-      /^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])
-    ) {
+    if (/^Command (exited|failed) with (exit )?code \d+(?:\b|:)/i.test(lines[0])) {
       return cleanErrorString(lines[1]);
     }
-    const concreteErrorLine = lines.find((l) =>
-      /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(
-        l,
-      ),
+    const concreteErrorLine = lines.find(
+      (l) => /^(error|fatal|panic|exception|failed|denied|rejected|[a-zA-Z]+Error\b)/i.test(
+        l
+      )
     );
     if (concreteErrorLine && concreteErrorLine !== lines[0]) {
       return cleanErrorString(concreteErrorLine);
@@ -512,28 +487,15 @@ function summarizeToolResultMessage(msg) {
     return truncate(String(msg));
   }
   if (Array.isArray(msg)) {
-    const texts = msg
-      .map((item) =>
-        typeof item === "string"
-          ? item
-          : typeof item?.text === "string"
-            ? item.text
-            : typeof item?.name === "string"
-              ? item.name
-              : typeof item?.title === "string"
-                ? item.title
-                : null,
-      )
-      .filter(Boolean);
+    const texts = msg.map(
+      (item) => typeof item === "string" ? item : typeof item?.text === "string" ? item.text : typeof item?.name === "string" ? item.name : typeof item?.title === "string" ? item.title : null
+    ).filter(Boolean);
     if (texts.length > 0) return truncate(cleanErrorString(texts.join(", ")));
     if (msg.length === 0) return "empty";
   }
   const blocks = msg?.content;
   if (Array.isArray(blocks)) {
-    const text = blocks
-      .map((b) => (typeof b?.text === "string" ? b.text : ""))
-      .filter(Boolean)
-      .join("\n");
+    const text = blocks.map((b) => typeof b?.text === "string" ? b.text : "").filter(Boolean).join("\n");
     if (text.trim()) return truncate(cleanErrorString(text));
     if (blocks.length > 0) {
       const types = [...new Set(blocks.map((b) => b?.type).filter(Boolean))];
@@ -561,9 +523,7 @@ function summarizeToolResultMessage(msg) {
     msg?.stdout,
     msg?.data?.text,
     typeof msg?.data === "string" ? msg.data : void 0,
-    typeof msg?.data === "object"
-      ? (msg?.data?.message ?? msg?.data?.error)
-      : void 0,
+    typeof msg?.data === "object" ? msg?.data?.message ?? msg?.data?.error : void 0
   ];
   let genericFallback = null;
   for (const c of candidates) {
@@ -582,13 +542,15 @@ function summarizeToolResultMessage(msg) {
     for (const v of toTry) {
       if (!v || typeof v !== "object") continue;
       try {
-        const json = JSON.stringify(v, (_k, val) =>
-          typeof val === "bigint" ? String(val) : val,
+        const json = JSON.stringify(
+          v,
+          (_k, val) => typeof val === "bigint" ? String(val) : val
         );
         if (typeof json === "string" && json !== "{}") {
           return truncate(cleanErrorString(json));
         }
-      } catch {}
+      } catch {
+      }
     }
   }
   if (typeof msg === "object" && typeof msg?.exitCode === "number") {
@@ -597,10 +559,7 @@ function summarizeToolResultMessage(msg) {
   return "tool error";
 }
 function sanitizeToolName(raw) {
-  return raw
-    .replace(/^default_api:/, "")
-    .replace(/^functions\./, "")
-    .replace(/^multi_tool_use\./, "");
+  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "");
 }
 var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   "read",
@@ -646,7 +605,7 @@ var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   // multi_tool_use.parallel becomes just "parallel" after prefix stripping
   "parallel",
   // Linear integration via hakky-tools
-  "hakky-tools",
+  "hakky-tools"
 ]);
 function register(api) {
   const pluginId = typeof api?.id === "string" ? api.id : id;
@@ -660,7 +619,7 @@ function register(api) {
       "molt-mascot",
       "moltMascot",
       "molt-mascot-plugin",
-      "moltMascotPlugin",
+      "moltMascotPlugin"
     ];
     for (const key of keysToTry) {
       const c = entries?.[key]?.config;
@@ -695,7 +654,7 @@ function register(api) {
     toolCalls: 0,
     toolErrors: 0,
     agentSessions: 0,
-    startedAt,
+    startedAt
   };
   let idleTimer = null;
   let errorTimer = null;
@@ -709,13 +668,8 @@ function register(api) {
     return inputs;
   };
   const getSessionKey = (event) => {
-    const raw =
-      event?.sessionKey ??
-      event?.sessionId ?? // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
-      event?.agentSessionKey ??
-      event?.agentSessionId ??
-      event?.agentId ??
-      event?.agentKey;
+    const raw = event?.sessionKey ?? event?.sessionId ?? // Prefer *stable* identifiers so tool nesting works; per-request ids cause stack flicker.
+    event?.agentSessionKey ?? event?.agentSessionId ?? event?.agentId ?? event?.agentKey;
     if (typeof raw === "string" && raw.trim()) return raw;
     if (typeof raw === "number" && Number.isFinite(raw)) return String(raw);
     return "unknown";
@@ -746,12 +700,9 @@ function register(api) {
     errorTimer = null;
   };
   const setMode = (mode, extra) => {
-    const nextLastError =
-      mode === "error" ? (extra?.lastError ?? state.lastError) : void 0;
+    const nextLastError = mode === "error" ? extra?.lastError ?? state.lastError : void 0;
     const modeUnchanged = state.mode === mode;
-    const lastErrorUnchanged =
-      (state.lastError?.message ?? "") === (nextLastError?.message ?? "") &&
-      (state.lastError?.ts ?? 0) === (nextLastError?.ts ?? 0);
+    const lastErrorUnchanged = (state.lastError?.message ?? "") === (nextLastError?.message ?? "") && (state.lastError?.ts ?? 0) === (nextLastError?.ts ?? 0);
     if (modeUnchanged && lastErrorUnchanged) return;
     if (state.mode === "error" && mode !== "error") {
       clearErrorTimer();
@@ -801,7 +752,7 @@ function register(api) {
       "molt-mascot",
       "moltMascot",
       "moltMascotPlugin",
-      "@molt/mascot-plugin",
+      "@molt/mascot-plugin"
     ]);
     aliases.delete(pluginId);
     for (const alias of aliases) {
@@ -839,7 +790,7 @@ function register(api) {
   const off = api?.off;
   if (typeof on !== "function") {
     api?.logger?.warn?.(
-      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`,
+      `${pluginId} plugin: api.on() is unavailable; mascot state will not track agent/tool lifecycle`
     );
   } else {
     const onAgentStart = async (event) => {
@@ -864,14 +815,7 @@ function register(api) {
       clearErrorTimer();
       const key = getSessionKey(event);
       const stack = agentToolStacks.get(key) || [];
-      const rawName =
-        typeof event?.tool === "string"
-          ? event.tool
-          : typeof event?.toolName === "string"
-            ? event.toolName
-            : typeof event?.name === "string"
-              ? event.name
-              : "";
+      const rawName = typeof event?.tool === "string" ? event.tool : typeof event?.toolName === "string" ? event.toolName : typeof event?.name === "string" ? event.name : "";
       const toolName = rawName || "tool";
       stack.push(toolName);
       agentToolStacks.set(key, stack);
@@ -889,42 +833,24 @@ function register(api) {
       agentLastToolTs.set(key, Date.now());
       recalcCurrentTool();
       const infraError = event?.error;
-      const msg =
-        event?.result ?? event?.output ?? event?.data ?? event?.payload;
+      const msg = event?.result ?? event?.output ?? event?.data ?? event?.payload;
       const toolFromEvent = event?.tool ?? event?.toolName ?? event?.name;
-      const rawToolName =
-        typeof toolFromEvent === "string" ? toolFromEvent : "";
+      const rawToolName = typeof toolFromEvent === "string" ? toolFromEvent : "";
       const toolName = sanitizeToolName(rawToolName).slice(0, 20);
       if (infraError) {
-        const detail =
-          typeof infraError === "string"
-            ? infraError
-            : infraError.message || infraError.code || "unknown error";
+        const detail = typeof infraError === "string" ? infraError : infraError.message || infraError.code || "unknown error";
         enterError(truncate(`${toolName}: ${detail}`));
         return;
       }
       const hasExitCode = typeof msg?.exitCode === "number";
       const isExitError = hasExitCode && msg.exitCode !== 0;
       const isContentTool = contentTools.has(rawToolName);
-      const textSniffing =
-        !isContentTool &&
-        ((typeof msg === "string" && /^\s*error:/i.test(msg)) ||
-          (typeof msg === "string" &&
-            /Command exited with code [1-9]\d*/.test(msg)));
-      const isExplicitError =
-        msg?.isError === true ||
-        msg?.success === false ||
-        msg?.status === "error" ||
-        msg?.status === "failed" ||
-        (typeof msg?.error === "string" && msg.error.trim().length > 0) ||
-        textSniffing;
+      const textSniffing = !isContentTool && (typeof msg === "string" && /^\s*error:/i.test(msg) || typeof msg === "string" && /Command exited with code [1-9]\d*/.test(msg));
+      const isExplicitError = msg?.isError === true || msg?.success === false || msg?.status === "error" || msg?.status === "failed" || typeof msg?.error === "string" && msg.error.trim().length > 0 || textSniffing;
       const isError = hasExitCode ? isExitError : isExplicitError;
       if (isError) {
         const detail = summarizeToolResultMessage(msg);
-        const text =
-          detail === "tool error"
-            ? `${toolName} failed`
-            : `${toolName}: ${detail}`;
+        const text = detail === "tool error" ? `${toolName} failed` : `${toolName}: ${detail}`;
         enterError(truncate(text));
       } else {
         syncModeFromCounters();
@@ -937,20 +863,7 @@ function register(api) {
       agentLastToolTs.delete(sessionKey);
       recalcCurrentTool();
       const err = event?.error;
-      const msg =
-        err instanceof Error
-          ? err.message
-          : typeof err === "string"
-            ? err
-            : typeof err === "object" && err
-              ? err.message ||
-                err.text ||
-                err.detail ||
-                err.description ||
-                err.code ||
-                (typeof err.error === "string" ? err.error : "") ||
-                ""
-              : "";
+      const msg = err instanceof Error ? err.message : typeof err === "string" ? err : typeof err === "object" && err ? err.message || err.text || err.detail || err.description || err.code || (typeof err.error === "string" ? err.error : "") || "" : "";
       if (String(msg).trim()) {
         const clean = cleanErrorString(msg);
         enterError(truncate(clean));
@@ -968,10 +881,7 @@ function register(api) {
         return { ...envelope, payload };
       }
       const merged = { ...envelope, ...payload };
-      const missingId = (v) =>
-        v === void 0 ||
-        v === null ||
-        (typeof v === "string" && v.trim().length === 0);
+      const missingId = (v) => v === void 0 || v === null || typeof v === "string" && v.trim().length === 0;
       if (missingId(merged.sessionKey) && !missingId(envelope?.sessionKey)) {
         merged.sessionKey = envelope.sessionKey;
       }
@@ -984,30 +894,18 @@ function register(api) {
       return merged;
     };
     const handleAgentEvent = (e) => {
-      const payload =
-        e && typeof e === "object" && "payload" in e ? e.payload : e;
+      const payload = e && typeof e === "object" && "payload" in e ? e.payload : e;
       const p = mergeEnvelope(e, payload);
       if (p?.phase === "start") onAgentStart(p);
-      else if (
-        p?.phase === "end" ||
-        p?.phase === "result" ||
-        p?.phase === "error"
-      )
+      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error")
         onAgentEnd(p);
     };
     const handleToolEvent = (e) => {
-      const payload =
-        e && typeof e === "object" && "payload" in e ? e.payload : e;
+      const payload = e && typeof e === "object" && "payload" in e ? e.payload : e;
       const p = mergeEnvelope(e, payload);
       if (p?.phase === "start" || p?.phase === "call" || p?.stream === "call")
         onToolStart(p);
-      else if (
-        p?.phase === "end" ||
-        p?.phase === "result" ||
-        p?.phase === "error" ||
-        p?.stream === "result" ||
-        p?.stream === "error"
-      )
+      else if (p?.phase === "end" || p?.phase === "result" || p?.phase === "error" || p?.stream === "result" || p?.stream === "error")
         onToolEnd(p);
     };
     let unsubAgent;
@@ -1044,7 +942,7 @@ function register(api) {
       stop: () => {
         resetInternalState();
         unregisterListeners();
-      },
+      }
     });
     return;
   }
@@ -1054,7 +952,7 @@ function register(api) {
     start: () => api?.logger?.info?.(`${pluginId} plugin ready (no events)`),
     stop: () => {
       resetInternalState();
-    },
+    }
   });
 }
 export {
@@ -1063,6 +961,7 @@ export {
   ERROR_PREFIX_REGEX,
   allowedAlignments,
   allowedSizes,
+  capitalize,
   clamp,
   cleanErrorString,
   coerceAlignment,
@@ -1085,5 +984,5 @@ export {
   successRate,
   summarizeToolResultMessage,
   truncate,
-  version,
+  version
 };

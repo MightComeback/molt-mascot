@@ -24,6 +24,7 @@ import {
   formatTimestamp,
   formatTimestampLocal,
   formatTimestampWithAge,
+  capitalize,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -37,6 +38,7 @@ export {
   formatTimestamp,
   formatTimestampLocal,
   formatTimestampWithAge,
+  capitalize,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
@@ -100,10 +102,7 @@ export function isSleepingMode(mode, idleDurationMs, sleepThresholdMs) {
  * @param {string} str
  * @returns {string}
  */
-export function capitalize(str) {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
+// capitalize is now imported from @molt/mascot-plugin (single source of truth).
 
 export function isMissingMethodResponse(msg) {
   const ok = msg?.ok;

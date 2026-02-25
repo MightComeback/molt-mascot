@@ -2125,4 +2125,14 @@ describe("utils", () => {
     expect(formatTimestampWithAge(Infinity)).toBe("–");
     expect(formatTimestampWithAge(undefined as any)).toBe("–");
   });
+
+  it("capitalize", () => {
+    const { capitalize } = require("../src/index");
+    expect(capitalize("hello")).toBe("Hello");
+    expect(capitalize("Hello")).toBe("Hello");
+    expect(capitalize("a")).toBe("A");
+    expect(capitalize("")).toBe("");
+    expect(capitalize(null as any)).toBe(null);
+    expect(capitalize(undefined as any)).toBe(undefined);
+  });
 });
