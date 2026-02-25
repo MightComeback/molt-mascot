@@ -146,10 +146,30 @@ canvas:focus-visible {
 #pill.pill--connecting {
   background: rgba(255, 214, 10, 0.35);
   border-color: rgba(255, 214, 10, 0.45);
+  animation: pill-connecting-pulse 1.5s ease-in-out infinite;
+}
+@keyframes pill-connecting-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 #pill.pill--disconnected {
   background: rgba(255, 59, 48, 0.25);
   border-color: rgba(255, 59, 48, 0.35);
+  animation: pill-disconnected-pulse 3s ease-in-out infinite;
+}
+@keyframes pill-disconnected-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 #pill.pill--connected {
   background: rgba(52, 199, 89, 0.4);
@@ -188,7 +208,9 @@ canvas:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   #pill.pill--thinking,
   #pill.pill--tool,
+  #pill.pill--connecting,
   #pill.pill--connected,
+  #pill.pill--disconnected,
   #pill.pill--sleeping,
   #pill.pill--error {
     animation: none;
@@ -203,7 +225,9 @@ html.reduce-motion
 :is(
   #pill.pill--thinking,
   #pill.pill--tool,
+  #pill.pill--connecting,
   #pill.pill--connected,
+  #pill.pill--disconnected,
   #pill.pill--sleeping,
   #pill.pill--error,
   #molt-ctx
