@@ -5,7 +5,7 @@
  * producing an RGBA buffer suitable for Electron's nativeImage.createFromBuffer().
  */
 
-const { formatDuration, formatElapsed, formatCount, formatBytes, successRate } = require('@molt/mascot-plugin');
+const { formatDuration, formatElapsed, formatCount, formatBytes, successRate, formatTimestampLocal } = require('@molt/mascot-plugin');
 const { formatLatency, formatQualitySummary, formatHealthSummary, formatActiveSummary, computeConnectionSuccessRate } = require('./format-latency.cjs');
 const { MODE_EMOJI } = require('./mode-emoji.cjs');
 const { formatAlignment } = require('./get-position.cjs');
@@ -175,6 +175,7 @@ function renderTraySprite(scale, opts) {
  * @param {number|null} [params.lastResetAt] - Epoch ms of the last manual plugin reset (shown as "reset Xm ago" to confirm reset took effect)
  * @param {number} [params.agentSessions] - Cumulative count of agent sessions started since plugin start (shown when >0 for activity insight)
  * @param {number} [params.processMemoryRssBytes] - Electron process RSS in bytes (shown as compact memory usage for leak diagnostics)
+ * @param {number|null} [params.processStartedAt] - Epoch ms when the Electron process started (shown alongside uptime for absolute reference)
  * @param {"healthy"|"degraded"|"unhealthy"|null} [params.healthStatus] - At-a-glance health assessment from GatewayClient (shown when degraded/unhealthy)
  * @param {number|null} [params.connectionSuccessRate] - Connection success rate as integer percentage (0-100); when provided, used directly for health reason diagnostics instead of computing from sessionConnectCount/sessionAttemptCount
  * @param {number|null} [params.connectionUptimePct] - Percentage of total lifetime spent connected (0-100); shown when <100% to surface flappy connections
@@ -183,7 +184,7 @@ function renderTraySprite(scale, opts) {
  * @returns {string} Tooltip string with parts joined by " · "
  */
 function buildTrayTooltip(params) {
-  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
+  const { appVersion, mode, clickThrough, hideText, alignment, sizeLabel, opacityPercent, uptimeStr, latencyMs, currentTool, lastErrorMessage, modeDurationSec, processUptimeS, processMemoryRssBytes, processStartedAt, sessionConnectCount, sessionAttemptCount, toolCalls, toolErrors, lastCloseDetail, reconnectAttempt, targetUrl, activeAgents, activeTools, agentSessions, pluginVersion, pluginStartedAt, lastMessageAt, latencyStats, lastResetAt, healthStatus, connectionSuccessRate, connectionUptimePct, latencyTrend, now: nowOverride } = params;
   const now = nowOverride ?? Date.now();
   const verLabel = pluginVersion ? `Molt Mascot v${appVersion} (plugin v${pluginVersion})` : `Molt Mascot v${appVersion}`;
   const parts = [verLabel];
@@ -255,7 +256,10 @@ function buildTrayTooltip(params) {
     parts.push(`🔄 reset ${formatElapsed(lastResetAt, now)} ago`);
   }
   if (typeof processUptimeS === 'number' && processUptimeS >= 0) {
-    parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);
+    const startedSuffix = typeof processStartedAt === 'number' && processStartedAt > 0
+      ? ` (since ${formatTimestampLocal(processStartedAt, now)})`
+      : '';
+    parts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`);
   }
   if (typeof processMemoryRssBytes === 'number' && processMemoryRssBytes > 0) {
     parts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);

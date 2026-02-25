@@ -415,6 +415,24 @@ describe('tray-icon', () => {
       expect(tip).toContain('🕐 1h 1m');
     });
 
+    it('shows process uptime with started-at timestamp when processStartedAt is provided', () => {
+      const startedAt = 1700000000000; // 2023-11-14T22:13:20Z
+      const tip = buildTrayTooltip({ ...base, processUptimeS: 3600, processStartedAt: startedAt, now: startedAt + 3600000 });
+      expect(tip).toContain('🕐 1h');
+      expect(tip).toContain('(since ');
+    });
+
+    it('omits started-at suffix when processStartedAt is not provided', () => {
+      const tip = buildTrayTooltip({ ...base, processUptimeS: 3600 });
+      expect(tip).toContain('🕐 1h');
+      expect(tip).not.toContain('(since ');
+    });
+
+    it('omits started-at suffix when processStartedAt is zero or negative', () => {
+      expect(buildTrayTooltip({ ...base, processUptimeS: 60, processStartedAt: 0 })).not.toContain('(since ');
+      expect(buildTrayTooltip({ ...base, processUptimeS: 60, processStartedAt: -1 })).not.toContain('(since ');
+    });
+
     it('omits process uptime when not provided', () => {
       expect(buildTrayTooltip({ ...base })).not.toContain('🕐');
     });
