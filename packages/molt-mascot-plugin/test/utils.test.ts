@@ -30,6 +30,7 @@ import register, {
   formatPercent,
   sanitizeToolName,
   CONTENT_TOOLS,
+  pluralize,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2422,5 +2423,30 @@ describe("isValidPadding", () => {
     expect(isValidPadding(undefined)).toBe(false);
     expect(isValidPadding("24")).toBe(false);
     expect(isValidPadding(true)).toBe(false);
+  });
+});
+
+describe("pluralize", () => {
+  it("returns singular when count is 1", () => {
+    expect(pluralize(1, "session")).toBe("session");
+    expect(pluralize(1, "tool")).toBe("tool");
+  });
+
+  it("returns plural (default +s) when count is not 1", () => {
+    expect(pluralize(0, "session")).toBe("sessions");
+    expect(pluralize(2, "session")).toBe("sessions");
+    expect(pluralize(10, "agent")).toBe("agents");
+    expect(pluralize(-1, "frame")).toBe("frames");
+  });
+
+  it("uses custom plural form when provided", () => {
+    expect(pluralize(0, "match", "matches")).toBe("matches");
+    expect(pluralize(2, "match", "matches")).toBe("matches");
+    expect(pluralize(1, "match", "matches")).toBe("match");
+  });
+
+  it("handles empty singular", () => {
+    expect(pluralize(1, "")).toBe("");
+    expect(pluralize(2, "")).toBe("s");
   });
 });

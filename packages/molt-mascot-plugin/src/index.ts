@@ -548,6 +548,28 @@ export function capitalize(str: string): string {
 }
 
 /**
+ * Simple English pluralization: append "s" (or a custom suffix) when count ≠ 1.
+ * Replaces the `count !== 1 ? "s" : ""` pattern scattered across the codebase.
+ *
+ * @param count - The number to check
+ * @param singular - The singular form of the word
+ * @param plural - Optional custom plural form (defaults to singular + "s")
+ * @returns The appropriate word form (without the count)
+ *
+ * @example
+ * pluralize(1, "session")   // "session"
+ * pluralize(3, "session")   // "sessions"
+ * pluralize(0, "match", "matches") // "matches"
+ */
+export function pluralize(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
+  return count === 1 ? singular : (plural ?? singular + "s");
+}
+
+/**
  * Sensitive query parameter names whose values should be redacted in URLs.
  * Case-insensitive matching is applied during maskSensitiveUrl().
  * Covers common auth patterns: gateway tokens, API keys, bearer tokens, etc.
