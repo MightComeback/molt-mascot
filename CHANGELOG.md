@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Explicitly set `nodeIntegration: false` in BrowserWindow webPreferences for defense-in-depth (was already the Electron default, now explicit for auditability)
+
 ### Added
 - `--version --json` CLI flag combination — outputs structured version info (app, plugin, Electron, Chrome, Node, platform, arch) as JSON for scripting and CI pipelines
 - Fish shell completions (`tools/completions.fish`) — tab-complete all CLI flags with value suggestions for `--align`, `--size`, and directory completion for `--capture-dir`
