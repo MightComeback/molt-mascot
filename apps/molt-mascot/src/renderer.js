@@ -82,7 +82,7 @@ function _debouncedRecalcScale() {
     _resizeTimer = null;
     recalcCanvasScale();
     _spriteCache.warmAll(currentScale);
-  }, 50);
+  }, RESIZE_DEBOUNCE_MS);
 }
 window.addEventListener("resize", _debouncedRecalcScale);
 
@@ -102,6 +102,11 @@ const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 const TRANSIENT_FEEDBACK_MS = 700;
 // How long the "Connected ✓" celebration shows before transitioning to idle mode.
 const CONNECTED_IDLE_DELAY_MS = 2000;
+// Debounce interval for window resize recalculations (ms).
+const RESIZE_DEBOUNCE_MS = 50;
+// After a tool event, bounce back to thinking mode after this delay (ms).
+// Each new tool event restarts the timer so rapid tool calls don't flicker.
+const TOOL_BOUNCE_DELAY_MS = 250;
 // How long (seconds) the mascot must be idle before showing the sleeping state (ZZZ overlay).
 // 120s avoids false "sleeping" during normal usage pauses between queries.
 // Configurable via MOLT_MASCOT_SLEEP_THRESHOLD_S env var.
@@ -1117,7 +1122,7 @@ function connect(cfg) {
         nativeToolBounceTimer = setTimeout(() => {
           nativeToolBounceTimer = null;
           if (currentMode === Mode.tool) setMode(Mode.thinking);
-        }, 250);
+        }, TOOL_BOUNCE_DELAY_MS);
       }
     }
   });
