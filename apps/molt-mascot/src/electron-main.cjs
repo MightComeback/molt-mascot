@@ -71,7 +71,13 @@ if (process.argv.includes("--version") || process.argv.includes("-v")) {
       ) + "\n",
     );
   } else {
-    process.stdout.write(`molt-mascot ${APP_VERSION}\n`);
+    const pluginPkg = require("@molt/mascot-plugin/package.json");
+    const parts = [`molt-mascot ${APP_VERSION}`];
+    parts.push(`plugin ${pluginPkg.version}`);
+    if (process.versions.electron)
+      parts.push(`Electron ${process.versions.electron}`);
+    parts.push(`${process.platform} ${process.arch}`);
+    process.stdout.write(parts.join(" · ") + "\n");
   }
   process.exit(0);
 }
