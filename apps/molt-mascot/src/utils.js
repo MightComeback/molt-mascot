@@ -725,6 +725,44 @@ export const computeConnectionSuccessRate = _computeConnectionSuccessRate;
  * @param {"low"|"moderate"|"high"|"critical"|string|null} level
  * @returns {string} Emoji (🟢/🟡/🟠/🔴/⚪)
  */
+/**
+ * Memory pressure thresholds (percentage of jsHeapSizeLimit).
+ * Named constants avoid magic numbers in memoryPressure() and make
+ * threshold tuning discoverable. Mirrors QUALITY_THRESHOLDS / HEALTH_THRESHOLDS
+ * pattern from format-latency.cjs.
+ */
+export const MEMORY_PRESSURE_THRESHOLDS = Object.freeze({
+  moderate: 50, // 50%+ → moderate
+  high: 75, // 75%+ → high
+  critical: 90, // 90%+ → critical
+});
+
+/**
+ * Canonical list of valid memory pressure level strings.
+ * Mirrors VALID_HEALTH_STATUSES, VALID_MODES, VALID_LATENCY_TRENDS for
+ * consistent validation patterns across the codebase.
+ */
+export const VALID_MEMORY_PRESSURE_LEVELS = Object.freeze([
+  "low",
+  "moderate",
+  "high",
+  "critical",
+]);
+
+/** @private O(1) lookup set for isValidMemoryPressureLevel(). */
+const _VALID_MEM_LEVELS_SET = new Set(VALID_MEMORY_PRESSURE_LEVELS);
+
+/**
+ * Check whether a string is a recognized memory pressure level.
+ * Mirrors isValidHealth, isValidMode, isValidLatencyTrend for API consistency.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidMemoryPressureLevel(value) {
+  return typeof value === "string" && _VALID_MEM_LEVELS_SET.has(value);
+}
+
 export function memoryPressureEmoji(level) {
   switch (level) {
     case "low":
@@ -771,9 +809,10 @@ export function memoryPressure(memory) {
       : usedPercent;
 
   let level;
-  if (usedPercent >= 90) level = "critical";
-  else if (usedPercent >= 75) level = "high";
-  else if (usedPercent >= 50) level = "moderate";
+  if (usedPercent >= MEMORY_PRESSURE_THRESHOLDS.critical) level = "critical";
+  else if (usedPercent >= MEMORY_PRESSURE_THRESHOLDS.high) level = "high";
+  else if (usedPercent >= MEMORY_PRESSURE_THRESHOLDS.moderate)
+    level = "moderate";
   else level = "low";
 
   return { usedPercent, totalPercent, level };

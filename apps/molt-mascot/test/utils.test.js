@@ -38,6 +38,9 @@ import {
   memoryPressure,
   memoryPressureEmoji,
   formatMemorySummary,
+  MEMORY_PRESSURE_THRESHOLDS,
+  VALID_MEMORY_PRESSURE_LEVELS,
+  isValidMemoryPressureLevel,
 } from "../src/utils.js";
 
 describe("capitalize", () => {
@@ -2309,6 +2312,56 @@ describe("memoryPressure", () => {
     expect(result.level).toBe("low");
     expect(result.usedPercent).toBe(30);
     expect(result.totalPercent).toBe(30);
+  });
+});
+
+describe("MEMORY_PRESSURE_THRESHOLDS", () => {
+  it("defines ascending thresholds for moderate, high, critical", () => {
+    expect(MEMORY_PRESSURE_THRESHOLDS.moderate).toBe(50);
+    expect(MEMORY_PRESSURE_THRESHOLDS.high).toBe(75);
+    expect(MEMORY_PRESSURE_THRESHOLDS.critical).toBe(90);
+    expect(MEMORY_PRESSURE_THRESHOLDS.moderate).toBeLessThan(
+      MEMORY_PRESSURE_THRESHOLDS.high,
+    );
+    expect(MEMORY_PRESSURE_THRESHOLDS.high).toBeLessThan(
+      MEMORY_PRESSURE_THRESHOLDS.critical,
+    );
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(MEMORY_PRESSURE_THRESHOLDS)).toBe(true);
+  });
+});
+
+describe("VALID_MEMORY_PRESSURE_LEVELS", () => {
+  it("contains all four levels in order", () => {
+    expect(VALID_MEMORY_PRESSURE_LEVELS).toEqual([
+      "low",
+      "moderate",
+      "high",
+      "critical",
+    ]);
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(VALID_MEMORY_PRESSURE_LEVELS)).toBe(true);
+  });
+});
+
+describe("isValidMemoryPressureLevel", () => {
+  it("returns true for valid levels", () => {
+    expect(isValidMemoryPressureLevel("low")).toBe(true);
+    expect(isValidMemoryPressureLevel("moderate")).toBe(true);
+    expect(isValidMemoryPressureLevel("high")).toBe(true);
+    expect(isValidMemoryPressureLevel("critical")).toBe(true);
+  });
+
+  it("returns false for invalid values", () => {
+    expect(isValidMemoryPressureLevel("unknown")).toBe(false);
+    expect(isValidMemoryPressureLevel("")).toBe(false);
+    expect(isValidMemoryPressureLevel(null)).toBe(false);
+    expect(isValidMemoryPressureLevel(undefined)).toBe(false);
+    expect(isValidMemoryPressureLevel(42)).toBe(false);
   });
 });
 
