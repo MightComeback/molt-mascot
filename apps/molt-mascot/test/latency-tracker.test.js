@@ -574,4 +574,40 @@ describe("createLatencyTracker", () => {
       expect(t.percentile(100)).toBe(400);
     });
   });
+
+  describe("maxSamples clamping", () => {
+    it("clamps maxSamples=0 to 2 (prevents modulo-zero NaN)", () => {
+      const t = createLatencyTracker({ maxSamples: 0 });
+      t.push(10);
+      t.push(20);
+      t.push(30); // should evict oldest
+      expect(t.count()).toBe(2);
+      expect(t.stats()).not.toBeNull();
+    });
+
+    it("clamps maxSamples=1 to 2", () => {
+      const t = createLatencyTracker({ maxSamples: 1 });
+      t.push(10);
+      t.push(20);
+      expect(t.count()).toBe(2);
+    });
+
+    it("clamps negative maxSamples to 2", () => {
+      const t = createLatencyTracker({ maxSamples: -5 });
+      t.push(10);
+      t.push(20);
+      expect(t.count()).toBe(2);
+      expect(t.stats().avg).toBe(15);
+    });
+
+    it("clamps fractional maxSamples via Math.trunc", () => {
+      const t = createLatencyTracker({ maxSamples: 3.9 });
+      t.push(10);
+      t.push(20);
+      t.push(30);
+      t.push(40); // evicts 10
+      expect(t.count()).toBe(3);
+      expect(t.samples()).toEqual([20, 30, 40]);
+    });
+  });
 });

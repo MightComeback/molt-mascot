@@ -19,7 +19,13 @@ const DEFAULT_BUFFER_MAX = 60;
  * @returns {{ push: (ms: number) => void, stats: () => object|null, reset: () => void, samples: () => number[] }}
  */
 export function createLatencyTracker(opts = {}) {
-  const maxSamples = opts.maxSamples ?? DEFAULT_BUFFER_MAX;
+  // Clamp maxSamples to [2, ∞) — a single-slot buffer can never compute
+  // meaningful statistics (median, p95, jitter all need ≥2 samples), and
+  // zero causes NaN from modulo-zero. Parity with createFpsCounter's bufferSize clamp.
+  const maxSamples = Math.max(
+    2,
+    Math.trunc(opts.maxSamples ?? DEFAULT_BUFFER_MAX),
+  );
   // Ring buffer: head points to the next write slot; _count tracks filled slots.
   const ring = Array.from({ length: maxSamples });
   let head = 0;
