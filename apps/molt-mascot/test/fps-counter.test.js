@@ -409,4 +409,50 @@ describe("fps-counter", () => {
     const str = c.toString();
     expect(str).toContain("1.1K frames");
   });
+
+  describe("input validation", () => {
+    it("clamps bufferSize to minimum of 2", () => {
+      const c = createFpsCounter({ bufferSize: 1 });
+      c.update(0);
+      c.update(16);
+      c.update(32);
+      // With bufferSize=2, the ring holds 2 entries; all 3 should be counted in window
+      expect(c.fps()).toBeGreaterThanOrEqual(2);
+    });
+
+    it("clamps zero bufferSize to 2", () => {
+      const c = createFpsCounter({ bufferSize: 0 });
+      c.update(0);
+      c.update(16);
+      expect(c.fps()).toBe(2);
+    });
+
+    it("clamps negative bufferSize to 2", () => {
+      const c = createFpsCounter({ bufferSize: -10 });
+      c.update(0);
+      c.update(16);
+      expect(c.fps()).toBe(2);
+    });
+
+    it("truncates fractional bufferSize", () => {
+      const c = createFpsCounter({ bufferSize: 5.9 });
+      // Should behave as bufferSize=5
+      for (let i = 0; i < 10; i++) c.update(i * 10);
+      expect(c.fps()).toBeLessThanOrEqual(10);
+    });
+
+    it("clamps zero windowMs to 1", () => {
+      const c = createFpsCounter({ windowMs: 0 });
+      c.update(0);
+      c.update(0);
+      // With windowMs=1, frames at t=0 are within [0-1, 0] window
+      expect(c.fps()).toBeGreaterThanOrEqual(1);
+    });
+
+    it("clamps negative windowMs to 1", () => {
+      const c = createFpsCounter({ windowMs: -500 });
+      c.update(100);
+      expect(c.fps()).toBe(1);
+    });
+  });
 });

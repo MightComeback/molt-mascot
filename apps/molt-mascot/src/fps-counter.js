@@ -15,8 +15,11 @@ import { formatCount } from "./utils.js";
  * @returns {{ update: (t: number) => void, fps: () => number, reset: () => void, frameCount: () => number }}
  */
 export function createFpsCounter(opts = {}) {
-  const bufferSize = opts.bufferSize ?? 120; // enough for 2× 60fps
-  const windowMs = opts.windowMs ?? 1000;
+  // Clamp bufferSize to [2, ∞) — a single-slot buffer can never hold two
+  // timestamps, making FPS always 0 or 1 regardless of frame rate.
+  const bufferSize = Math.max(2, Math.trunc(opts.bufferSize ?? 120));
+  // Clamp windowMs to [1, ∞) — zero or negative windows are nonsensical.
+  const windowMs = Math.max(1, opts.windowMs ?? 1000);
   const ring = new Float64Array(bufferSize);
   let head = 0;
   let count = 0;
