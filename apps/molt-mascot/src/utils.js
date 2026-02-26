@@ -264,9 +264,18 @@ export function getFrameIntervalMs(
  * @returns {number} Delay in milliseconds
  */
 export function getReconnectDelayMs(attempt, opts = {}) {
-  const baseMs = opts.baseMs ?? 1500;
-  const maxMs = opts.maxMs ?? 30000;
-  const jitterFraction = opts.jitterFraction ?? 0.2;
+  // Harden all inputs: clamp to sane ranges so callers with bad config
+  // don't produce negative, NaN, or astronomically large delays.
+  const rawBase = Number(opts.baseMs);
+  const baseMs = Number.isFinite(rawBase) && rawBase > 0 ? rawBase : 1500;
+  const rawMax = Number(opts.maxMs);
+  const maxMs = Number.isFinite(rawMax) && rawMax > 0 ? rawMax : 30000;
+  // Clamp jitterFraction to [0, 1] — values >1 would more than double the
+  // delay (defeating the "max" cap), and negative values would subtract time.
+  const rawJitter = Number(opts.jitterFraction);
+  const jitterFraction = Number.isFinite(rawJitter)
+    ? Math.min(1, Math.max(0, rawJitter))
+    : 0.2;
   // Harden: clamp attempt to non-negative integer to prevent NaN/negative/fractional
   // inputs from producing nonsensical delays (e.g. Math.pow(2, -1) → 0.5× base).
   const safeAttempt = Math.max(0, Math.floor(Number(attempt) || 0));

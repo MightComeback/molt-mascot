@@ -655,6 +655,54 @@ describe("getReconnectDelayMs", () => {
     });
     expect(delay).toBe(4000);
   });
+
+  it("clamps negative baseMs to default", () => {
+    const delay = getReconnectDelayMs(0, {
+      baseMs: -500,
+      maxMs: 30000,
+      jitterFraction: 0,
+    });
+    expect(delay).toBe(1500); // falls back to default baseMs
+  });
+
+  it("clamps NaN maxMs to default", () => {
+    const delay = getReconnectDelayMs(0, {
+      baseMs: 1000,
+      maxMs: NaN,
+      jitterFraction: 0,
+    });
+    expect(delay).toBe(1000); // baseMs * 2^0, maxMs defaults to 30000
+  });
+
+  it("clamps jitterFraction > 1 to 1", () => {
+    const delay = getReconnectDelayMs(0, {
+      baseMs: 1000,
+      maxMs: 30000,
+      jitterFraction: 5,
+    });
+    // With jitterFraction clamped to 1, max delay = base + base*1 = 2000
+    expect(delay).toBeGreaterThanOrEqual(1000);
+    expect(delay).toBeLessThanOrEqual(2000);
+  });
+
+  it("clamps negative jitterFraction to 0", () => {
+    const delay = getReconnectDelayMs(0, {
+      baseMs: 1000,
+      maxMs: 30000,
+      jitterFraction: -0.5,
+    });
+    expect(delay).toBe(1000); // no jitter
+  });
+
+  it("falls back jitterFraction for undefined", () => {
+    const delay = getReconnectDelayMs(0, {
+      baseMs: 1000,
+      maxMs: 30000,
+    });
+    // Default jitterFraction = 0.2, so delay ∈ [1000, 1200]
+    expect(delay).toBeGreaterThanOrEqual(1000);
+    expect(delay).toBeLessThanOrEqual(1200);
+  });
 });
 
 describe("buildTooltip", () => {
