@@ -843,6 +843,17 @@ describe("computeShadowParams", () => {
     expect(p.alpha).toBeGreaterThanOrEqual(SHADOW_MIN_ALPHA);
   });
 
+  it("radii never go negative with extreme bob values", () => {
+    // Extreme positive bob that would push radii negative without clamping
+    const p = computeShadowParams(32, 3, 1000);
+    expect(p.rx).toBeGreaterThanOrEqual(0);
+    expect(p.ry).toBeGreaterThanOrEqual(0);
+    // Also test with a small scale where radii are more easily overwhelmed
+    const p2 = computeShadowParams(32, 1, 500);
+    expect(p2.rx).toBeGreaterThanOrEqual(0);
+    expect(p2.ry).toBeGreaterThanOrEqual(0);
+  });
+
   it("scales linearly with scale factor", () => {
     const s2 = computeShadowParams(32, 2, 0);
     const s4 = computeShadowParams(32, 4, 0);

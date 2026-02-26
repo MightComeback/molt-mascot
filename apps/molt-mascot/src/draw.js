@@ -407,8 +407,10 @@ export const OVERLAY_TIMING = {
 export function computeShadowParams(spriteSize, scale, bob) {
   const cx = (spriteSize * scale) / 2;
   const cy = spriteSize * scale * SHADOW_CENTER_Y_RATIO;
-  const rx = SHADOW_RX_FACTOR * scale - bob * SHADOW_BOB_RX_FACTOR;
-  const ry = SHADOW_RY_FACTOR * scale - bob * SHADOW_BOB_RY_FACTOR;
+  // Clamp radii to >= 0 to prevent negative ellipse radii from extreme bob values
+  // (canvas.ellipse() throws RangeError for negative radii in some engines).
+  const rx = Math.max(0, SHADOW_RX_FACTOR * scale - bob * SHADOW_BOB_RX_FACTOR);
+  const ry = Math.max(0, SHADOW_RY_FACTOR * scale - bob * SHADOW_BOB_RY_FACTOR);
   const alpha = Math.max(
     SHADOW_MIN_ALPHA,
     SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
