@@ -103,25 +103,24 @@ export function buildPillLabel(params) {
     return quality ? ` ${connectionQualityEmoji(quality)}` : "";
   })();
 
+  // Build the "↑Xm🟢" uptime suffix used by both idle and sleeping labels.
+  // Returns "" when not connected or uptime is too short (<60s) to display.
+  // When uptime is <60s but a quality emoji is available, returns just the emoji.
+  const uptimeSuffix = (() => {
+    if (!connectedSince) return "";
+    const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
+    if (uptimeSec >= 60)
+      return ` · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
+    if (qualityEmoji) return qualityEmoji;
+    return "";
+  })();
+
   if (mode === "connected") {
     label = sessionConnectCount > 1 ? "Reconnected ✓" : "Connected ✓";
   } else if (mode === "idle" && !isSleeping && connectedSince) {
-    const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
-    if (uptimeSec >= 60) {
-      label = `Idle · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
-    } else if (qualityEmoji) {
-      label = `Idle${qualityEmoji}`;
-    }
+    label = uptimeSuffix ? `Idle${uptimeSuffix}` : label;
   } else if (isSleeping) {
-    label = `Sleeping ${formatDuration(duration)}`;
-    if (connectedSince) {
-      const uptimeSec = Math.max(0, Math.round((now - connectedSince) / 1000));
-      if (uptimeSec >= 60) {
-        label += ` · ↑${formatDuration(uptimeSec)}${qualityEmoji}`;
-      } else if (qualityEmoji) {
-        label += qualityEmoji;
-      }
-    }
+    label = `Sleeping ${formatDuration(duration)}${uptimeSuffix}`;
   } else if (mode === "connecting") {
     // Always show ellipsis for connecting mode (indicates ongoing activity).
     // After 2s, append elapsed time so the user sees the connection isn't stuck.
