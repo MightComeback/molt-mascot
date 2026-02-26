@@ -8,6 +8,7 @@ import {
   isHomeKey,
   isEndKey,
   isTabKey,
+  isPrintableKey,
 } from "../src/keyboard-utils.js";
 
 describe("isActivateKey", () => {
@@ -131,5 +132,48 @@ describe("isTabKey", () => {
     expect(isTabKey(" ")).toBe(false);
     expect(isTabKey("Escape")).toBe(false);
     expect(isTabKey("")).toBe(false);
+  });
+});
+
+describe("isPrintableKey", () => {
+  it("returns true for single characters without modifiers", () => {
+    expect(isPrintableKey("a", {})).toBe(true);
+    expect(isPrintableKey("Z", {})).toBe(true);
+    expect(isPrintableKey("5", {})).toBe(true);
+    expect(isPrintableKey(".", {})).toBe(true);
+  });
+
+  it("returns true when modifiers object is omitted", () => {
+    expect(isPrintableKey("a")).toBe(true);
+    expect(isPrintableKey("f")).toBe(true);
+  });
+
+  it("returns false when Ctrl is held", () => {
+    expect(isPrintableKey("a", { ctrlKey: true })).toBe(false);
+  });
+
+  it("returns false when Meta is held", () => {
+    expect(isPrintableKey("c", { metaKey: true })).toBe(false);
+  });
+
+  it("returns false when Alt is held", () => {
+    expect(isPrintableKey("x", { altKey: true })).toBe(false);
+  });
+
+  it("returns false for multi-character keys", () => {
+    expect(isPrintableKey("Enter", {})).toBe(false);
+    expect(isPrintableKey("ArrowDown", {})).toBe(false);
+    expect(isPrintableKey("Escape", {})).toBe(false);
+    expect(isPrintableKey("Tab", {})).toBe(false);
+  });
+
+  it("returns false for empty string", () => {
+    expect(isPrintableKey("", {})).toBe(false);
+  });
+
+  it("returns false for non-string values", () => {
+    expect(isPrintableKey(null, {})).toBe(false);
+    expect(isPrintableKey(undefined, {})).toBe(false);
+    expect(isPrintableKey(42, {})).toBe(false);
   });
 });

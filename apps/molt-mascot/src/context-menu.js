@@ -11,6 +11,7 @@ import {
   isHomeKey,
   isEndKey,
   isTabKey,
+  isPrintableKey,
 } from "./keyboard-utils.js";
 
 /**
@@ -226,7 +227,7 @@ export function show(items, { x, y }) {
     // window to match menu items. Typing "fo" jumps to "Force Reconnect" past
     // "Format…". Falls back to single-char cycling when only one character is
     // buffered (preserves the original behavior of cycling through matches).
-    if (ev.key.length === 1 && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    if (isPrintableKey(ev.key, ev)) {
       if (typeAheadTimer) clearTimeout(typeAheadTimer);
       typeAheadBuffer += ev.key.toLowerCase();
       typeAheadTimer = setTimeout(() => {

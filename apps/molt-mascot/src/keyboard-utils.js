@@ -98,3 +98,22 @@ export function isEndKey(key) {
 export function isTabKey(key) {
   return key === "Tab";
 }
+
+/**
+ * Whether a keyboard event represents a printable (type-ahead) character.
+ * Returns true when the pressed key is a single character and no command
+ * modifiers (Ctrl, Meta, Alt) are held — i.e., the user is typing text,
+ * not invoking a shortcut.
+ *
+ * Used by the context menu for type-ahead navigation.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @param {{ ctrlKey?: boolean, metaKey?: boolean, altKey?: boolean }} [modifiers] - Modifier state
+ * @returns {boolean}
+ */
+export function isPrintableKey(key, modifiers) {
+  if (typeof key !== "string" || key.length !== 1) return false;
+  if (modifiers?.ctrlKey || modifiers?.metaKey || modifiers?.altKey)
+    return false;
+  return true;
+}
