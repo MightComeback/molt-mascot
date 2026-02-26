@@ -252,7 +252,10 @@ export function getReconnectDelayMs(attempt, opts = {}) {
   const baseMs = opts.baseMs ?? 1500;
   const maxMs = opts.maxMs ?? 30000;
   const jitterFraction = opts.jitterFraction ?? 0.2;
-  const delay = Math.min(baseMs * Math.pow(2, attempt), maxMs);
+  // Harden: clamp attempt to non-negative integer to prevent NaN/negative/fractional
+  // inputs from producing nonsensical delays (e.g. Math.pow(2, -1) → 0.5× base).
+  const safeAttempt = Math.max(0, Math.floor(Number(attempt) || 0));
+  const delay = Math.min(baseMs * Math.pow(2, safeAttempt), maxMs);
   const jitter = delay * jitterFraction * Math.random();
   return Math.round(delay + jitter);
 }

@@ -589,6 +589,43 @@ describe("getReconnectDelayMs", () => {
     expect(delay).toBeGreaterThanOrEqual(1500);
     expect(delay).toBeLessThanOrEqual(1800);
   });
+
+  it("treats negative attempt as 0", () => {
+    const delay = getReconnectDelayMs(-3, {
+      baseMs: 1000,
+      maxMs: 30000,
+      jitterFraction: 0,
+    });
+    expect(delay).toBe(1000);
+  });
+
+  it("treats NaN attempt as 0", () => {
+    const delay = getReconnectDelayMs(NaN, {
+      baseMs: 1000,
+      maxMs: 30000,
+      jitterFraction: 0,
+    });
+    expect(delay).toBe(1000);
+  });
+
+  it("floors fractional attempt values", () => {
+    const delay = getReconnectDelayMs(1.7, {
+      baseMs: 1000,
+      maxMs: 100000,
+      jitterFraction: 0,
+    });
+    // floor(1.7) = 1 → 1000 * 2^1 = 2000
+    expect(delay).toBe(2000);
+  });
+
+  it("coerces string attempt to number", () => {
+    const delay = getReconnectDelayMs("2", {
+      baseMs: 1000,
+      maxMs: 100000,
+      jitterFraction: 0,
+    });
+    expect(delay).toBe(4000);
+  });
 });
 
 describe("buildTooltip", () => {
