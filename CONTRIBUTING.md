@@ -17,6 +17,7 @@ molt-mascot/
 │   │   ├── context-menu-items.js # Menu item descriptors (pure function, no DOM)
 │   │   ├── pill-label.js      # HUD pill label/class computation (pure function)
 │   │   ├── gateway-client.js  # Extracted WS client class (reconnect, stale detection, plugin polling)
+│   │   ├── keyboard-utils.js  # Keyboard event helpers (activate, context menu, escape key detection)
 │   │   ├── plugin-sync.js     # Change-detection for plugin state → IPC dispatch
 │   │   ├── latency-tracker.js # Rolling latency stats (ring buffer, percentiles, jitter)
 │   │   ├── debug-info.js      # Multi-line diagnostic string builder
