@@ -12,7 +12,7 @@ const path = require("path");
 const fs = require("fs");
 
 const { isTruthyEnv, parseBooleanEnv } = require("./is-truthy-env.cjs");
-const { REPO_URL } = require("./env-keys.cjs");
+const { REPO_URL, parseEnvNumber } = require("./env-keys.cjs");
 const {
   getPosition: _getPosition,
   clampToWorkArea,
@@ -728,11 +728,9 @@ let userDragged = false;
  * get-position.cjs for testability.
  */
 function getPosition(display, width, height, alignOverride, paddingOvr) {
-  const envPadding = Number(process.env.MOLT_MASCOT_PADDING);
-  const basePadding = Math.max(
-    0,
-    Number.isFinite(envPadding) ? envPadding : 24,
-  );
+  const basePadding = parseEnvNumber(process.env, "MOLT_MASCOT_PADDING", 24, {
+    min: 0,
+  });
   const resolvedPadding =
     Number.isFinite(paddingOvr) && paddingOvr >= 0 ? paddingOvr : basePadding;
 
@@ -751,7 +749,10 @@ function getPosition(display, width, height, alignOverride, paddingOvr) {
  * avoiding a visible flash from 100% → saved value.
  */
 function _resolveInitialOpacity(savedOpacityIndex, savedOpacity) {
-  const envVal = Number(process.env.MOLT_MASCOT_OPACITY);
+  const envVal = parseEnvNumber(process.env, "MOLT_MASCOT_OPACITY", NaN, {
+    min: 0,
+    max: 1,
+  });
   if (isValidOpacity(envVal)) return envVal;
   // Prefer raw opacity value (preserves arbitrary scroll-wheel values like 0.3
   // that don't exist in the preset cycle and would be lost via opacityIndex).
@@ -778,18 +779,22 @@ function createWindow({
   initPosition,
 } = {}) {
   const display = screen.getPrimaryDisplay();
-  const envWidth = Number(process.env.MOLT_MASCOT_WIDTH);
-  const envHeight = Number(process.env.MOLT_MASCOT_HEIGHT);
+  const envWidth = parseEnvNumber(process.env, "MOLT_MASCOT_WIDTH", 0, {
+    min: 1,
+  });
+  const envHeight = parseEnvNumber(process.env, "MOLT_MASCOT_HEIGHT", 0, {
+    min: 1,
+  });
   const width =
     Number.isFinite(initWidth) && initWidth > 0
       ? initWidth
-      : Number.isFinite(envWidth) && envWidth > 0
+      : envWidth > 0
         ? envWidth
         : 240;
   const height =
     Number.isFinite(initHeight) && initHeight > 0
       ? initHeight
-      : Number.isFinite(envHeight) && envHeight > 0
+      : envHeight > 0
         ? envHeight
         : 200;
   // Use saved drag position if provided and valid; otherwise compute from alignment.
@@ -1739,10 +1744,10 @@ app.whenReady().then(async () => {
   // the sleep threshold, update the tray icon/tooltip to show the sleeping state.
   // The renderer handles its own ZZZ overlay; this mirrors that state in the tray
   // so the menu bar icon gives at-a-glance feedback even when the mascot is hidden.
-  const SLEEP_THRESHOLD_MS = (() => {
-    const raw = Number(process.env.MOLT_MASCOT_SLEEP_THRESHOLD_S);
-    return (Number.isFinite(raw) && raw >= 0 ? raw : 120) * 1000;
-  })();
+  const SLEEP_THRESHOLD_MS =
+    parseEnvNumber(process.env, "MOLT_MASCOT_SLEEP_THRESHOLD_S", 120, {
+      min: 0,
+    }) * 1000;
   let trayShowsSleeping = false;
   const sleepCheckTimer = setInterval(() => {
     if (currentRendererMode !== "idle") {
