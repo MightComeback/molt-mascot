@@ -29,6 +29,7 @@
  * @param {number} [params.actualFps] - Measured frames per second (rolling 1s window)
  * @param {number} [params.totalFrames] - Total frames rendered since app start or last reset
  * @param {number} [params.worstFrameDeltaMs] - Peak inter-frame delta since start/reset (jank detection)
+ * @param {"improving"|"degrading"|"stable"|null} [params.fpsTrend] - FPS trend direction from fps counter (shown when degrading for proactive jank detection)
  * @param {number} params.reconnectAttempt - Current reconnect attempt
  * @param {number} params.canvasScale - Pixel scale factor for canvas
  * @param {string} [params.appVersion] - App version string
@@ -128,6 +129,7 @@ export function buildDebugInfo(params) {
     actualFps,
     totalFrames,
     worstFrameDeltaMs,
+    fpsTrend,
     reconnectAttempt,
     canvasScale,
     appVersion,
@@ -360,8 +362,14 @@ export function buildDebugInfo(params) {
     typeof worstFrameDeltaMs === "number" && worstFrameDeltaMs > 0
       ? `, worst ${Math.round(worstFrameDeltaMs)}ms`
       : "";
+  // Surface FPS trend when degrading — proactive jank detection before it becomes visible.
+  // "improving" and "stable" are omitted to avoid clutter (parity with latency trend display).
+  const fpsTrendLabel =
+    typeof fpsTrend === "string" && fpsTrend === "degrading"
+      ? ", degrading"
+      : "";
   lines.push(
-    `Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${reducedMotion ? " (reduced)" : ""}`,
+    `Frame rate: ${fpsLabel}${actualFpsLabel}${totalFramesLabel}${worstDeltaLabel}${fpsTrendLabel}${reducedMotion ? " (reduced)" : ""}`,
   );
   if (spriteCache && typeof spriteCache.size === "number") {
     const hitRateStr =

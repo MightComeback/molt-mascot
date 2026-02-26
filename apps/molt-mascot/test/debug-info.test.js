@@ -265,6 +265,38 @@ describe("buildDebugInfo", () => {
     expect(info2).not.toContain("worst");
   });
 
+  it("shows fps trend when degrading", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      actualFps: 10,
+      fpsTrend: "degrading",
+    });
+    expect(info).toContain("degrading");
+  });
+
+  it("omits fps trend when stable or improving", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      fpsTrend: "stable",
+    });
+    expect(info).not.toContain("stable");
+    expect(info).not.toContain("degrading");
+    const info2 = buildDebugInfo({
+      ...BASE_PARAMS,
+      frameIntervalMs: 66,
+      fpsTrend: "improving",
+    });
+    expect(info2).not.toContain("improving");
+    expect(info2).not.toContain("degrading");
+  });
+
+  it("omits fps trend when not provided", () => {
+    const info = buildDebugInfo({ ...BASE_PARAMS, frameIntervalMs: 66 });
+    expect(info).not.toContain("degrading");
+  });
+
   it("shows reduced motion suffix", () => {
     const info = buildDebugInfo({
       ...BASE_PARAMS,
