@@ -843,6 +843,13 @@ describe("computeShadowParams", () => {
     expect(p.alpha).toBeGreaterThanOrEqual(SHADOW_MIN_ALPHA);
   });
 
+  it("alpha never exceeds 1 with extreme negative bob", () => {
+    // Extreme negative bob (sprite bobs far down) pushes alpha above 1 without clamping
+    const p = computeShadowParams(32, 3, -100);
+    expect(p.alpha).toBeLessThanOrEqual(1);
+    expect(p.alpha).toBeGreaterThanOrEqual(SHADOW_MIN_ALPHA);
+  });
+
   it("radii never go negative with extreme bob values", () => {
     // Extreme positive bob that would push radii negative without clamping
     const p = computeShadowParams(32, 3, 1000);

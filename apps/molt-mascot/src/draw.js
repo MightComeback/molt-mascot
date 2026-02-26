@@ -411,9 +411,12 @@ export function computeShadowParams(spriteSize, scale, bob) {
   // (canvas.ellipse() throws RangeError for negative radii in some engines).
   const rx = Math.max(0, SHADOW_RX_FACTOR * scale - bob * SHADOW_BOB_RX_FACTOR);
   const ry = Math.max(0, SHADOW_RY_FACTOR * scale - bob * SHADOW_BOB_RY_FACTOR);
-  const alpha = Math.max(
-    SHADOW_MIN_ALPHA,
-    SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
+  const alpha = Math.min(
+    1,
+    Math.max(
+      SHADOW_MIN_ALPHA,
+      SHADOW_BASE_ALPHA - bob * SHADOW_BOB_ALPHA_FACTOR,
+    ),
   );
   return { cx, cy, rx, ry, alpha };
 }
