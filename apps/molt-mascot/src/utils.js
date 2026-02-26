@@ -570,7 +570,7 @@ export function validateWsUrl(url) {
  *
  * @see https://www.iana.org/assignments/websocket/websocket.xhtml#close-code-number
  */
-export const WS_CLOSE_CODE_LABELS = {
+export const WS_CLOSE_CODE_LABELS = Object.freeze({
   1000: "normal",
   1001: "going away",
   1002: "protocol error",
@@ -604,7 +604,7 @@ export const WS_CLOSE_CODE_LABELS = {
   4012: "invalid version",
   4013: "invalid intent",
   4014: "disallowed intent",
-};
+});
 
 /**
  * Maximum character length for close reason strings in formatCloseDetail().
