@@ -5,6 +5,7 @@ const {
   clampToWorkArea,
   VALID_ALIGNMENTS,
   isValidAlignment,
+  MAX_PADDING,
   isValidPadding,
   nextAlignmentIndex,
   prevAlignmentIndex,
@@ -260,15 +261,21 @@ describe("isValidOpacity", () => {
 });
 
 describe("isValidPadding", () => {
-  it("accepts valid padding values (>= 0)", () => {
+  it("accepts valid padding values (>= 0, <= MAX_PADDING)", () => {
     expect(isValidPadding(0)).toBe(true);
     expect(isValidPadding(24)).toBe(true);
     expect(isValidPadding(100.5)).toBe(true);
+    expect(isValidPadding(MAX_PADDING)).toBe(true);
   });
 
   it("rejects negative values", () => {
     expect(isValidPadding(-1)).toBe(false);
     expect(isValidPadding(-0.1)).toBe(false);
+  });
+
+  it("rejects values exceeding MAX_PADDING", () => {
+    expect(isValidPadding(MAX_PADDING + 1)).toBe(false);
+    expect(isValidPadding(100000)).toBe(false);
   });
 
   it("rejects non-finite and non-number values", () => {
@@ -277,6 +284,10 @@ describe("isValidPadding", () => {
     expect(isValidPadding("24")).toBe(false);
     expect(isValidPadding(null)).toBe(false);
     expect(isValidPadding(undefined)).toBe(false);
+  });
+
+  it("exports MAX_PADDING as 1000", () => {
+    expect(MAX_PADDING).toBe(1000);
   });
 });
 

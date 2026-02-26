@@ -113,12 +113,25 @@ function clampToWorkArea(pos, size, workArea) {
 }
 
 /**
- * Check whether a value is a valid padding (finite non-negative number).
+ * Maximum allowed padding value in pixels.
+ * Prevents absurd values (e.g. 100000px from corrupted prefs or env vars)
+ * from pushing the mascot offscreen or causing layout issues.
+ * 1000px is generous for any reasonable display size.
+ */
+const MAX_PADDING = 1000;
+
+/**
+ * Check whether a value is a valid padding (finite non-negative number, capped at MAX_PADDING).
  * @param {*} value
  * @returns {boolean}
  */
 function isValidPadding(value) {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0 &&
+    value <= MAX_PADDING
+  );
 }
 
 /**
@@ -223,6 +236,7 @@ module.exports = {
   clampToWorkArea,
   VALID_ALIGNMENTS,
   isValidAlignment,
+  MAX_PADDING,
   isValidPadding,
   nextAlignmentIndex,
   prevAlignmentIndex,
