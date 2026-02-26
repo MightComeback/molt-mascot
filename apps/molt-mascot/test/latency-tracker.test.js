@@ -521,4 +521,57 @@ describe("createLatencyTracker", () => {
     const str = t.toString();
     expect(str).toContain("all-time-min=1ms");
   });
+
+  describe("percentile", () => {
+    it("returns null when empty", () => {
+      const t = createLatencyTracker();
+      expect(t.percentile(50)).toBeNull();
+    });
+
+    it("returns null for invalid percentile values", () => {
+      const t = createLatencyTracker();
+      t.push(10);
+      expect(t.percentile(-1)).toBeNull();
+      expect(t.percentile(101)).toBeNull();
+      expect(t.percentile(NaN)).toBeNull();
+      expect(t.percentile(Infinity)).toBeNull();
+      expect(t.percentile("50")).toBeNull();
+    });
+
+    it("returns the single sample for any valid percentile", () => {
+      const t = createLatencyTracker();
+      t.push(42);
+      expect(t.percentile(0)).toBe(42);
+      expect(t.percentile(50)).toBe(42);
+      expect(t.percentile(100)).toBe(42);
+    });
+
+    it("computes p0 and p100 as min and max", () => {
+      const t = createLatencyTracker();
+      [10, 20, 30, 40, 50].forEach((v) => t.push(v));
+      expect(t.percentile(0)).toBe(10);
+      expect(t.percentile(100)).toBe(50);
+    });
+
+    it("computes p50 (median) correctly", () => {
+      const t = createLatencyTracker();
+      [10, 20, 30, 40, 50].forEach((v) => t.push(v));
+      expect(t.percentile(50)).toBe(30);
+    });
+
+    it("interpolates between samples", () => {
+      const t = createLatencyTracker();
+      [0, 100].forEach((v) => t.push(v));
+      // p25 should interpolate: 0 + 0.25*(100-0) = 25
+      expect(t.percentile(25)).toBe(25);
+      expect(t.percentile(75)).toBe(75);
+    });
+
+    it("works after eviction", () => {
+      const t = createLatencyTracker({ maxSamples: 3 });
+      [100, 200, 300, 400].forEach((v) => t.push(v)); // 100 evicted
+      expect(t.percentile(0)).toBe(200);
+      expect(t.percentile(100)).toBe(400);
+    });
+  });
 });

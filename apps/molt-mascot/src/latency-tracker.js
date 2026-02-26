@@ -270,6 +270,32 @@ export function createLatencyTracker(opts = {}) {
   }
 
   /**
+   * Compute an arbitrary percentile from the current buffer.
+   * Generalizes the hardcoded p95/p99 in stats() so consumers can query
+   * any threshold (e.g. p50, p75, p90) for custom health policies.
+   *
+   * Uses linear interpolation between the two nearest ranks for
+   * smoother results than the ceiling-based approach in stats().
+   *
+   * @param {number} p - Percentile to compute (0–100 inclusive)
+   * @returns {number|null} Rounded percentile value in ms, or null if empty/invalid
+   */
+  function percentile(p) {
+    if (_count === 0) return null;
+    if (typeof p !== "number" || !Number.isFinite(p) || p < 0 || p > 100)
+      return null;
+    const sorted = _toArray().sort((a, b) => a - b);
+    if (p === 0) return Math.round(sorted[0]);
+    if (p === 100) return Math.round(sorted[sorted.length - 1]);
+    // Rank using linear interpolation (R-7 method, same as Excel/NumPy default)
+    const rank = (p / 100) * (sorted.length - 1);
+    const lo = Math.floor(rank);
+    const hi = Math.ceil(rank);
+    const frac = rank - lo;
+    return Math.round(sorted[lo] + frac * (sorted[hi] - sorted[lo]));
+  }
+
+  /**
    * JSON.stringify() support — delegates to getSnapshot() so
    * `JSON.stringify(tracker)` produces a clean diagnostic snapshot
    * without manual plucking (consistent with GatewayClient.toJSON()).
@@ -321,6 +347,7 @@ export function createLatencyTracker(opts = {}) {
     getSnapshot,
     isFull,
     trend,
+    percentile,
     toJSON,
     toString,
   };
