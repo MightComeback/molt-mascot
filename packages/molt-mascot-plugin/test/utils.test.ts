@@ -490,6 +490,28 @@ describe("utils", () => {
     expect(cleanErrorString("miniflare: TypeError: fetch failed")).toBe(
       "fetch failed",
     );
+    // Test runners
+    expect(cleanErrorString("vitest: Error: Test suite failed to run")).toBe(
+      "Test suite failed to run",
+    );
+    expect(cleanErrorString("jest: Test suite failed to run")).toBe(
+      "Test suite failed to run",
+    );
+    expect(cleanErrorString("mocha: timeout of 2000ms exceeded")).toBe(
+      "timeout of 2000ms exceeded",
+    );
+    expect(cleanErrorString("pytest: Error: no tests ran")).toBe(
+      "no tests ran",
+    );
+    expect(cleanErrorString("rspec: LoadError: cannot load such file")).toBe(
+      "cannot load such file",
+    );
+    expect(cleanErrorString("ava: Error: test timed out")).toBe(
+      "test timed out",
+    );
+    expect(cleanErrorString("tap: not ok 1 - should be equal")).toBe(
+      "not ok 1 - should be equal",
+    );
     // Deno runtime
     expect(cleanErrorString("deno: error: Module not found")).toBe(
       "Module not found",

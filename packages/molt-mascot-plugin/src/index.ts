@@ -530,6 +530,14 @@ export const ERROR_PREFIXES = [
   "wrangler:",
   "miniflare:",
   "workerd:",
+  // Test runners
+  "vitest:",
+  "jest:",
+  "mocha:",
+  "pytest:",
+  "rspec:",
+  "ava:",
+  "tap:",
   // OpenClaw specific
   "cron:",
   "nodes:",
