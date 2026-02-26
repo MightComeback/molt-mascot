@@ -9,6 +9,21 @@ export function coerceDelayMs(v, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+/**
+ * Coerce a raw value to a strictly positive number (> 0), returning fallback otherwise.
+ * Like coerceDelayMs but rejects zero — useful for protocol versions, scale factors,
+ * and other values where zero is not meaningful.
+ *
+ * @param {*} v - Raw value (string, number, null, undefined)
+ * @param {number} fallback - Value to return if v is missing or invalid
+ * @returns {number}
+ */
+export function coercePositive(v, fallback) {
+  if (v === "" || v === null || v === undefined) return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 // Import shared utilities from the plugin (single source of truth).
 // The renderer previously duplicated these implementations; now we delegate
 // to the canonical versions to avoid drift between plugin and renderer logic.

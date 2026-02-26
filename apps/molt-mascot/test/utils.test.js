@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   coerceDelayMs,
+  coercePositive,
   truncate,
   cleanErrorString,
   isMissingMethodResponse,
@@ -116,6 +117,34 @@ describe("coerceDelayMs", () => {
     expect(coerceDelayMs("", 800)).toBe(800);
     expect(coerceDelayMs(null, 800)).toBe(800);
     expect(coerceDelayMs(undefined, 800)).toBe(800);
+  });
+});
+
+describe("coercePositive", () => {
+  it("returns the number when valid and > 0", () => {
+    expect(coercePositive(5, 10)).toBe(5);
+    expect(coercePositive(0.5, 10)).toBe(0.5);
+  });
+
+  it("rejects zero (unlike coerceDelayMs)", () => {
+    expect(coercePositive(0, 10)).toBe(10);
+  });
+
+  it("coerces string numbers", () => {
+    expect(coercePositive("3", 10)).toBe(3);
+  });
+
+  it("returns fallback for invalid values", () => {
+    expect(coercePositive("abc", 10)).toBe(10);
+    expect(coercePositive(-1, 10)).toBe(10);
+    expect(coercePositive(NaN, 10)).toBe(10);
+    expect(coercePositive(Infinity, 10)).toBe(10);
+  });
+
+  it("returns fallback for empty/null/undefined", () => {
+    expect(coercePositive("", 10)).toBe(10);
+    expect(coercePositive(null, 10)).toBe(10);
+    expect(coercePositive(undefined, 10)).toBe(10);
   });
 });
 

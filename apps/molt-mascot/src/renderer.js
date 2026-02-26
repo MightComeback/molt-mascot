@@ -1,5 +1,6 @@
 import {
   coerceDelayMs,
+  coercePositive,
   truncate,
   cleanErrorString,
   isMissingMethodResponse,
@@ -53,12 +54,7 @@ const ctx = canvas.getContext("2d");
 
 // Dynamic canvas scaling: adjust pixel scale based on container size so the lobster
 // fills the window proportionally across small/medium/large presets.
-/** Coerce a raw env value to a positive number (> 0), returning fallback otherwise. */
-function _coercePositive(v, fallback) {
-  if (v === "" || v === null || v === undefined) return fallback;
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
+// coercePositive imported from utils.js (single source of truth)
 
 // The sprite is 32 rows × 32 cols; we pick the largest integer scale that fits.
 const SPRITE_SIZE = 32;
@@ -132,8 +128,8 @@ const SLEEP_THRESHOLD_MS = SLEEP_THRESHOLD_S * 1000;
 // Gateway protocol version range for connect negotiation.
 // Protocol 3 is preferred; older Gateways may only speak 2.
 // Configurable via MOLT_MASCOT_MIN_PROTOCOL / MOLT_MASCOT_MAX_PROTOCOL env vars.
-const MIN_PROTOCOL = _coercePositive(window.moltMascot?.env?.minProtocol, 2);
-const MAX_PROTOCOL = _coercePositive(window.moltMascot?.env?.maxProtocol, 3);
+const MIN_PROTOCOL = coercePositive(window.moltMascot?.env?.minProtocol, 2);
+const MAX_PROTOCOL = coercePositive(window.moltMascot?.env?.maxProtocol, 3);
 
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.
 let isClickThrough = false;
