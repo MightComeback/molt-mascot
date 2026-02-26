@@ -3,6 +3,11 @@ import {
   isActivateKey,
   isContextMenuKey,
   isEscapeKey,
+  isNavDownKey,
+  isNavUpKey,
+  isHomeKey,
+  isEndKey,
+  isTabKey,
 } from "../src/keyboard-utils.js";
 
 describe("isActivateKey", () => {
@@ -63,5 +68,68 @@ describe("isEscapeKey", () => {
 
   it("returns false for empty string", () => {
     expect(isEscapeKey("")).toBe(false);
+  });
+});
+
+describe("isNavDownKey", () => {
+  it("returns true for ArrowDown", () => {
+    expect(isNavDownKey("ArrowDown")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isNavDownKey("ArrowUp")).toBe(false);
+    expect(isNavDownKey("ArrowLeft")).toBe(false);
+    expect(isNavDownKey("Enter")).toBe(false);
+    expect(isNavDownKey("")).toBe(false);
+  });
+});
+
+describe("isNavUpKey", () => {
+  it("returns true for ArrowUp", () => {
+    expect(isNavUpKey("ArrowUp")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isNavUpKey("ArrowDown")).toBe(false);
+    expect(isNavUpKey("ArrowRight")).toBe(false);
+    expect(isNavUpKey("Enter")).toBe(false);
+    expect(isNavUpKey("")).toBe(false);
+  });
+});
+
+describe("isHomeKey", () => {
+  it("returns true for Home", () => {
+    expect(isHomeKey("Home")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isHomeKey("End")).toBe(false);
+    expect(isHomeKey("PageUp")).toBe(false);
+    expect(isHomeKey("")).toBe(false);
+  });
+});
+
+describe("isEndKey", () => {
+  it("returns true for End", () => {
+    expect(isEndKey("End")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isEndKey("Home")).toBe(false);
+    expect(isEndKey("PageDown")).toBe(false);
+    expect(isEndKey("")).toBe(false);
+  });
+});
+
+describe("isTabKey", () => {
+  it("returns true for Tab", () => {
+    expect(isTabKey("Tab")).toBe(true);
+  });
+
+  it("returns false for other keys", () => {
+    expect(isTabKey("Enter")).toBe(false);
+    expect(isTabKey(" ")).toBe(false);
+    expect(isTabKey("Escape")).toBe(false);
+    expect(isTabKey("")).toBe(false);
   });
 });

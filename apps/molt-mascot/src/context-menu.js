@@ -3,7 +3,15 @@
  * Extracted from renderer.js for maintainability and testability.
  */
 
-import { isActivateKey, isEscapeKey } from "./keyboard-utils.js";
+import {
+  isActivateKey,
+  isEscapeKey,
+  isNavDownKey,
+  isNavUpKey,
+  isHomeKey,
+  isEndKey,
+  isTabKey,
+} from "./keyboard-utils.js";
 
 /**
  * @typedef {Object} MenuItem
@@ -184,26 +192,26 @@ export function show(items, { x, y }) {
       cleanup();
       return;
     }
-    if (ev.key === "ArrowDown") {
+    if (isNavDownKey(ev.key)) {
       ev.preventDefault();
       focusNext();
       return;
     }
-    if (ev.key === "ArrowUp") {
+    if (isNavUpKey(ev.key)) {
       ev.preventDefault();
       focusPrev();
       return;
     }
-    if (ev.key === "Tab") {
+    if (isTabKey(ev.key)) {
       cleanup();
       return;
     }
-    if (ev.key === "Home") {
+    if (isHomeKey(ev.key)) {
       ev.preventDefault();
       if (interactiveIndices.length) setFocus(interactiveIndices[0]);
       return;
     }
-    if (ev.key === "End") {
+    if (isEndKey(ev.key)) {
       ev.preventDefault();
       if (interactiveIndices.length)
         setFocus(interactiveIndices[interactiveIndices.length - 1]);

@@ -43,3 +43,58 @@ export function isContextMenuKey(key, shiftKey) {
 export function isEscapeKey(key) {
   return key === "Escape";
 }
+
+/**
+ * Whether a key event represents a "navigate next" action (ArrowDown).
+ * Used by the context menu for keyboard item navigation.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isNavDownKey(key) {
+  return key === "ArrowDown";
+}
+
+/**
+ * Whether a key event represents a "navigate previous" action (ArrowUp).
+ * Used by the context menu for keyboard item navigation.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isNavUpKey(key) {
+  return key === "ArrowUp";
+}
+
+/**
+ * Whether a key event represents a "jump to first" action (Home key).
+ * Used by the context menu to jump to the first interactive item.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isHomeKey(key) {
+  return key === "Home";
+}
+
+/**
+ * Whether a key event represents a "jump to last" action (End key).
+ * Used by the context menu to jump to the last interactive item.
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isEndKey(key) {
+  return key === "End";
+}
+
+/**
+ * Whether a key event represents a tab/dismiss action (Tab key).
+ * Used by the context menu to dismiss on Tab (focus leaves the menu).
+ *
+ * @param {string} key - The KeyboardEvent.key value
+ * @returns {boolean}
+ */
+export function isTabKey(key) {
+  return key === "Tab";
+}
