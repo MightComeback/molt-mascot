@@ -3,7 +3,7 @@
  * Extracted from renderer.js for maintainability and testability.
  */
 
-import { isEscapeKey } from "./keyboard-utils.js";
+import { isActivateKey, isEscapeKey } from "./keyboard-utils.js";
 
 /**
  * @typedef {Object} MenuItem
@@ -209,11 +209,7 @@ export function show(items, { x, y }) {
         setFocus(interactiveIndices[interactiveIndices.length - 1]);
       return;
     }
-    if (
-      (ev.key === "Enter" || ev.key === " ") &&
-      focusIdx >= 0 &&
-      focusIdx < menuItems.length
-    ) {
+    if (isActivateKey(ev.key) && focusIdx >= 0 && focusIdx < menuItems.length) {
       ev.preventDefault();
       menuItems[focusIdx].click();
       return;
