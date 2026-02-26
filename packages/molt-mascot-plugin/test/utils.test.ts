@@ -2522,3 +2522,75 @@ describe("cleanErrorString — database/ORM prefixes", () => {
     );
   });
 });
+
+describe("cleanErrorString — Unix coreutils/network prefixes", () => {
+  it("strips ssh prefix", () => {
+    expect(
+      cleanErrorString(
+        "ssh: connect to host example.com port 22: Connection refused",
+      ),
+    ).toBe("connect to host example.com port 22: Connection refused");
+  });
+
+  it("strips scp prefix", () => {
+    expect(cleanErrorString("scp: /tmp/file: No such file or directory")).toBe(
+      "/tmp/file: No such file or directory",
+    );
+  });
+
+  it("strips rsync prefix", () => {
+    expect(cleanErrorString("rsync: link_stat failed")).toBe(
+      "link_stat failed",
+    );
+  });
+
+  it("strips tar prefix", () => {
+    expect(cleanErrorString("tar: Error opening archive")).toBe(
+      "opening archive",
+    );
+  });
+
+  it("strips grep prefix", () => {
+    expect(cleanErrorString("grep: invalid option -- 'z'")).toBe(
+      "invalid option -- 'z'",
+    );
+  });
+
+  it("strips mkdir prefix", () => {
+    expect(
+      cleanErrorString(
+        "mkdir: cannot create directory '/root/test': Permission denied",
+      ),
+    ).toBe("cannot create directory '/root/test': Permission denied");
+  });
+
+  it("strips rm prefix", () => {
+    expect(
+      cleanErrorString(
+        "rm: cannot remove '/protected': Operation not permitted",
+      ),
+    ).toBe("cannot remove '/protected': Operation not permitted");
+  });
+
+  it("strips cp prefix", () => {
+    expect(
+      cleanErrorString(
+        "cp: cannot stat 'missing.txt': No such file or directory",
+      ),
+    ).toBe("cannot stat 'missing.txt': No such file or directory");
+  });
+
+  it("strips chmod prefix", () => {
+    expect(
+      cleanErrorString(
+        "chmod: changing permissions of '/etc/passwd': Operation not permitted",
+      ),
+    ).toBe("changing permissions of '/etc/passwd': Operation not permitted");
+  });
+
+  it("strips find prefix", () => {
+    expect(cleanErrorString("find: '/root': Permission denied")).toBe(
+      "'/root': Permission denied",
+    );
+  });
+});
