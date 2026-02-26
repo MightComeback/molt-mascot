@@ -538,6 +538,17 @@ export const ERROR_PREFIXES = [
   "rspec:",
   "ava:",
   "tap:",
+  // Database / ORM CLIs
+  "psql:",
+  "mysql:",
+  "sqlite3:",
+  "mongosh:",
+  "redis-cli:",
+  "prisma:",
+  "drizzle:",
+  "knex:",
+  "sequelize:",
+  "typeorm:",
   // OpenClaw specific
   "cron:",
   "nodes:",

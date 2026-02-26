@@ -2472,3 +2472,53 @@ describe("pluralize", () => {
     expect(pluralize(2, "")).toBe("s");
   });
 });
+
+describe("cleanErrorString — database/ORM prefixes", () => {
+  it("strips psql prefix", () => {
+    expect(cleanErrorString("psql: connection refused")).toBe(
+      "connection refused",
+    );
+  });
+
+  it("strips mysql prefix", () => {
+    expect(cleanErrorString("mysql: Access denied for user 'root'")).toBe(
+      "Access denied for user 'root'",
+    );
+  });
+
+  it("strips sqlite3 prefix", () => {
+    expect(cleanErrorString("sqlite3: unable to open database")).toBe(
+      "unable to open database",
+    );
+  });
+
+  it("strips mongosh prefix", () => {
+    expect(cleanErrorString("mongosh: connect ECONNREFUSED")).toBe(
+      "connect ECONNREFUSED",
+    );
+  });
+
+  it("strips redis-cli prefix", () => {
+    expect(cleanErrorString("redis-cli: Could not connect")).toBe(
+      "Could not connect",
+    );
+  });
+
+  it("strips prisma prefix", () => {
+    expect(cleanErrorString("prisma: migration failed")).toBe(
+      "migration failed",
+    );
+  });
+
+  it("strips drizzle prefix", () => {
+    expect(cleanErrorString("drizzle: schema push error")).toBe(
+      "schema push error",
+    );
+  });
+
+  it("strips typeorm prefix", () => {
+    expect(cleanErrorString("typeorm: Cannot find connection")).toBe(
+      "Cannot find connection",
+    );
+  });
+});
