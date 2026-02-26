@@ -53,6 +53,13 @@ const ctx = canvas.getContext("2d");
 
 // Dynamic canvas scaling: adjust pixel scale based on container size so the lobster
 // fills the window proportionally across small/medium/large presets.
+/** Coerce a raw env value to a positive number (> 0), returning fallback otherwise. */
+function _coercePositive(v, fallback) {
+  if (v === "" || v === null || v === undefined) return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 // The sprite is 32 rows × 32 cols; we pick the largest integer scale that fits.
 const SPRITE_SIZE = 32;
 let currentScale = 3; // default for 240×200 (medium)
@@ -117,14 +124,16 @@ const TOOL_BOUNCE_DELAY_MS = 250;
 // 120s avoids false "sleeping" during normal usage pauses between queries.
 // Configurable via MOLT_MASCOT_SLEEP_THRESHOLD_S env var.
 const DEFAULT_SLEEP_THRESHOLD_S = 120;
-const SLEEP_THRESHOLD_S = (() => {
-  const raw = window.moltMascot?.env?.sleepThresholdS;
-  if (raw === "" || raw === null || raw === undefined)
-    return DEFAULT_SLEEP_THRESHOLD_S;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_SLEEP_THRESHOLD_S;
-})();
+const SLEEP_THRESHOLD_S = coerceDelayMs(
+  window.moltMascot?.env?.sleepThresholdS,
+  DEFAULT_SLEEP_THRESHOLD_S,
+);
 const SLEEP_THRESHOLD_MS = SLEEP_THRESHOLD_S * 1000;
+// Gateway protocol version range for connect negotiation.
+// Protocol 3 is preferred; older Gateways may only speak 2.
+// Configurable via MOLT_MASCOT_MIN_PROTOCOL / MOLT_MASCOT_MAX_PROTOCOL env vars.
+const MIN_PROTOCOL = _coercePositive(window.moltMascot?.env?.minProtocol, 2);
+const MAX_PROTOCOL = _coercePositive(window.moltMascot?.env?.maxProtocol, 3);
 
 // click-through (ghost mode). Declared early so setup UI can reliably disable it.
 let isClickThrough = false;
@@ -881,16 +890,8 @@ function connect(cfg) {
       params: {
         // Default to a safe negotiation range so the mascot works across Gateway versions.
         // (Protocol 3 is preferred, but older Gateways might only speak 2.)
-        minProtocol: (function () {
-          const raw = window.moltMascot?.env?.minProtocol;
-          const v = Number(raw);
-          return Number.isFinite(v) && v > 0 ? v : 2;
-        })(),
-        maxProtocol: (function () {
-          const raw = window.moltMascot?.env?.maxProtocol;
-          const v = Number(raw);
-          return Number.isFinite(v) && v > 0 ? v : 3;
-        })(),
+        minProtocol: MIN_PROTOCOL,
+        maxProtocol: MAX_PROTOCOL,
         client: {
           id: "molt-mascot-desktop",
           displayName: "Molt Mascot",
