@@ -475,23 +475,12 @@ export function buildTooltip(params) {
       tip += ` · ${reconnectStr}`;
     }
   }
-  // Surface connection success rate when below 100% — indicates failed connection
-  // attempts (parity with context menu and tray tooltip reliability diagnostics).
-  if (
-    typeof connectionSuccessRate === "number" &&
-    connectionSuccessRate >= 0 &&
-    connectionSuccessRate < 100
-  ) {
-    tip += ` · ${connectionSuccessRate}% ok`;
-  }
-  // Surface connection uptime percentage when below 100% to highlight flappy connections.
-  // Parity with tray tooltip's connectionUptimePct indicator.
-  if (
-    typeof connectionUptimePct === "number" &&
-    connectionUptimePct >= 0 &&
-    connectionUptimePct < 100
-  ) {
-    tip += ` · ${connectionUptimePct}% connected`;
+  // Surface connection reliability metrics (success rate + uptime) when below 100%.
+  for (const part of formatConnectionReliability(
+    connectionSuccessRate,
+    connectionUptimePct,
+  )) {
+    tip += ` · ${part}`;
   }
   // Show health status when degraded or unhealthy for at-a-glance diagnostics.
   // "healthy" is omitted to keep the tooltip clean when everything is fine.
