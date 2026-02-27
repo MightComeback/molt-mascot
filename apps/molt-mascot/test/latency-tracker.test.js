@@ -429,7 +429,8 @@ describe("createLatencyTracker", () => {
     t.push(42);
     const str = t.toString();
     expect(str).toStartWith("LatencyTracker<");
-    expect(str).toContain("1 sample,");
+    // Buffer not full: shows "1/60 samples" (warmup indicator)
+    expect(str).toContain("1/60 samples,");
     expect(str).toContain("avg=42ms");
     expect(str).toContain("median=42ms");
     expect(str).toContain("jitter=0ms");
@@ -441,9 +442,19 @@ describe("createLatencyTracker", () => {
     const t = createLatencyTracker();
     [10, 10, 50, 50, 90].forEach((v) => t.push(v));
     const str = t.toString();
-    expect(str).toContain("5 samples");
+    // Buffer not full: shows "5/60 samples"
+    expect(str).toContain("5/60 samples");
     expect(str).toContain("p95=");
     expect(str).toContain("rising");
+  });
+
+  it("toString() omits capacity when buffer is full", () => {
+    const t = createLatencyTracker({ maxSamples: 4 });
+    [10, 20, 30, 40].forEach((v) => t.push(v));
+    const str = t.toString();
+    // Buffer full: shows "4 samples" without capacity denominator
+    expect(str).toContain("4 samples");
+    expect(str).not.toContain("/");
   });
 
   it("toString() returns empty after reset", () => {

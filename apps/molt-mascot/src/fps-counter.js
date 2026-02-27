@@ -253,7 +253,13 @@ export function createFpsCounter(opts = {}) {
       // Use formatCount for compact display when frame counts are large
       parts.push(`${formatCount(totalFrames)} frames`);
     } else {
-      parts.push(`${totalFrames} frame${totalFrames !== 1 ? "s" : ""}`);
+      // Show "12/120 frames" when buffer is still warming up for parity
+      // with LatencyTracker.toString() buffer fullness indicator.
+      const frameLabel =
+        count < bufferSize
+          ? `${totalFrames}/${bufferSize} frames`
+          : `${totalFrames} frame${totalFrames !== 1 ? "s" : ""}`;
+      parts.push(frameLabel);
     }
     if (worstFrameDeltaMs > 0)
       parts.push(`worst ${Math.round(worstFrameDeltaMs)}ms`);

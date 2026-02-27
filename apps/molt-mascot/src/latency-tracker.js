@@ -324,7 +324,13 @@ export function createLatencyTracker(opts = {}) {
   function toString() {
     if (_count === 0) return "LatencyTracker<empty>";
     const s = stats();
-    const parts = [`${s.samples} sample${s.samples !== 1 ? "s" : ""}`];
+    // Show "12/60 samples" when buffer is still warming up, "60 samples" when full.
+    // Helps users gauge whether rolling statistics are representative yet.
+    const sampleLabel =
+      _count < maxSamples
+        ? `${s.samples}/${maxSamples} samples`
+        : `${s.samples} sample${s.samples !== 1 ? "s" : ""}`;
+    const parts = [sampleLabel];
     parts.push(`avg=${s.avg}ms`);
     parts.push(`median=${s.median}ms`);
     if (s.samples >= 5) parts.push(`p95=${s.p95}ms`);

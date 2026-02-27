@@ -398,8 +398,18 @@ describe("fps-counter", () => {
     const str = c.toString();
     expect(str).toMatch(/^FpsCounter</);
     expect(str).toContain("fps");
-    expect(str).toContain("frames");
+    // Buffer not full: shows "10/20 frames" (warmup indicator)
+    expect(str).toContain("10/20 frames");
     expect(str).toContain("worst");
+  });
+
+  it("toString() omits capacity when buffer is full", () => {
+    const c = createFpsCounter({ bufferSize: 4, windowMs: 10000 });
+    for (let i = 0; i < 4; i++) c.update(i * 16);
+    const str = c.toString();
+    // Buffer full: shows "4 frames" without capacity denominator
+    expect(str).toContain("4 frames");
+    expect(str).not.toContain("/");
   });
 
   it("toString() uses compact format for large frame counts", () => {
