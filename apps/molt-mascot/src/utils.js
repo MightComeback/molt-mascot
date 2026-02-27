@@ -43,6 +43,7 @@ import {
   capitalize,
   pluralize,
   maskSensitiveUrl,
+  formatBoolToggle,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -60,6 +61,7 @@ export {
   capitalize,
   pluralize,
   maskSensitiveUrl,
+  formatBoolToggle,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.

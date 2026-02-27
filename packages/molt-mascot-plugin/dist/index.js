@@ -37,11 +37,13 @@ __export(index_exports, {
   coercePadding: () => coercePadding,
   coerceSize: () => coerceSize,
   default: () => register,
+  formatBoolToggle: () => formatBoolToggle,
   formatBytes: () => formatBytes,
   formatCount: () => formatCount,
   formatDuration: () => formatDuration,
   formatElapsed: () => formatElapsed,
   formatPercent: () => formatPercent,
+  formatRate: () => formatRate,
   formatRelativeTime: () => formatRelativeTime,
   formatTimestamp: () => formatTimestamp,
   formatTimestampLocal: () => formatTimestampLocal,
@@ -54,6 +56,7 @@ __export(index_exports, {
   isValidPadding: () => isValidPadding,
   isValidSize: () => isValidSize,
   maskSensitiveUrl: () => maskSensitiveUrl,
+  parseDuration: () => parseDuration,
   pluralize: () => pluralize,
   sanitizeToolName: () => sanitizeToolName,
   successRate: () => successRate,
@@ -90,7 +93,8 @@ var package_default = {
       types: "./dist/index.d.ts",
       import: "./dist/index.mjs",
       require: "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   scripts: {
     build: "node tools/sync-plugin-manifest.mjs && tsup src/index.ts --format cjs,esm --dts",
@@ -266,6 +270,64 @@ function capitalize(str) {
 function pluralize(count, singular, plural) {
   return count === 1 ? singular : plural ?? singular + "s";
 }
+function formatBoolToggle(value, onLabel = "on", offLabel = "off") {
+  return value ? onLabel : offLabel;
+}
+function formatRate(perSecond, unit) {
+  if (!Number.isFinite(perSecond) || perSecond < 0)
+    return unit ? `0 ${unit}/s` : "0/s";
+  if (unit) {
+    const UNITS = ["K", "M", "G", "T"];
+    if (perSecond < 1e3) {
+      const rounded = Math.round(perSecond);
+      return `${rounded} ${unit}/s`;
+    }
+    let value = perSecond;
+    for (const u of UNITS) {
+      value /= 1e3;
+      if (value < 1e3 || u === "T") {
+        return `${value.toFixed(1)} ${u}${unit}/s`;
+      }
+    }
+    return `${value.toFixed(1)} T${unit}/s`;
+  }
+  return `${formatCount(perSecond)}/s`;
+}
+function parseDuration(input) {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+    const n = Number(trimmed);
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+  }
+  const UNITS = {
+    w: 604800,
+    d: 86400,
+    h: 3600,
+    m: 60,
+    s: 1
+  };
+  const pattern = /(\d+(?:\.\d+)?)\s*([wdhms])/gi;
+  let total = 0;
+  let matched = false;
+  let lastIndex = 0;
+  const normalized = trimmed.replace(/\s+/g, "");
+  let match;
+  const groupPattern = /(\d+(?:\.\d+)?)([wdhms])/gi;
+  let reconstructed = "";
+  while ((match = groupPattern.exec(normalized)) !== null) {
+    reconstructed += match[0];
+    const value = Number(match[1]);
+    const unit = match[2].toLowerCase();
+    if (!Number.isFinite(value) || value < 0) return null;
+    total += value * UNITS[unit];
+    matched = true;
+  }
+  if (!matched || reconstructed.toLowerCase() !== normalized.toLowerCase())
+    return null;
+  return Number.isFinite(total) && total >= 0 ? Math.round(total) : null;
+}
 
 // src/index.ts
 var id = package_default.name;
@@ -288,7 +350,12 @@ function coerceBoolean(v, fallback) {
   }
   return fallback;
 }
-var allowedModes = ["idle", "thinking", "tool", "error"];
+var allowedModes = Object.freeze([
+  "idle",
+  "thinking",
+  "tool",
+  "error"
+]);
 function isValidMode(value) {
   return typeof value === "string" && _validModesSet.has(value);
 }
@@ -300,7 +367,7 @@ function coerceMode(v, fallback) {
   }
   return fallback;
 }
-var allowedAlignments = [
+var allowedAlignments = Object.freeze([
   "top-left",
   "top-right",
   "bottom-left",
@@ -310,18 +377,18 @@ var allowedAlignments = [
   "center-left",
   "center-right",
   "center"
-];
+]);
 var _validAlignmentsSet = new Set(allowedAlignments);
 function isValidAlignment(value) {
   return typeof value === "string" && _validAlignmentsSet.has(value);
 }
-var allowedSizes = [
+var allowedSizes = Object.freeze([
   "tiny",
   "small",
   "medium",
   "large",
   "xlarge"
-];
+]);
 var _validSizesSet = new Set(allowedSizes);
 function isValidSize(value) {
   return typeof value === "string" && _validSizesSet.has(value);
@@ -515,6 +582,11 @@ var ERROR_PREFIXES = [
   "safari:",
   // .NET CLI
   "dotnet:",
+  // Node.js version/package managers
+  "corepack:",
+  "volta:",
+  "fnm:",
+  "proto:",
   // Cloud CLIs
   "aws:",
   "gcloud:",
@@ -534,6 +606,45 @@ var ERROR_PREFIXES = [
   "wrangler:",
   "miniflare:",
   "workerd:",
+  // Test runners
+  "vitest:",
+  "jest:",
+  "mocha:",
+  "pytest:",
+  "rspec:",
+  "ava:",
+  "tap:",
+  // Database / ORM CLIs
+  "psql:",
+  "mysql:",
+  "sqlite3:",
+  "mongosh:",
+  "redis-cli:",
+  "prisma:",
+  "drizzle:",
+  "knex:",
+  "sequelize:",
+  "typeorm:",
+  // Unix coreutils / network CLIs
+  "ssh:",
+  "scp:",
+  "rsync:",
+  "tar:",
+  "find:",
+  "sed:",
+  "awk:",
+  "grep:",
+  "chmod:",
+  "chown:",
+  "ln:",
+  "cp:",
+  "mv:",
+  "mkdir:",
+  "rm:",
+  "cat:",
+  "sort:",
+  "head:",
+  "tail:",
   // OpenClaw specific
   "cron:",
   "nodes:"
@@ -1123,11 +1234,13 @@ function register(api) {
   coerceOpacity,
   coercePadding,
   coerceSize,
+  formatBoolToggle,
   formatBytes,
   formatCount,
   formatDuration,
   formatElapsed,
   formatPercent,
+  formatRate,
   formatRelativeTime,
   formatTimestamp,
   formatTimestampLocal,
@@ -1140,6 +1253,7 @@ function register(api) {
   isValidPadding,
   isValidSize,
   maskSensitiveUrl,
+  parseDuration,
   pluralize,
   sanitizeToolName,
   successRate,

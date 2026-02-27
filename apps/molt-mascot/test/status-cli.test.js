@@ -479,9 +479,9 @@ describe("formatStatusText", () => {
     expect(text).toContain("medium");
     expect(text).toContain("100%");
     expect(text).toContain("24px");
-    expect(text).toContain("Start hidden:   false");
-    expect(text).toContain("Debug:          false");
-    expect(text).toContain("Disable GPU:    false");
+    expect(text).toContain("Start hidden:   off");
+    expect(text).toContain("Debug:          off");
+    expect(text).toContain("Disable GPU:    off");
     expect(text).toContain("Reconnect base:       1500ms");
     expect(text).toContain("Reconnect max:        30000ms");
     expect(text).toContain("Stale connection:     15000ms");

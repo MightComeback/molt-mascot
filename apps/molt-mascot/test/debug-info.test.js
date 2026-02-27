@@ -209,7 +209,7 @@ describe("buildDebugInfo", () => {
     });
     expect(info).toContain("Alignment: ↖ top-left");
     expect(info).toContain("Size: large, Opacity: 60%");
-    expect(info).toContain("Ghost: true, Hide text: true");
+    expect(info).toContain("Ghost: on, Hide text: on");
   });
 
   it("shows timing config", () => {

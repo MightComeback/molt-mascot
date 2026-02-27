@@ -70,6 +70,44 @@ declare function capitalize(str: string): string;
  * Simple English pluralization: append "s" (or a custom suffix) when count ≠ 1.
  */
 declare function pluralize(count: number, singular: string, plural?: string): string;
+/**
+ * Format a boolean as a human-readable toggle label.
+ * Defaults to "on"/"off" — more readable than raw "true"/"false" in
+ * diagnostic output, debug info, and status displays.
+ *
+ * @param value - Boolean to format
+ * @param onLabel - Label for true (default: "on")
+ * @param offLabel - Label for false (default: "off")
+ * @returns Human-readable toggle string
+ */
+declare function formatBoolToggle(value: boolean, onLabel?: string, offLabel?: string): string;
+/**
+ * Format a per-second rate as a compact human-readable string.
+ * Combines a value formatter with a "/s" suffix.
+ *
+ * @param perSecond - The rate value (events, bytes, etc. per second)
+ * @param unit - Optional unit label inserted before "/s" (e.g. "B" → "1.5 KB/s")
+ * @returns Formatted rate string, e.g. "1.2K/s", "3.5 MB/s", "0/s"
+ */
+declare function formatRate(perSecond: number, unit?: string): string;
+/**
+ * Parse a human-readable duration string into total seconds.
+ * Inverse of {@link formatDuration}.
+ *
+ * Accepted formats:
+ * - Combined units: "1h30m", "2m15s", "1w2d3h", "1d 12h 30m 5s"
+ * - Single units: "30s", "5m", "2h", "3d", "1w"
+ * - Plain number: "120" (treated as seconds)
+ * - Whitespace between groups is allowed: "1h 30m" === "1h30m"
+ *
+ * Unit multipliers: w=week(604800s), d=day(86400s), h=hour(3600s), m=minute(60s), s=second(1s).
+ *
+ * Returns `null` for empty, malformed, or negative-result inputs.
+ *
+ * @param input - Duration string to parse
+ * @returns Total seconds, or null if unparseable
+ */
+declare function parseDuration(input: string): number | null;
 
 declare const id: string;
 declare const version: string;
@@ -148,7 +186,7 @@ declare function coerceBoolean(v: unknown, fallback: boolean): boolean;
  * Frozen array derived from the Mode type — single source of truth for runtime validation.
  * Parity with allowedAlignments, allowedSizes, etc.
  */
-declare const allowedModes: Mode[];
+declare const allowedModes: readonly Mode[];
 /**
  * Check whether a value is a recognized plugin mode (case-sensitive).
  * O(1) via Set lookup. Parity with isValidWsReadyState, isValidCloseCode (app),
@@ -169,7 +207,7 @@ declare function isValidMode(value: unknown): value is Mode;
  * @returns Valid Mode string
  */
 declare function coerceMode(v: unknown, fallback: Mode): Mode;
-declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
+declare const allowedAlignments: readonly NonNullable<PluginConfig["alignment"]>[];
 /**
  * Check whether a value is a recognized alignment string (case-sensitive).
  * O(1) via Set lookup. Parity with isValidMode, isValidSize, etc.
@@ -178,7 +216,7 @@ declare const allowedAlignments: NonNullable<PluginConfig["alignment"]>[];
  * @returns true if the value is a valid alignment string
  */
 declare function isValidAlignment(value: unknown): value is NonNullable<PluginConfig["alignment"]>;
-declare const allowedSizes: Size[];
+declare const allowedSizes: readonly Size[];
 /**
  * Check whether a value is a recognized size string (case-sensitive).
  * O(1) via Set lookup. Parity with isValidMode, isValidAlignment, etc.
@@ -298,4 +336,4 @@ declare function isContentTool(value: unknown): value is string;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBytes, formatCount, formatDuration, formatElapsed, formatPercent, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBoolToggle, formatBytes, formatCount, formatDuration, formatElapsed, formatPercent, formatRate, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, parseDuration, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };

@@ -5,7 +5,11 @@ const {
   parseEnvNumber,
   parseEnvBoolean,
 } = require("./env-keys.cjs");
-const { formatDuration, formatTimestampLocal } = require("@molt/mascot-plugin");
+const {
+  formatDuration,
+  formatTimestampLocal,
+  formatBoolToggle,
+} = require("@molt/mascot-plugin");
 const { formatOpacity, isValidOpacity } = require("./opacity-presets.cjs");
 const { formatProtocolRange } = require("./format-latency.cjs");
 
@@ -343,14 +347,14 @@ function formatStatusText(status) {
     `  Size:           ${c.size} (${c.width}×${c.height}px)`,
     `  Padding:        ${c.padding}px`,
     `  Opacity:        ${formatOpacity(c.opacity)}`,
-    `  Ghost mode:     ${c.clickThrough}`,
-    `  Hide text:      ${c.hideText}`,
-    `  Reduced motion: ${c.reducedMotion}`,
-    `  Start hidden:   ${c.startHidden}`,
-    `  Debug:          ${c.debug}`,
-    `  Disable GPU:    ${c.disableGpu}`,
-    `  No tray:        ${c.noTray}`,
-    `  No shortcuts:   ${c.noShortcuts}`,
+    `  Ghost mode:     ${formatBoolToggle(c.clickThrough)}`,
+    `  Hide text:      ${formatBoolToggle(c.hideText)}`,
+    `  Reduced motion: ${formatBoolToggle(c.reducedMotion)}`,
+    `  Start hidden:   ${formatBoolToggle(c.startHidden)}`,
+    `  Debug:          ${formatBoolToggle(c.debug)}`,
+    `  Disable GPU:    ${formatBoolToggle(c.disableGpu)}`,
+    `  No tray:        ${formatBoolToggle(c.noTray)}`,
+    `  No shortcuts:   ${formatBoolToggle(c.noShortcuts)}`,
     `  Protocol:       ${formatProtocolRange(c.minProtocol, c.maxProtocol)}`,
     ...(c.captureDir ? [`  Capture dir:    ${c.captureDir}`] : []),
     "",

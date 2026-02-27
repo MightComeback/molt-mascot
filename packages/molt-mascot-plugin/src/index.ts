@@ -19,6 +19,7 @@ export {
   formatTimestampWithAge,
   capitalize,
   pluralize,
+  formatBoolToggle,
 } from "./format.js";
 
 import {
@@ -38,6 +39,7 @@ import {
   formatTimestampWithAge,
   capitalize,
   pluralize,
+  formatBoolToggle,
 } from "./format.js";
 
 // Single source of truth: keep runtime id aligned with package.json name.

@@ -242,6 +242,24 @@ export function pluralize(
 }
 
 /**
+ * Format a boolean as a human-readable toggle label.
+ * Defaults to "on"/"off" — more readable than raw "true"/"false" in
+ * diagnostic output, debug info, and status displays.
+ *
+ * @param value - Boolean to format
+ * @param onLabel - Label for true (default: "on")
+ * @param offLabel - Label for false (default: "off")
+ * @returns Human-readable toggle string
+ */
+export function formatBoolToggle(
+  value: boolean,
+  onLabel = "on",
+  offLabel = "off",
+): string {
+  return value ? onLabel : offLabel;
+}
+
+/**
  * Format a per-second rate as a compact human-readable string.
  * Combines a value formatter with a "/s" suffix.
  *

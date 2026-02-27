@@ -96,6 +96,7 @@ import {
   memoryPressure,
   formatMemorySummary,
 } from "./utils.js";
+import { formatBoolToggle } from "@molt/mascot-plugin";
 import { maskSensitiveUrl } from "@molt/mascot-plugin";
 import { formatAlignment } from "./get-position.cjs";
 
@@ -343,11 +344,13 @@ export function buildDebugInfo(params) {
     );
   }
   lines.push(`Size: ${sizeLabel}, Opacity: ${formatOpacity(opacity)}`);
-  lines.push(`Ghost: ${isClickThrough}, Hide text: ${isTextHidden}`);
+  lines.push(
+    `Ghost: ${formatBoolToggle(isClickThrough)}, Hide text: ${formatBoolToggle(isTextHidden)}`,
+  );
   lines.push(
     `Sleep threshold: ${sleepThresholdS}s, Idle delay: ${idleDelayMs}ms, Error hold: ${errorHoldMs}ms`,
   );
-  lines.push(`Reduced motion: ${reducedMotion}`);
+  lines.push(`Reduced motion: ${formatBoolToggle(reducedMotion)}`);
   const fpsLabel =
     frameIntervalMs === 0
       ? "~60fps"
