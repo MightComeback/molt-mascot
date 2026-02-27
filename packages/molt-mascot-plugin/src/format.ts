@@ -242,6 +242,39 @@ export function pluralize(
 }
 
 /**
+ * Format a per-second rate as a compact human-readable string.
+ * Combines a value formatter with a "/s" suffix.
+ *
+ * @param perSecond - The rate value (events, bytes, etc. per second)
+ * @param unit - Optional unit label inserted before "/s" (e.g. "B" → "1.5 KB/s")
+ * @returns Formatted rate string, e.g. "1.2K/s", "3.5 MB/s", "0/s"
+ */
+export function formatRate(perSecond: number, unit?: string): string {
+  if (!Number.isFinite(perSecond) || perSecond < 0)
+    return unit ? `0 ${unit}/s` : "0/s";
+
+  // When a unit is provided (typically bytes), use formatBytes-style binary scaling
+  if (unit) {
+    const UNITS = ["K", "M", "G", "T"];
+    if (perSecond < 1000) {
+      const rounded = Math.round(perSecond);
+      return `${rounded} ${unit}/s`;
+    }
+    let value = perSecond;
+    for (const u of UNITS) {
+      value /= 1000;
+      if (value < 1000 || u === "T") {
+        return `${value.toFixed(1)} ${u}${unit}/s`;
+      }
+    }
+    return `${value.toFixed(1)} T${unit}/s`;
+  }
+
+  // No unit: use formatCount-style scaling with "/s" suffix
+  return `${formatCount(perSecond)}/s`;
+}
+
+/**
  * Parse a human-readable duration string into total seconds.
  * Inverse of {@link formatDuration}.
  *

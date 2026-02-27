@@ -8,6 +8,7 @@ import register, {
   formatDuration,
   parseDuration,
   formatBytes,
+  formatRate,
   formatElapsed,
   formatCount,
   formatRelativeTime,
@@ -205,6 +206,26 @@ describe("utils", () => {
     // Edge: rounding pushes past 999 → should show 1.0K, not "1000"
     expect(formatCount(999.5)).toBe("1.0K");
     expect(formatCount(999.6)).toBe("1.0K");
+  });
+
+  it("formatRate", () => {
+    // Without unit — uses formatCount scaling
+    expect(formatRate(0)).toBe("0/s");
+    expect(formatRate(42)).toBe("42/s");
+    expect(formatRate(1500)).toBe("1.5K/s");
+    expect(formatRate(1000000)).toBe("1.0M/s");
+    // With unit (e.g. bytes)
+    expect(formatRate(0, "B")).toBe("0 B/s");
+    expect(formatRate(500, "B")).toBe("500 B/s");
+    expect(formatRate(1500, "B")).toBe("1.5 KB/s");
+    expect(formatRate(1500000, "B")).toBe("1.5 MB/s");
+    expect(formatRate(1500000000, "B")).toBe("1.5 GB/s");
+    // Edge cases
+    expect(formatRate(-1)).toBe("0/s");
+    expect(formatRate(NaN)).toBe("0/s");
+    expect(formatRate(Infinity)).toBe("0/s");
+    expect(formatRate(-1, "B")).toBe("0 B/s");
+    expect(formatRate(NaN, "B")).toBe("0 B/s");
   });
 
   it("successRate", () => {
