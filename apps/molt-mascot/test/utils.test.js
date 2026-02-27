@@ -904,7 +904,7 @@ describe("buildTooltip", () => {
       pluginToolErrors: 3,
     });
     expect(tip).toContain("42 calls");
-    expect(tip).toContain("3 errors");
+    expect(tip).toContain("3 err");
     expect(tip).toContain("93% ok");
   });
 
@@ -928,7 +928,7 @@ describe("buildTooltip", () => {
       pluginToolErrors: 200,
     });
     expect(tip).toContain("1.5K calls");
-    expect(tip).toContain("200 errors");
+    expect(tip).toContain("200 err");
     expect(tip).toContain("87% ok");
   });
 

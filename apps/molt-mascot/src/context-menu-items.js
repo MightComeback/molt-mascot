@@ -12,8 +12,6 @@ import {
   truncate,
   formatDuration,
   formatElapsed,
-  formatCount,
-  successRate,
   MODE_EMOJI,
   formatLatency,
   connectionQuality,
@@ -26,6 +24,7 @@ import {
   isSleepingMode,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatToolCallsSummary,
 } from "./utils.js";
 import { formatSizeWithDims } from "./size-presets.cjs";
 import { formatAlignment } from "./get-position.cjs";
@@ -152,12 +151,12 @@ export function buildContextMenuItems(state) {
   if (!connectedSince && reconnectAttempt > 0) {
     statusParts.push(`retry #${reconnectAttempt}`);
   }
-  if (pluginToolCalls > 0) {
-    const statsStr =
-      pluginToolErrors > 0
-        ? `${formatCount(pluginToolCalls)} calls, ${formatCount(pluginToolErrors)} err (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
-        : `${formatCount(pluginToolCalls)} calls`;
-    statusParts.push(statsStr);
+  {
+    const toolSummary = formatToolCallsSummary(
+      pluginToolCalls,
+      pluginToolErrors,
+    );
+    if (toolSummary) statusParts.push(toolSummary);
   }
   if (pluginActiveAgents > 0 || pluginActiveTools > 0) {
     statusParts.push(

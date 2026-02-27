@@ -1324,3 +1324,59 @@ describe("formatToolThroughput", () => {
     expect(formatToolThroughput(10, 3000, { minUptimeMs: 5000 })).toBe(null);
   });
 });
+
+describe("formatToolCallsSummary", () => {
+  const { formatToolCallsSummary } = require("../src/format-latency.cjs");
+
+  it("returns null for zero calls", () => {
+    expect(formatToolCallsSummary(0, 0)).toBe(null);
+  });
+
+  it("returns null for negative calls", () => {
+    expect(formatToolCallsSummary(-1, 0)).toBe(null);
+  });
+
+  it("returns null for non-number calls", () => {
+    expect(formatToolCallsSummary("10", 0)).toBe(null);
+    expect(formatToolCallsSummary(undefined, 0)).toBe(null);
+    expect(formatToolCallsSummary(null, 0)).toBe(null);
+  });
+
+  it("returns null for NaN/Infinity", () => {
+    expect(formatToolCallsSummary(NaN, 0)).toBe(null);
+    expect(formatToolCallsSummary(Infinity, 0)).toBe(null);
+  });
+
+  it("formats calls-only when no errors", () => {
+    expect(formatToolCallsSummary(42, 0)).toBe("42 calls");
+  });
+
+  it("formats calls with errors and success rate", () => {
+    expect(formatToolCallsSummary(100, 5)).toBe("100 calls, 5 err (95% ok)");
+  });
+
+  it("handles large counts with compact formatting", () => {
+    const result = formatToolCallsSummary(1500, 30);
+    expect(result).toContain("1.5K calls");
+    expect(result).toContain("err");
+    expect(result).toContain("% ok");
+  });
+
+  it("treats negative errors as zero", () => {
+    expect(formatToolCallsSummary(10, -1)).toBe("10 calls");
+  });
+
+  it("treats non-number errors as zero", () => {
+    expect(formatToolCallsSummary(10, "bad")).toBe("10 calls");
+    expect(formatToolCallsSummary(10, null)).toBe("10 calls");
+    expect(formatToolCallsSummary(10, undefined)).toBe("10 calls");
+  });
+
+  it("handles all errors (0% ok)", () => {
+    expect(formatToolCallsSummary(5, 5)).toBe("5 calls, 5 err (0% ok)");
+  });
+
+  it("handles single call with no errors", () => {
+    expect(formatToolCallsSummary(1, 0)).toBe("1 calls");
+  });
+});

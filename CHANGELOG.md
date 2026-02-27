@@ -7,8 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `formatToolCallsSummary` helper in format-latency.cjs for DRY tool calls + error rate display
 - Network/diagnostic CLI prefixes to `cleanErrorString` (dig, nc, ncat, nmap, ping, traceroute, openssl, lsof)
 - Package manager/service manager prefixes to `cleanErrorString` (brew, apt, apt-get, dpkg, dnf, yum, pacman, snap, flatpak, systemctl, journalctl, launchctl, service)
+
+### Changed
+- Refactored buildTooltip, buildTrayTooltip, and buildContextMenuItems to use `formatToolCallsSummary` (DRY, consistent "err" label)
 
 ### Previously added
 - `formatPlatform` utility in plugin for human-readable platform+arch labels (e.g. "darwin arm64" → "macOS ARM64")

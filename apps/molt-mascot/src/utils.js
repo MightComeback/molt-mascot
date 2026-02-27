@@ -103,6 +103,7 @@ import {
   formatPingSummary,
   formatProcessUptime,
   formatToolThroughput,
+  formatToolCallsSummary,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -129,6 +130,7 @@ export {
   formatPingSummary,
   formatProcessUptime,
   formatToolThroughput,
+  formatToolCallsSummary,
 };
 export { formatAlignment };
 
@@ -421,12 +423,12 @@ export function buildTooltip(params) {
   if (typeof pluginStartedAt === "number" && pluginStartedAt > 0) {
     tip += ` · plugin up ${formatElapsed(pluginStartedAt, now)}`;
   }
-  if (pluginToolCalls > 0) {
-    tip += ` · ${formatCount(pluginToolCalls)} calls`;
-    if (pluginToolErrors > 0) {
-      const rate = successRate(pluginToolCalls, pluginToolErrors);
-      tip += `, ${formatCount(pluginToolErrors)} errors (${rate}% ok)`;
-    }
+  {
+    const toolSummary = formatToolCallsSummary(
+      pluginToolCalls,
+      pluginToolErrors,
+    );
+    if (toolSummary) tip += ` · ${toolSummary}`;
   }
   if (
     typeof activeAgents === "number" &&

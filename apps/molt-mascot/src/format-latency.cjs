@@ -759,6 +759,41 @@ function formatToolThroughput(toolCalls, uptimeMs, opts) {
   return `${perMin.toFixed(1)}/min`;
 }
 
+/**
+ * Format tool call count and error rate as a compact summary string.
+ * DRYs up the repeated "N calls, M errors (X% ok)" pattern used across
+ * buildTooltip, buildTrayTooltip, buildContextMenuItems, and buildDebugInfo.
+ *
+ * Returns null when there are no calls to report (toolCalls <= 0).
+ *
+ * @param {number} toolCalls - Total tool invocations
+ * @param {number} toolErrors - Total tool errors
+ * @returns {string|null} e.g. "1.5K calls, 3 errors (99% ok)" or "42 calls", or null
+ */
+function formatToolCallsSummary(toolCalls, toolErrors) {
+  if (
+    typeof toolCalls !== "number" ||
+    !Number.isFinite(toolCalls) ||
+    toolCalls <= 0
+  )
+    return null;
+  const {
+    formatCount,
+    successRate: _successRate,
+  } = require("@molt/mascot-plugin");
+  const errors =
+    typeof toolErrors === "number" &&
+    Number.isFinite(toolErrors) &&
+    toolErrors > 0
+      ? toolErrors
+      : 0;
+  if (errors > 0) {
+    const rate = _successRate(toolCalls, errors);
+    return `${formatCount(toolCalls)} calls, ${formatCount(errors)} err (${rate}% ok)`;
+  }
+  return `${formatCount(toolCalls)} calls`;
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -788,4 +823,5 @@ module.exports = {
   formatPingSummary,
   formatProcessUptime,
   formatToolThroughput,
+  formatToolCallsSummary,
 };

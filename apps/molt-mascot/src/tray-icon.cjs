@@ -8,9 +8,7 @@
 const {
   formatDuration,
   formatElapsed,
-  formatCount,
   formatBytes,
-  successRate,
   formatTimestampLocal,
   pluralize,
   formatCountWithLabel,
@@ -25,6 +23,7 @@ const {
   formatLatencyTrendArrow,
   formatReconnectCount,
   formatProcessUptime,
+  formatToolCallsSummary,
 } = require("./format-latency.cjs");
 const { MODE_EMOJI } = require("./mode-emoji.cjs");
 const { formatAlignment } = require("./get-position.cjs");
@@ -347,16 +346,9 @@ function buildTrayTooltip(params) {
       parts.push(`📩 last msg ${formatElapsed(lastMessageAt, now)} ago`);
     }
   }
-  if (typeof toolCalls === "number" && toolCalls > 0) {
-    const rate =
-      typeof toolErrors === "number" && toolErrors > 0
-        ? successRate(toolCalls, toolErrors)
-        : null;
-    const statsStr =
-      rate !== null
-        ? `${formatCount(toolCalls)} calls, ${formatCount(toolErrors)} err (${rate}% ok)`
-        : `${formatCount(toolCalls)} calls`;
-    parts.push(`🔨 ${statsStr}`);
+  {
+    const toolSummary = formatToolCallsSummary(toolCalls, toolErrors);
+    if (toolSummary) parts.push(`🔨 ${toolSummary}`);
   }
   if (
     typeof activeAgents === "number" &&
