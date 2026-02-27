@@ -48,6 +48,7 @@ import {
   formatBoolToggle,
   formatCountWithLabel,
   formatPlatform,
+  sanitizeToolName,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -70,6 +71,7 @@ export {
   formatBoolToggle,
   formatCountWithLabel,
   formatPlatform,
+  sanitizeToolName,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.

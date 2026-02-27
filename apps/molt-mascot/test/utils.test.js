@@ -56,6 +56,7 @@ import {
   SLEEP_INTERVAL_REDUCED,
   FRAME_INTERVALS,
   FRAME_INTERVALS_REDUCED,
+  sanitizeToolName,
 } from "../src/utils.js";
 
 describe("formatPercent (re-exported from plugin)", () => {
@@ -2955,5 +2956,26 @@ describe("formatMemorySummary", () => {
     const result = formatMemorySummary(mem, pressure);
     expect(result).toContain("🟠");
     expect(result).toContain("80% high");
+  });
+});
+
+describe("sanitizeToolName (re-exported from plugin)", () => {
+  it("strips namespace prefixes", () => {
+    expect(sanitizeToolName("default_api:exec")).toBe("exec");
+    expect(sanitizeToolName("functions.read")).toBe("read");
+  });
+
+  it("strips mcp__ server namespace prefix", () => {
+    expect(sanitizeToolName("mcp__filesystem__read_file")).toBe("read_file");
+    expect(sanitizeToolName("mcp__github__create_issue")).toBe("create_issue");
+  });
+
+  it("passes through plain names unchanged", () => {
+    expect(sanitizeToolName("exec")).toBe("exec");
+    expect(sanitizeToolName("web_search")).toBe("web_search");
+  });
+
+  it("returns empty string for empty input", () => {
+    expect(sanitizeToolName("")).toBe("");
   });
 });
