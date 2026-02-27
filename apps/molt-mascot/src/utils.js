@@ -217,7 +217,7 @@ export function isValidWsReadyState(value) {
  *
  * Reduced-motion intervals are 2-10× slower to respect the preference.
  */
-const FRAME_INTERVALS = Object.freeze({
+export const FRAME_INTERVALS = Object.freeze({
   idle: 66,
   thinking: 66,
   tool: 66,
@@ -227,7 +227,7 @@ const FRAME_INTERVALS = Object.freeze({
   error: 100,
 });
 
-const FRAME_INTERVALS_REDUCED = Object.freeze({
+export const FRAME_INTERVALS_REDUCED = Object.freeze({
   idle: 1000,
   thinking: 500,
   tool: 500,

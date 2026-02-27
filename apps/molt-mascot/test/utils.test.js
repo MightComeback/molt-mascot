@@ -53,6 +53,8 @@ import {
   parseDuration,
   SLEEP_INTERVAL,
   SLEEP_INTERVAL_REDUCED,
+  FRAME_INTERVALS,
+  FRAME_INTERVALS_REDUCED,
 } from "../src/utils.js";
 
 describe("formatPercent (re-exported from plugin)", () => {
@@ -600,6 +602,51 @@ describe("getFrameIntervalMs", () => {
   it("defaults to ~15fps for unknown/future modes instead of full 60fps", () => {
     expect(getFrameIntervalMs("some-future-mode", 0, SLEEP_MS, false)).toBe(66);
     expect(getFrameIntervalMs("", 0, SLEEP_MS, false)).toBe(66);
+  });
+});
+
+describe("FRAME_INTERVALS / FRAME_INTERVALS_REDUCED", () => {
+  it("are frozen objects", () => {
+    expect(Object.isFrozen(FRAME_INTERVALS)).toBe(true);
+    expect(Object.isFrozen(FRAME_INTERVALS_REDUCED)).toBe(true);
+  });
+
+  it("cover all standard modes", () => {
+    const modes = [
+      "idle",
+      "thinking",
+      "tool",
+      "connecting",
+      "connected",
+      "disconnected",
+      "error",
+    ];
+    for (const mode of modes) {
+      expect(typeof FRAME_INTERVALS[mode]).toBe("number");
+      expect(FRAME_INTERVALS[mode]).toBeGreaterThan(0);
+      expect(typeof FRAME_INTERVALS_REDUCED[mode]).toBe("number");
+      expect(FRAME_INTERVALS_REDUCED[mode]).toBeGreaterThan(0);
+    }
+  });
+
+  it("reduced-motion intervals are slower than normal", () => {
+    for (const mode of Object.keys(FRAME_INTERVALS)) {
+      expect(FRAME_INTERVALS_REDUCED[mode]).toBeGreaterThan(
+        FRAME_INTERVALS[mode],
+      );
+    }
+  });
+
+  it("getFrameIntervalMs returns values from the maps for known modes", () => {
+    for (const mode of Object.keys(FRAME_INTERVALS)) {
+      if (mode === "idle") continue; // idle has sleep logic
+      expect(getFrameIntervalMs(mode, 0, 120000, false)).toBe(
+        FRAME_INTERVALS[mode],
+      );
+      expect(getFrameIntervalMs(mode, 0, 120000, true)).toBe(
+        FRAME_INTERVALS_REDUCED[mode],
+      );
+    }
   });
 });
 
