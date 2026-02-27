@@ -224,7 +224,8 @@ canvas:focus-visible {
   #pill.pill--connected,
   #pill.pill--disconnected,
   #pill.pill--sleeping,
-  #pill.pill--error {
+  #pill.pill--error,
+  #molt-ctx {
     animation: none;
     will-change: auto;
   }
