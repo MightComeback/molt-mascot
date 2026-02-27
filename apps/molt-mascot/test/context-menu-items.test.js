@@ -613,12 +613,16 @@ describe("buildContextMenuItems", () => {
       "ghost",
       "hide-text",
       "reset",
+      "alignment",
       "snap",
+      "size",
+      "opacity",
       "reduced-motion",
-      "reset-prefs",
       "copy-status",
       "copy-debug",
+      "reconnect",
       "change-gateway",
+      "reset-prefs",
       "hide",
       "about",
       "github",
@@ -631,6 +635,33 @@ describe("buildContextMenuItems", () => {
       expect(typeof item.title).toBe("string");
       expect(item.title.length).toBeGreaterThan(0);
     }
+  });
+
+  it("copy-gateway-url has title when present", () => {
+    const result = buildContextMenuItems({
+      ...BASE_STATE,
+      connectedSince: Date.now() - 10000,
+    });
+    const item = result.items.find((i) => i.id === "copy-gateway-url");
+    expect(item).toBeDefined();
+    expect(typeof item.title).toBe("string");
+    expect(item.title.length).toBeGreaterThan(0);
+  });
+
+  it("reconnect title changes based on connection state", () => {
+    const connected = buildContextMenuItems({
+      ...BASE_STATE,
+      connectedSince: Date.now() - 10000,
+    });
+    const connItem = connected.items.find((i) => i.id === "reconnect");
+    expect(connItem.title).toContain("re-establish");
+
+    const disconnected = buildContextMenuItems({
+      ...BASE_STATE,
+      connectedSince: null,
+    });
+    const discItem = disconnected.items.find((i) => i.id === "reconnect");
+    expect(discItem.title).toContain("reconnect");
   });
 
   it("separator and status items do not have titles", () => {

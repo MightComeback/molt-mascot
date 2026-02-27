@@ -234,6 +234,7 @@ export function buildContextMenuItems(state) {
       id: "alignment",
       label: `Cycle Alignment (${formatAlignment(alignment)})`,
       hint: `${modKey}${shiftKey}A`,
+      title: "Cycle the mascot window between screen corners and edges",
     },
     {
       id: "snap",
@@ -246,11 +247,14 @@ export function buildContextMenuItems(state) {
       id: "size",
       label: `Cycle Size (${formatSizeWithDims(sizeLabel)})`,
       hint: `${modKey}${shiftKey}Z`,
+      title:
+        "Cycle through size presets (tiny → small → medium → large → xlarge)",
     },
     {
       id: "opacity",
       label: `Opacity (${formatOpacity(opacity)})`,
       hint: `${modKey}${shiftKey}O`,
+      title: "Cycle window opacity (or scroll-wheel to fine-tune)",
     },
     {
       id: "reduced-motion",
@@ -272,12 +276,21 @@ export function buildContextMenuItems(state) {
       title: "Copy detailed diagnostic information to clipboard",
     },
     ...(connectedSince || targetUrl
-      ? [{ id: "copy-gateway-url", label: "Copy Gateway URL" }]
+      ? [
+          {
+            id: "copy-gateway-url",
+            label: "Copy Gateway URL",
+            title: "Copy the current gateway WebSocket URL to clipboard",
+          },
+        ]
       : []),
     {
       id: "reconnect",
       label: connectedSince ? "Force Reconnect" : "Reconnect Now",
       hint: `${modKey}${shiftKey}C`,
+      title: connectedSince
+        ? "Drop and re-establish the gateway connection"
+        : "Attempt to reconnect to the gateway immediately",
     },
     {
       id: "change-gateway",
