@@ -46,6 +46,7 @@ import {
   pluralize,
   maskSensitiveUrl,
   formatBoolToggle,
+  formatCountWithLabel,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -66,6 +67,7 @@ export {
   pluralize,
   maskSensitiveUrl,
   formatBoolToggle,
+  formatCountWithLabel,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.
@@ -428,7 +430,7 @@ export function buildTooltip(params) {
     tip += ` · ${formatActiveSummary(activeAgents, activeTools)}`;
   }
   if (typeof agentSessions === "number" && agentSessions > 0) {
-    tip += ` · ${formatCount(agentSessions)} ${pluralize(agentSessions, "session")}`;
+    tip += ` · ${formatCountWithLabel(agentSessions, "session")}`;
   }
   if (typeof latencyMs === "number" && latencyMs >= 0) {
     let latencyPart = formatQualitySummary(latencyMs, latencyStats, {

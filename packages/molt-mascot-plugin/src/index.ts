@@ -20,6 +20,7 @@ export {
   capitalize,
   pluralize,
   formatBoolToggle,
+  formatCountWithLabel,
 } from "./format.js";
 
 import {

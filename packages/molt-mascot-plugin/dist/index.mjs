@@ -225,6 +225,9 @@ function formatRate(perSecond, unit) {
   }
   return `${formatCount(perSecond)}/s`;
 }
+function formatCountWithLabel(count, singular, plural) {
+  return `${formatCount(count)} ${pluralize(count, singular, plural)}`;
+}
 function parseDuration(input) {
   if (typeof input !== "string") return null;
   const trimmed = input.trim();
@@ -240,10 +243,8 @@ function parseDuration(input) {
     m: 60,
     s: 1
   };
-  const pattern = /(\d+(?:\.\d+)?)\s*([wdhms])/gi;
   let total = 0;
   let matched = false;
-  let lastIndex = 0;
   const normalized = trimmed.replace(/\s+/g, "");
   let match;
   const groupPattern = /(\d+(?:\.\d+)?)([wdhms])/gi;
@@ -295,7 +296,7 @@ var _validModesSet = new Set(allowedModes);
 function coerceMode(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if (allowedModes.includes(lower)) return lower;
+    if (_validModesSet.has(lower)) return lower;
   }
   return fallback;
 }
@@ -328,15 +329,14 @@ function isValidSize(value) {
 function coerceSize(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if (allowedSizes.includes(lower)) return lower;
+    if (_validSizesSet.has(lower)) return lower;
   }
   return fallback;
 }
 function coerceAlignment(v, fallback) {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if (allowedAlignments.includes(lower))
-      return lower;
+    if (_validAlignmentsSet.has(lower)) return lower;
   }
   return fallback;
 }
@@ -1169,6 +1169,7 @@ export {
   formatBoolToggle,
   formatBytes,
   formatCount,
+  formatCountWithLabel,
   formatDuration,
   formatElapsed,
   formatPercent,

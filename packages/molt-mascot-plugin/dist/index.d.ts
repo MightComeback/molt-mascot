@@ -91,6 +91,20 @@ declare function formatBoolToggle(value: boolean, onLabel?: string, offLabel?: s
  */
 declare function formatRate(perSecond: number, unit?: string): string;
 /**
+ * Format a count with a pluralized label in one call.
+ * Combines {@link formatCount} and {@link pluralize} — a pattern that appears
+ * frequently in tooltip, context menu, and debug info formatting.
+ *
+ * @example
+ * formatCountWithLabel(1, "session")   // → "1 session"
+ * formatCountWithLabel(5, "session")   // → "5 sessions"
+ * formatCountWithLabel(1500, "call")   // → "1.5K calls"
+ * formatCountWithLabel(0, "error")     // → "0 errors"
+ * formatCountWithLabel(1, "entry", "entries") // → "1 entry"
+ * formatCountWithLabel(3, "entry", "entries") // → "3 entries"
+ */
+declare function formatCountWithLabel(count: number, singular: string, plural?: string): string;
+/**
  * Parse a human-readable duration string into total seconds.
  * Inverse of {@link formatDuration}.
  *
@@ -113,10 +127,15 @@ declare const id: string;
 declare const version: string;
 type Mode = "idle" | "thinking" | "tool" | "error";
 type Size = "tiny" | "small" | "medium" | "large" | "xlarge";
+/**
+ * Named type alias for valid alignment values.
+ * Replaces verbose `NonNullable<PluginConfig["alignment"]>` throughout the codebase.
+ */
+type Alignment = "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
 type PluginConfig = {
     idleDelayMs?: number;
     errorHoldMs?: number;
-    alignment?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center" | "center-left" | "center-right" | "center";
+    alignment?: Alignment;
     clickThrough?: boolean;
     hideText?: boolean;
     reducedMotion?: boolean;
@@ -131,7 +150,7 @@ type State = {
         message: string;
         ts: number;
     };
-    alignment?: PluginConfig["alignment"];
+    alignment?: Alignment;
     clickThrough?: boolean;
     hideText?: boolean;
     reducedMotion?: boolean;
@@ -207,7 +226,7 @@ declare function isValidMode(value: unknown): value is Mode;
  * @returns Valid Mode string
  */
 declare function coerceMode(v: unknown, fallback: Mode): Mode;
-declare const allowedAlignments: readonly NonNullable<PluginConfig["alignment"]>[];
+declare const allowedAlignments: readonly Alignment[];
 /**
  * Check whether a value is a recognized alignment string (case-sensitive).
  * O(1) via Set lookup. Parity with isValidMode, isValidSize, etc.
@@ -215,7 +234,7 @@ declare const allowedAlignments: readonly NonNullable<PluginConfig["alignment"]>
  * @param value - Value to check
  * @returns true if the value is a valid alignment string
  */
-declare function isValidAlignment(value: unknown): value is NonNullable<PluginConfig["alignment"]>;
+declare function isValidAlignment(value: unknown): value is Alignment;
 declare const allowedSizes: readonly Size[];
 /**
  * Check whether a value is a recognized size string (case-sensitive).
@@ -226,7 +245,7 @@ declare const allowedSizes: readonly Size[];
  */
 declare function isValidSize(value: unknown): value is Size;
 declare function coerceSize(v: unknown, fallback: Size): Size;
-declare function coerceAlignment(v: unknown, fallback: NonNullable<PluginConfig["alignment"]>): NonNullable<PluginConfig["alignment"]>;
+declare function coerceAlignment(v: unknown, fallback: Alignment): Alignment;
 /**
  * Coerce a value to a valid opacity (0–1).
  * Accepts numbers and numeric strings. Returns fallback for invalid/out-of-range values.
@@ -336,4 +355,4 @@ declare function isContentTool(value: unknown): value is string;
  */
 declare function register(api: PluginApi): void;
 
-export { CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBoolToggle, formatBytes, formatCount, formatDuration, formatElapsed, formatPercent, formatRate, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, parseDuration, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export { type Alignment, CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBoolToggle, formatBytes, formatCount, formatCountWithLabel, formatDuration, formatElapsed, formatPercent, formatRate, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, parseDuration, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };

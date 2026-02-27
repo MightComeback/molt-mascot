@@ -34,6 +34,7 @@ import register, {
   CONTENT_TOOLS,
   pluralize,
   formatBoolToggle,
+  formatCountWithLabel,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2571,6 +2572,29 @@ describe("pluralize", () => {
   it("handles empty singular", () => {
     expect(pluralize(1, "")).toBe("");
     expect(pluralize(2, "")).toBe("s");
+  });
+});
+
+describe("formatCountWithLabel", () => {
+  it("combines formatCount + pluralize for singular", () => {
+    expect(formatCountWithLabel(1, "session")).toBe("1 session");
+    expect(formatCountWithLabel(1, "entry", "entries")).toBe("1 entry");
+  });
+
+  it("combines formatCount + pluralize for plural", () => {
+    expect(formatCountWithLabel(0, "error")).toBe("0 errors");
+    expect(formatCountWithLabel(5, "session")).toBe("5 sessions");
+    expect(formatCountWithLabel(3, "entry", "entries")).toBe("3 entries");
+  });
+
+  it("uses compact count formatting for large numbers", () => {
+    expect(formatCountWithLabel(1500, "call")).toBe("1.5K calls");
+    expect(formatCountWithLabel(1000000, "request")).toBe("1.0M requests");
+  });
+
+  it("handles edge cases", () => {
+    expect(formatCountWithLabel(-1, "item")).toBe("0 items");
+    expect(formatCountWithLabel(NaN, "item")).toBe("0 items");
   });
 });
 

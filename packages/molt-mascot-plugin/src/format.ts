@@ -271,7 +271,9 @@ export function formatRate(perSecond: number, unit?: string): string {
   if (!Number.isFinite(perSecond) || perSecond < 0)
     return unit ? `0 ${unit}/s` : "0/s";
 
-  // When a unit is provided (typically bytes), use formatBytes-style binary scaling
+  // When a unit is provided (typically bytes), use SI/decimal scaling (1K = 1000).
+  // Note: this differs from formatBytes() which uses binary (1 KB = 1024 B).
+  // Network rates conventionally use SI units (1 KB/s = 1000 B/s).
   if (unit) {
     const UNITS = ["K", "M", "G", "T"];
     if (perSecond < 1000) {
@@ -290,6 +292,27 @@ export function formatRate(perSecond: number, unit?: string): string {
 
   // No unit: use formatCount-style scaling with "/s" suffix
   return `${formatCount(perSecond)}/s`;
+}
+
+/**
+ * Format a count with a pluralized label in one call.
+ * Combines {@link formatCount} and {@link pluralize} — a pattern that appears
+ * frequently in tooltip, context menu, and debug info formatting.
+ *
+ * @example
+ * formatCountWithLabel(1, "session")   // → "1 session"
+ * formatCountWithLabel(5, "session")   // → "5 sessions"
+ * formatCountWithLabel(1500, "call")   // → "1.5K calls"
+ * formatCountWithLabel(0, "error")     // → "0 errors"
+ * formatCountWithLabel(1, "entry", "entries") // → "1 entry"
+ * formatCountWithLabel(3, "entry", "entries") // → "3 entries"
+ */
+export function formatCountWithLabel(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
+  return `${formatCount(count)} ${pluralize(count, singular, plural)}`;
 }
 
 /**
