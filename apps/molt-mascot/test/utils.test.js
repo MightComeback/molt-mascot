@@ -1658,6 +1658,13 @@ describe("normalizeWsUrl", () => {
     );
   });
 
+  it("converts protocol-relative URLs to ws://", () => {
+    expect(normalizeWsUrl("//127.0.0.1:18789")).toBe("ws://127.0.0.1:18789");
+    expect(normalizeWsUrl("//gateway.example.com/ws")).toBe(
+      "ws://gateway.example.com/ws",
+    );
+  });
+
   it("handles empty string", () => {
     expect(normalizeWsUrl("")).toBe("");
   });
