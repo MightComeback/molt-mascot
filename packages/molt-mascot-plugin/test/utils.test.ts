@@ -33,6 +33,7 @@ import register, {
   sanitizeToolName,
   CONTENT_TOOLS,
   pluralize,
+  formatBoolToggle,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2316,6 +2317,31 @@ describe("utils", () => {
     expect(capitalize("")).toBe("");
     expect(capitalize(null as any)).toBe(null);
     expect(capitalize(undefined as any)).toBe(undefined);
+  });
+});
+
+describe("formatBoolToggle", () => {
+  it("returns 'on' for true by default", () => {
+    expect(formatBoolToggle(true)).toBe("on");
+  });
+
+  it("returns 'off' for false by default", () => {
+    expect(formatBoolToggle(false)).toBe("off");
+  });
+
+  it("accepts custom labels", () => {
+    expect(formatBoolToggle(true, "yes", "no")).toBe("yes");
+    expect(formatBoolToggle(false, "yes", "no")).toBe("no");
+  });
+
+  it("accepts custom labels with empty strings", () => {
+    expect(formatBoolToggle(true, "", "nope")).toBe("");
+    expect(formatBoolToggle(false, "yep", "")).toBe("");
+  });
+
+  it("uses default offLabel when only onLabel is provided", () => {
+    expect(formatBoolToggle(true, "enabled")).toBe("enabled");
+    expect(formatBoolToggle(false, "enabled")).toBe("off");
   });
 });
 
