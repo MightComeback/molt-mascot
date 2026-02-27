@@ -317,8 +317,17 @@ export function buildDebugInfo(params) {
       pluginToolErrors > 0
         ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
         : "";
+    // Compute tools/min throughput when plugin uptime is available (≥60s for meaningful rate).
+    const uptimeSec =
+      typeof pluginStartedAt === "number" && pluginStartedAt > 0
+        ? Math.max(0, (now - pluginStartedAt) / 1000)
+        : 0;
+    const throughputSuffix =
+      uptimeSec >= 60
+        ? `, ${((pluginToolCalls / uptimeSec) * 60).toFixed(1)}/min`
+        : "";
     lines.push(
-      `Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}`,
+      `Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}${throughputSuffix}`,
     );
   }
   if (typeof agentSessions === "number" && agentSessions > 0) {

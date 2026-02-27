@@ -175,6 +175,27 @@ describe("buildDebugInfo", () => {
     expect(info).not.toContain("Tool calls:");
   });
 
+  it("shows tool throughput rate when plugin uptime >= 60s", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      pluginToolCalls: 120,
+      pluginToolErrors: 2,
+      pluginStartedAt: NOW - 300_000, // 5 minutes ago
+    });
+    // 120 calls / 5 min = 24.0/min
+    expect(info).toContain("24.0/min");
+  });
+
+  it("omits throughput rate when plugin uptime < 60s", () => {
+    const info = buildDebugInfo({
+      ...BASE_PARAMS,
+      pluginToolCalls: 10,
+      pluginToolErrors: 0,
+      pluginStartedAt: NOW - 30_000, // 30s ago
+    });
+    expect(info).not.toContain("/min");
+  });
+
   it("shows agent sessions count when > 0", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, agentSessions: 15 });
     expect(info).toContain("Agent sessions: 15");
