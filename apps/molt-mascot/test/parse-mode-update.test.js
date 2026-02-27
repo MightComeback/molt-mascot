@@ -735,9 +735,10 @@ describe("parse-mode-update", () => {
     });
 
     it("includes plugin uptime when pluginStartedAt is present", () => {
-      // Plugin started 90 seconds ago
-      const parsed = parseModeUpdate({ pluginStartedAt: Date.now() - 90000 });
-      const str = formatModeUpdate(parsed);
+      // Plugin started 90 seconds ago — use explicit `now` for determinism
+      const now = 1700000090000;
+      const parsed = parseModeUpdate({ pluginStartedAt: 1700000000000 });
+      const str = formatModeUpdate(parsed, { now });
       expect(str).toContain("up 1m 30s");
     });
 

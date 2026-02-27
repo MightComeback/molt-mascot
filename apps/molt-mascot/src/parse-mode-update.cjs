@@ -211,9 +211,10 @@ function parseModeUpdate(raw) {
  * used across other modules (LatencyTracker, FpsCounter, GatewayClient, etc.).
  *
  * @param {ParsedModeUpdate} parsed - Output from parseModeUpdate()
+ * @param {{ now?: number }} [opts] - Options (pass `now` for deterministic tests)
  * @returns {string} e.g. "ModeUpdate<thinking, 42ms, tool=exec, 🟢 healthy>"
  */
-function formatModeUpdate(parsed) {
+function formatModeUpdate(parsed, opts) {
   if (!parsed || typeof parsed !== "object") return "ModeUpdate<invalid>";
 
   const parts = [];
@@ -279,9 +280,10 @@ function formatModeUpdate(parsed) {
     parts.push(`📶 ${parsed.connectionUptimePct}%`);
   }
   if (parsed.pluginStartedAt !== null) {
+    const now = opts?.now ?? Date.now();
     const uptimeS = Math.max(
       0,
-      Math.round((Date.now() - parsed.pluginStartedAt) / 1000),
+      Math.round((now - parsed.pluginStartedAt) / 1000),
     );
     parts.push(`up ${formatDuration(uptimeS)}`);
   }
