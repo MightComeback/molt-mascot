@@ -22,6 +22,7 @@ import {
   MODE_DESCRIPTIONS,
   formatOpacity,
   stepOpacity,
+  isSleepingMode,
 } from "./utils.js";
 import * as ctxMenu from "./context-menu.js";
 import { buildContextMenuItems } from "./context-menu-items.js";
@@ -646,8 +647,11 @@ window.__moltMascotGetState = () => ({
   firstConnectedAt,
   sleepThresholdMs: SLEEP_THRESHOLD_MS,
   hasDragPosition,
-  isSleeping:
-    currentMode === Mode.idle && Date.now() - modeSince > SLEEP_THRESHOLD_MS,
+  isSleeping: isSleepingMode(
+    currentMode,
+    Date.now() - modeSince,
+    SLEEP_THRESHOLD_MS,
+  ),
   latencyMs,
   latencyStats: getLatencyStats(),
   latencyTrend: _latencyTracker.trend(),
