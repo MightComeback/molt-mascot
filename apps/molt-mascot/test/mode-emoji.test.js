@@ -6,6 +6,7 @@ import {
   VALID_MODES,
   isValidMode,
 } from "../src/mode-emoji.cjs";
+import { allowedModes as pluginModes } from "@molt/mascot-plugin";
 
 describe("MODE", () => {
   it("is frozen (immutable)", () => {
@@ -24,10 +25,10 @@ describe("MODE", () => {
     }
   });
 
-  it("has no extra keys beyond VALID_MODES + sleeping", () => {
+  it("has no extra keys beyond VALID_MODES", () => {
+    // sleeping is already in VALID_MODES (via MODE_EMOJI), so no special-casing needed.
     const modeKeys = Object.keys(MODE).sort();
-    const expected = [...new Set([...VALID_MODES, "sleeping"])].sort();
-    expect(modeKeys).toEqual(expected);
+    expect(modeKeys).toEqual([...VALID_MODES].sort());
   });
 });
 
@@ -105,6 +106,25 @@ describe("MODE_DESCRIPTIONS", () => {
   it("all descriptions are unique", () => {
     const values = Object.values(MODE_DESCRIPTIONS);
     expect(new Set(values).size).toBe(values.length);
+  });
+});
+
+describe("cross-module consistency", () => {
+  it("plugin allowedModes are a subset of app VALID_MODES", () => {
+    // Plugin emits idle/thinking/tool/error; app adds display-only modes
+    // (connecting, connected, disconnected, sleeping). Every plugin mode
+    // must be recognized by the app's isValidMode().
+    for (const mode of pluginModes) {
+      expect(isValidMode(mode)).toBe(true);
+    }
+  });
+
+  it("app display-only modes are not in plugin allowedModes", () => {
+    const displayOnly = VALID_MODES.filter((m) => !pluginModes.includes(m));
+    expect(displayOnly.length).toBeGreaterThan(0);
+    for (const mode of displayOnly) {
+      expect(pluginModes).not.toContain(mode);
+    }
   });
 });
 
