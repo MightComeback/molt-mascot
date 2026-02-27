@@ -151,6 +151,15 @@ describe("utils", () => {
     expect(parseDuration("5S")).toBe(5);
   });
 
+  it("parseDuration — rejects duplicate units", () => {
+    expect(parseDuration("1h2h")).toBe(null);
+    expect(parseDuration("1m1m")).toBe(null);
+    expect(parseDuration("1s2s")).toBe(null);
+    expect(parseDuration("1d2d3d")).toBe(null);
+    expect(parseDuration("1w 1w")).toBe(null);
+    expect(parseDuration("1H2h")).toBe(null); // case-insensitive duplicate
+  });
+
   it("parseDuration — returns null for invalid input", () => {
     expect(parseDuration("")).toBe(null);
     expect(parseDuration("   ")).toBe(null);

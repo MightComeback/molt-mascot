@@ -249,11 +249,14 @@ function parseDuration(input) {
   let match;
   const groupPattern = /(\d+(?:\.\d+)?)([wdhms])/gi;
   let reconstructed = "";
+  const seenUnits = /* @__PURE__ */ new Set();
   while ((match = groupPattern.exec(normalized)) !== null) {
     reconstructed += match[0];
     const value = Number(match[1]);
     const unit = match[2].toLowerCase();
     if (!Number.isFinite(value) || value < 0) return null;
+    if (seenUnits.has(unit)) return null;
+    seenUnits.add(unit);
     total += value * UNITS[unit];
     matched = true;
   }

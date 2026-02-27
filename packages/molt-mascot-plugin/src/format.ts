@@ -360,11 +360,15 @@ export function parseDuration(input: string): number | null {
   const groupPattern = /(\d+(?:\.\d+)?)([wdhms])/gi;
 
   let reconstructed = "";
+  const seenUnits = new Set<string>();
   while ((match = groupPattern.exec(normalized)) !== null) {
     reconstructed += match[0];
     const value = Number(match[1]);
     const unit = match[2].toLowerCase();
     if (!Number.isFinite(value) || value < 0) return null;
+    // Reject duplicate units (e.g. "1h2h", "1m1m") — ambiguous and likely a typo.
+    if (seenUnits.has(unit)) return null;
+    seenUnits.add(unit);
     total += value * UNITS[unit];
     matched = true;
   }
