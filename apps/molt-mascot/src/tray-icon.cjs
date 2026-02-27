@@ -368,10 +368,12 @@ function buildTrayTooltip(params) {
     parts.push(`🔄 reset ${formatElapsed(lastResetAt, now)} ago`);
   }
   {
-    const uptimeStr = formatProcessUptime(processUptimeS, processStartedAt, {
-      formatTimestamp: (ts) => formatTimestampLocal(ts, now),
-    });
-    if (uptimeStr) parts.push(`🕐 ${uptimeStr}`);
+    const processUptimeLabel = formatProcessUptime(
+      processUptimeS,
+      processStartedAt,
+      { formatTimestamp: (ts) => formatTimestampLocal(ts, now) },
+    );
+    if (processUptimeLabel) parts.push(`🕐 ${processUptimeLabel}`);
   }
   if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     parts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
