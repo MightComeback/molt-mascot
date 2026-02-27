@@ -686,8 +686,13 @@ export function formatCloseDetail(code, reason) {
 
   // If we have a human reason string, append the numeric code for searchability
   // (e.g. "server going down (1001)" helps when looking up close codes in docs).
+  // Skip the suffix when the reason already mentions the code to avoid
+  // redundant output like "rate limited (4002) (4002)".
   if (trimmedReason) {
-    return code != null ? `${trimmedReason} (${code})` : trimmedReason;
+    if (code != null && !trimmedReason.includes(String(code))) {
+      return `${trimmedReason} (${code})`;
+    }
+    return trimmedReason;
   }
   // No reason — use the friendly label if available, with the numeric code
   // for searchability (e.g. "abnormal closure (1006)" helps when searching docs).

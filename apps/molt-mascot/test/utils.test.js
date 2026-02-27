@@ -1813,6 +1813,16 @@ describe("formatCloseDetail", () => {
     );
   });
 
+  it("skips code suffix when reason already contains the code", () => {
+    expect(formatCloseDetail(4002, "rate limited (4002)")).toBe(
+      "rate limited (4002)",
+    );
+    expect(formatCloseDetail(1006, "error code 1006")).toBe("error code 1006");
+    expect(formatCloseDetail(1001, "going away (1001) - scheduled")).toBe(
+      "going away (1001) - scheduled",
+    );
+  });
+
   it("shows reason without code when code is null", () => {
     expect(formatCloseDetail(null, "server restarting")).toBe(
       "server restarting",
