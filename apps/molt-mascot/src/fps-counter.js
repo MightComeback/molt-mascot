@@ -9,6 +9,32 @@
 import { formatCount } from "./utils.js";
 
 /**
+ * Canonical list of valid FPS trend direction strings.
+ * Mirrors VALID_LATENCY_TRENDS, VALID_HEALTH_STATUSES, VALID_MODES, etc.
+ * for consistent validation patterns across the codebase.
+ */
+export const VALID_FPS_TRENDS = Object.freeze([
+  "improving",
+  "degrading",
+  "stable",
+]);
+
+/** @internal O(1) lookup set for isValidFpsTrend(). */
+const _validFpsTrendsSet = new Set(VALID_FPS_TRENDS);
+
+/**
+ * Check whether a string is a recognized FPS trend direction (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidLatencyTrend, isValidHealth,
+ * isValidMode, isValidWsReadyState, isValidMemoryPressureLevel, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isValidFpsTrend(value) {
+  return typeof value === "string" && _validFpsTrendsSet.has(value);
+}
+
+/**
  * Create an FPS counter instance.
  *
  * @param {{ bufferSize?: number, windowMs?: number }} [opts]

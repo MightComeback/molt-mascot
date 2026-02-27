@@ -1,5 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { createFpsCounter } from "../src/fps-counter.js";
+import {
+  createFpsCounter,
+  VALID_FPS_TRENDS,
+  isValidFpsTrend,
+} from "../src/fps-counter.js";
 
 describe("fps-counter", () => {
   it("starts at 0 fps", () => {
@@ -463,6 +467,39 @@ describe("fps-counter", () => {
       const c = createFpsCounter({ windowMs: -500 });
       c.update(100);
       expect(c.fps()).toBe(1);
+    });
+  });
+
+  describe("VALID_FPS_TRENDS", () => {
+    it("contains exactly the three trend directions", () => {
+      expect(VALID_FPS_TRENDS).toEqual(["improving", "degrading", "stable"]);
+    });
+
+    it("is frozen", () => {
+      expect(Object.isFrozen(VALID_FPS_TRENDS)).toBe(true);
+    });
+  });
+
+  describe("isValidFpsTrend", () => {
+    it("returns true for valid trends", () => {
+      for (const t of VALID_FPS_TRENDS) {
+        expect(isValidFpsTrend(t)).toBe(true);
+      }
+    });
+
+    it("returns false for invalid strings", () => {
+      expect(isValidFpsTrend("rising")).toBe(false);
+      expect(isValidFpsTrend("falling")).toBe(false);
+      expect(isValidFpsTrend("Stable")).toBe(false);
+      expect(isValidFpsTrend("")).toBe(false);
+    });
+
+    it("returns false for non-strings", () => {
+      expect(isValidFpsTrend(null)).toBe(false);
+      expect(isValidFpsTrend(undefined)).toBe(false);
+      expect(isValidFpsTrend(0)).toBe(false);
+      expect(isValidFpsTrend(true)).toBe(false);
+      expect(isValidFpsTrend({})).toBe(false);
     });
   });
 });
