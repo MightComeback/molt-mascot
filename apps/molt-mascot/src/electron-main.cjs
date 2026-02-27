@@ -810,7 +810,7 @@ function createWindow({
     height,
     x: Math.round(pos.x),
     y: Math.round(pos.y),
-    transparent: capture ? false : true,
+    transparent: !capture,
     backgroundColor: capture ? "#111827" : "#00000000",
     opacity: capture
       ? 1.0
@@ -821,7 +821,7 @@ function createWindow({
     frame: false,
     resizable: false,
     movable: !capture,
-    alwaysOnTop: capture ? false : true,
+    alwaysOnTop: !capture,
     skipTaskbar: true,
     focusable: false,
     hasShadow: false,
