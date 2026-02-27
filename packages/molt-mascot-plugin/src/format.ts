@@ -328,11 +328,8 @@ export function parseDuration(input: string): number | null {
     s: 1,
   };
 
-  // Match all "number + unit" groups (whitespace-tolerant)
-  const pattern = /(\d+(?:\.\d+)?)\s*([wdhms])/gi;
   let total = 0;
   let matched = false;
-  let lastIndex = 0;
 
   // Validate that the entire string is consumed by valid groups + whitespace
   const normalized = trimmed.replace(/\s+/g, "");
