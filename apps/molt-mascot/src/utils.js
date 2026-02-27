@@ -523,7 +523,10 @@ export function buildTooltip(params) {
  */
 export function normalizeWsUrl(url) {
   if (typeof url !== "string") return url;
-  const trimmed = url.trim();
+  // Strip non-printable control characters (U+0000–U+001F, U+007F–U+009F) that
+  // can sneak in from terminal copy-paste, rich-text editors, or corrupted config.
+  // These invisible chars would pass trim() but cause silent WebSocket connect failures.
+  const trimmed = url.replace(/[\x00-\x1f\x7f-\x9f]/g, "").trim();
   if (/^https:\/\//i.test(trimmed))
     return trimmed.replace(/^https:\/\//i, "wss://");
   if (/^http:\/\//i.test(trimmed))

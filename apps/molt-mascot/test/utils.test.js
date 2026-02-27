@@ -1668,6 +1668,31 @@ describe("normalizeWsUrl", () => {
   it("handles empty string", () => {
     expect(normalizeWsUrl("")).toBe("");
   });
+
+  it("strips non-printable control characters from URLs", () => {
+    // Null byte and other C0 controls that sneak in from terminal copy-paste
+    expect(normalizeWsUrl("ws://localhost\x00:18789")).toBe(
+      "ws://localhost:18789",
+    );
+    expect(normalizeWsUrl("ws://\x0Dlocalhost:18789")).toBe(
+      "ws://localhost:18789",
+    );
+    // Tab and newline (common copy-paste artifacts)
+    expect(normalizeWsUrl("ws://localhost\t:18789\n")).toBe(
+      "ws://localhost:18789",
+    );
+    // C1 control characters (U+007F–U+009F)
+    expect(normalizeWsUrl("ws://localhost\x7F:18789")).toBe(
+      "ws://localhost:18789",
+    );
+    expect(normalizeWsUrl("ws://localhost\x9F:18789")).toBe(
+      "ws://localhost:18789",
+    );
+    // Mixed: control chars + whitespace padding
+    expect(normalizeWsUrl("  \x00ws://localhost:18789\x0A  ")).toBe(
+      "ws://localhost:18789",
+    );
+  });
 });
 
 describe("validateWsUrl", () => {
