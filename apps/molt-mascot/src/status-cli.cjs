@@ -1,6 +1,8 @@
 const {
   GATEWAY_URL_KEYS,
   GATEWAY_TOKEN_KEYS,
+  GATEWAY_MIN_PROTOCOL_KEYS,
+  GATEWAY_MAX_PROTOCOL_KEYS,
   resolveEnvWithSource,
   parseEnvNumber,
   parseEnvBoolean,
@@ -171,18 +173,14 @@ function resolveStatusConfig({
     5000,
     { min: 0 },
   );
-  const minProtocol = parseEnvNumber(
-    env,
-    ["MOLT_MASCOT_MIN_PROTOCOL", "GATEWAY_MIN_PROTOCOL"],
-    2,
-    { min: 1, integer: true },
-  );
-  const maxProtocol = parseEnvNumber(
-    env,
-    ["MOLT_MASCOT_MAX_PROTOCOL", "GATEWAY_MAX_PROTOCOL"],
-    3,
-    { min: 1, integer: true },
-  );
+  const minProtocol = parseEnvNumber(env, GATEWAY_MIN_PROTOCOL_KEYS, 2, {
+    min: 1,
+    integer: true,
+  });
+  const maxProtocol = parseEnvNumber(env, GATEWAY_MAX_PROTOCOL_KEYS, 3, {
+    min: 1,
+    integer: true,
+  });
   const reconnectBaseMs = timingPref(
     "MOLT_MASCOT_RECONNECT_BASE_MS",
     "reconnectBaseMs",
