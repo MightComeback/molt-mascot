@@ -733,5 +733,15 @@ describe("parse-mode-update", () => {
       expect(str).toContain("web_search");
       expect(str).toContain("v0.2.0");
     });
+
+    it("includes reset indicator when lastResetAt is present", () => {
+      const parsed = parseModeUpdate({ lastResetAt: 1700000050000 });
+      expect(formatModeUpdate(parsed)).toContain("↺ reset");
+    });
+
+    it("omits reset indicator when lastResetAt is null", () => {
+      const parsed = parseModeUpdate({});
+      expect(formatModeUpdate(parsed)).not.toContain("↺");
+    });
   });
 });

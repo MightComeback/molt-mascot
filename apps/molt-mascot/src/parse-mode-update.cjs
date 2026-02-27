@@ -277,6 +277,7 @@ function formatModeUpdate(parsed) {
   if (parsed.connectionUptimePct !== null && parsed.connectionUptimePct < 100) {
     parts.push(`📶 ${parsed.connectionUptimePct}%`);
   }
+  if (parsed.lastResetAt !== null) parts.push("↺ reset");
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
 
   if (parts.length === 0) return "ModeUpdate<empty>";
