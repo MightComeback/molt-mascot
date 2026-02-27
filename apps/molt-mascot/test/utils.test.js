@@ -49,6 +49,8 @@ import {
   isValidCloseCode,
   CLOSE_REASON_MAX_LEN,
   formatPercent,
+  formatRate,
+  parseDuration,
   SLEEP_INTERVAL,
   SLEEP_INTERVAL_REDUCED,
 } from "../src/utils.js";
@@ -74,6 +76,46 @@ describe("formatPercent (re-exported from plugin)", () => {
   it("composes with successRate", () => {
     expect(formatPercent(successRate(10, 2))).toBe("80%");
     expect(formatPercent(successRate(0, 0))).toBe("–");
+  });
+});
+
+describe("formatRate (re-exported from plugin)", () => {
+  it("formats plain rates", () => {
+    expect(formatRate(0)).toBe("0/s");
+    expect(formatRate(42)).toBe("42/s");
+    expect(formatRate(1500)).toBe("1.5K/s");
+  });
+
+  it("formats rates with unit", () => {
+    expect(formatRate(0, "B")).toBe("0 B/s");
+    expect(formatRate(1500, "B")).toBe("1.5 KB/s");
+  });
+
+  it("handles edge cases", () => {
+    expect(formatRate(-1)).toBe("0/s");
+    expect(formatRate(NaN)).toBe("0/s");
+  });
+});
+
+describe("parseDuration (re-exported from plugin)", () => {
+  it("parses single units", () => {
+    expect(parseDuration("45s")).toBe(45);
+    expect(parseDuration("5m")).toBe(300);
+    expect(parseDuration("2h")).toBe(7200);
+  });
+
+  it("parses combined units", () => {
+    expect(parseDuration("1m30s")).toBe(90);
+    expect(parseDuration("1h 30m")).toBe(5400);
+  });
+
+  it("parses plain numbers as seconds", () => {
+    expect(parseDuration("120")).toBe(120);
+  });
+
+  it("returns null for invalid input", () => {
+    expect(parseDuration("")).toBe(null);
+    expect(parseDuration("abc")).toBe(null);
   });
 });
 
