@@ -203,7 +203,7 @@ export function wsReadyStateLabel(readyState) {
 export const VALID_WS_READY_STATES = Object.freeze([0, 1, 2, 3]);
 
 /** @private O(1) lookup set for isValidWsReadyState(). */
-const _VALID_WS_STATES_SET = new Set(VALID_WS_READY_STATES);
+const _VALID_WS_STATES_SET = Object.freeze(new Set(VALID_WS_READY_STATES));
 
 /**
  * Check whether a value is a valid WebSocket readyState (0–3).
@@ -753,9 +753,12 @@ export function isValidCloseCode(value) {
  * 4001 (auth failed), 4003 (forbidden), 4004 (not found),
  * 4007 (invalid payload), 4012 (invalid version), 4013/4014 (intent errors)
  */
-export const RECOVERABLE_CLOSE_CODES = new Set([
-  1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010, 4011,
-]);
+export const RECOVERABLE_CLOSE_CODES = Object.freeze(
+  new Set([
+    1000, 1001, 1006, 1012, 1013, 4000, 4002, 4005, 4006, 4008, 4009, 4010,
+    4011,
+  ]),
+);
 
 /**
  * Classify whether a WebSocket close code indicates a recoverable (transient)
@@ -902,7 +905,9 @@ export const VALID_MEMORY_PRESSURE_LEVELS = Object.freeze([
 ]);
 
 /** @private O(1) lookup set for isValidMemoryPressureLevel(). */
-const _VALID_MEM_LEVELS_SET = new Set(VALID_MEMORY_PRESSURE_LEVELS);
+const _VALID_MEM_LEVELS_SET = Object.freeze(
+  new Set(VALID_MEMORY_PRESSURE_LEVELS),
+);
 
 /**
  * Check whether a string is a recognized memory pressure level.

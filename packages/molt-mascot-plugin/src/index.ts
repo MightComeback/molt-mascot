@@ -179,7 +179,7 @@ export function isValidMode(value: unknown): value is Mode {
 }
 
 /** @internal O(1) lookup set for isValidMode(). */
-const _validModesSet: ReadonlySet<Mode> = new Set(allowedModes);
+const _validModesSet: ReadonlySet<Mode> = Object.freeze(new Set(allowedModes));
 
 /**
  * Coerce a value to a valid Mode string.
@@ -212,7 +212,9 @@ export const allowedAlignments: readonly Alignment[] = Object.freeze([
 ] as const);
 
 /** @internal O(1) lookup set for isValidAlignment(). */
-const _validAlignmentsSet: ReadonlySet<string> = new Set(allowedAlignments);
+const _validAlignmentsSet: ReadonlySet<string> = Object.freeze(
+  new Set(allowedAlignments),
+);
 
 /**
  * Check whether a value is a recognized alignment string (case-sensitive).
@@ -234,7 +236,9 @@ export const allowedSizes: readonly Size[] = Object.freeze([
 ] as const);
 
 /** @internal O(1) lookup set for isValidSize(). */
-const _validSizesSet: ReadonlySet<string> = new Set(allowedSizes);
+const _validSizesSet: ReadonlySet<string> = Object.freeze(
+  new Set(allowedSizes),
+);
 
 /**
  * Check whether a value is a recognized size string (case-sensitive).
@@ -325,21 +329,23 @@ export function isValidPadding(value: unknown): value is number {
  * Case-insensitive matching is applied during maskSensitiveUrl().
  * Covers common auth patterns: gateway tokens, API keys, bearer tokens, etc.
  */
-const SENSITIVE_PARAMS: ReadonlySet<string> = new Set([
-  "token",
-  "key",
-  "apikey",
-  "api_key",
-  "secret",
-  "password",
-  "passwd",
-  "auth",
-  "authorization",
-  "access_token",
-  "bearer",
-  "credential",
-  "credentials",
-]);
+const SENSITIVE_PARAMS: ReadonlySet<string> = Object.freeze(
+  new Set([
+    "token",
+    "key",
+    "apikey",
+    "api_key",
+    "secret",
+    "password",
+    "passwd",
+    "auth",
+    "authorization",
+    "access_token",
+    "bearer",
+    "credential",
+    "credentials",
+  ]),
+);
 
 /**
  * Mask sensitive query parameters and userinfo credentials in a URL string for safe display.
@@ -956,52 +962,54 @@ export function sanitizeToolName(raw: string): string {
  *
  * Exported so consumers can check membership or extend the list.
  */
-export const CONTENT_TOOLS: ReadonlySet<string> = new Set([
-  "read",
-  "write",
-  "edit",
-  "exec",
-  "web_fetch",
-  "web_search",
-  "memory_get",
-  "memory_search",
-  "browser",
-  "canvas",
-  "sessions_history",
-  "sessions_list",
-  "agents_list",
-  "session_status",
-  "sessions_spawn",
-  "sessions_send",
-  "tts",
-  "cron",
-  "nodes",
-  "process",
-  "gateway",
-  "message",
-  "slack",
-  "gog",
-  "github",
-  "notion",
-  "gemini",
-  "bird",
-  "bluebubbles",
-  "clawdhub",
-  "peekaboo",
-  "summarize",
-  "video_frames",
-  "video-frames",
-  "weather",
-  "skill_creator",
-  "skill-creator",
-  "coding_agent",
-  "coding-agent",
-  "image",
-  // multi_tool_use.parallel becomes just "parallel" after prefix stripping
-  "parallel",
-  // Linear integration via hakky-tools
-  "hakky-tools",
-]);
+export const CONTENT_TOOLS: ReadonlySet<string> = Object.freeze(
+  new Set([
+    "read",
+    "write",
+    "edit",
+    "exec",
+    "web_fetch",
+    "web_search",
+    "memory_get",
+    "memory_search",
+    "browser",
+    "canvas",
+    "sessions_history",
+    "sessions_list",
+    "agents_list",
+    "session_status",
+    "sessions_spawn",
+    "sessions_send",
+    "tts",
+    "cron",
+    "nodes",
+    "process",
+    "gateway",
+    "message",
+    "slack",
+    "gog",
+    "github",
+    "notion",
+    "gemini",
+    "bird",
+    "bluebubbles",
+    "clawdhub",
+    "peekaboo",
+    "summarize",
+    "video_frames",
+    "video-frames",
+    "weather",
+    "skill_creator",
+    "skill-creator",
+    "coding_agent",
+    "coding-agent",
+    "image",
+    // multi_tool_use.parallel becomes just "parallel" after prefix stripping
+    "parallel",
+    // Linear integration via hakky-tools
+    "hakky-tools",
+  ]),
+);
 
 /**
  * Check whether a tool name is a recognized content tool (raw-output tools
