@@ -925,3 +925,83 @@ describe("formatReconnectCount", () => {
     expect(formatReconnectCount(-1)).toBe("");
   });
 });
+
+describe("formatPingSummary", () => {
+  const { formatPingSummary } = require("../src/format-latency.cjs");
+
+  it("returns null for empty array", () => {
+    expect(formatPingSummary([])).toBeNull();
+  });
+
+  it("returns null for non-array", () => {
+    expect(formatPingSummary(null)).toBeNull();
+    expect(formatPingSummary(undefined)).toBeNull();
+    expect(formatPingSummary("hello")).toBeNull();
+    expect(formatPingSummary(42)).toBeNull();
+  });
+
+  it("returns null when all samples are invalid", () => {
+    expect(formatPingSummary([NaN, Infinity, -1])).toBeNull();
+  });
+
+  it("computes correct stats for a single sample", () => {
+    const result = formatPingSummary([42]);
+    expect(result).not.toBeNull();
+    expect(result.stats.count).toBe(1);
+    expect(result.stats.min).toBe(42);
+    expect(result.stats.max).toBe(42);
+    expect(result.stats.avg).toBe(42);
+    expect(result.stats.median).toBe(42);
+    expect(result.stats.jitter).toBe(0);
+  });
+
+  it("computes correct stats for multiple samples", () => {
+    const result = formatPingSummary([10, 20, 30, 40, 50]);
+    expect(result).not.toBeNull();
+    expect(result.stats.count).toBe(5);
+    expect(result.stats.min).toBe(10);
+    expect(result.stats.max).toBe(50);
+    expect(result.stats.avg).toBe(30);
+    expect(result.stats.median).toBe(30);
+    expect(result.stats.jitter).toBeGreaterThan(0);
+  });
+
+  it("computes correct median for even-length samples", () => {
+    const result = formatPingSummary([10, 20, 30, 40]);
+    expect(result).not.toBeNull();
+    expect(result.stats.median).toBe(25);
+  });
+
+  it("filters out invalid samples", () => {
+    const result = formatPingSummary([10, NaN, 20, -5, Infinity, 30]);
+    expect(result).not.toBeNull();
+    expect(result.stats.count).toBe(3);
+    expect(result.stats.min).toBe(10);
+    expect(result.stats.max).toBe(30);
+  });
+
+  it("produces human-readable text by default", () => {
+    const result = formatPingSummary([10, 20, 30]);
+    expect(result.text).toContain("--- ping statistics ---");
+    expect(result.text).toContain("3 pings");
+    expect(result.text).toContain("min=10ms");
+    expect(result.text).toContain("max=30ms");
+  });
+
+  it("produces compact JSON text when compact=true", () => {
+    const result = formatPingSummary([10, 20, 30], { compact: true });
+    const parsed = JSON.parse(result.text);
+    expect(parsed.count).toBe(3);
+    expect(parsed.min).toBe(10);
+    expect(parsed.max).toBe(30);
+  });
+
+  it("handles zero-value samples correctly", () => {
+    const result = formatPingSummary([0, 0, 0]);
+    expect(result).not.toBeNull();
+    expect(result.stats.min).toBe(0);
+    expect(result.stats.max).toBe(0);
+    expect(result.stats.avg).toBe(0);
+    expect(result.stats.jitter).toBe(0);
+  });
+});

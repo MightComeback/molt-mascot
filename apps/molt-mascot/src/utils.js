@@ -89,6 +89,7 @@ import {
   connectionUptimePercent as _connectionUptimePercent,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatPingSummary,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -111,6 +112,7 @@ export {
   formatProtocolRange,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatPingSummary,
 };
 export { formatAlignment };
 

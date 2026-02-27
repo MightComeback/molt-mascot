@@ -598,6 +598,54 @@ function formatReconnectCount(sessionConnectCount) {
   return `↻${sessionConnectCount - 1}`;
 }
 
+/**
+ * Format an array of latency samples into a compact ping-statistics summary.
+ * Computes min/max/avg/median/jitter from raw samples and formats as either
+ * a human-readable multi-line string or a compact JSON-serializable object.
+ *
+ * Extracted from ws-dump.ts for testability — the original inline computation
+ * duplicated the same sort/median/jitter logic that the latency-tracker uses.
+ *
+ * @param {number[]} samples - Array of round-trip latency values in ms
+ * @param {{ compact?: boolean }} [opts] - Output format options
+ * @returns {{ text: string, stats: { count: number, min: number, max: number, avg: number, median: number, jitter: number } } | null}
+ *   Returns null if samples is empty or invalid.
+ */
+function formatPingSummary(samples, opts = {}) {
+  if (!Array.isArray(samples) || samples.length === 0) return null;
+  const valid = samples.filter(
+    (v) => typeof v === "number" && Number.isFinite(v) && v >= 0,
+  );
+  if (valid.length === 0) return null;
+
+  const sorted = valid.slice().sort((a, b) => a - b);
+  const count = sorted.length;
+  const min = sorted[0];
+  const max = sorted[count - 1];
+  const avg =
+    Math.round((sorted.reduce((s, v) => s + v, 0) / count) * 100) / 100;
+  const mid = Math.floor(count / 2);
+  const median =
+    count % 2 === 0
+      ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
+      : sorted[mid];
+  const jitter =
+    count > 1
+      ? Math.round(
+          Math.sqrt(sorted.reduce((s, v) => s + (v - avg) ** 2, 0) / count) *
+            100,
+        ) / 100
+      : 0;
+
+  const stats = { count, min, max, avg, median, jitter };
+
+  const text = opts.compact
+    ? JSON.stringify(stats)
+    : `\n--- ping statistics ---\n${count} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`;
+
+  return { text, stats };
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -623,4 +671,5 @@ module.exports = {
   connectionUptimePercent,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatPingSummary,
 };

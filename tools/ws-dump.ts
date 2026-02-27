@@ -15,6 +15,7 @@ import {
   formatActiveSummary,
   successRate,
   healthStatusEmoji,
+  formatPingSummary,
 } from "../apps/molt-mascot/src/utils.js";
 import {
   GATEWAY_URL_KEYS,
@@ -555,44 +556,11 @@ ws.addEventListener("message", (ev) => {
           return;
         }
 
-        // All pings done — print summary
-        const sorted = pingResults.slice().sort((a, b) => a - b);
-        const min = sorted[0];
-        const max = sorted[sorted.length - 1];
-        const avg =
-          Math.round(
-            (sorted.reduce((s, v) => s + v, 0) / sorted.length) * 100,
-          ) / 100;
-        const mid = Math.floor(sorted.length / 2);
-        const median =
-          sorted.length % 2 === 0
-            ? Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 100) / 100
-            : sorted[mid];
-        // Jitter: standard deviation — same definition as the latency-tracker
-        // module uses (sqrt of mean squared deviation), giving a consistent
-        // metric across the desktop app's rolling stats and the CLI's ping summary.
-        const jitter =
-          sorted.length > 1
-            ? Math.round(
-                Math.sqrt(
-                  sorted.reduce((s, v) => s + (v - avg) ** 2, 0) /
-                    sorted.length,
-                ) * 100,
-              ) / 100
-            : 0;
-
-        console.log(
-          compact
-            ? JSON.stringify({
-                count: pingCount,
-                min,
-                max,
-                avg,
-                median,
-                jitter,
-              })
-            : `\n--- ping statistics ---\n${pingCount} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`,
-        );
+        // All pings done — print summary using shared formatter
+        const summary = formatPingSummary(pingResults, { compact });
+        if (summary) {
+          console.log(summary.text);
+        }
         try {
           ws.close();
         } catch {}
