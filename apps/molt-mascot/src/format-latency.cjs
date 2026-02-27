@@ -58,6 +58,33 @@ function connectionQuality(ms) {
 }
 
 /**
+ * Canonical set of valid connection quality strings.
+ * Single source of truth — mirrors VALID_HEALTH_STATUSES, VALID_LATENCY_TRENDS
+ * for consistent enum-style validation across the codebase.
+ */
+const VALID_CONNECTION_QUALITIES = Object.freeze([
+  "excellent",
+  "good",
+  "fair",
+  "poor",
+]);
+
+/** @internal O(1) lookup set for isValidConnectionQuality(). */
+const _VALID_QUALITY_SET = new Set(VALID_CONNECTION_QUALITIES);
+
+/**
+ * Check whether a string is a recognized connection quality label (case-sensitive).
+ * O(1) via Set lookup. Parity with isValidHealth, isValidLatencyTrend, etc.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidConnectionQuality(value) {
+  if (typeof value !== "string") return false;
+  return _VALID_QUALITY_SET.has(value);
+}
+
+/**
  * Map a connection quality label to a colored circle emoji for at-a-glance
  * visual feedback in tooltips and tray menus.
  *
@@ -575,6 +602,8 @@ module.exports = {
   formatLatency,
   connectionQuality,
   connectionQualityEmoji,
+  VALID_CONNECTION_QUALITIES,
+  isValidConnectionQuality,
   resolveQualitySource,
   formatQualitySummary,
   formatLatencyWithQuality,

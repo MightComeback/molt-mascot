@@ -24,6 +24,8 @@ import {
   formatLatency,
   connectionQuality,
   connectionQualityEmoji,
+  VALID_CONNECTION_QUALITIES,
+  isValidConnectionQuality,
   healthStatusEmoji,
   MODE_EMOJI,
   computeHealthStatus,
@@ -1970,6 +1972,47 @@ describe("connectionQualityEmoji", () => {
     expect(connectionQualityEmoji(null)).toBe("⚪");
     expect(connectionQualityEmoji(undefined)).toBe("⚪");
     expect(connectionQualityEmoji("unknown")).toBe("⚪");
+  });
+});
+
+describe("VALID_CONNECTION_QUALITIES", () => {
+  it("contains all four quality labels", () => {
+    expect(VALID_CONNECTION_QUALITIES).toEqual([
+      "excellent",
+      "good",
+      "fair",
+      "poor",
+    ]);
+  });
+
+  it("is frozen", () => {
+    expect(Object.isFrozen(VALID_CONNECTION_QUALITIES)).toBe(true);
+  });
+
+  it("aligns with connectionQuality() return values", () => {
+    // Every quality returned by connectionQuality for valid inputs should be in the set
+    for (const ms of [0, 49, 50, 149, 150, 499, 500, 9999]) {
+      const q = connectionQuality(ms);
+      expect(VALID_CONNECTION_QUALITIES).toContain(q);
+    }
+  });
+});
+
+describe("isValidConnectionQuality", () => {
+  it("returns true for valid quality labels", () => {
+    for (const q of VALID_CONNECTION_QUALITIES) {
+      expect(isValidConnectionQuality(q)).toBe(true);
+    }
+  });
+
+  it("returns false for invalid values", () => {
+    expect(isValidConnectionQuality("excellent ")).toBe(false);
+    expect(isValidConnectionQuality("EXCELLENT")).toBe(false);
+    expect(isValidConnectionQuality("")).toBe(false);
+    expect(isValidConnectionQuality(null)).toBe(false);
+    expect(isValidConnectionQuality(undefined)).toBe(false);
+    expect(isValidConnectionQuality(42)).toBe(false);
+    expect(isValidConnectionQuality("unknown")).toBe(false);
   });
 });
 
