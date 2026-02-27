@@ -8,6 +8,8 @@
  * @module env-keys
  */
 
+const { parseBooleanEnv } = require("./is-truthy-env.cjs");
+
 /** Env vars checked (in order) for the gateway WebSocket URL. */
 const GATEWAY_URL_KEYS = Object.freeze([
   "MOLT_MASCOT_GATEWAY_URL",
@@ -102,8 +104,8 @@ function parseEnvNumber(env, keys, fallback, opts) {
  * Mirrors parseEnvNumber for booleans — checks keys in order, returns the first
  * non-empty truthy/falsy result, or the fallback if none match.
  *
- * Eliminates the repeated `isTruthyEnv(env.X || env.Y) || prefs.z || false`
- * pattern used ~6 times in status-cli.cjs and electron-main.cjs.
+ * Delegates to parseBooleanEnv from is-truthy-env.cjs to avoid duplicating
+ * the truthy/falsy string-matching logic.
  *
  * Truthy: "true", "t", "1", "yes", "y", "on" (case-insensitive)
  * Falsy:  "false", "f", "0", "no", "n", "off" (case-insensitive)
@@ -118,26 +120,8 @@ function parseEnvBoolean(env, keys, fallback) {
   const keyList = Array.isArray(keys) ? keys : [keys];
   const raw = resolveEnv(keyList, env, "");
   if (raw === "") return fallback;
-  const lower = raw.trim().toLowerCase();
-  if (
-    lower === "true" ||
-    lower === "1" ||
-    lower === "t" ||
-    lower === "yes" ||
-    lower === "y" ||
-    lower === "on"
-  )
-    return true;
-  if (
-    lower === "false" ||
-    lower === "0" ||
-    lower === "f" ||
-    lower === "no" ||
-    lower === "n" ||
-    lower === "off"
-  )
-    return false;
-  return fallback;
+  const result = parseBooleanEnv(raw);
+  return result !== undefined ? result : fallback;
 }
 
 module.exports = {
