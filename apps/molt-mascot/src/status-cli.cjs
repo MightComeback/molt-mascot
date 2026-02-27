@@ -9,6 +9,7 @@ const {
   formatDuration,
   formatTimestampLocal,
   formatBoolToggle,
+  formatPlatform,
 } = require("@molt/mascot-plugin");
 const { formatOpacity, isValidOpacity } = require("./opacity-presets.cjs");
 const { formatProtocolRange } = require("./format-latency.cjs");
@@ -388,7 +389,7 @@ function formatStatusText(status) {
 
   lines.push("");
   lines.push("Runtime:");
-  lines.push(`  Platform:  ${status.platform} ${status.arch}`);
+  lines.push(`  Platform:  ${formatPlatform(status.platform, status.arch)}`);
   lines.push(`  PID:       ${status.pid}`);
   lines.push(`  Electron:  ${status.electron || "n/a"}`);
   lines.push(`  Node:      ${status.node || "n/a"}`);

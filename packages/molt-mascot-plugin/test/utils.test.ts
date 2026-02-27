@@ -35,6 +35,7 @@ import register, {
   pluralize,
   formatBoolToggle,
   formatCountWithLabel,
+  formatPlatform,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2767,5 +2768,61 @@ describe("cleanErrorString — Node.js version/package manager prefixes", () => 
     expect(cleanErrorString("proto: Failed to install node 22.0.0")).toBe(
       "Failed to install node 22.0.0",
     );
+  });
+});
+
+describe("formatPlatform", () => {
+  it("formats darwin + arm64 as macOS ARM64", () => {
+    expect(formatPlatform("darwin", "arm64")).toBe("macOS ARM64");
+  });
+
+  it("formats win32 + x64 as Windows x64", () => {
+    expect(formatPlatform("win32", "x64")).toBe("Windows x64");
+  });
+
+  it("formats linux + x64 as Linux x64", () => {
+    expect(formatPlatform("linux", "x64")).toBe("Linux x64");
+  });
+
+  it("formats linux + ia32 as Linux x86", () => {
+    expect(formatPlatform("linux", "ia32")).toBe("Linux x86");
+  });
+
+  it("falls back to raw value for unknown platform", () => {
+    expect(formatPlatform("haiku", "x64")).toBe("haiku x64");
+  });
+
+  it("falls back to raw value for unknown arch", () => {
+    expect(formatPlatform("darwin", "loong64")).toBe("macOS loong64");
+  });
+
+  it("handles platform-only (no arch)", () => {
+    expect(formatPlatform("darwin")).toBe("macOS");
+  });
+
+  it("handles arch-only (no platform)", () => {
+    expect(formatPlatform("", "arm64")).toBe("ARM64");
+    expect(formatPlatform(undefined, "arm64")).toBe("ARM64");
+  });
+
+  it("returns 'unknown' when both are empty", () => {
+    expect(formatPlatform("", "")).toBe("unknown");
+    expect(formatPlatform()).toBe("unknown");
+  });
+
+  it("trims whitespace", () => {
+    expect(formatPlatform("  darwin  ", "  arm64  ")).toBe("macOS ARM64");
+  });
+
+  it("formats freebsd", () => {
+    expect(formatPlatform("freebsd", "x64")).toBe("FreeBSD x64");
+  });
+
+  it("formats android", () => {
+    expect(formatPlatform("android", "arm64")).toBe("Android ARM64");
+  });
+
+  it("formats riscv64 arch", () => {
+    expect(formatPlatform("linux", "riscv64")).toBe("Linux RISC-V");
   });
 });

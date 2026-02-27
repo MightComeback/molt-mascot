@@ -105,6 +105,20 @@ declare function formatRate(perSecond: number, unit?: string): string;
  */
 declare function formatCountWithLabel(count: number, singular: string, plural?: string): string;
 /**
+ * Format a platform + architecture pair into a human-readable label.
+ * Converts raw Node.js identifiers (e.g. "darwin", "arm64") into
+ * user-friendly names (e.g. "macOS ARM64").
+ *
+ * Falls back to the raw value when no label is defined.
+ *
+ * @example
+ * formatPlatform("darwin", "arm64") // → "macOS ARM64"
+ * formatPlatform("win32", "x64")    // → "Windows x64"
+ * formatPlatform("linux")           // → "Linux"
+ * formatPlatform("", "arm64")       // → "ARM64"
+ */
+declare function formatPlatform(platform?: string, arch?: string): string;
+/**
  * Parse a human-readable duration string into total seconds.
  * Inverse of {@link formatDuration}.
  *
@@ -355,4 +369,4 @@ declare function isContentTool(value: unknown): value is string;
  */
 declare function register(api: PluginApi): void;
 
-export { type Alignment, CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBoolToggle, formatBytes, formatCount, formatCountWithLabel, formatDuration, formatElapsed, formatPercent, formatRate, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, parseDuration, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };
+export { type Alignment, CONTENT_TOOLS, ERROR_PREFIXES, ERROR_PREFIX_REGEX, type Mode, type PluginApi, type PluginConfig, type Size, type State, allowedAlignments, allowedModes, allowedSizes, capitalize, clamp, cleanErrorString, coerceAlignment, coerceBoolean, coerceMode, coerceNumber, coerceOpacity, coercePadding, coerceSize, register as default, formatBoolToggle, formatBytes, formatCount, formatCountWithLabel, formatDuration, formatElapsed, formatPercent, formatPlatform, formatRate, formatRelativeTime, formatTimestamp, formatTimestampLocal, formatTimestampWithAge, id, isContentTool, isValidAlignment, isValidMode, isValidOpacity, isValidPadding, isValidSize, maskSensitiveUrl, parseDuration, pluralize, sanitizeToolName, successRate, summarizeToolResultMessage, truncate, version };

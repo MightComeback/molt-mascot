@@ -912,7 +912,7 @@ describe("buildDebugInfo", () => {
 
   it("includes arch in Platform line when provided", () => {
     const info = buildDebugInfo({ ...BASE_PARAMS, arch: "arm64" });
-    expect(info).toContain("Platform: MacIntel arm64");
+    expect(info).toContain("Platform: MacIntel ARM64");
   });
 
   it("omits arch from Platform line when not provided", () => {

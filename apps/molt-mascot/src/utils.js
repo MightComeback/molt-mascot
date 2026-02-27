@@ -47,6 +47,7 @@ import {
   maskSensitiveUrl,
   formatBoolToggle,
   formatCountWithLabel,
+  formatPlatform,
 } from "@molt/mascot-plugin";
 export {
   truncate,
@@ -68,6 +69,7 @@ export {
   maskSensitiveUrl,
   formatBoolToggle,
   formatCountWithLabel,
+  formatPlatform,
 };
 
 // Import + re-export from shared CJS module so both electron-main (CJS) and renderer (ESM) use the same impl.

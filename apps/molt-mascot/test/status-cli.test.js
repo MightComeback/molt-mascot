@@ -488,7 +488,7 @@ describe("formatStatusText", () => {
     expect(text).toContain("Stale check interval: 5000ms");
     expect(text).toContain("Runtime:");
     expect(text).toContain("PID:       12345");
-    expect(text).toContain("Platform:  darwin arm64");
+    expect(text).toContain("Platform:  macOS ARM64");
   });
 
   it("shows saved preferences when present", () => {

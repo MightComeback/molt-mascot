@@ -96,6 +96,7 @@ import {
   memoryPressure,
   formatMemorySummary,
   formatProcessUptime,
+  formatPlatform,
 } from "./utils.js";
 import { formatBoolToggle } from "@molt/mascot-plugin";
 import { maskSensitiveUrl } from "@molt/mascot-plugin";
@@ -391,8 +392,7 @@ export function buildDebugInfo(params) {
         : "";
     lines.push(`Sprite cache: ${spriteCache.size} entries${hitRateStr}`);
   }
-  const platformStr = [platform || "unknown", arch].filter(Boolean).join(" ");
-  lines.push(`Platform: ${platformStr}`);
+  lines.push(`Platform: ${formatPlatform(platform, arch)}`);
   const dpr = devicePixelRatio ?? 1;
   const canvasDims =
     typeof canvasWidth === "number" && typeof canvasHeight === "number"

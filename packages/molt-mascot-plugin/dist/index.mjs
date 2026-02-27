@@ -228,6 +228,34 @@ function formatRate(perSecond, unit) {
 function formatCountWithLabel(count, singular, plural) {
   return `${formatCount(count)} ${pluralize(count, singular, plural)}`;
 }
+var PLATFORM_LABELS = {
+  darwin: "macOS",
+  win32: "Windows",
+  linux: "Linux",
+  freebsd: "FreeBSD",
+  openbsd: "OpenBSD",
+  sunos: "SunOS",
+  aix: "AIX",
+  android: "Android"
+};
+var ARCH_LABELS = {
+  arm64: "ARM64",
+  x64: "x64",
+  ia32: "x86",
+  arm: "ARM",
+  ppc64: "PPC64",
+  s390x: "s390x",
+  mips: "MIPS",
+  mipsel: "MIPSel",
+  riscv64: "RISC-V"
+};
+function formatPlatform(platform, arch) {
+  const p = platform?.trim() || "";
+  const a = arch?.trim() || "";
+  const pLabel = p && PLATFORM_LABELS[p] || p;
+  const aLabel = a && ARCH_LABELS[a] || a;
+  return [pLabel, aLabel].filter(Boolean).join(" ") || "unknown";
+}
 function parseDuration(input) {
   if (typeof input !== "string") return null;
   const trimmed = input.trim();
@@ -404,9 +432,10 @@ function maskSensitiveUrl(url) {
   }
 }
 var ERROR_PREFIXES = [
-  // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
-  // All specific *Error entries are redundant with this pattern and have been removed.
-  "[a-zA-Z0-9_]*Error",
+  // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError,
+  // CommandNotFoundException, PageFault, etc.
+  // All specific *Error/*Exception/*Fault entries are redundant with this pattern.
+  "[a-zA-Z0-9_]*(?:Error|Exception|Fault)",
   // Java/JVM-style: java.lang.NullPointerException, kotlin.KotlinNullPointerException, etc.
   // Also handles .NET: System.InvalidOperationException, System.IO.FileNotFoundException, etc.
   "(?:[a-zA-Z_][a-zA-Z0-9_]*\\.)+[a-zA-Z_][a-zA-Z0-9_]*(?:Error|Exception|Fault)",
@@ -515,8 +544,10 @@ var ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
-  // .NET CLI
+  // .NET CLI / PowerShell
   "dotnet:",
+  "pwsh:",
+  "powershell:",
   // Node.js version/package managers
   "corepack:",
   "volta:",
@@ -592,6 +623,7 @@ var ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
 var NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
 var GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
 var IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
+var WIN_HEX_ERROR_REGEX = /^(?:Error\s+)?0x[0-9A-Fa-f]{4,8}\s*:\s*/;
 function cleanErrorString(s) {
   if (s.length > 4096) s = s.slice(0, 4096);
   if (s.trimStart().startsWith("{")) {
@@ -638,6 +670,7 @@ function cleanErrorString(s) {
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
     str = str.replace(GO_RUNTIME_REGEX, "").trim();
     str = str.replace(IN_PROMISE_REGEX, "").trim();
+    str = str.replace(WIN_HEX_ERROR_REGEX, "").trim();
   }
   const lines = str.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
   if (lines.length > 1) {
@@ -1176,6 +1209,7 @@ export {
   formatDuration,
   formatElapsed,
   formatPercent,
+  formatPlatform,
   formatRate,
   formatRelativeTime,
   formatTimestamp,

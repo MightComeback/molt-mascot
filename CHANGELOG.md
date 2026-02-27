@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `formatPlatform` utility in plugin for human-readable platform+arch labels (e.g. "darwin arm64" → "macOS ARM64")
 - `formatCountWithLabel` helper in plugin for compact "N item(s)" display
 - `formatRate` utility for compact per-second rate display (e.g. "1.2K/s")
 - `formatBoolToggle` utility for human-readable boolean display ("on"/"off")

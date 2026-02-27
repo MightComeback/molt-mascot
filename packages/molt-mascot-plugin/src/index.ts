@@ -21,6 +21,7 @@ export {
   pluralize,
   formatBoolToggle,
   formatCountWithLabel,
+  formatPlatform,
 } from "./format.js";
 
 import {

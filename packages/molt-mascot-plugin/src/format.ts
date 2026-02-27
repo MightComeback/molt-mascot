@@ -316,6 +316,58 @@ export function formatCountWithLabel(
 }
 
 /**
+ * Human-readable platform labels for Node.js `process.platform` values.
+ * Maps raw identifiers (e.g. "darwin") to user-friendly names (e.g. "macOS").
+ */
+const PLATFORM_LABELS: Record<string, string> = {
+  darwin: "macOS",
+  win32: "Windows",
+  linux: "Linux",
+  freebsd: "FreeBSD",
+  openbsd: "OpenBSD",
+  sunos: "SunOS",
+  aix: "AIX",
+  android: "Android",
+};
+
+/**
+ * Human-readable architecture labels for Node.js `process.arch` values.
+ * Uppercases common identifiers for display consistency.
+ */
+const ARCH_LABELS: Record<string, string> = {
+  arm64: "ARM64",
+  x64: "x64",
+  ia32: "x86",
+  arm: "ARM",
+  ppc64: "PPC64",
+  s390x: "s390x",
+  mips: "MIPS",
+  mipsel: "MIPSel",
+  riscv64: "RISC-V",
+};
+
+/**
+ * Format a platform + architecture pair into a human-readable label.
+ * Converts raw Node.js identifiers (e.g. "darwin", "arm64") into
+ * user-friendly names (e.g. "macOS ARM64").
+ *
+ * Falls back to the raw value when no label is defined.
+ *
+ * @example
+ * formatPlatform("darwin", "arm64") // → "macOS ARM64"
+ * formatPlatform("win32", "x64")    // → "Windows x64"
+ * formatPlatform("linux")           // → "Linux"
+ * formatPlatform("", "arm64")       // → "ARM64"
+ */
+export function formatPlatform(platform?: string, arch?: string): string {
+  const p = platform?.trim() || "";
+  const a = arch?.trim() || "";
+  const pLabel = (p && PLATFORM_LABELS[p]) || p;
+  const aLabel = (a && ARCH_LABELS[a]) || a;
+  return [pLabel, aLabel].filter(Boolean).join(" ") || "unknown";
+}
+
+/**
  * Parse a human-readable duration string into total seconds.
  * Inverse of {@link formatDuration}.
  *
