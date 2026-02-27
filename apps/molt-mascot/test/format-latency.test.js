@@ -224,6 +224,80 @@ describe("QUALITY_THRESHOLDS", () => {
   });
 });
 
+describe("HEALTH_THRESHOLDS", () => {
+  it("exports frozen threshold constants", () => {
+    expect(HEALTH_THRESHOLDS).toBeDefined();
+    expect(Object.isFrozen(HEALTH_THRESHOLDS)).toBe(true);
+  });
+
+  it("has expected threshold values", () => {
+    expect(HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS).toBe(30000);
+    expect(HEALTH_THRESHOLDS.STALE_DEGRADED_MS).toBe(10000);
+    expect(HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS).toBe(5000);
+    expect(HEALTH_THRESHOLDS.JITTER_DEGRADED_MS).toBe(200);
+    expect(HEALTH_THRESHOLDS.JITTER_MEDIAN_RATIO).toBe(1.5);
+    expect(HEALTH_THRESHOLDS.SUCCESS_RATE_MIN_PCT).toBe(80);
+  });
+
+  it("stale thresholds are ordered (degraded < unhealthy)", () => {
+    expect(HEALTH_THRESHOLDS.STALE_DEGRADED_MS).toBeLessThan(
+      HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS,
+    );
+  });
+
+  it("computeHealthStatus transitions align with thresholds", () => {
+    const NOW = 100000;
+    // Stale at exactly degraded threshold → healthy (threshold check is >)
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_DEGRADED_MS,
+        now: NOW,
+      }),
+    ).toBe("healthy");
+    // Stale above degraded threshold → degraded
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_DEGRADED_MS - 1,
+        now: NOW,
+      }),
+    ).toBe("degraded");
+    // Stale above unhealthy threshold → unhealthy
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        lastMessageAt: NOW - HEALTH_THRESHOLDS.STALE_UNHEALTHY_MS - 1,
+        now: NOW,
+      }),
+    ).toBe("unhealthy");
+    // Latency above unhealthy threshold → unhealthy
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS + 1,
+        now: NOW,
+      }),
+    ).toBe("unhealthy");
+    // Latency below unhealthy but above "poor" quality threshold → degraded
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: HEALTH_THRESHOLDS.LATENCY_UNHEALTHY_MS - 1,
+        now: NOW,
+      }),
+    ).toBe("degraded");
+    // Latency within "fair" quality range → healthy
+    expect(
+      computeHealthStatus({
+        isConnected: true,
+        latencyMs: QUALITY_THRESHOLDS.FAIR_MAX_MS - 1,
+        now: NOW,
+      }),
+    ).toBe("healthy");
+  });
+});
+
 describe("connectionQualityEmoji", () => {
   it("maps quality labels to colored circle emojis", () => {
     expect(connectionQualityEmoji("excellent")).toBe("🟢");
