@@ -2203,6 +2203,8 @@ describe("utils", () => {
     expect(sanitizeToolName("exec")).toBe("exec");
     expect(sanitizeToolName("web_search")).toBe("web_search");
     // Empty string
+    expect(sanitizeToolName("tools.web_search")).toBe("web_search");
+    expect(sanitizeToolName("tool_use.exec")).toBe("exec");
     expect(sanitizeToolName("")).toBe("");
   });
 

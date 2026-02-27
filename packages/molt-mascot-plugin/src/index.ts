@@ -941,7 +941,9 @@ export function sanitizeToolName(raw: string): string {
     .replace(/^functions\./, "")
     .replace(/^multi_tool_use\./, "")
     .replace(/^actions\./, "")
-    .replace(/^computer\./, "");
+    .replace(/^computer\./, "")
+    .replace(/^tools\./, "")
+    .replace(/^tool_use\./, "");
 }
 
 /**
