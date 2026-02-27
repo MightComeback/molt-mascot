@@ -22,6 +22,7 @@ import {
   formatLatencyTrendArrow,
   formatReconnectCount,
   formatToolCallsSummary,
+  formatConnectionReliability,
 } from "./utils.js";
 import { formatSizeWithDims } from "./size-presets.cjs";
 import { formatAlignment } from "./get-position.cjs";
@@ -170,21 +171,15 @@ export function buildContextMenuItems(state) {
   if (healthStatus === "degraded" || healthStatus === "unhealthy") {
     statusParts.push(`${healthStatusEmoji(healthStatus)} ${healthStatus}`);
   }
-  if (
-    typeof connectionUptimePct === "number" &&
-    connectionUptimePct >= 0 &&
-    connectionUptimePct < 100
-  ) {
-    statusParts.push(`📶 ${connectionUptimePct}%`);
-  }
-  // Surface connection success rate when below 100% — indicates failed connection
-  // attempts (parity with tray tooltip and debug info reliability diagnostics).
-  if (
-    typeof connectionSuccessRate === "number" &&
-    connectionSuccessRate >= 0 &&
-    connectionSuccessRate < 100
-  ) {
-    statusParts.push(`${connectionSuccessRate}% ok`);
+  // Surface connection reliability metrics (success rate + uptime) when below 100%.
+  // DRY: delegates to formatConnectionReliability (parity with buildTooltip in utils.js).
+  for (const part of formatConnectionReliability(
+    connectionSuccessRate,
+    connectionUptimePct,
+  )) {
+    // Context menu uses 📶 prefix for uptime, plain for success rate (compact status line).
+    const prefix = part.includes("connected") ? "📶 " : "";
+    statusParts.push(`${prefix}${part}`);
   }
   if (typeof processUptimeS === "number" && processUptimeS >= 60) {
     statusParts.push(`🕐 ${formatDuration(Math.round(processUptimeS))}`);

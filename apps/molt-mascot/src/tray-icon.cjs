@@ -24,6 +24,7 @@ const {
   formatReconnectCount,
   formatProcessUptime,
   formatToolCallsSummary,
+  formatConnectionReliability,
 } = require("./format-latency.cjs");
 const { MODE_EMOJI } = require("./mode-emoji.cjs");
 const { formatAlignment } = require("./get-position.cjs");
@@ -389,23 +390,15 @@ function buildTrayTooltip(params) {
       );
     }
   }
-  // Surface connection uptime percentage when below 100% to highlight flappy connections.
-  // At 100% (or null/unavailable) it's omitted to keep the tooltip clean.
-  if (
-    typeof connectionUptimePct === "number" &&
-    connectionUptimePct >= 0 &&
-    connectionUptimePct < 100
-  ) {
-    parts.push(`📶 ${connectionUptimePct}% connected`);
-  }
-  // Surface connection success rate when below 100% — indicates failed connection
-  // attempts (parity with context menu and debug info reliability diagnostics).
-  if (
-    typeof connectionSuccessRate === "number" &&
-    connectionSuccessRate >= 0 &&
-    connectionSuccessRate < 100
-  ) {
-    parts.push(`🎯 ${connectionSuccessRate}% ok`);
+  // Surface connection reliability metrics (success rate + uptime) when below 100%.
+  // DRY: delegates to formatConnectionReliability (parity with buildTooltip in utils.js).
+  for (const part of formatConnectionReliability(
+    connectionSuccessRate,
+    connectionUptimePct,
+  )) {
+    // Prefix with contextual emoji for tray tooltip (richer than the plain buildTooltip).
+    const emoji = part.includes("connected") ? "📶" : "🎯";
+    parts.push(`${emoji} ${part}`);
   }
   // Surface health status when degraded or unhealthy for at-a-glance diagnostics,
   // with diagnostic reasons so users can see *why* without opening debug info.
