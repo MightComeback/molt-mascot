@@ -4,6 +4,117 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- `formatCountWithLabel` helper in plugin for compact "N item(s)" display
+- `formatRate` utility for compact per-second rate display (e.g. "1.2K/s")
+- `formatBoolToggle` utility for human-readable boolean display ("on"/"off")
+- `parseDuration` utility — inverse of `formatDuration` for human-readable duration parsing
+- `formatConnectionReliability` helper for DRY reliability display in diagnostics
+- `formatPingSummary` helper with p95/p99 percentiles for ws-dump output
+- `formatLatencyWithQuality` helper to DRY up repeated latency+emoji pattern
+- `formatLatencyTrendArrow` helper to DRY up repeated rising/falling ternaries
+- `formatReconnectCount` helper to DRY up repeated ↻N reconnect formatting
+- `coerceMode` for case-insensitive mode string coercion (parity with `coerceSize`, `coerceAlignment`)
+- `coercePositive` helper for strictly positive number coercion (rejects zero)
+- `isValidMode` validator on plugin (parity with `isValidAlignment`, `isValidSize`)
+- `isValidAlignment` and `isValidSize` validators on plugin
+- `isValidOpacity` and `isValidPadding` numeric range validators on plugin
+- `isValidCloseCode` validator for WebSocket close code range checking
+- `isValidWsReadyState` validator for WebSocket readyState validation
+- `isValidOverlayMode` validator for overlay mode strings
+- `isValidStatusDotMode` validator for tray status dot modes
+- `isValidConnectionQuality` validator for connection quality labels
+- `isValidPrefKey` validator for O(1) preference key validation
+- `isContentTool` validator for content-type tool detection
+- `OVERLAY_KEYS` constant and `isValidOverlay` validator on sprites module
+- `VALID_OVERLAY_MODES` constant on draw module
+- `VALID_WS_READY_STATES` constant on utils module
+- `VALID_STATUS_DOT_MODES` constant on tray-icon module
+- `VALID_CONNECTION_QUALITIES` constant on format-latency module
+- `CLOSE_REASON_MAX_LEN` constant for formatCloseDetail truncation limit
+- `maskSensitiveUrl` utility — redacts token/key/secret query params and userinfo credentials
+- `pluralize` utility for correct singular/plural noun inflection
+- `formatPercent` utility for compact percentage display
+- `Alignment` type alias replacing verbose `NonNullable<PluginConfig["alignment"]>`
+- `diffPrefs` and `formatPrefsDiff` for preference change tracking
+- `allowedModes` frozen array on plugin (parity with `allowedSizes`, `allowedAlignments`)
+- `gatewayToken` in `PREF_SCHEMA` for validated token persistence
+- `percentile(p)` method on latency tracker for arbitrary percentile queries
+- FPS trend in debug info diagnostics when degrading
+- Plugin uptime in `formatModeUpdate` diagnostic output
+- `lastResetAt` in `formatModeUpdate` diagnostic output
+- Buffer fullness indicator in `toString()` for latency tracker and fps counter
+- Connection success rate in canvas tooltip when below 100%
+- Connection success rate as standalone tray line when below 100%
+- Database/ORM CLI error prefixes (psql, mysql, sqlite3, mongosh, redis-cli, prisma, drizzle, knex, sequelize, typeorm)
+- Test runner error prefixes (vitest, jest, mocha, pytest, rspec, ava, tap)
+- Unix coreutils/network CLI error prefixes (ssh, scp, rsync, tar, grep, mkdir, rm, cp, chmod, find)
+- Node.js version/package manager error prefixes (corepack, volta, fnm, proto)
+- `actions.` and `computer.` prefix stripping in `sanitizeToolName` (MCP + Anthropic computer use)
+- `Precondition failed` and `Assertion failed` to error prefix stripping (Swift/Rust runtime assertions)
+
+### Changed
+- Plugin: use Set lookups in `coerceMode`/`coerceSize`/`coerceAlignment` instead of `Array.includes` (perf)
+- Plugin: deduplicate formatting utils — `index.ts` re-exports from `format.ts` (single source of truth)
+- Re-export `formatRate`, `parseDuration`, `formatPercent` from plugin for renderer parity
+- Use `pluralize()` from plugin instead of inline ternaries in tray-icon and utils
+- Use canonical `isValidOpacity()` instead of inline checks in electron-main
+- Use canonical `isValidPadding()` instead of inline checks in prefs and plugin-sync
+- Use `parseEnvNumber()` instead of inline `Number(env)` in electron-main
+- Use `isActivateKey` helper instead of inline Enter/Space check in context-menu
+- Extract `isPrintableKey`, nav/home/end/tab key helpers from context-menu inline checks
+- Extract `isEscapeKey` helper to DRY up inline Escape checks
+- Extract `coercePositive` helper from renderer inline `_coercePositive`
+- Extract `uptimeSuffix` helper to deduplicate idle/sleeping uptime logic in pill-label
+- Extract inline env coercion into reusable helpers in renderer
+- Extract `SLEEP_INTERVAL` and `SLEEP_INTERVAL_REDUCED` constants for sleeping frame rates
+- Extract `CONNECTED_IDLE_DELAY_MS`, `TRANSIENT_FEEDBACK_MS`, `DEFAULT_WS_URL`, `RESIZE_DEBOUNCE_MS`, `TOOL_BOUNCE_DELAY_MS` constants from renderer inline magic numbers
+- Extract `PLUGIN_STATE_THROTTLE_MS` constant from gateway-client inline magic 150
+- Use `PILL_MAX_ERROR_LEN` instead of inline magic 48 in renderer
+- Use `formatReconnectCount()` in tooltip instead of rebuilding reconnect string
+- Extract `computeShadowParams` as pure testable function from draw module
+- Memory pressure thresholds extracted as named constants
+- Consolidate reduced-motion CSS rules with `:is()` selector
+- Style Save button as primary action with blue accent in setup form
+
+### Fixed
+- `opts.now` added to `formatModeUpdate` for deterministic testability
+- Unused variables removed from `parseDuration` (lint warnings)
+- Unused imports removed from debug-info (connectionQuality, connectionQualityEmoji, resolveQualitySource)
+- Eye blink coordinates corrected to match actual sprite eye pixels
+- Context menu `transform-origin` set based on clamped position for correct animation direction
+- Missing `gatewayToken` added to shell completion pref lists
+- Missing `copyStatus` bridge exposed in preload for renderer parity
+- `nodeIntegration: false` explicitly set in BrowserWindow webPreferences
+
+### Hardened
+- Freeze `WS_CLOSE_CODE_LABELS` to match codebase immutability convention
+- Freeze `TRAY_SPRITE`, `TRAY_COLORS`, and `STATUS_DOT_COLORS` constants
+- Freeze exported `allowedModes`, `allowedAlignments`, `allowedSizes` arrays on plugin
+- Clamp `getReconnectDelayMs` inputs (`baseMs`, `maxMs`, `jitterFraction`, `attempt`) to sane ranges
+- Clamp latency tracker `maxSamples` to `[2, ∞)` to prevent modulo-zero NaN
+- Clamp FPS counter `bufferSize` to `[2, ∞)` and `windowMs` to `[1, ∞)`
+- Clamp shadow ellipse radii to prevent negative values in draw module
+- Clamp shadow alpha to `[MIN_ALPHA, 1]` to prevent >1 opacity on extreme negative bob
+- Cap `isValidPadding` at `MAX_PADDING` (1000px) to reject absurd values
+- CSP: extract inline styles to renderer.css, upgrade `style-src` to `'self'`
+- CSP: add explicit `script-src`, `img-src`, `object-src`, `frame-src`, `base-uri`, `form-action`, `font-src`, `media-src`, `worker-src` directives
+
+### Developer Experience
+- `commit-msg` git hook for conventional commit validation
+- `pre-commit` hook for staged format check
+- `clean` script and auto-install git hooks on `postinstall`
+- `keyboard-utils.js` and `renderer.css` added to architecture tree in CONTRIBUTING.md
+- List all 12 accepted commit types and document breaking change syntax in CONTRIBUTING.md
+
+### Documentation
+- Add `--completions` flag to CLI reference in README
+- Add missing connection timing CLI flags to CLI reference
+- Add claw accent color to TRAY_SPRITE legend comment
+- Add missing entries for recent commits in changelog (multiple consolidation passes)
+
 ## [0.2.1] - 2026-02-25
 
 ### Added
