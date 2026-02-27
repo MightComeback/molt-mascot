@@ -658,6 +658,8 @@ window.__moltMascotGetState = () => ({
   healthStatus: currentHealthStatus(),
   pillText: pill.textContent || "",
   pillClass: pill.className || "",
+  processStartedAt: window.moltMascot?.processStartedAt ?? null,
+  processUptimeS: window.moltMascot?.processUptimeS?.() ?? null,
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
