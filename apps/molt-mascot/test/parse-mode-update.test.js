@@ -734,6 +734,18 @@ describe("parse-mode-update", () => {
       expect(str).toContain("v0.2.0");
     });
 
+    it("includes plugin uptime when pluginStartedAt is present", () => {
+      // Plugin started 90 seconds ago
+      const parsed = parseModeUpdate({ pluginStartedAt: Date.now() - 90000 });
+      const str = formatModeUpdate(parsed);
+      expect(str).toContain("up 1m 30s");
+    });
+
+    it("omits plugin uptime when pluginStartedAt is null", () => {
+      const parsed = parseModeUpdate({});
+      expect(formatModeUpdate(parsed)).not.toContain("up ");
+    });
+
     it("includes reset indicator when lastResetAt is present", () => {
       const parsed = parseModeUpdate({ lastResetAt: 1700000050000 });
       expect(formatModeUpdate(parsed)).toContain("↺ reset");

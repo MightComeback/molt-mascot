@@ -82,6 +82,7 @@ const {
   formatLatencyTrendArrow,
   formatReconnectCount,
 } = require("./format-latency.cjs");
+const { formatDuration } = require("@molt/mascot-plugin");
 
 // Re-export for back-compat (consumers may import VALID_HEALTH from here).
 const VALID_HEALTH = VALID_HEALTH_STATUSES;
@@ -276,6 +277,13 @@ function formatModeUpdate(parsed) {
   }
   if (parsed.connectionUptimePct !== null && parsed.connectionUptimePct < 100) {
     parts.push(`📶 ${parsed.connectionUptimePct}%`);
+  }
+  if (parsed.pluginStartedAt !== null) {
+    const uptimeS = Math.max(
+      0,
+      Math.round((Date.now() - parsed.pluginStartedAt) / 1000),
+    );
+    parts.push(`up ${formatDuration(uptimeS)}`);
   }
   if (parsed.lastResetAt !== null) parts.push("↺ reset");
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
