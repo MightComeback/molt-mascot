@@ -536,7 +536,7 @@ export function normalizeWsUrl(url) {
   if (/^ws:\/\//i.test(trimmed)) return trimmed.replace(/^ws:\/\//i, "ws://");
   // Protocol-relative URLs (//host:port/path) — treat as ws:// since the user
   // clearly intended a WebSocket endpoint but omitted the scheme.
-  if (/^\/\//.test(trimmed)) return `ws:${trimmed}`;
+  if (trimmed.startsWith("//")) return `ws:${trimmed}`;
   // Auto-add ws:// for bare host(:port) URLs — common user mistake when pasting
   // gateway addresses without a scheme (e.g. "127.0.0.1:18789" or "localhost:8080/ws").
   if (trimmed && !/:\/\//.test(trimmed)) return `ws://${trimmed}`;
