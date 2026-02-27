@@ -449,8 +449,19 @@ function formatActiveSummary(agents, tools) {
  * @returns {string}
  */
 function formatProtocolRange(min, max) {
-  if (min === max) return `v${min}`;
-  return `v${min}–v${max}`;
+  // Coerce to integers; fallback to "v?" for non-numeric/non-finite inputs.
+  const lo =
+    typeof min === "number" && Number.isFinite(min) ? Math.floor(min) : null;
+  const hi =
+    typeof max === "number" && Number.isFinite(max) ? Math.floor(max) : null;
+  if (lo === null && hi === null) return "v?";
+  if (lo === null) return `v${hi}`;
+  if (hi === null) return `v${lo}`;
+  // Swap if inverted so the display always reads low–high.
+  const a = Math.min(lo, hi);
+  const b = Math.max(lo, hi);
+  if (a === b) return `v${a}`;
+  return `v${a}–v${b}`;
 }
 
 /**

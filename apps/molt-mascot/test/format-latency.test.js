@@ -751,6 +751,34 @@ describe("formatProtocolRange", () => {
     expect(formatProtocolRange(1, 1)).toBe("v1");
     expect(formatProtocolRange(1, 3)).toBe("v1–v3");
   });
+
+  it("auto-swaps inverted range (min > max)", () => {
+    expect(formatProtocolRange(3, 2)).toBe("v2–v3");
+    expect(formatProtocolRange(5, 1)).toBe("v1–v5");
+  });
+
+  it("floors fractional versions", () => {
+    expect(formatProtocolRange(2.7, 3.9)).toBe("v2–v3");
+    expect(formatProtocolRange(2.5, 2.5)).toBe("v2");
+  });
+
+  it("returns v? for non-numeric inputs", () => {
+    expect(formatProtocolRange(null, null)).toBe("v?");
+    expect(formatProtocolRange(undefined, undefined)).toBe("v?");
+    expect(formatProtocolRange("abc", "def")).toBe("v?");
+  });
+
+  it("handles one valid and one invalid input", () => {
+    expect(formatProtocolRange(2, null)).toBe("v2");
+    expect(formatProtocolRange(null, 3)).toBe("v3");
+    expect(formatProtocolRange(undefined, 5)).toBe("v5");
+  });
+
+  it("handles Infinity and NaN", () => {
+    expect(formatProtocolRange(Infinity, 3)).toBe("v3");
+    expect(formatProtocolRange(2, NaN)).toBe("v2");
+    expect(formatProtocolRange(NaN, NaN)).toBe("v?");
+  });
 });
 
 describe("computeConnectionSuccessRate", () => {
