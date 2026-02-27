@@ -104,6 +104,7 @@ import {
   formatProcessUptime,
   formatToolThroughput,
   formatToolCallsSummary,
+  isValidIntegerPercentage,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -131,6 +132,7 @@ export {
   formatProcessUptime,
   formatToolThroughput,
   formatToolCallsSummary,
+  isValidIntegerPercentage,
 };
 export { formatAlignment };
 

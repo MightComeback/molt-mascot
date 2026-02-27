@@ -698,6 +698,27 @@ function formatProcessUptime(uptimeS, startedAt, opts) {
 }
 
 /**
+ * Check whether a value is a valid integer percentage (0-100 inclusive).
+ * DRYs the repeated `nonNegInt(v) !== null && v <= 100` check used for
+ * connectionSuccessRate and connectionUptimePct validation in parse-mode-update.cjs.
+ *
+ * Mirrors isValidHealth, isValidLatencyTrend, isValidConnectionQuality for
+ * consistent validation API across the codebase.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isValidIntegerPercentage(value) {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 100
+  );
+}
+
+/**
  * Build compact connection reliability suffix parts from success rate and uptime percentage.
  * Returns an array of strings like ["95% ok", "87% connected"] — only includes parts
  * where the value is below 100% (perfect reliability is omitted to reduce noise).
@@ -824,4 +845,5 @@ module.exports = {
   formatProcessUptime,
   formatToolThroughput,
   formatToolCallsSummary,
+  isValidIntegerPercentage,
 };

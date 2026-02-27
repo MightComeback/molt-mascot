@@ -81,6 +81,7 @@ const {
   isValidLatencyTrend,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  isValidIntegerPercentage,
 } = require("./format-latency.cjs");
 const { formatDuration } = require("@molt/mascot-plugin");
 
@@ -189,17 +190,15 @@ function parseModeUpdate(raw) {
     pluginStartedAt: posEpoch(update.pluginStartedAt),
     lastResetAt: posEpoch(update.lastResetAt),
     healthStatus: validHealthStatus(update.healthStatus),
-    connectionSuccessRate: (() => {
-      const n = nonNegInt(update.connectionSuccessRate);
-      if (n === null) return null;
-      return n <= 100 ? n : null;
-    })(),
+    connectionSuccessRate: isValidIntegerPercentage(
+      update.connectionSuccessRate,
+    )
+      ? update.connectionSuccessRate
+      : null,
     latencyTrend: validLatencyTrend(update.latencyTrend),
-    connectionUptimePct: (() => {
-      const n = nonNegInt(update.connectionUptimePct);
-      if (n === null) return null;
-      return n <= 100 ? n : null;
-    })(),
+    connectionUptimePct: isValidIntegerPercentage(update.connectionUptimePct)
+      ? update.connectionUptimePct
+      : null,
   };
 }
 

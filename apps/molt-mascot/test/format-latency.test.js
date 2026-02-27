@@ -1380,3 +1380,24 @@ describe("formatToolCallsSummary", () => {
     expect(formatToolCallsSummary(1, 0)).toBe("1 calls");
   });
 });
+
+describe("isValidIntegerPercentage", () => {
+  const { isValidIntegerPercentage } = require("../src/format-latency.cjs");
+
+  it("accepts 0", () => expect(isValidIntegerPercentage(0)).toBe(true));
+  it("accepts 50", () => expect(isValidIntegerPercentage(50)).toBe(true));
+  it("accepts 100", () => expect(isValidIntegerPercentage(100)).toBe(true));
+
+  it("rejects 101", () => expect(isValidIntegerPercentage(101)).toBe(false));
+  it("rejects -1", () => expect(isValidIntegerPercentage(-1)).toBe(false));
+  it("rejects 50.5 (non-integer)", () =>
+    expect(isValidIntegerPercentage(50.5)).toBe(false));
+  it("rejects NaN", () => expect(isValidIntegerPercentage(NaN)).toBe(false));
+  it("rejects Infinity", () =>
+    expect(isValidIntegerPercentage(Infinity)).toBe(false));
+  it("rejects string", () =>
+    expect(isValidIntegerPercentage("50")).toBe(false));
+  it("rejects null", () => expect(isValidIntegerPercentage(null)).toBe(false));
+  it("rejects undefined", () =>
+    expect(isValidIntegerPercentage(undefined)).toBe(false));
+});
