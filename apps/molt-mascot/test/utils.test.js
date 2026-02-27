@@ -1874,6 +1874,16 @@ describe("formatCloseDetail", () => {
     );
   });
 
+  it("strips non-printable control characters from close reasons", () => {
+    expect(formatCloseDetail(1006, "bad\x00server\x07reason")).toBe(
+      "bad server reason (1006)",
+    );
+    expect(formatCloseDetail(1001, "\x1b[31merror\x1b[0m")).toBe(
+      "[31merror [0m (1001)",
+    );
+    expect(formatCloseDetail(1006, "null\x00byte")).toBe("null byte (1006)");
+  });
+
   it("formats all application-specific close codes (4000-4014)", () => {
     expect(formatCloseDetail(4004, "")).toBe("not found (4004)");
     expect(formatCloseDetail(4005, null)).toBe("already connected (4005)");

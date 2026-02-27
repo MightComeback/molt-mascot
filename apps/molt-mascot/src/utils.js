@@ -667,9 +667,13 @@ export const CLOSE_REASON_MAX_LEN = 80;
  */
 export function formatCloseDetail(code, reason) {
   const MAX_REASON_LEN = CLOSE_REASON_MAX_LEN;
-  // Collapse whitespace/newlines to single spaces — some servers send multi-line
-  // close reasons that would break single-line tooltip/debug display.
-  const rawReason = (reason || "").trim().replace(/\s+/g, " ");
+  // Collapse whitespace/newlines to single spaces and strip non-printable control
+  // characters (U+0000–U+001F, U+007F–U+009F) — some servers send binary garbage
+  // or multi-line close reasons that would break single-line tooltip/debug display.
+  const rawReason = (reason || "")
+    .replace(/[\x00-\x1f\x7f-\x9f]/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
   const trimmedReason =
     rawReason.length > MAX_REASON_LEN
       ? rawReason.slice(0, MAX_REASON_LEN - 1) + "…"
