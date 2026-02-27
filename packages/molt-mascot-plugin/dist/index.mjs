@@ -809,7 +809,7 @@ function summarizeToolResultMessage(msg) {
   return "tool error";
 }
 function sanitizeToolName(raw) {
-  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "").replace(/^actions\./, "").replace(/^computer\./, "");
+  return raw.replace(/^default_api:/, "").replace(/^functions\./, "").replace(/^multi_tool_use\./, "").replace(/^actions\./, "").replace(/^computer\./, "").replace(/^tools\./, "").replace(/^tool_use\./, "").replace(/^mcp__[A-Za-z0-9_-]+__/, "");
 }
 var CONTENT_TOOLS = /* @__PURE__ */ new Set([
   "read",

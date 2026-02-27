@@ -335,7 +335,8 @@ declare function summarizeToolResultMessage(msg: any): string;
 /**
  * Strip common tool-name prefixes added by LLM function-calling wrappers.
  * e.g. "default_api:exec" → "exec", "functions.read" → "read",
- * "multi_tool_use.parallel" → "parallel".
+ * "multi_tool_use.parallel" → "parallel",
+ * "mcp__filesystem__read_file" → "read_file".
  *
  * Centralizes the repeated 3-replace chain used in onToolStart, recalcCurrentTool,
  * and onToolEnd to avoid drift and make the stripping logic testable.

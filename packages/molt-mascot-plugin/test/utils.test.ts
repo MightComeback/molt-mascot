@@ -2205,6 +2205,12 @@ describe("utils", () => {
     // Empty string
     expect(sanitizeToolName("tools.web_search")).toBe("web_search");
     expect(sanitizeToolName("tool_use.exec")).toBe("exec");
+    // MCP namespaced tools (mcp__server__tool)
+    expect(sanitizeToolName("mcp__filesystem__read_file")).toBe("read_file");
+    expect(sanitizeToolName("mcp__github__create_issue")).toBe("create_issue");
+    expect(sanitizeToolName("mcp__my-server__list_items")).toBe("list_items");
+    // Plain mcp__ without second separator — no match, pass through
+    expect(sanitizeToolName("mcp__solo")).toBe("mcp__solo");
     expect(sanitizeToolName("")).toBe("");
   });
 
