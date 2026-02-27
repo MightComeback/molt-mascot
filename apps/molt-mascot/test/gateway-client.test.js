@@ -1074,6 +1074,35 @@ describe("GatewayClient", () => {
       expect(pct).toBeLessThanOrEqual(30);
     });
 
+    it("ignores zero processUptimeMs and falls back to firstConnectedAt delta", () => {
+      const now = Date.now();
+      client.firstConnectedAt = now - 5000;
+      client.connectedSince = now - 5000;
+      // 0 is not > 0, so falls back to (now - firstConnectedAt) ≈ 5000ms
+      const pct = client.connectionUptimePercent(0);
+      expect(pct).toBeGreaterThanOrEqual(99);
+      expect(pct).toBeLessThanOrEqual(100);
+    });
+
+    it("ignores negative processUptimeMs and falls back", () => {
+      const now = Date.now();
+      client.firstConnectedAt = now - 5000;
+      client.connectedSince = now - 5000;
+      const pct = client.connectionUptimePercent(-1000);
+      expect(pct).toBeGreaterThanOrEqual(99);
+      expect(pct).toBeLessThanOrEqual(100);
+    });
+
+    it("caps at 100 even when connected longer than processUptimeMs", () => {
+      const now = Date.now();
+      // Connected for 10s but processUptime says only 8s (clock skew edge case)
+      client.firstConnectedAt = now - 10000;
+      client.connectedSince = now - 10000;
+      client.lastDisconnectedAt = null;
+      const pct = client.connectionUptimePercent(8000);
+      expect(pct).toBeLessThanOrEqual(100);
+    });
+
     it("is included in getStatus()", () => {
       const status = client.getStatus();
       expect(status).toHaveProperty("connectionUptimePercent");
