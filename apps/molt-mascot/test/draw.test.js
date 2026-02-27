@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { OVERLAY_KEYS } from "../src/sprites.js";
 import {
   drawSprite,
   drawLobster,
@@ -700,6 +701,14 @@ describe("VALID_OVERLAY_MODES", () => {
     const timingKeys = Object.keys(OVERLAY_TIMING).sort();
     const validModes = [...VALID_OVERLAY_MODES].sort();
     expect(validModes).toEqual(timingKeys);
+  });
+
+  it("matches OVERLAY_KEYS from sprites (cross-module consistency)", () => {
+    // Ensures every sprite overlay has a corresponding timing entry and vice versa.
+    // Catches drift between sprites.js (pixel data) and draw.js (animation config).
+    const spriteKeys = [...OVERLAY_KEYS].sort();
+    const timingKeys = [...VALID_OVERLAY_MODES].sort();
+    expect(timingKeys).toEqual(spriteKeys);
   });
 
   it("is a frozen array", () => {
