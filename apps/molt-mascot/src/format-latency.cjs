@@ -637,11 +637,21 @@ function formatPingSummary(samples, opts = {}) {
         ) / 100
       : 0;
 
-  const stats = { count, min, max, avg, median, jitter };
+  // Percentiles: p95 and p99 use nearest-rank method (same as latency tracker).
+  // Only included when there are enough samples for the percentile to be meaningful
+  // (p95 needs ≥2 samples so the index differs from max; p99 needs ≥10).
+  const p95 = count >= 2 ? sorted[Math.ceil(count * 0.95) - 1] : null;
+  const p99 = count >= 10 ? sorted[Math.ceil(count * 0.99) - 1] : null;
 
+  const stats = { count, min, max, avg, median, jitter };
+  if (p95 !== null) stats.p95 = p95;
+  if (p99 !== null) stats.p99 = p99;
+
+  const p95Str = p95 !== null ? ` p95=${p95}ms` : "";
+  const p99Str = p99 !== null ? ` p99=${p99}ms` : "";
   const text = opts.compact
     ? JSON.stringify(stats)
-    : `\n--- ping statistics ---\n${count} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms jitter=${jitter}ms`;
+    : `\n--- ping statistics ---\n${count} pings: min=${min}ms avg=${avg}ms median=${median}ms max=${max}ms${p95Str}${p99Str} jitter=${jitter}ms`;
 
   return { text, stats };
 }

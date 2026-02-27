@@ -1051,4 +1051,37 @@ describe("formatPingSummary", () => {
     expect(result.stats.avg).toBe(0);
     expect(result.stats.jitter).toBe(0);
   });
+
+  it("includes p95 when sample count >= 2", () => {
+    const result = formatPingSummary([10, 20, 30, 40, 50]);
+    expect(result.stats.p95).toBe(50);
+    expect(result.text).toContain("p95=50ms");
+  });
+
+  it("omits p95 for single sample", () => {
+    const result = formatPingSummary([42]);
+    expect(result.stats.p95).toBeUndefined();
+    expect(result.text).not.toContain("p95=");
+  });
+
+  it("includes p99 when sample count >= 10", () => {
+    const samples = [5, 10, 15, 20, 25, 30, 35, 40, 45, 100];
+    const result = formatPingSummary(samples);
+    expect(result.stats.p99).toBe(100);
+    expect(result.text).toContain("p99=100ms");
+  });
+
+  it("omits p99 when sample count < 10", () => {
+    const result = formatPingSummary([10, 20, 30, 40, 50]);
+    expect(result.stats.p99).toBeUndefined();
+    expect(result.text).not.toContain("p99=");
+  });
+
+  it("includes p95/p99 in compact JSON output", () => {
+    const samples = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const result = formatPingSummary(samples, { compact: true });
+    const parsed = JSON.parse(result.text);
+    expect(parsed.p95).toBeDefined();
+    expect(parsed.p99).toBeDefined();
+  });
 });
