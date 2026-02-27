@@ -77,6 +77,11 @@ function recalcCanvasScale() {
   }
 }
 
+// Debounce interval for window resize recalculations (ms).
+// Defined before first use in _debouncedRecalcScale to avoid TDZ issues
+// (const is block-scoped and not accessible before its declaration).
+const RESIZE_DEBOUNCE_MS = 50;
+
 recalcCanvasScale();
 // Pre-render all sprite frames at the initial scale so the first drawLobster()
 // call hits warm cache (single drawImage) instead of per-pixel fillRect.
@@ -111,8 +116,6 @@ const DEFAULT_WS_URL = "ws://127.0.0.1:18789";
 const TRANSIENT_FEEDBACK_MS = 700;
 // How long the "Connected ✓" celebration shows before transitioning to idle mode.
 const CONNECTED_IDLE_DELAY_MS = 2000;
-// Debounce interval for window resize recalculations (ms).
-const RESIZE_DEBOUNCE_MS = 50;
 // After a tool event, bounce back to thinking mode after this delay (ms).
 // Each new tool event restarts the timer so rapid tool calls don't flicker.
 const TOOL_BOUNCE_DELAY_MS = 250;
