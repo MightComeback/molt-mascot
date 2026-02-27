@@ -13,10 +13,7 @@ import {
   formatDuration,
   formatElapsed,
   MODE_EMOJI,
-  formatLatency,
-  connectionQuality,
-  connectionQualityEmoji,
-  resolveQualitySource,
+  formatLatencyWithQuality,
   healthStatusEmoji,
   formatActiveSummary,
   formatOpacity,
@@ -164,16 +161,9 @@ export function buildContextMenuItems(state) {
     );
   }
   if (typeof latencyMs === "number" && latencyMs >= 0) {
-    // Append connection quality emoji (🟢🟡🟠🔴) for at-a-glance assessment,
-    // matching the tray tooltip and debug info behavior. Use median from rolling
-    // stats when available (more stable than instant latency); fall back to current sample.
-    const quality = connectionQuality(
-      resolveQualitySource(latencyMs, latencyStats),
-    );
-    const qualityEmoji = quality ? connectionQualityEmoji(quality) : "";
-    let latencyPart = qualityEmoji
-      ? `${formatLatency(latencyMs)} ${qualityEmoji}`
-      : formatLatency(latencyMs);
+    // DRY: delegate to formatLatencyWithQuality (parity with debug-info.js)
+    // and append trend arrow (parity with tray tooltip).
+    let latencyPart = formatLatencyWithQuality(latencyMs, latencyStats);
     latencyPart += formatLatencyTrendArrow(latencyTrend);
     statusParts.push(latencyPart);
   }
