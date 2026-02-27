@@ -237,6 +237,47 @@ describe("createBlinkState", () => {
     // Should blink only after the scheduled time
     expect(blink.isBlinking(blink.nextBlinkAt)).toBe(true);
   });
+
+  it("setReducedMotion() toggles blinking without recreating state", () => {
+    const blink = createBlinkState({ initialBlinkAt: 1000 });
+    // Trigger a blink to increment count
+    blink.isBlinking(1000);
+    blink.isBlinking(1000 + BLINK_DURATION_MS);
+    expect(blink.blinkCount).toBe(1);
+
+    // Disable blinking — count is preserved
+    blink.setReducedMotion(true);
+    expect(blink.reducedMotion).toBe(true);
+    expect(blink.isBlinking(blink.nextBlinkAt)).toBe(false);
+    expect(blink.blinkCount).toBe(1); // preserved
+
+    // Re-enable blinking — resumes from where it left off
+    blink.setReducedMotion(false);
+    expect(blink.reducedMotion).toBe(false);
+    expect(blink.isBlinking(blink.nextBlinkAt)).toBe(true);
+  });
+
+  it("reducedMotion getter reflects initial option", () => {
+    const blink = createBlinkState({ reducedMotion: true });
+    expect(blink.reducedMotion).toBe(true);
+
+    const blink2 = createBlinkState({});
+    expect(blink2.reducedMotion).toBe(false);
+  });
+
+  it("setReducedMotion() is reflected in getSnapshot and toString", () => {
+    const blink = createBlinkState({ initialBlinkAt: 5000 });
+    expect(blink.getSnapshot().reducedMotion).toBe(false);
+
+    blink.setReducedMotion(true);
+    expect(blink.getSnapshot().reducedMotion).toBe(true);
+    expect(blink.toString()).toBe("BlinkState<paused>");
+
+    blink.setReducedMotion(false);
+    expect(blink.getSnapshot().reducedMotion).toBe(false);
+    // oxlint-disable-next-line number-arg-out-of-range -- custom toString(now), not Number.prototype.toString
+    expect(blink.toString(3000)).toContain("next in");
+  });
 });
 
 describe("blink timing constants", () => {

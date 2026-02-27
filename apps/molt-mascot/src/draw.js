@@ -257,11 +257,12 @@ export const BLINK_MAX_INTERVAL_MS = 6000;
 export function createBlinkState(opts = {}) {
   let nextBlinkAt = opts.initialBlinkAt ?? 2000 + Math.random() * 4000;
   let blinkCount = 0;
+  let _reducedMotion = !!opts.reducedMotion;
 
   return {
     /** Whether the lobster should be blinking at time t (ms). */
     isBlinking(t) {
-      if (opts.reducedMotion) return false;
+      if (_reducedMotion) return false;
       if (t >= nextBlinkAt) {
         if (t < nextBlinkAt + BLINK_DURATION_MS) return true;
         // Schedule next blink 3-6s from now
@@ -287,11 +288,25 @@ export function createBlinkState(opts = {}) {
      *
      * @returns {{ blinkCount: number, nextBlinkAt: number, reducedMotion: boolean }}
      */
+    /**
+     * Update reduced-motion preference without recreating the blink state.
+     * Preserves blink count and timing so the animation resumes seamlessly
+     * when reduced motion is toggled off.
+     *
+     * @param {boolean} value - Whether reduced motion is active
+     */
+    setReducedMotion(value) {
+      _reducedMotion = !!value;
+    },
+    /** Whether reduced motion is currently active. */
+    get reducedMotion() {
+      return _reducedMotion;
+    },
     getSnapshot() {
       return {
         blinkCount,
         nextBlinkAt,
-        reducedMotion: !!opts.reducedMotion,
+        reducedMotion: _reducedMotion,
       };
     },
     /**
@@ -317,7 +332,7 @@ export function createBlinkState(opts = {}) {
      * @returns {string}
      */
     toString(now) {
-      if (opts.reducedMotion) return "BlinkState<paused>";
+      if (_reducedMotion) return "BlinkState<paused>";
       const t = now ?? Date.now();
       const untilNext = Math.max(0, nextBlinkAt - t);
       const untilStr =
