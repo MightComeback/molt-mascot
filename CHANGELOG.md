@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Network/diagnostic CLI prefixes to `cleanErrorString` (dig, nc, ncat, nmap, ping, traceroute, openssl, lsof)
+- Package manager/service manager prefixes to `cleanErrorString` (brew, apt, apt-get, dpkg, dnf, yum, pacman, snap, flatpak, systemctl, journalctl, launchctl, service)
+
+### Previously added
 - `formatPlatform` utility in plugin for human-readable platform+arch labels (e.g. "darwin arm64" → "macOS ARM64")
 - `formatCountWithLabel` helper in plugin for compact "N item(s)" display
 - `formatRate` utility for compact per-second rate display (e.g. "1.2K/s")

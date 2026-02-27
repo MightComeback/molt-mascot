@@ -620,6 +620,20 @@ var ERROR_PREFIXES = [
   "traceroute:",
   "openssl:",
   "lsof:",
+  // Package managers / service managers
+  "brew:",
+  "apt:",
+  "apt-get:",
+  "dpkg:",
+  "dnf:",
+  "yum:",
+  "pacman:",
+  "snap:",
+  "flatpak:",
+  "systemctl:",
+  "journalctl:",
+  "launchctl:",
+  "service:",
   // OpenClaw specific
   "cron:",
   "nodes:"

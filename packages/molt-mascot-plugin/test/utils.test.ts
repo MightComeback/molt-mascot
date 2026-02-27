@@ -2793,6 +2793,70 @@ describe("cleanErrorString — network/diagnostic CLI prefixes", () => {
   });
 });
 
+describe("cleanErrorString — package/service manager prefixes", () => {
+  it("strips brew prefix", () => {
+    expect(
+      cleanErrorString("brew: No available formula with the name 'foo'"),
+    ).toBe("No available formula with the name 'foo'");
+  });
+
+  it("strips apt prefix", () => {
+    expect(cleanErrorString("apt: Unable to locate package foo")).toBe(
+      "Unable to locate package foo",
+    );
+  });
+
+  it("strips apt-get prefix", () => {
+    expect(cleanErrorString("apt-get: Unable to fetch some archives")).toBe(
+      "Unable to fetch some archives",
+    );
+  });
+
+  it("strips dpkg prefix", () => {
+    expect(
+      cleanErrorString("dpkg: dependency problems prevent configuration"),
+    ).toBe("dependency problems prevent configuration");
+  });
+
+  it("strips dnf prefix", () => {
+    expect(cleanErrorString("dnf: No match for argument: foo")).toBe(
+      "No match for argument: foo",
+    );
+  });
+
+  it("strips pacman prefix", () => {
+    expect(cleanErrorString("pacman: target not found: foo")).toBe(
+      "target not found: foo",
+    );
+  });
+
+  it("strips systemctl prefix", () => {
+    expect(cleanErrorString("systemctl: Failed to start nginx.service")).toBe(
+      "Failed to start nginx.service",
+    );
+  });
+
+  it("strips journalctl prefix", () => {
+    expect(
+      cleanErrorString(
+        "journalctl: Failed to get data: No such file or directory",
+      ),
+    ).toBe("Failed to get data: No such file or directory");
+  });
+
+  it("strips launchctl prefix", () => {
+    expect(
+      cleanErrorString("launchctl: Could not find specified service"),
+    ).toBe("Could not find specified service");
+  });
+
+  it("strips service prefix", () => {
+    expect(cleanErrorString("service: unrecognized service")).toBe(
+      "unrecognized service",
+    );
+  });
+});
+
 describe("cleanErrorString — Node.js version/package manager prefixes", () => {
   it("strips corepack prefix", () => {
     expect(cleanErrorString("corepack: Unable to locate pnpm@latest")).toBe(
