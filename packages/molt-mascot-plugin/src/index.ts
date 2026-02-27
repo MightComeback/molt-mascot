@@ -403,9 +403,10 @@ export function maskSensitiveUrl(url: string): string {
  * Exported so the Electron renderer can reuse the same list (single source of truth).
  */
 export const ERROR_PREFIXES = [
-  // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError, etc.
-  // All specific *Error entries are redundant with this pattern and have been removed.
-  "[a-zA-Z0-9_]*Error",
+  // Generic catch-all: matches TypeError, ReferenceError, SyntaxError, CustomError,
+  // CommandNotFoundException, PageFault, etc.
+  // All specific *Error/*Exception/*Fault entries are redundant with this pattern.
+  "[a-zA-Z0-9_]*(?:Error|Exception|Fault)",
   // Java/JVM-style: java.lang.NullPointerException, kotlin.KotlinNullPointerException, etc.
   // Also handles .NET: System.InvalidOperationException, System.IO.FileNotFoundException, etc.
   "(?:[a-zA-Z_][a-zA-Z0-9_]*\\.)+[a-zA-Z_][a-zA-Z0-9_]*(?:Error|Exception|Fault)",
@@ -514,8 +515,10 @@ export const ERROR_PREFIXES = [
   "chrome:",
   "firefox:",
   "safari:",
-  // .NET CLI
+  // .NET CLI / PowerShell
   "dotnet:",
+  "pwsh:",
+  "powershell:",
   // Node.js version/package managers
   "corepack:",
   "volta:",
@@ -596,6 +599,8 @@ const ERRNO_REGEX = /^E[A-Z]{2,}(?:_[A-Z]+)*\s*:\s*/;
 const NODE_ERR_CODE_REGEX = /^\[ERR_[A-Z_]+\]\s*:\s*/;
 const GO_RUNTIME_REGEX = /^runtime(?:\/\w+)?:\s+/i;
 const IN_PROMISE_REGEX = /^\(in promise\)\s*/i;
+// Windows hex error codes: "Error 0x80070005:" or "0x80004005:" prefixes
+const WIN_HEX_ERROR_REGEX = /^(?:Error\s+)?0x[0-9A-Fa-f]{4,8}\s*:\s*/;
 
 /**
  * Remove common error prefixes to save space on the pixel display.
@@ -711,6 +716,7 @@ export function cleanErrorString(s: string): string {
     str = str.replace(NODE_ERR_CODE_REGEX, "").trim();
     str = str.replace(GO_RUNTIME_REGEX, "").trim();
     str = str.replace(IN_PROMISE_REGEX, "").trim();
+    str = str.replace(WIN_HEX_ERROR_REGEX, "").trim();
   }
   // Take only the first line to avoid dumping stack traces into the pixel display
   const lines = str

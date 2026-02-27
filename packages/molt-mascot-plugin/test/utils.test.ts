@@ -695,7 +695,7 @@ describe("utils", () => {
     );
     // Cloud storage
     expect(cleanErrorString("gsutil: CommandException: No URLs matched")).toBe(
-      "CommandException: No URLs matched",
+      "No URLs matched",
     );
     // Go goroutine stack trace headers
     expect(
@@ -854,6 +854,19 @@ describe("utils", () => {
     expect(cleanErrorString('{"error":"Error: connection refused"}')).toBe(
       "connection refused",
     );
+    // Windows hex error codes
+    expect(cleanErrorString("0x80070005: Access is denied")).toBe(
+      "Access is denied",
+    );
+    expect(cleanErrorString("Error 0x80004005: Unspecified error")).toBe(
+      "Unspecified error",
+    );
+    expect(
+      cleanErrorString("0x80070002: The system cannot find the file"),
+    ).toBe("The system cannot find the file");
+    // PowerShell prefixes
+    expect(cleanErrorString("pwsh: CommandNotFoundException: foo")).toBe("foo");
+    expect(cleanErrorString("powershell: Access denied")).toBe("Access denied");
   });
 
   it("summarizeToolResultMessage", () => {
