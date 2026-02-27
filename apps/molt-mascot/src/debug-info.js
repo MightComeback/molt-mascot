@@ -74,7 +74,6 @@
  */
 
 import {
-  formatDuration,
   formatElapsed,
   formatRelativeTime,
   formatTimestamp,
