@@ -26,6 +26,7 @@ import {
   VALID_CONNECTION_QUALITIES,
   isValidConnectionQuality,
   formatProcessUptime,
+  formatToolThroughput,
 } from "../src/format-latency.cjs";
 
 describe("formatLatency (canonical source)", () => {
@@ -1277,5 +1278,49 @@ describe("formatProcessUptime", () => {
 
   it("handles zero uptime", () => {
     expect(formatProcessUptime(0)).toBe("0s");
+  });
+});
+
+describe("formatToolThroughput", () => {
+  it("returns rate for sufficient uptime", () => {
+    // 120 calls in 120s = 60/min
+    expect(formatToolThroughput(120, 120000)).toBe("60.0/min");
+  });
+
+  it("returns fractional rate", () => {
+    // 10 calls in 180s = 3.33/min
+    expect(formatToolThroughput(10, 180000)).toBe("3.3/min");
+  });
+
+  it("returns null when uptime is below threshold", () => {
+    expect(formatToolThroughput(50, 30000)).toBe(null);
+  });
+
+  it("returns null for zero calls", () => {
+    expect(formatToolThroughput(0, 120000)).toBe(null);
+  });
+
+  it("returns null for negative calls", () => {
+    expect(formatToolThroughput(-5, 120000)).toBe(null);
+  });
+
+  it("returns null for non-finite inputs", () => {
+    expect(formatToolThroughput(NaN, 120000)).toBe(null);
+    expect(formatToolThroughput(10, Infinity)).toBe(null);
+    expect(formatToolThroughput(10, NaN)).toBe(null);
+  });
+
+  it("returns null for non-number inputs", () => {
+    expect(formatToolThroughput("10", 120000)).toBe(null);
+    expect(formatToolThroughput(10, "120000")).toBe(null);
+  });
+
+  it("respects custom minUptimeMs", () => {
+    // 10 calls in 10s with minUptime=5000 → should work
+    expect(formatToolThroughput(10, 10000, { minUptimeMs: 5000 })).toBe(
+      "60.0/min",
+    );
+    // Same but below custom threshold
+    expect(formatToolThroughput(10, 3000, { minUptimeMs: 5000 })).toBe(null);
   });
 });

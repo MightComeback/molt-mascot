@@ -732,6 +732,33 @@ function formatConnectionReliability(
   return parts;
 }
 
+/**
+ * Format tool call throughput as a compact "X.Y/min" string.
+ * Returns null when there isn't enough data for a meaningful rate
+ * (fewer than 60 seconds of uptime or zero calls).
+ *
+ * DRYs up the inline `(calls / uptimeSec) * 60).toFixed(1)/min` pattern
+ * used in debug-info.js and available for context-menu / tray tooltip.
+ *
+ * @param {number} toolCalls - Total tool calls since plugin start
+ * @param {number} uptimeMs - Plugin uptime in milliseconds
+ * @param {{ minUptimeMs?: number }} [opts] - Minimum uptime before reporting (default 60000ms)
+ * @returns {string|null} e.g. "3.2/min", or null if insufficient data
+ */
+function formatToolThroughput(toolCalls, uptimeMs, opts) {
+  const minUptime = opts?.minUptimeMs ?? 60000;
+  if (
+    typeof toolCalls !== "number" ||
+    typeof uptimeMs !== "number" ||
+    !Number.isFinite(toolCalls) ||
+    !Number.isFinite(uptimeMs)
+  )
+    return null;
+  if (toolCalls <= 0 || uptimeMs < minUptime) return null;
+  const perMin = (toolCalls / (uptimeMs / 1000)) * 60;
+  return `${perMin.toFixed(1)}/min`;
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -760,4 +787,5 @@ module.exports = {
   formatConnectionReliability,
   formatPingSummary,
   formatProcessUptime,
+  formatToolThroughput,
 };

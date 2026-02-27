@@ -102,6 +102,7 @@ import {
   formatConnectionReliability,
   formatPingSummary,
   formatProcessUptime,
+  formatToolThroughput,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -127,6 +128,7 @@ export {
   formatConnectionReliability,
   formatPingSummary,
   formatProcessUptime,
+  formatToolThroughput,
 };
 export { formatAlignment };
 

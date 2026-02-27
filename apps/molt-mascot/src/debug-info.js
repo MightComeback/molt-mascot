@@ -96,6 +96,7 @@ import {
   formatMemorySummary,
   formatProcessUptime,
   formatPlatform,
+  formatToolThroughput,
 } from "./utils.js";
 import { formatBoolToggle } from "@molt/mascot-plugin";
 import { maskSensitiveUrl } from "@molt/mascot-plugin";
@@ -318,15 +319,12 @@ export function buildDebugInfo(params) {
       pluginToolErrors > 0
         ? ` (${successRate(pluginToolCalls, pluginToolErrors)}% ok)`
         : "";
-    // Compute tools/min throughput when plugin uptime is available (≥60s for meaningful rate).
-    const uptimeSec =
+    const uptimeMs =
       typeof pluginStartedAt === "number" && pluginStartedAt > 0
-        ? Math.max(0, (now - pluginStartedAt) / 1000)
+        ? Math.max(0, now - pluginStartedAt)
         : 0;
-    const throughputSuffix =
-      uptimeSec >= 60
-        ? `, ${((pluginToolCalls / uptimeSec) * 60).toFixed(1)}/min`
-        : "";
+    const throughput = formatToolThroughput(pluginToolCalls, uptimeMs);
+    const throughputSuffix = throughput ? `, ${throughput}` : "";
     lines.push(
       `Tool calls: ${pluginToolCalls}, errors: ${pluginToolErrors}${rateSuffix}${throughputSuffix}`,
     );
