@@ -13,6 +13,7 @@ const {
   successRate,
   formatTimestampLocal,
   pluralize,
+  formatCountWithLabel,
   maskSensitiveUrl,
 } = require("@molt/mascot-plugin");
 const {
@@ -364,9 +365,7 @@ function buildTrayTooltip(params) {
     parts.push(`🤖 ${formatActiveSummary(activeAgents, activeTools)}`);
   }
   if (typeof agentSessions === "number" && agentSessions > 0) {
-    parts.push(
-      `🧑‍💻 ${formatCount(agentSessions)} ${pluralize(agentSessions, "session")}`,
-    );
+    parts.push(`🧑‍💻 ${formatCountWithLabel(agentSessions, "session")}`);
   }
   if (typeof pluginStartedAt === "number" && pluginStartedAt > 0) {
     parts.push(`🔌 plugin up ${formatElapsed(pluginStartedAt, now)}`);
@@ -396,7 +395,7 @@ function buildTrayTooltip(params) {
           : "";
       const reconnects = sessionConnectCount - 1;
       parts.push(
-        `${reconnectStr} reconnect${reconnects === 1 ? "" : "s"}${attemptSuffix}`,
+        `${reconnectStr} ${pluralize(reconnects, "reconnect")}${attemptSuffix}`,
       );
     }
   }
