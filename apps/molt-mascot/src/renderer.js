@@ -670,6 +670,17 @@ window.__moltMascotGetState = () => ({
   agentSessions: pluginAgentSessions,
   processStartedAt: window.moltMascot?.processStartedAt ?? null,
   processUptimeS: window.moltMascot?.processUptimeS?.() ?? null,
+  connectionSuccessRate: computeConnectionSuccessRate(
+    sessionConnectCount,
+    sessionAttemptCount,
+  ),
+  connectionUptimePct: connectionUptimePercent({
+    processUptimeS: window.moltMascot?.processUptimeS?.() ?? 0,
+    firstConnectedAt,
+    connectedSince,
+    lastDisconnectedAt,
+    now: Date.now(),
+  }),
 });
 
 // Allow capture scripts to backdate modeSince for sleeping-state screenshots.
