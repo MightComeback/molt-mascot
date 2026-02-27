@@ -6,6 +6,7 @@ import register, {
   coerceBoolean,
   summarizeToolResultMessage,
   formatDuration,
+  parseDuration,
   formatBytes,
   formatElapsed,
   formatCount,
@@ -112,6 +113,59 @@ describe("utils", () => {
     expect(formatDuration(NaN)).toBe("0s");
     // Fractional rounds
     expect(formatDuration(59.7)).toBe("1m");
+  });
+
+  it("parseDuration — single units", () => {
+    expect(parseDuration("0s")).toBe(0);
+    expect(parseDuration("45s")).toBe(45);
+    expect(parseDuration("5m")).toBe(300);
+    expect(parseDuration("2h")).toBe(7200);
+    expect(parseDuration("3d")).toBe(259200);
+    expect(parseDuration("1w")).toBe(604800);
+  });
+
+  it("parseDuration — combined units", () => {
+    expect(parseDuration("1m30s")).toBe(90);
+    expect(parseDuration("1h30m")).toBe(5400);
+    expect(parseDuration("1d12h")).toBe(129600);
+    expect(parseDuration("1w2d3h")).toBe(788400);
+  });
+
+  it("parseDuration — whitespace between groups", () => {
+    expect(parseDuration("1h 30m")).toBe(5400);
+    expect(parseDuration("  2m 15s  ")).toBe(135);
+    expect(parseDuration("1d 12h 30m 5s")).toBe(131405);
+  });
+
+  it("parseDuration — plain number (seconds)", () => {
+    expect(parseDuration("120")).toBe(120);
+    expect(parseDuration("0")).toBe(0);
+    expect(parseDuration("  60  ")).toBe(60);
+  });
+
+  it("parseDuration — case insensitive", () => {
+    expect(parseDuration("1H30M")).toBe(5400);
+    expect(parseDuration("5S")).toBe(5);
+  });
+
+  it("parseDuration — returns null for invalid input", () => {
+    expect(parseDuration("")).toBe(null);
+    expect(parseDuration("   ")).toBe(null);
+    expect(parseDuration("abc")).toBe(null);
+    expect(parseDuration("1x")).toBe(null);
+    expect(parseDuration("1h foo")).toBe(null);
+    expect(parseDuration(42 as any)).toBe(null);
+    expect(parseDuration(null as any)).toBe(null);
+  });
+
+  it("parseDuration — roundtrip with formatDuration", () => {
+    // parseDuration(formatDuration(n)) should return n for clean values
+    expect(parseDuration(formatDuration(0))).toBe(0);
+    expect(parseDuration(formatDuration(45))).toBe(45);
+    expect(parseDuration(formatDuration(90))).toBe(90);
+    expect(parseDuration(formatDuration(3661))).toBe(3660); // formatDuration drops seconds for h+m
+    expect(parseDuration(formatDuration(86400))).toBe(86400);
+    expect(parseDuration(formatDuration(604800))).toBe(604800);
   });
 
   it("formatBytes", () => {

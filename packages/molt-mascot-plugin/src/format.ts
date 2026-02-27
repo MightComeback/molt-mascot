@@ -240,3 +240,67 @@ export function pluralize(
 ): string {
   return count === 1 ? singular : (plural ?? singular + "s");
 }
+
+/**
+ * Parse a human-readable duration string into total seconds.
+ * Inverse of {@link formatDuration}.
+ *
+ * Accepted formats:
+ * - Combined units: "1h30m", "2m15s", "1w2d3h", "1d 12h 30m 5s"
+ * - Single units: "30s", "5m", "2h", "3d", "1w"
+ * - Plain number: "120" (treated as seconds)
+ * - Whitespace between groups is allowed: "1h 30m" === "1h30m"
+ *
+ * Unit multipliers: w=week(604800s), d=day(86400s), h=hour(3600s), m=minute(60s), s=second(1s).
+ *
+ * Returns `null` for empty, malformed, or negative-result inputs.
+ *
+ * @param input - Duration string to parse
+ * @returns Total seconds, or null if unparseable
+ */
+export function parseDuration(input: string): number | null {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // Plain number → treat as seconds
+  if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+    const n = Number(trimmed);
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+  }
+
+  const UNITS: Record<string, number> = {
+    w: 604800,
+    d: 86400,
+    h: 3600,
+    m: 60,
+    s: 1,
+  };
+
+  // Match all "number + unit" groups (whitespace-tolerant)
+  const pattern = /(\d+(?:\.\d+)?)\s*([wdhms])/gi;
+  let total = 0;
+  let matched = false;
+  let lastIndex = 0;
+
+  // Validate that the entire string is consumed by valid groups + whitespace
+  const normalized = trimmed.replace(/\s+/g, "");
+  let match: RegExpExecArray | null;
+  const groupPattern = /(\d+(?:\.\d+)?)([wdhms])/gi;
+
+  let reconstructed = "";
+  while ((match = groupPattern.exec(normalized)) !== null) {
+    reconstructed += match[0];
+    const value = Number(match[1]);
+    const unit = match[2].toLowerCase();
+    if (!Number.isFinite(value) || value < 0) return null;
+    total += value * UNITS[unit];
+    matched = true;
+  }
+
+  // Reject if there are leftover characters (e.g. "1h foo", "1x")
+  if (!matched || reconstructed.toLowerCase() !== normalized.toLowerCase())
+    return null;
+
+  return Number.isFinite(total) && total >= 0 ? Math.round(total) : null;
+}
