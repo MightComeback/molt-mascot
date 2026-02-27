@@ -51,19 +51,25 @@ export type Mode = "idle" | "thinking" | "tool" | "error";
 
 export type Size = "tiny" | "small" | "medium" | "large" | "xlarge";
 
+/**
+ * Named type alias for valid alignment values.
+ * Replaces verbose `NonNullable<PluginConfig["alignment"]>` throughout the codebase.
+ */
+export type Alignment =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "top-center"
+  | "bottom-center"
+  | "center-left"
+  | "center-right"
+  | "center";
+
 export type PluginConfig = {
   idleDelayMs?: number;
   errorHoldMs?: number;
-  alignment?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "top-center"
-    | "bottom-center"
-    | "center-left"
-    | "center-right"
-    | "center";
+  alignment?: Alignment;
   clickThrough?: boolean;
   hideText?: boolean;
   reducedMotion?: boolean;
@@ -76,7 +82,7 @@ export type State = {
   mode: Mode;
   since: number;
   lastError?: { message: string; ts: number };
-  alignment?: PluginConfig["alignment"];
+  alignment?: Alignment;
   clickThrough?: boolean;
   hideText?: boolean;
   reducedMotion?: boolean;
@@ -190,9 +196,7 @@ export function coerceMode(v: unknown, fallback: Mode): Mode {
   return fallback;
 }
 
-export const allowedAlignments: readonly NonNullable<
-  PluginConfig["alignment"]
->[] = Object.freeze([
+export const allowedAlignments: readonly Alignment[] = Object.freeze([
   "top-left",
   "top-right",
   "bottom-left",
@@ -214,9 +218,7 @@ const _validAlignmentsSet: ReadonlySet<string> = new Set(allowedAlignments);
  * @param value - Value to check
  * @returns true if the value is a valid alignment string
  */
-export function isValidAlignment(
-  value: unknown,
-): value is NonNullable<PluginConfig["alignment"]> {
+export function isValidAlignment(value: unknown): value is Alignment {
   return typeof value === "string" && _validAlignmentsSet.has(value);
 }
 
@@ -250,14 +252,11 @@ export function coerceSize(v: unknown, fallback: Size): Size {
   return fallback;
 }
 
-export function coerceAlignment(
-  v: unknown,
-  fallback: NonNullable<PluginConfig["alignment"]>,
-): NonNullable<PluginConfig["alignment"]> {
+export function coerceAlignment(v: unknown, fallback: Alignment): Alignment {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
     if ((allowedAlignments as string[]).includes(lower))
-      return lower as NonNullable<PluginConfig["alignment"]>;
+      return lower as Alignment;
   }
   return fallback;
 }
