@@ -191,7 +191,7 @@ const _validModesSet: ReadonlySet<Mode> = new Set(allowedModes);
 export function coerceMode(v: unknown, fallback: Mode): Mode {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if ((allowedModes as string[]).includes(lower)) return lower as Mode;
+    if (_validModesSet.has(lower as Mode)) return lower as Mode;
   }
   return fallback;
 }
@@ -247,7 +247,7 @@ export function isValidSize(value: unknown): value is Size {
 export function coerceSize(v: unknown, fallback: Size): Size {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if ((allowedSizes as string[]).includes(lower)) return lower as Size;
+    if (_validSizesSet.has(lower)) return lower as Size;
   }
   return fallback;
 }
@@ -255,8 +255,7 @@ export function coerceSize(v: unknown, fallback: Size): Size {
 export function coerceAlignment(v: unknown, fallback: Alignment): Alignment {
   if (typeof v === "string") {
     const lower = v.trim().toLowerCase();
-    if ((allowedAlignments as string[]).includes(lower))
-      return lower as Alignment;
+    if (_validAlignmentsSet.has(lower)) return lower as Alignment;
   }
   return fallback;
 }
