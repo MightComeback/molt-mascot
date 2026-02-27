@@ -36,6 +36,7 @@ import register, {
   formatBoolToggle,
   formatCountWithLabel,
   formatPlatform,
+  formatLatencyMs,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2946,5 +2947,45 @@ describe("formatPlatform", () => {
 
   it("formats riscv64 arch", () => {
     expect(formatPlatform("linux", "riscv64")).toBe("Linux RISC-V");
+  });
+});
+
+describe("formatLatencyMs", () => {
+  it("returns 0ms for non-finite inputs", () => {
+    expect(formatLatencyMs(NaN)).toBe("0ms");
+    expect(formatLatencyMs(Infinity)).toBe("0ms");
+    expect(formatLatencyMs(-Infinity)).toBe("0ms");
+  });
+
+  it("returns 0ms for negative values", () => {
+    expect(formatLatencyMs(-1)).toBe("0ms");
+    expect(formatLatencyMs(-100)).toBe("0ms");
+  });
+
+  it("formats sub-second latencies as milliseconds", () => {
+    expect(formatLatencyMs(0)).toBe("0ms");
+    expect(formatLatencyMs(1)).toBe("1ms");
+    expect(formatLatencyMs(12)).toBe("12ms");
+    expect(formatLatencyMs(150)).toBe("150ms");
+    expect(formatLatencyMs(999)).toBe("999ms");
+  });
+
+  it("rounds fractional milliseconds", () => {
+    expect(formatLatencyMs(1.4)).toBe("1ms");
+    expect(formatLatencyMs(1.5)).toBe("2ms");
+    expect(formatLatencyMs(999.9)).toBe("1000ms");
+  });
+
+  it("formats seconds with one decimal for 1-60s range", () => {
+    expect(formatLatencyMs(1000)).toBe("1.0s");
+    expect(formatLatencyMs(1500)).toBe("1.5s");
+    expect(formatLatencyMs(30000)).toBe("30.0s");
+    expect(formatLatencyMs(59999)).toBe("60.0s");
+  });
+
+  it("delegates to formatDuration for >= 60s", () => {
+    expect(formatLatencyMs(60000)).toBe("1m");
+    expect(formatLatencyMs(90000)).toBe("1m 30s");
+    expect(formatLatencyMs(3600000)).toBe("1h");
   });
 });

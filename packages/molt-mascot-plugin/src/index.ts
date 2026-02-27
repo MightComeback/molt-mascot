@@ -22,6 +22,7 @@ export {
   formatBoolToggle,
   formatCountWithLabel,
   formatPlatform,
+  formatLatencyMs,
 } from "./format.js";
 
 import {

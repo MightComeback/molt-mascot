@@ -368,6 +368,27 @@ export function formatPlatform(platform?: string, arch?: string): string {
 }
 
 /**
+ * Format a millisecond value as a compact human-readable latency string.
+ * Optimized for displaying WebSocket round-trip times, tool execution latency, etc.
+ *
+ * - < 1000ms → "Nms" (e.g. "12ms", "150ms")
+ * - ≥ 1000ms and < 60s → "N.Ns" (e.g. "1.5s", "30.0s")
+ * - ≥ 60s → delegates to {@link formatDuration} for "1m 30s" style
+ *
+ * Returns "0ms" for non-finite / negative inputs.
+ *
+ * @param ms - Latency in milliseconds
+ * @returns Compact latency string
+ */
+export function formatLatencyMs(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "0ms";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const seconds = ms / 1000;
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  return formatDuration(Math.round(seconds));
+}
+
+/**
  * Parse a human-readable duration string into total seconds.
  * Inverse of {@link formatDuration}.
  *
