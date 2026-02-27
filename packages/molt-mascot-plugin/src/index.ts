@@ -511,6 +511,11 @@ export const ERROR_PREFIXES = [
   "safari:",
   // .NET CLI
   "dotnet:",
+  // Node.js version/package managers
+  "corepack:",
+  "volta:",
+  "fnm:",
+  "proto:",
   // Cloud CLIs
   "aws:",
   "gcloud:",

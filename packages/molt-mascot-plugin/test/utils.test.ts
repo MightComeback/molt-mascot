@@ -2594,3 +2594,31 @@ describe("cleanErrorString — Unix coreutils/network prefixes", () => {
     );
   });
 });
+
+describe("cleanErrorString — Node.js version/package manager prefixes", () => {
+  it("strips corepack prefix", () => {
+    expect(cleanErrorString("corepack: Unable to locate pnpm@latest")).toBe(
+      "Unable to locate pnpm@latest",
+    );
+  });
+
+  it("strips volta prefix", () => {
+    expect(
+      cleanErrorString("volta: Could not find Node version matching ^20"),
+    ).toBe("Could not find Node version matching ^20");
+  });
+
+  it("strips fnm prefix", () => {
+    expect(
+      cleanErrorString(
+        "fnm: Can't find an installed Node version matching v22",
+      ),
+    ).toBe("Can't find an installed Node version matching v22");
+  });
+
+  it("strips proto prefix", () => {
+    expect(cleanErrorString("proto: Failed to install node 22.0.0")).toBe(
+      "Failed to install node 22.0.0",
+    );
+  });
+});
