@@ -19,6 +19,7 @@ import {
   formatQualitySummary,
   computeHealthStatus,
   computeHealthReasons,
+  connectionUptimePercent as _connectionUptimePercent,
   PLUGIN_STATE_METHODS,
   PLUGIN_RESET_METHODS,
   formatReconnectCount,
@@ -883,22 +884,19 @@ export class GatewayClient {
   connectionUptimePercent(processUptimeMs) {
     if (this.firstConnectedAt === null) return null;
     const now = Date.now();
-    const totalMs =
+    // Convert ms → s for the shared implementation, or fall back to
+    // time-since-first-connect when the caller doesn't provide process uptime.
+    const uptimeS =
       typeof processUptimeMs === "number" && processUptimeMs > 0
-        ? processUptimeMs
-        : now - this.firstConnectedAt;
-    if (totalMs <= 0) return null;
-    const currentDisconnectGap = this.connectedSince
-      ? 0
-      : this.lastDisconnectedAt
-        ? now - this.lastDisconnectedAt
-        : 0;
-    const timeSinceFirstConnect = now - this.firstConnectedAt;
-    const approxConnectedMs = Math.max(
-      0,
-      timeSinceFirstConnect - currentDisconnectGap,
-    );
-    return Math.min(100, Math.round((approxConnectedMs / totalMs) * 100));
+        ? processUptimeMs / 1000
+        : (now - this.firstConnectedAt) / 1000;
+    return _connectionUptimePercent({
+      processUptimeS: uptimeS,
+      firstConnectedAt: this.firstConnectedAt,
+      connectedSince: this.connectedSince,
+      lastDisconnectedAt: this.lastDisconnectedAt,
+      now,
+    });
   }
 
   /**
