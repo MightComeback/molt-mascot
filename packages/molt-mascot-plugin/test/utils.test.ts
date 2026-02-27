@@ -37,6 +37,10 @@ import register, {
   formatCountWithLabel,
   formatPlatform,
   formatLatencyMs,
+  capitalize,
+  formatTimestamp,
+  maskSensitiveUrl,
+  isContentTool,
   type PluginApi,
 } from "../src/index.ts";
 
@@ -2279,7 +2283,6 @@ describe("utils", () => {
   });
 
   it("formatTimestamp", () => {
-    const { formatTimestamp } = require("../src/index");
     // Valid epoch ms → ISO string
     expect(formatTimestamp(0)).toBe("1970-01-01T00:00:00.000Z");
     expect(formatTimestamp(1700000000000)).toBe("2023-11-14T22:13:20.000Z");
@@ -2343,7 +2346,6 @@ describe("utils", () => {
   });
 
   it("capitalize", () => {
-    const { capitalize } = require("../src/index");
     expect(capitalize("hello")).toBe("Hello");
     expect(capitalize("Hello")).toBe("Hello");
     expect(capitalize("a")).toBe("A");
@@ -2379,8 +2381,6 @@ describe("formatBoolToggle", () => {
 });
 
 describe("maskSensitiveUrl", () => {
-  const { maskSensitiveUrl } = require("../src/index");
-
   it("masks token query parameter", () => {
     expect(maskSensitiveUrl("ws://host?token=abc123")).toBe(
       "ws://host?token=***",
@@ -2456,8 +2456,6 @@ describe("maskSensitiveUrl", () => {
 });
 
 describe("isContentTool", () => {
-  const { isContentTool, CONTENT_TOOLS } = require("../src/index");
-
   it("returns true for all members of CONTENT_TOOLS", () => {
     for (const tool of CONTENT_TOOLS) {
       expect(isContentTool(tool)).toBe(true);
