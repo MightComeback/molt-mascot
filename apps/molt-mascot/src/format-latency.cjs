@@ -668,6 +668,36 @@ function formatPingSummary(samples, opts = {}) {
 }
 
 /**
+ * Format process uptime with an optional "since <timestamp>" suffix.
+ * DRYs up the repeated pattern in debug-info.js, tray-icon.cjs, and status-cli.cjs:
+ *   `formatDuration(Math.round(processUptimeS)) + (startedAt ? ` (since ...)` : "")`
+ *
+ * @param {number} uptimeS - Process uptime in seconds
+ * @param {number|null|undefined} [startedAt] - Epoch ms when the process started
+ * @param {{ formatTimestamp?: (ts: number) => string }} [opts] - Custom timestamp formatter
+ * @returns {string|null} e.g. "2h 15m (since 14:30:00)" or "45s", or null if uptimeS is invalid
+ */
+function formatProcessUptime(uptimeS, startedAt, opts) {
+  if (typeof uptimeS !== "number" || !Number.isFinite(uptimeS) || uptimeS < 0)
+    return null;
+  const { formatDuration } = require("@molt/mascot-plugin");
+  const base = formatDuration(Math.round(uptimeS));
+  if (
+    typeof startedAt !== "number" ||
+    !Number.isFinite(startedAt) ||
+    startedAt <= 0
+  )
+    return base;
+  const fmt = opts?.formatTimestamp;
+  if (typeof fmt === "function") return `${base} (since ${fmt(startedAt)})`;
+  // Default: ISO-like short format (HH:MM:SS)
+  const d = new Date(startedAt);
+  const pad = (n) => String(n).padStart(2, "0");
+  const ts = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return `${base} (since ${ts})`;
+}
+
+/**
  * Build compact connection reliability suffix parts from success rate and uptime percentage.
  * Returns an array of strings like ["95% ok", "87% connected"] — only includes parts
  * where the value is below 100% (perfect reliability is omitted to reduce noise).
@@ -729,4 +759,5 @@ module.exports = {
   formatReconnectCount,
   formatConnectionReliability,
   formatPingSummary,
+  formatProcessUptime,
 };

@@ -99,6 +99,7 @@ import {
   formatReconnectCount,
   formatConnectionReliability,
   formatPingSummary,
+  formatProcessUptime,
 } from "./format-latency.cjs";
 import { formatAlignment } from "./get-position.cjs";
 export {
@@ -123,6 +124,7 @@ export {
   formatReconnectCount,
   formatConnectionReliability,
   formatPingSummary,
+  formatProcessUptime,
 };
 export { formatAlignment };
 

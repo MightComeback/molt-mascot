@@ -95,6 +95,7 @@ import {
   formatReconnectCount,
   memoryPressure,
   formatMemorySummary,
+  formatProcessUptime,
 } from "./utils.js";
 import { formatBoolToggle } from "@molt/mascot-plugin";
 import { maskSensitiveUrl } from "@molt/mascot-plugin";
@@ -414,14 +415,11 @@ export function buildDebugInfo(params) {
     versions?.bun ? `Bun ${versions.bun}` : null,
   ].filter(Boolean);
   if (runtimeParts.length) lines.push(`Runtime: ${runtimeParts.join(", ")}`);
-  if (typeof processUptimeS === "number" && processUptimeS >= 0) {
-    const startedSuffix =
-      typeof processStartedAt === "number" && processStartedAt > 0
-        ? ` (since ${formatTimestamp(processStartedAt)})`
-        : "";
-    lines.push(
-      `Process uptime: ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`,
-    );
+  {
+    const uptimeStr = formatProcessUptime(processUptimeS, processStartedAt, {
+      formatTimestamp,
+    });
+    if (uptimeStr) lines.push(`Process uptime: ${uptimeStr}`);
   }
   if (typeof pid === "number" && pid > 0) {
     lines.push(`PID: ${pid}`);

@@ -25,6 +25,7 @@ import {
   formatConnectionReliability,
   VALID_CONNECTION_QUALITIES,
   isValidConnectionQuality,
+  formatProcessUptime,
 } from "../src/format-latency.cjs";
 
 describe("formatLatency (canonical source)", () => {
@@ -1235,5 +1236,46 @@ describe("formatConnectionReliability", () => {
   it("handles mixed null and valid values", () => {
     expect(formatConnectionReliability(null, 80)).toEqual(["80% connected"]);
     expect(formatConnectionReliability(90, null)).toEqual(["90% ok"]);
+  });
+});
+
+describe("formatProcessUptime", () => {
+  it("returns null for invalid uptimeS", () => {
+    expect(formatProcessUptime(NaN)).toBeNull();
+    expect(formatProcessUptime(-1)).toBeNull();
+    expect(formatProcessUptime(Infinity)).toBeNull();
+    expect(formatProcessUptime("60")).toBeNull();
+    expect(formatProcessUptime(null)).toBeNull();
+    expect(formatProcessUptime(undefined)).toBeNull();
+  });
+
+  it("formats uptime without startedAt", () => {
+    const result = formatProcessUptime(3600);
+    expect(result).toBe("1h");
+  });
+
+  it("formats uptime with startedAt using default formatter", () => {
+    // 2026-01-15T10:30:45.000Z
+    const startedAt = new Date(2026, 0, 15, 10, 30, 45).getTime();
+    const result = formatProcessUptime(7200, startedAt);
+    expect(result).toBe("2h (since 10:30:45)");
+  });
+
+  it("formats uptime with custom formatTimestamp", () => {
+    const result = formatProcessUptime(45, 1700000000000, {
+      formatTimestamp: () => "custom-ts",
+    });
+    expect(result).toBe("45s (since custom-ts)");
+  });
+
+  it("ignores invalid startedAt", () => {
+    expect(formatProcessUptime(60, null)).toBe("1m");
+    expect(formatProcessUptime(60, 0)).toBe("1m");
+    expect(formatProcessUptime(60, -100)).toBe("1m");
+    expect(formatProcessUptime(60, NaN)).toBe("1m");
+  });
+
+  it("handles zero uptime", () => {
+    expect(formatProcessUptime(0)).toBe("0s");
   });
 });

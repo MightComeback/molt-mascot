@@ -24,6 +24,7 @@ const {
   computeConnectionSuccessRate,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatProcessUptime,
 } = require("./format-latency.cjs");
 const { MODE_EMOJI } = require("./mode-emoji.cjs");
 const { formatAlignment } = require("./get-position.cjs");
@@ -373,14 +374,11 @@ function buildTrayTooltip(params) {
   if (typeof lastResetAt === "number" && lastResetAt > 0) {
     parts.push(`🔄 reset ${formatElapsed(lastResetAt, now)} ago`);
   }
-  if (typeof processUptimeS === "number" && processUptimeS >= 0) {
-    const startedSuffix =
-      typeof processStartedAt === "number" && processStartedAt > 0
-        ? ` (since ${formatTimestampLocal(processStartedAt, now)})`
-        : "";
-    parts.push(
-      `🕐 ${formatDuration(Math.round(processUptimeS))}${startedSuffix}`,
-    );
+  {
+    const uptimeStr = formatProcessUptime(processUptimeS, processStartedAt, {
+      formatTimestamp: (ts) => formatTimestampLocal(ts, now),
+    });
+    if (uptimeStr) parts.push(`🕐 ${uptimeStr}`);
   }
   if (typeof processMemoryRssBytes === "number" && processMemoryRssBytes > 0) {
     parts.push(`🧠 ${formatBytes(processMemoryRssBytes)}`);
