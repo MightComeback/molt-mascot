@@ -20,11 +20,15 @@
 *.jpg   binary
 *.jpeg  binary
 *.gif   binary
+*.webp  binary
+*.avif  binary
 *.ico   binary
+*.icns  binary
 *.woff  binary
 *.woff2 binary
 *.ttf   binary
 *.eot   binary
+*.asar  binary
 
 # Lock files
 bun.lockb binary
