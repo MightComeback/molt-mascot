@@ -583,6 +583,15 @@ export const ERROR_PREFIXES = [
   "sort:",
   "head:",
   "tail:",
+  // Network / diagnostic CLIs
+  "dig:",
+  "nc:",
+  "ncat:",
+  "nmap:",
+  "ping:",
+  "traceroute:",
+  "openssl:",
+  "lsof:",
   // OpenClaw specific
   "cron:",
   "nodes:",

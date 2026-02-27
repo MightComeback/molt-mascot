@@ -2743,6 +2743,56 @@ describe("cleanErrorString — Unix coreutils/network prefixes", () => {
   });
 });
 
+describe("cleanErrorString — network/diagnostic CLI prefixes", () => {
+  it("strips dig prefix", () => {
+    expect(cleanErrorString("dig: couldn't get address for 'bad.host'")).toBe(
+      "couldn't get address for 'bad.host'",
+    );
+  });
+
+  it("strips nc prefix", () => {
+    expect(
+      cleanErrorString("nc: connect to localhost port 9999 (tcp) failed"),
+    ).toBe("connect to localhost port 9999 (tcp) failed");
+  });
+
+  it("strips ncat prefix", () => {
+    expect(cleanErrorString("ncat: Connection refused")).toBe(
+      "Connection refused",
+    );
+  });
+
+  it("strips nmap prefix", () => {
+    expect(cleanErrorString("nmap: Failed to resolve 'bad.host'")).toBe(
+      "Failed to resolve 'bad.host'",
+    );
+  });
+
+  it("strips ping prefix", () => {
+    expect(
+      cleanErrorString("ping: cannot resolve bad.host: Unknown host"),
+    ).toBe("cannot resolve bad.host: Unknown host");
+  });
+
+  it("strips traceroute prefix", () => {
+    expect(cleanErrorString("traceroute: unknown host bad.host")).toBe(
+      "unknown host bad.host",
+    );
+  });
+
+  it("strips openssl prefix", () => {
+    expect(cleanErrorString("openssl: unable to load certificate")).toBe(
+      "unable to load certificate",
+    );
+  });
+
+  it("strips lsof prefix", () => {
+    expect(cleanErrorString("lsof: no file use located")).toBe(
+      "no file use located",
+    );
+  });
+});
+
 describe("cleanErrorString — Node.js version/package manager prefixes", () => {
   it("strips corepack prefix", () => {
     expect(cleanErrorString("corepack: Unable to locate pnpm@latest")).toBe(
