@@ -22,6 +22,8 @@ import {
   connectionUptimePercent,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  VALID_CONNECTION_QUALITIES,
+  isValidConnectionQuality,
 } from "../src/format-latency.cjs";
 
 describe("formatLatency (canonical source)", () => {
@@ -148,6 +150,51 @@ describe("resolveQualitySource", () => {
 
   it("handles instant of 0 (valid)", () => {
     expect(resolveQualitySource(0, null)).toBe(0);
+  });
+});
+
+describe("VALID_CONNECTION_QUALITIES", () => {
+  it("exports a frozen array of quality strings", () => {
+    expect(VALID_CONNECTION_QUALITIES).toBeDefined();
+    expect(Object.isFrozen(VALID_CONNECTION_QUALITIES)).toBe(true);
+    expect(Array.isArray(VALID_CONNECTION_QUALITIES)).toBe(true);
+  });
+
+  it("contains expected quality levels", () => {
+    expect(VALID_CONNECTION_QUALITIES).toContain("excellent");
+    expect(VALID_CONNECTION_QUALITIES).toContain("good");
+    expect(VALID_CONNECTION_QUALITIES).toContain("fair");
+    expect(VALID_CONNECTION_QUALITIES).toContain("poor");
+  });
+
+  it("all entries are non-empty strings", () => {
+    for (const q of VALID_CONNECTION_QUALITIES) {
+      expect(typeof q).toBe("string");
+      expect(q.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("isValidConnectionQuality", () => {
+  it("accepts all VALID_CONNECTION_QUALITIES entries", () => {
+    for (const q of VALID_CONNECTION_QUALITIES) {
+      expect(isValidConnectionQuality(q)).toBe(true);
+    }
+  });
+
+  it("rejects unknown strings", () => {
+    expect(isValidConnectionQuality("amazing")).toBe(false);
+    expect(isValidConnectionQuality("")).toBe(false);
+    expect(isValidConnectionQuality("EXCELLENT")).toBe(false);
+  });
+
+  it("rejects non-string types", () => {
+    expect(isValidConnectionQuality(null)).toBe(false);
+    expect(isValidConnectionQuality(undefined)).toBe(false);
+    expect(isValidConnectionQuality(42)).toBe(false);
+    expect(isValidConnectionQuality(true)).toBe(false);
+    expect(isValidConnectionQuality({})).toBe(false);
+    expect(isValidConnectionQuality([])).toBe(false);
   });
 });
 
