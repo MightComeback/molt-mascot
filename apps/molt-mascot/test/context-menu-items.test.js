@@ -616,6 +616,14 @@ describe("buildContextMenuItems", () => {
       "snap",
       "reduced-motion",
       "reset-prefs",
+      "copy-status",
+      "copy-debug",
+      "change-gateway",
+      "hide",
+      "about",
+      "github",
+      "devtools",
+      "quit",
     ];
     for (const id of idsWithTitles) {
       const item = result.items.find((i) => i.id === id);

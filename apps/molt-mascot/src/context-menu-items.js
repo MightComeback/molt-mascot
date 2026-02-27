@@ -259,11 +259,17 @@ export function buildContextMenuItems(state) {
       checked: reducedMotion,
       title: "Suppress animations (bob, pulse, overlay frames)",
     },
-    { id: "copy-status", label: "Copy Status", hint: `${modKey}${shiftKey}P` },
+    {
+      id: "copy-status",
+      label: "Copy Status",
+      hint: `${modKey}${shiftKey}P`,
+      title: "Copy the status summary line to clipboard",
+    },
     {
       id: "copy-debug",
       label: "Copy Debug Info",
       hint: `${modKey}${shiftKey}I`,
+      title: "Copy detailed diagnostic information to clipboard",
     },
     ...(connectedSince || targetUrl
       ? [{ id: "copy-gateway-url", label: "Copy Gateway URL" }]
@@ -273,18 +279,45 @@ export function buildContextMenuItems(state) {
       label: connectedSince ? "Force Reconnect" : "Reconnect Now",
       hint: `${modKey}${shiftKey}C`,
     },
-    { id: "change-gateway", label: "Change Gateway…" },
+    {
+      id: "change-gateway",
+      label: "Change Gateway…",
+      title: "Connect to a different OpenClaw gateway URL",
+    },
     {
       id: "reset-prefs",
       label: "Reset Preferences…",
       title: "Restore all preferences to defaults",
     },
-    { id: "hide", label: "Hide Mascot", hint: `${modKey}${shiftKey}V` },
+    {
+      id: "hide",
+      label: "Hide Mascot",
+      hint: `${modKey}${shiftKey}V`,
+      title: "Hide the mascot window (reopen from tray icon)",
+    },
     { id: "sep-2", separator: true },
-    { id: "about", label: "About Molt Mascot" },
-    { id: "github", label: "Open on GitHub…" },
-    { id: "devtools", label: "DevTools", hint: `${modKey}${shiftKey}D` },
-    { id: "quit", label: "Quit", hint: `${modKey}${altKey}Q` },
+    {
+      id: "about",
+      label: "About Molt Mascot",
+      title: "Show version and credits",
+    },
+    {
+      id: "github",
+      label: "Open on GitHub…",
+      title: "Open the project repository in your browser",
+    },
+    {
+      id: "devtools",
+      label: "DevTools",
+      hint: `${modKey}${shiftKey}D`,
+      title: "Open Chromium DevTools for the renderer window",
+    },
+    {
+      id: "quit",
+      label: "Quit",
+      hint: `${modKey}${altKey}Q`,
+      title: "Quit Molt Mascot",
+    },
   ];
 
   return { statusLine, items };
