@@ -22,6 +22,7 @@ import {
   connectionUptimePercent,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatConnectionReliability,
   VALID_CONNECTION_QUALITIES,
   isValidConnectionQuality,
 } from "../src/format-latency.cjs";
@@ -1083,5 +1084,54 @@ describe("formatPingSummary", () => {
     const parsed = JSON.parse(result.text);
     expect(parsed.p95).toBeDefined();
     expect(parsed.p99).toBeDefined();
+  });
+});
+
+describe("formatConnectionReliability", () => {
+  it("returns empty array when both are null", () => {
+    expect(formatConnectionReliability(null, null)).toEqual([]);
+  });
+
+  it("returns empty array when both are undefined", () => {
+    expect(formatConnectionReliability(undefined, undefined)).toEqual([]);
+  });
+
+  it("returns empty array when both are 100%", () => {
+    expect(formatConnectionReliability(100, 100)).toEqual([]);
+  });
+
+  it("includes success rate when below 100%", () => {
+    expect(formatConnectionReliability(95, 100)).toEqual(["95% ok"]);
+  });
+
+  it("includes uptime when below 100%", () => {
+    expect(formatConnectionReliability(100, 87)).toEqual(["87% connected"]);
+  });
+
+  it("includes both when both are below 100%", () => {
+    expect(formatConnectionReliability(90, 75)).toEqual([
+      "90% ok",
+      "75% connected",
+    ]);
+  });
+
+  it("includes 0% values", () => {
+    expect(formatConnectionReliability(0, 0)).toEqual([
+      "0% ok",
+      "0% connected",
+    ]);
+  });
+
+  it("ignores negative values", () => {
+    expect(formatConnectionReliability(-1, -5)).toEqual([]);
+  });
+
+  it("ignores non-number types", () => {
+    expect(formatConnectionReliability("95", "87")).toEqual([]);
+  });
+
+  it("handles mixed null and valid values", () => {
+    expect(formatConnectionReliability(null, 80)).toEqual(["80% connected"]);
+    expect(formatConnectionReliability(90, null)).toEqual(["90% ok"]);
   });
 });

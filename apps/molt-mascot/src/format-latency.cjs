@@ -656,6 +656,41 @@ function formatPingSummary(samples, opts = {}) {
   return { text, stats };
 }
 
+/**
+ * Build compact connection reliability suffix parts from success rate and uptime percentage.
+ * Returns an array of strings like ["95% ok", "87% connected"] — only includes parts
+ * where the value is below 100% (perfect reliability is omitted to reduce noise).
+ *
+ * DRYs up the repeated conditional formatting of connectionSuccessRate and
+ * connectionUptimePct used across buildTooltip, buildTrayTooltip,
+ * buildContextMenuItems, and buildDebugInfo.
+ *
+ * @param {number|null|undefined} connectionSuccessRate - Integer percentage (0-100), or null
+ * @param {number|null|undefined} connectionUptimePct - Integer percentage (0-100), or null
+ * @returns {string[]} Array of formatted parts (may be empty if both are 100% or null)
+ */
+function formatConnectionReliability(
+  connectionSuccessRate,
+  connectionUptimePct,
+) {
+  const parts = [];
+  if (
+    typeof connectionSuccessRate === "number" &&
+    connectionSuccessRate >= 0 &&
+    connectionSuccessRate < 100
+  ) {
+    parts.push(`${connectionSuccessRate}% ok`);
+  }
+  if (
+    typeof connectionUptimePct === "number" &&
+    connectionUptimePct >= 0 &&
+    connectionUptimePct < 100
+  ) {
+    parts.push(`${connectionUptimePct}% connected`);
+  }
+  return parts;
+}
+
 module.exports = {
   formatLatency,
   connectionQuality,
@@ -681,5 +716,6 @@ module.exports = {
   connectionUptimePercent,
   formatLatencyTrendArrow,
   formatReconnectCount,
+  formatConnectionReliability,
   formatPingSummary,
 };
