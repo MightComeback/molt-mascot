@@ -658,6 +658,7 @@ window.__moltMascotGetState = () => ({
   healthStatus: currentHealthStatus(),
   pillText: pill.textContent || "",
   pillClass: pill.className || "",
+  agentSessions: pluginAgentSessions,
   processStartedAt: window.moltMascot?.processStartedAt ?? null,
   processUptimeS: window.moltMascot?.processUptimeS?.() ?? null,
 });
