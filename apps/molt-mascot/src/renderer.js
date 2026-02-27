@@ -438,8 +438,13 @@ function syncPill() {
     lastCloseDetail,
     isClickThrough,
     activeAgents: pluginActiveAgents,
+    activeTools: pluginActiveTools,
+    reconnectAttempt,
+    sessionConnectCount,
     healthStatus: _healthStatus,
     latencyTrend: _latencyTracker.trend(),
+    latencyMs,
+    latencyStats: getLatencyStats(),
   });
 
   const { label, cssClass, effectiveMode, ariaLive } = pillResult;
