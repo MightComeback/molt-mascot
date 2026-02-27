@@ -541,6 +541,22 @@ export function normalizeWsUrl(url) {
 }
 
 /**
+ * Normalize and validate a WebSocket URL in one step.
+ * Composes normalizeWsUrl() + validateWsUrl() — the pattern used everywhere
+ * a user-provided URL is accepted (setup form, CLI, saved prefs).
+ *
+ * @param {string} raw - Raw URL input from the user
+ * @returns {{ url: string, error: null } | { url: string, error: string }}
+ *   On success: normalized URL with error=null.
+ *   On failure: best-effort normalized URL with a human-readable error string.
+ */
+export function sanitizeWsUrl(raw) {
+  const url = normalizeWsUrl(raw);
+  const error = validateWsUrl(url);
+  return { url, error: error ?? null };
+}
+
+/**
  * Validate a WebSocket URL structure beyond just scheme checking.
  * Returns null if valid, or a human-readable error string describing the problem.
  *

@@ -34,6 +34,7 @@ import {
   connectionUptimePercent,
   computeHealthReasons,
   validateWsUrl,
+  sanitizeWsUrl,
   VALID_MODES,
   isValidMode,
   computeConnectionSuccessRate,
@@ -1722,6 +1723,43 @@ describe("validateWsUrl", () => {
       /credentials/i,
     );
     expect(validateWsUrl("ws://user@localhost")).toMatch(/credentials/i);
+  });
+});
+
+describe("sanitizeWsUrl", () => {
+  it("normalizes and validates a valid URL in one call", () => {
+    const result = sanitizeWsUrl("http://localhost:8080");
+    expect(result.url).toBe("ws://localhost:8080");
+    expect(result.error).toBe(null);
+  });
+
+  it("normalizes https to wss and validates", () => {
+    const result = sanitizeWsUrl("https://gateway.example.com/ws");
+    expect(result.url).toBe("wss://gateway.example.com/ws");
+    expect(result.error).toBe(null);
+  });
+
+  it("auto-adds ws:// for bare host and validates", () => {
+    const result = sanitizeWsUrl("127.0.0.1:18789");
+    expect(result.url).toBe("ws://127.0.0.1:18789");
+    expect(result.error).toBe(null);
+  });
+
+  it("returns error for empty input", () => {
+    const result = sanitizeWsUrl("");
+    expect(result.error).toBe("URL is empty");
+  });
+
+  it("returns both normalized URL and error for invalid URLs", () => {
+    const result = sanitizeWsUrl("ws://user:pass@localhost");
+    expect(result.url).toBe("ws://user:pass@localhost");
+    expect(result.error).toMatch(/credentials/i);
+  });
+
+  it("passes through already-valid ws:// URLs", () => {
+    const result = sanitizeWsUrl("ws://localhost:18789");
+    expect(result.url).toBe("ws://localhost:18789");
+    expect(result.error).toBe(null);
   });
 });
 
