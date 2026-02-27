@@ -523,6 +523,12 @@ kbd {
   opacity: 0.35;
   cursor: default;
 }
+#molt-ctx [role="menuitem"]:focus-visible,
+#molt-ctx [role="menuitemcheckbox"]:focus-visible {
+  outline: 2px solid rgba(10, 132, 255, 0.8);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
 #molt-ctx .ctx-hint {
   opacity: 0.45;
   font-size: 10px;
