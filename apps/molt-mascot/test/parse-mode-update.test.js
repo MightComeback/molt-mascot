@@ -756,5 +756,24 @@ describe("parse-mode-update", () => {
       const parsed = parseModeUpdate({});
       expect(formatModeUpdate(parsed)).not.toContain("↺");
     });
+
+    it("shows stale lastMessageAt when gap exceeds 5s", () => {
+      const now = 1700000010000;
+      const parsed = parseModeUpdate({ lastMessageAt: 1700000000000 });
+      const str = formatModeUpdate(parsed, { now });
+      expect(str).toContain("msg 10s ago");
+    });
+
+    it("omits lastMessageAt when gap is under 5s", () => {
+      const now = 1700000003000;
+      const parsed = parseModeUpdate({ lastMessageAt: 1700000000000 });
+      const str = formatModeUpdate(parsed, { now });
+      expect(str).not.toContain("msg");
+    });
+
+    it("omits lastMessageAt when null", () => {
+      const parsed = parseModeUpdate({});
+      expect(formatModeUpdate(parsed)).not.toContain("msg");
+    });
   });
 });

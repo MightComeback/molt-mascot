@@ -287,6 +287,15 @@ function formatModeUpdate(parsed, opts) {
     parts.push(`up ${formatDuration(uptimeS)}`);
   }
   if (parsed.lastResetAt !== null) parts.push("↺ reset");
+  // Surface stale lastMessageAt (>5s ago) in diagnostic output — parity with
+  // buildTooltip and buildTrayTooltip which both show "last msg Xs ago" when stale.
+  if (parsed.lastMessageAt !== null) {
+    const now = opts?.now ?? Date.now();
+    const gapMs = now - parsed.lastMessageAt;
+    if (gapMs >= 5000) {
+      parts.push(`msg ${formatDuration(Math.round(gapMs / 1000))} ago`);
+    }
+  }
   if (parsed.pluginVersion) parts.push(`v${parsed.pluginVersion}`);
 
   if (parts.length === 0) return "ModeUpdate<empty>";
