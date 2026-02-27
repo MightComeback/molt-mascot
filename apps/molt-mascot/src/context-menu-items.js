@@ -38,6 +38,7 @@ import { formatAlignment } from "./get-position.cjs";
  * @property {boolean} [separator] - Render as divider
  * @property {boolean} [disabled] - Non-interactive
  * @property {boolean} [checked] - Toggle item checked state (renders as menuitemcheckbox with aria-checked)
+ * @property {string} [title] - Hover tooltip / aria-description for the menu item
  */
 
 /**
@@ -213,14 +214,22 @@ export function buildContextMenuItems(state) {
       label: "Ghost Mode",
       hint: `${modKey}${shiftKey}M`,
       checked: isClickThrough,
+      title:
+        "Click through the mascot window (mouse events pass to apps behind)",
     },
     {
       id: "hide-text",
       label: "Hide Text",
       hint: `${modKey}${shiftKey}H`,
       checked: isTextHidden,
+      title: "Hide the status pill label text",
     },
-    { id: "reset", label: "Reset State", hint: `${modKey}${shiftKey}R` },
+    {
+      id: "reset",
+      label: "Reset State",
+      hint: `${modKey}${shiftKey}R`,
+      title: "Reset the plugin state on the Gateway",
+    },
     {
       id: "alignment",
       label: `Cycle Alignment (${formatAlignment(alignment)})`,
@@ -231,6 +240,7 @@ export function buildContextMenuItems(state) {
       label: "Snap to Position",
       hint: `${modKey}${shiftKey}S`,
       disabled: !hasDragPosition,
+      title: "Return to the aligned position after dragging",
     },
     {
       id: "size",
@@ -247,6 +257,7 @@ export function buildContextMenuItems(state) {
       label: "Reduced Motion",
       hint: `${modKey}${shiftKey}N`,
       checked: reducedMotion,
+      title: "Suppress animations (bob, pulse, overlay frames)",
     },
     { id: "copy-status", label: "Copy Status", hint: `${modKey}${shiftKey}P` },
     {
@@ -263,7 +274,11 @@ export function buildContextMenuItems(state) {
       hint: `${modKey}${shiftKey}C`,
     },
     { id: "change-gateway", label: "Change Gateway…" },
-    { id: "reset-prefs", label: "Reset Preferences…" },
+    {
+      id: "reset-prefs",
+      label: "Reset Preferences…",
+      title: "Restore all preferences to defaults",
+    },
     { id: "hide", label: "Hide Mascot", hint: `${modKey}${shiftKey}V` },
     { id: "sep-2", separator: true },
     { id: "about", label: "About Molt Mascot" },

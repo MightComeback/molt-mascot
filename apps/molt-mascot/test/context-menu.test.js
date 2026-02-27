@@ -748,6 +748,22 @@ describe("context-menu", () => {
     expect(menu._children[2]._attrs["aria-checked"]).toBeUndefined();
   });
 
+  it("sets title and aria-description on items with title", () => {
+    const menu = ctxMenu.show(
+      [
+        { label: "With Title", title: "A helpful tooltip", action: () => {} },
+        { label: "No Title", action: () => {} },
+      ],
+      { x: 0, y: 0 },
+    );
+    expect(menu._children[0].title).toBe("A helpful tooltip");
+    expect(menu._children[0]._attrs["aria-description"]).toBe(
+      "A helpful tooltip",
+    );
+    expect(menu._children[1].title).toBeUndefined();
+    expect(menu._children[1]._attrs["aria-description"]).toBeUndefined();
+  });
+
   it("sets aria-keyshortcuts on items with hint text", () => {
     const menu = ctxMenu.show(
       [

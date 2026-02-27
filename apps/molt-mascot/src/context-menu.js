@@ -87,6 +87,10 @@ export function show(items, { x, y }) {
     row.setAttribute("role", isToggle ? "menuitemcheckbox" : "menuitem");
     if (isToggle) row.setAttribute("aria-checked", String(item.checked));
     row.tabIndex = -1;
+    if (item.title) {
+      row.title = item.title;
+      row.setAttribute("aria-description", item.title);
+    }
     if (item.disabled) {
       row.setAttribute("aria-disabled", "true");
       row.dataset.disabled = "";

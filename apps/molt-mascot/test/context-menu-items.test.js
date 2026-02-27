@@ -606,4 +606,30 @@ describe("buildContextMenuItems", () => {
     const item = result.items.find((i) => i.id === "reduced-motion");
     expect(item.checked).toBe(true);
   });
+
+  it("toggle and action items have title tooltips", () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    const idsWithTitles = [
+      "ghost",
+      "hide-text",
+      "reset",
+      "snap",
+      "reduced-motion",
+      "reset-prefs",
+    ];
+    for (const id of idsWithTitles) {
+      const item = result.items.find((i) => i.id === id);
+      expect(item).toBeDefined();
+      expect(typeof item.title).toBe("string");
+      expect(item.title.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("separator and status items do not have titles", () => {
+    const result = buildContextMenuItems(BASE_STATE);
+    const status = result.items.find((i) => i.id === "status");
+    expect(status.title).toBeUndefined();
+    const sep = result.items.find((i) => i.id === "sep-1");
+    expect(sep.title).toBeUndefined();
+  });
 });
